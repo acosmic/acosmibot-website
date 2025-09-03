@@ -445,6 +445,7 @@
                 <ul class="nav-links">
                     <li><a href="#features">Features</a></li>
                     <li><a href="#commands">Commands</a></li>
+                    <li><a href="/user_dashboard.html" id="dashboardLink" style="display: none;">Dashboard</a></li>
                     <li><a href="https://github.com/acosmic/acosmibot">GitHub</a></li>
                 </ul>
                 <button class="login-btn" id="loginBtn">
@@ -796,12 +797,8 @@
                 ${user.username}
             `;
 
-            // Add dashboard button
-            const dashboardBtn = document.createElement('a');
-            dashboardBtn.href = '/user_dashboard.html';
-            dashboardBtn.className = 'btn';
-            dashboardBtn.innerHTML = '🏠 Dashboard';
-            loginBtn.parentNode.insertBefore(dashboardBtn, loginBtn.nextSibling);
+            // Show dashboard link in navigation
+            document.getElementById('dashboardLink').style.display = 'block';
         }
 
     </script>

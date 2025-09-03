@@ -346,8 +346,8 @@
     </div>
 
     <script>
-        // Configuration
-        const API_BASE_URL = 'https://api.acosmibot.com';
+        // Configuration - Update this with your actual API URL
+        const API_BASE_URL = 'https://api.acosmibot.com'; // Your API domain
         let currentUser = null;
 
         // Initialize dashboard
@@ -357,7 +357,19 @@
 
         // Check authentication and load user data
         async function checkAuthAndLoadData() {
-            const token = localStorage.getItem('discord_token');
+            // Check for token in URL parameters first (from OAuth redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            let token = urlParams.get('token');
+
+            if (token) {
+                // Store token from URL and clean up URL
+                localStorage.setItem('discord_token', token);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                // Try to get token from localStorage
+                token = localStorage.getItem('discord_token');
+            }
+
             if (!token) {
                 window.location.href = '/';
                 return;
@@ -432,28 +444,86 @@
         // Load user rankings
         async function loadUserRankings() {
             try {
-                // This would need new API endpoints to get user rankings
-                // For now, we'll show placeholder text
-                document.getElementById('messageRank').textContent = 'Calculating...';
-                document.getElementById('reactionRank').textContent = 'Calculating...';
-                document.getElementById('currencyRank').textContent = 'Calculating...';
-                document.getElementById('expRank').textContent = 'Calculating...';
-                document.getElementById('userRank').textContent = '?';
+                // Load currency rank
+                const currencyRankResponse = await fetch(`${API_BASE_URL}/api/user/${currentUser.id}/rank/currency`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
+                });
+                if (currencyRankResponse.ok) {
+                    const currencyRank = await currencyRankResponse.json();
+                    document.getElementById('currencyRank').textContent = `Rank #${currencyRank.rank}`;
+                    document.getElementById('userRank').textContent = currencyRank.rank;
+                }
+
+                // Load experience rank
+                const expRankResponse = await fetch(`${API_BASE_URL}/api/user/${currentUser.id}/rank/exp`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
+                });
+                if (expRankResponse.ok) {
+                    const expRank = await expRankResponse.json();
+                    document.getElementById('expRank').textContent = `Rank #${expRank.rank}`;
+                }
+
+                // For message and reaction ranks, we'll show placeholder for now
+                document.getElementById('messageRank').textContent = 'Global ranking';
+                document.getElementById('reactionRank').textContent = 'Global ranking';
+
             } catch (error) {
                 console.error('Failed to load rankings:', error);
+                document.getElementById('messageRank').textContent = 'Unable to load';
+                document.getElementById('reactionRank').textContent = 'Unable to load';
+                document.getElementById('currencyRank').textContent = 'Unable to load';
+                document.getElementById('expRank').textContent = 'Unable to load';
+                document.getElementById('userRank').textContent = '?';
             }
         }
 
         // Load game statistics
         async function loadGameStats() {
             try {
-                // This would need a games API endpoint
-                document.getElementById('totalGames').textContent = 'N/A';
-                document.getElementById('gameStats').textContent = 'Win rate: N/A';
-                document.getElementById('memberSince').textContent = 'N/A';
-                document.getElementById('lastSeen').textContent = 'Recently';
+                const response = await fetch(`${API_BASE_URL}/api/user/${currentUser.id}/games`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
+                });
+
+                if (response.ok) {
+                    const gameStats = await response.json();
+                    document.getElementById('totalGames').textContent = gameStats.total_games.toLocaleString();
+                    document.getElementById('gameStats').textContent = `Win rate: ${gameStats.win_rate}%`;
+                } else {
+                    document.getElementById('totalGames').textContent = '0';
+                    document.getElementById('gameStats').textContent = 'No games played';
+                }
+
+                // Set member info from user data
+                if (currentUser.first_seen) {
+                    const firstSeen = new Date(currentUser.first_seen);
+                    document.getElementById('memberSince').textContent = firstSeen.toLocaleDateString();
+                } else {
+                    document.getElementById('memberSince').textContent = 'Unknown';
+                }
+
+                if (currentUser.last_seen) {
+                    const lastSeen = new Date(currentUser.last_seen);
+                    const now = new Date();
+                    const diffHours = Math.floor((now - lastSeen) / (1000 * 60 * 60));
+
+                    if (diffHours < 1) {
+                        document.getElementById('lastSeen').textContent = 'Recently active';
+                    } else if (diffHours < 24) {
+                        document.getElementById('lastSeen').textContent = `${diffHours} hours ago`;
+                    } else {
+                        const diffDays = Math.floor(diffHours / 24);
+                        document.getElementById('lastSeen').textContent = `${diffDays} days ago`;
+                    }
+                } else {
+                    document.getElementById('lastSeen').textContent = 'Unknown';
+                }
+
             } catch (error) {
                 console.error('Failed to load game stats:', error);
+                document.getElementById('totalGames').textContent = 'N/A';
+                document.getElementById('gameStats').textContent = 'Unable to load';
+                document.getElementById('memberSince').textContent = 'N/A';
+                document.getElementById('lastSeen').textContent = 'Unknown';
             }
         }
 
