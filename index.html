@@ -571,25 +571,73 @@
         }
 
         // Handle bot invite
-        async function handleInvite() {
-            try {
-                showNotification('Getting bot invite link...', 'info');
+        // async function handleInvite() {
+        //     try {
+        //         showNotification('Getting bot invite link...', 'info');
+        //
+        //
+        //         const response = await fetch(`${API_BASE_URL}/bot/invite`);
+        //         const data = await response.json();
+        //
+        //         if (data.invite_url) {
+        //             window.open(data.invite_url, '_blank');
+        //             showNotification('Bot invite opened in new tab!', 'success');
+        //         } else {
+        //             throw new Error('No invite URL received');
+        //         }
+        //     } catch (error) {
+        //         console.error('Invite error:', error);
+        //         showNotification('Failed to get invite link. Please try again.', 'error');
+        //     }
+        // }
+        // Temporary Coming Soon Message
+            async function handleInvite() {
+                try {
+                    showNotification('Checking bot availability...', 'info');
 
+                    const response = await fetch(`${API_BASE_URL}/bot/invite`);
+                    const data = await response.json();
 
-                const response = await fetch(`${API_BASE_URL}/bot/invite`);
-                const data = await response.json();
-
-                if (data.invite_url) {
-                    window.open(data.invite_url, '_blank');
-                    showNotification('Bot invite opened in new tab!', 'success');
-                } else {
-                    throw new Error('No invite URL received');
+                    if (data.status === 'coming_soon') {
+                        showNotification(data.message, 'info');
+                        // Optionally show a modal with more details
+                        showComingSoonModal(data);
+                    } else if (data.invite_url) {
+                        window.open(data.invite_url, '_blank');
+                        showNotification('Bot invite opened in new tab!', 'success');
+                    }
+                } catch (error) {
+                    console.error('Invite error:', error);
+                    showNotification('Unable to process invite request.', 'error');
                 }
-            } catch (error) {
-                console.error('Invite error:', error);
-                showNotification('Failed to get invite link. Please try again.', 'error');
             }
-        }
+
+            // Optional: Show a coming soon modal
+            function showComingSoonModal(data) {
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                    justify-content: center; z-index: 1000;
+                `;
+
+    modal.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; text-align: center; color: #333;">
+            <h2 style="color: #5865F2; margin-bottom: 15px;">🚀 Coming Soon!</h2>
+            <p style="margin-bottom: 15px;">${data.eta}</p>
+            <p style="margin-bottom: 20px;">${data.contact}</p>
+            <button onclick="this.closest('div').parentElement.remove()"
+                    style="background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                Got it!
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+}
 
         // Check authentication state on page load
         async function checkAuthState() {
