@@ -365,34 +365,45 @@
                 // Store token from URL and clean up URL
                 localStorage.setItem('discord_token', token);
                 window.history.replaceState({}, document.title, window.location.pathname);
+                console.log('Token received from URL and stored');
             } else {
                 // Try to get token from localStorage
                 token = localStorage.getItem('discord_token');
+                console.log('Token from localStorage:', token ? 'Found' : 'Not found');
             }
 
             if (!token) {
-                window.location.href = '/';
+                console.log('No token found, redirecting to home');
+                setTimeout(() => window.location.href = '/', 1000); // Delay to see what's happening
                 return;
             }
 
             try {
+                console.log('Making API request to validate token...');
                 const response = await fetch(`${API_BASE_URL}/auth/me`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
 
+                console.log('API response status:', response.status);
+
                 if (response.ok) {
                     currentUser = await response.json();
+                    console.log('User data loaded:', currentUser);
                     await loadUserData();
                     await loadLeaderboards();
                 } else {
+                    const errorData = await response.json();
+                    console.error('API error:', errorData);
                     localStorage.removeItem('discord_token');
-                    window.location.href = '/';
+                    showNotification(`Authentication failed: ${errorData.error}`, 'error');
+                    setTimeout(() => window.location.href = '/', 3000);
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
-                showNotification('Failed to load user data', 'error');
+                showNotification(`Failed to connect to API: ${error.message}`, 'error');
+                setTimeout(() => window.location.href = '/', 3000);
             }
         }
 
