@@ -786,6 +786,24 @@
                 nav.style.background = 'rgba(255, 255, 255, 0.1)';
             }
         });
+
+        // Show dashboard link when user is logged in
+        function updateNavForLoggedInUser(user) {
+            const avatarUrl = user.avatar || `https://cdn.discordapp.com/embed/avatars/0.png`;
+
+            loginBtn.innerHTML = `
+                <img src="${avatarUrl}" alt="${user.username}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;">
+                ${user.username}
+            `;
+
+            // Add dashboard button
+            const dashboardBtn = document.createElement('a');
+            dashboardBtn.href = '/user_dashboard.html';
+            dashboardBtn.className = 'btn';
+            dashboardBtn.innerHTML = '🏠 Dashboard';
+            loginBtn.parentNode.insertBefore(dashboardBtn, loginBtn.nextSibling);
+        }
+
     </script>
 </body>
 </html>
