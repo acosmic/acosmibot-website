@@ -33,452 +33,11 @@
     <meta property="og:rich_attachment" content="true">
     <meta name="status" content="active-development">
 
-    <!-- Fonts and other head content -->
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -100px;  /* Extend 100px above viewport */
-            left: 0;
-            width: 100%;
-            height: calc(100vh + 200px); /* Extend 100px above and below */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: -1; /* Behind all content */
-            pointer-events: none; /* Don't interfere with interactions */
-        }
-
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px 0;
-            transition: all 0.3s ease;
-        }
-
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            color: #ffffff;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo::before {
-            content: '🤖';
-            margin-right: 8px;
-            font-size: 28px;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-
-        .nav-links a {
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-links a:hover {
-            color: #ffd700;
-            transform: translateY(-2px);
-        }
-
-        .login-btn {
-            background: linear-gradient(45deg, #5865F2, #7289DA);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 20px rgba(88, 101, 242, 0.3);
-            cursor: pointer;
-            border: none;
-            position: relative;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(88, 101, 242, 0.5);
-        }
-
-        .discord-icon {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* User Menu Styles */
-        .user-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-width: 200px;
-            z-index: 1001;
-            padding: 10px 0;
-            margin-top: 10px;
-        }
-
-        .user-menu .user-info {
-            padding: 15px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .user-menu .user-name {
-            color: #333;
-            font-weight: 600;
-        }
-
-        .user-menu .user-stats {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .user-menu a {
-            display: block;
-            padding: 12px 20px;
-            color: #333;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .user-menu a:hover {
-            background: rgba(88,101,242,0.1);
-        }
-
-        .user-menu .logout-btn {
-            color: #e74c3c;
-        }
-
-        .user-menu .logout-btn:hover {
-            background: rgba(231,76,60,0.1);
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-content {
-            z-index: 2;
-            max-width: 600px;
-        }
-
-        .hero h1 {
-            font-size: clamp(3rem, 6vw, 5rem);
-            font-weight: 800;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #ffffff, #ffd700);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.1;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #5865F2, #7289DA);
-            color: white;
-            box-shadow: 0 8px 30px rgba(88, 101, 242, 0.3);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 12px 40px rgba(88, 101, 242, 0.5);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Floating Animation */
-        .hero::before {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
-            border-radius: 50%;
-            top: 20%;
-            right: 10%;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
-            border-radius: 50%;
-            bottom: 20%;
-            left: 10%;
-            animation: float 8s ease-in-out infinite reverse;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-        }
-
-        /* Features Section */
-        .features {
-            padding: 100px 0;
-            position: relative;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #ffffff, #ffd700);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.2rem;
-            margin-bottom: 60px;
-            opacity: 0.8;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 60px;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 40px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 215, 0, 0.5);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .feature-card h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #ffd700;
-        }
-
-        .feature-card p {
-            opacity: 0.9;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .feature-list {
-            list-style: none;
-        }
-
-        .feature-list li {
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
-        .feature-list li::before {
-            content: '✨';
-            margin-right: 8px;
-        }
-
-        /* Notification Styles */
-        .notification {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            z-index: 10000;
-            font-weight: 500;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            color: white;
-        }
-
-        .notification.success {
-            background: linear-gradient(45deg, #28a745, #20c997);
-        }
-
-        .notification.error {
-            background: linear-gradient(45deg, #dc3545, #fd7e14);
-        }
-
-        .notification.info {
-            background: linear-gradient(45deg, #17a2b8, #6f42c1);
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        /* Loading Spinner */
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .feature-card {
-                padding: 30px;
-            }
-        }
-
-        /* Animation Classes */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            animation: fadeIn 0.8s ease forwards;
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-    </style>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -487,10 +46,11 @@
             <div class="nav-content">
                 <a href="#" class="logo">Acosmibot</a>
                 <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#commands">Commands</a></li>
-                <li><a href="https://github.com/acosmic/acosmibot">GitHub</a></li>
-            </ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#commands">Commands</a></li>
+                    <li><a href="/user-dashboard.html" id="userDashboardLink" style="display: none;">Dashboard</a></li>
+                    <li><a href="https://github.com/acosmic/acosmibot">GitHub</a></li>
+                </ul>
                 <button class="login-btn" id="loginBtn">
                     <svg class="discord-icon" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
@@ -571,328 +131,92 @@
         </div>
     </section>
 
-    <script>
-        // Configuration - UPDATE THIS WITH YOUR SERVER INFO
-        const API_BASE_URL = 'https://api.acosmibot.com';
+    <!-- Support Section -->
+    <section class="support-section">
+        <div class="container">
+            <div class="support-content">
+                <div class="dev-story-card">
+                    <div class="dev-info">
+                        <div class="dev-avatar">👨‍💻</div>
+                        <div class="dev-details">
+                            <h3>Independent Developer</h3>
+                            <p>Married dad of two baby boys • Building Acosmibot solo</p>
+                        </div>
+                    </div>
 
-        let currentUser = null;
+                    <h2>☕ Support Development</h2>
+                    <p>Hi! I'm building Acosmibot as a solo project while being a dad to two baby boys. My wife and I are busy with family life, so I code during nap times and late nights. Every tip helps me dedicate more time to adding new features and keeping the bot running smoothly for your Discord community!</p>
 
-        // DOM Elements
-        const loginBtn = document.getElementById('loginBtn');
-        const inviteBtn = document.getElementById('inviteBtn');
+                    <div class="tip-goals">
+                        <h4>🎯 What your tips help with:</h4>
+                        <div class="goals-grid">
+                            <div class="goal-item">🖥️ Server & database hosting</div>
+                            <div class="goal-item">🤖 New bot features & commands</div>
+                            <div class="goal-item">☕ Coffee for late-night coding</div>
+                            <div class="goal-item">📚 Development tools & resources</div>
+                        </div>
+                    </div>
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuthState();
-            setupEventListeners();
-            setupAnimations();
-        });
-
-        // Setup event listeners
-        function setupEventListeners() {
-            loginBtn.addEventListener('click', handleLogin);
-            inviteBtn.addEventListener('click', handleInvite);
-        }
-
-        // Handle login/logout
-        async function handleLogin() {
-            if (currentUser) {
-                showUserMenu();
-            } else {
-                await loginWithDiscord();
-            }
-        }
-
-        // Login with Discord
-        async function loginWithDiscord() {
-            try {
-                showNotification('Redirecting to Discord...', 'info');
-                window.location.href = `${API_BASE_URL}/auth/login`;
-            } catch (error) {
-                console.error('Login error:', error);
-                showNotification('Failed to initiate login. Please try again.', 'error');
-            }
-        }
-
-        // Handle bot invite
-        // async function handleInvite() {
-        //     try {
-        //         showNotification('Getting bot invite link...', 'info');
-        //
-        //
-        //         const response = await fetch(`${API_BASE_URL}/bot/invite`);
-        //         const data = await response.json();
-        //
-        //         if (data.invite_url) {
-        //             window.open(data.invite_url, '_blank');
-        //             showNotification('Bot invite opened in new tab!', 'success');
-        //         } else {
-        //             throw new Error('No invite URL received');
-        //         }
-        //     } catch (error) {
-        //         console.error('Invite error:', error);
-        //         showNotification('Failed to get invite link. Please try again.', 'error');
-        //     }
-        // }
-        // Temporary Coming Soon Message
-            async function handleInvite() {
-                try {
-                    showNotification('Checking bot availability...', 'info');
-
-                    const response = await fetch(`${API_BASE_URL}/bot/invite`);
-                    const data = await response.json();
-
-                    if (data.status === 'coming_soon') {
-                        showNotification(data.message, 'info');
-                        // Optionally show a modal with more details
-                        showComingSoonModal(data);
-                    } else if (data.invite_url) {
-                        window.open(data.invite_url, '_blank');
-                        showNotification('Bot invite opened in new tab!', 'success');
-                    }
-                } catch (error) {
-                    console.error('Invite error:', error);
-                    showNotification('Unable to process invite request.', 'error');
-                }
-            }
-
-            // Optional: Show a coming soon modal
-            function showComingSoonModal(data) {
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(0,0,0,0.8); display: flex; align-items: center;
-                    justify-content: center; z-index: 1000;
-                `;
-
-    modal.innerHTML = `
-        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; text-align: center; color: #333;">
-            <h2 style="color: #5865F2; margin-bottom: 15px;">🚀 Coming Soon!</h2>
-            <p style="margin-bottom: 15px;">${data.eta}</p>
-            <p style="margin-bottom: 20px;">${data.contact}</p>
-            <button onclick="this.closest('div').parentElement.remove()"
-                    style="background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                Got it!
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.remove();
-    });
-}
-
-        // Check authentication state on page load
-        async function checkAuthState() {
-            const token = localStorage.getItem('discord_token');
-            const urlParams = new URLSearchParams(window.location.search);
-
-            // Check if we have a token in URL (OAuth callback)
-            if (urlParams.has('token')) {
-                const tokenFromUrl = urlParams.get('token');
-                localStorage.setItem('discord_token', tokenFromUrl);
-
-                // Clean up URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-
-                // Get user info
-                await getCurrentUser(tokenFromUrl);
-                return;
-            }
-
-            // Check existing token
-            if (token) {
-                await getCurrentUser(token);
-            }
-        }
-
-        // Get current user info from API
-        async function getCurrentUser(token) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const userData = await response.json();
-                    currentUser = userData;
-                    updateNavForLoggedInUser(userData);
-                    showNotification(`Welcome back, ${userData.username}!`, 'success');
-                } else {
-                    // Token is invalid, remove it
-                    localStorage.removeItem('discord_token');
-                    currentUser = null;
-                }
-            } catch (error) {
-                console.error('Failed to get user info:', error);
-                localStorage.removeItem('discord_token');
-                currentUser = null;
-            }
-        }
-
-        // Update navigation for logged-in user
-        function updateNavForLoggedInUser(user) {
-            const avatarUrl = user.avatar || `https://cdn.discordapp.com/embed/avatars/0.png`;
-
-            loginBtn.innerHTML = `
-                <img src="${avatarUrl}" alt="${user.username}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;">
-                ${user.username}
-            `;
-        }
-
-        // Show user dropdown menu
-        function showUserMenu() {
-            // Remove existing menu
-            const existingMenu = document.querySelector('.user-menu');
-            if (existingMenu) {
-                existingMenu.remove();
-                return;
-            }
-
-            const menu = document.createElement('div');
-            menu.className = 'user-menu';
-
-            menu.innerHTML = `
-                <div class="user-info">
-                    <div class="user-name">${currentUser.username}</div>
-                    <div class="user-stats">Level ${currentUser.level || 1} • ${currentUser.currency || 0} Credits</div>
+                    <div class="supporter-perks">
+                        <h4>🎁 Supporter Perks (Coming Soon):</h4>
+                        <div class="perks-list">
+                            <span class="perk">Special Discord role</span>
+                            <span class="perk">Early feature access</span>
+                            <span class="perk">Priority support</span>
+                            <span class="perk">Development updates</span>
+                        </div>
+                    </div>
                 </div>
-                <a href="/user_dashboard.html">🏠 Dashboard</a>
-                <a href="#" onclick="showProfile()">👤 Profile</a>
-                <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 5px 0;"></div>
-                <a href="#" onclick="logout()" class="logout-btn">🚪 Logout</a>
-            `;
 
+                <div class="tip-methods">
+                    <h3>💝 Ways to Support</h3>
 
-            // Position menu
-            loginBtn.style.position = 'relative';
-            loginBtn.appendChild(menu);
+                    <div class="tip-buttons">
+                        <a href="https://www.paypal.com/ncp/payment/BTN7ZAB3B632G" target="_blank" class="tip-btn paypal">
+                            <div class="tip-icon">💳</div>
+                            <div class="tip-info">
+                                <div class="tip-method">PayPal</div>
+                                <div class="tip-desc">Quick & secure donation</div>
+                            </div>
+                            <div class="tip-arrow">→</div>
+                        </a>
 
-            // Close menu when clicking outside
-            setTimeout(() => {
-                document.addEventListener('click', function closeMenu(e) {
-                    if (!menu.contains(e.target) && !loginBtn.contains(e.target)) {
-                        menu.remove();
-                        document.removeEventListener('click', closeMenu);
-                    }
-                });
-            }, 100);
-        }
+                        <div class="tip-btn crypto" onclick="showCryptoAddress()">
+                            <div class="tip-icon">₿</div>
+                            <div class="tip-info">
+                                <div class="tip-method">Bitcoin</div>
+                                <div class="tip-desc">Crypto donation</div>
+                            </div>
+                            <div class="tip-arrow">→</div>
+                        </div>
+                    </div>
 
-        // Dashboard placeholder
-        function showDashboard() {
-            showNotification('Dashboard coming soon!', 'info');
-        }
+                    <div class="gratitude-note">
+                        <p>💙 <strong>Thank you</strong> to everyone who supports Acosmibot development! Your kindness helps me build better features for the Discord community while balancing family life with my wife and boys.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        // Profile placeholder
-        function showProfile() {
-            showNotification('Profile page coming soon!', 'info');
-        }
+    <!-- Bitcoin Modal -->
+    <div id="cryptoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeCryptoModal()">&times;</span>
+            <h3>₿ Bitcoin Donation</h3>
+            <p>Send Bitcoin to this address:</p>
+            <div class="crypto-address">
+                <input type="text" id="btcAddress" value="3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS" readonly>
+                <button onclick="copyBTCAddress()" class="copy-btn">📋 Copy</button>
+            </div>
+            <div class="qr-note">
+                <p>💡 <em>Thank you for supporting Acosmibot development!</em></p>
+                <p><small>Your donation helps a dad developer build better Discord experiences.</small></p>
+            </div>
+        </div>
+    </div>
 
-        // Logout
-        function logout() {
-            localStorage.removeItem('discord_token');
-            currentUser = null;
-
-            // Reset login button
-            loginBtn.innerHTML = `
-                <svg class="discord-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-                    <path d="M8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                </svg>
-                Login with Discord
-            `;
-
-            // Remove any existing menu
-            const menu = document.querySelector('.user-menu');
-            if (menu) menu.remove();
-
-            showNotification('Successfully logged out!', 'info');
-        }
-
-        // Show notification
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-
-            document.body.appendChild(notification);
-
-            // Show notification
-            setTimeout(() => notification.classList.add('show'), 100);
-
-            // Auto remove
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // Setup scroll animations
-        function setupAnimations() {
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.animationPlayState = 'running';
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.fade-in').forEach(el => {
-                el.style.animationPlayState = 'paused';
-                observer.observe(el);
-            });
-        }
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Dynamic navbar background on scroll
-        window.addEventListener('scroll', () => {
-            const nav = document.querySelector('nav');
-            if (window.scrollY > 100) {
-                nav.style.background = 'rgba(0, 0, 0, 0.8)';
-            } else {
-                nav.style.background = 'rgba(255, 255, 255, 0.1)';
-            }
-        });
-
-        // Show dashboard link when user is logged in
-        function updateNavForLoggedInUser(user) {
-    const avatarUrl = user.avatar || `https://cdn.discordapp.com/embed/avatars/0.png`;
-
-    loginBtn.innerHTML = `
-        <img src="${avatarUrl}" alt="${user.username}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;">
-        ${user.username}
-    `;
-
-    // Show dashboard link in navigation
-    document.getElementById('userDashboardLink').style.display = 'block';
-}
-
-    </script>
+    <!-- Scripts -->
+    <script src="scripts/main.js"></script>
 </body>
 </html>
