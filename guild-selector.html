@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Server - Acosmibot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5865F2 0%, #7289DA 50%, #99AAB5 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            margin-top: 60px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Guild Grid */
+        .guilds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .guild-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .guild-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .guild-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .guild-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #7c3aed, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            position: relative;
+        }
+
+        .guild-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .guild-info h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .guild-members {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .guild-permissions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .permission-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .permission-badge.owner {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .permission-badge.admin {
+            background: linear-gradient(45deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .permission-badge.member {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .guild-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #7c3aed, #3b82f6);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #6d28d9, #2563eb);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            opacity: 0.8;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+
+        .error-state h3 {
+            color: #fca5a5;
+            margin-bottom: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .guilds-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .guild-card {
+                padding: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .back-btn {
+                position: relative;
+                margin-bottom: 20px;
+                align-self: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/user-dashboard.html" class="back-btn">
+        ← Back to Dashboard
+    </a>
+
+    <div class="container">
+        <div class="header">
+            <h1>Select Your Server</h1>
+            <p>Choose a Discord server to view stats or configure Acosmibot</p>
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading your servers...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://api.acosmibot.com';
+        let userGuilds = [];
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadUserGuilds();
+        });
+
+        async function loadUserGuilds() {
+            try {
+                const token = localStorage.getItem('discord_token');
+                if (!token) {
+                    showError('You need to be logged in to view your servers.');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/user/guilds`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    userGuilds = data.guilds;
+                    displayGuilds();
+                } else {
+                    throw new Error(data.message || 'Failed to load guilds');
+                }
+
+            } catch (error) {
+                console.error('Error loading guilds:', error);
+                showError('Failed to load your servers. Please try again.');
+            }
+        }
+
+        function displayGuilds() {
+            const content = document.getElementById('content');
+
+            if (!userGuilds || userGuilds.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No Servers Found</h3>
+                        <p>You don't have access to any servers with Acosmibot, or you don't have admin permissions.</p>
+                        <a href="/" class="btn btn-primary">Go Home</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const guildsHTML = userGuilds.map(guild => {
+                const permissions = [];
+                if (guild.owner) {
+                    permissions.push('<span class="permission-badge owner">👑 Owner</span>');
+                } else if (guild.permissions && guild.permissions.includes('administrator')) {
+                    permissions.push('<span class="permission-badge admin">⚡ Admin</span>');
+                } else {
+                    permissions.push('<span class="permission-badge member">👤 Member</span>');
+                }
+
+                const guildIconHTML = guild.icon
+                    ? `<img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128" alt="${guild.name}">`
+                    : guild.name.charAt(0).toUpperCase();
+
+                const canManage = guild.owner || (guild.permissions && guild.permissions.includes('administrator'));
+
+                return `
+                    <div class="guild-card" onclick="selectGuild('${guild.id}', ${canManage})">
+                        <div class="guild-header">
+                            <div class="guild-icon">
+                                ${guildIconHTML}
+                            </div>
+                            <div class="guild-info">
+                                <h3>${escapeHtml(guild.name)}</h3>
+                                <div class="guild-members">
+                                    👥 ${guild.member_count || 'Unknown'} members
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="guild-permissions">
+                            ${permissions.join('')}
+                        </div>
+
+                        <div class="action-buttons">
+                            <a href="/guild-dashboard.html?guild=${guild.id}" class="btn btn-primary" onclick="event.stopPropagation()">
+                                📊 View Stats
+                            </a>
+                            ${canManage ? `
+                                <a href="/guild-dashboard.html?guild=${guild.id}&tab=settings" class="btn btn-secondary" onclick="event.stopPropagation()">
+                                    ⚙️ Settings
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            content.innerHTML = `
+                <div class="guilds-grid">
+                    ${guildsHTML}
+                </div>
+            `;
+        }
+
+        function selectGuild(guildId, canManage) {
+            // Navigate to guild dashboard
+            window.location.href = `/guild-dashboard.html?guild=${guildId}`;
+        }
+
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="error-state">
+                    <h3>Error</h3>
+                    <p>${escapeHtml(message)}</p>
+                    <button onclick="loadUserGuilds()" class="btn btn-primary">Try Again</button>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
