@@ -644,7 +644,7 @@
                 }
 
                 // Load guild configuration
-                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config`, {
+                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-db`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
