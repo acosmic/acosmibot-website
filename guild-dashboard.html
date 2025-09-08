@@ -765,8 +765,7 @@
                 if (levelResponse.ok) {
                     const levelData = await levelResponse.json();
                     if (levelData.success) {
-                        console.log('Level leaderboard loaded:', levelData.data);
-                        // You can display this data however you want or leave it for now
+                        displayLevelLeaderboard(levelData.data);
                     }
                 }
 
@@ -778,8 +777,7 @@
                 if (messagesResponse.ok) {
                     const messagesData = await messagesResponse.json();
                     if (messagesData.success) {
-                        console.log('Messages leaderboard loaded:', messagesData.data);
-                        // You can display this data however you want or leave it for now
+                        displayMessagesLeaderboard(messagesData.data);
                     }
                 }
 
@@ -788,82 +786,85 @@
             }
         }
 
-        async function loadLevelLeaderboard() {
-            try {
-                const token = localStorage.getItem('discord_token');
-                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/leaderboard/level?limit=10`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        displayLeaderboard('levelLeaderboard', data.data, 'level');
-                    }
+        function displayLevelLeaderboard(leaderboardData) {
+            const container = document.getElementById('levelLeaderboard');
+            if (!container) {
+                // Create container if it doesn't exist
+                const leaderboardsSection = document.querySelector('.leaderboards') || document.querySelector('#leaderboards');
+                if (leaderboardsSection) {
+                    const levelSection = document.createElement('div');
+                    levelSection.innerHTML = `
+                        <h3>Level Leaderboard</h3>
+                        <div id="levelLeaderboard" class="leaderboard-container"></div>
+                    `;
+                    leaderboardsSection.appendChild(levelSection);
                 }
-            } catch (error) {
-                console.error('Error loading level leaderboard:', error);
-            }
-        }
-
-        async function loadMessagesLeaderboard() {
-            try {
-                const token = localStorage.getItem('discord_token');
-                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/leaderboard/messages?limit=10`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        displayLeaderboard('messagesLeaderboard', data.data, 'messages_sent');
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading messages leaderboard:', error);
-            }
-        }
-
-        function displayLeaderboard(containerId, users, valueField) {
-            const container = document.getElementById(containerId);
-
-            if (!users || users.length === 0) {
-                container.innerHTML = '<p style="text-align: center; opacity: 0.7;">No data available</p>';
-                return;
             }
 
-            const leaderboardHTML = users.map((user, index) => {
-                const rank = index + 1;
-                let rankClass = '';
-                if (rank === 1) rankClass = 'first';
-                else if (rank === 2) rankClass = 'second';
-                else if (rank === 3) rankClass = 'third';
-
-                const displayName = user.nickname || user.global_name || user.name;
-                const avatarHTML = user.avatar_url
-                    ? `<img src="${user.avatar_url}" alt="${displayName}">`
-                    : displayName.charAt(0);
-
-                let valueDisplay = '';
-                if (valueField === 'level') {
-                    valueDisplay = `Level ${user.level} (${user.exp?.toLocaleString()} XP)`;
-                } else if (valueField === 'messages_sent') {
-                    valueDisplay = `${user.messages_sent?.toLocaleString()} messages`;
+            const leaderboardContainer = document.getElementById('levelLeaderboard');
+            if (leaderboardContainer) {
+                if (leaderboardData.length === 0) {
+                    leaderboardContainer.innerHTML = '<p>No data available</p>';
+                    return;
                 }
 
-                return `
-                    <div class="leaderboard-item">
-                        <div class="rank ${rankClass}">#${rank}</div>
-                        <div class="user-avatar">${avatarHTML}</div>
-                        <div class="user-info">
-                            <div class="user-name">${escapeHtml(displayName)}</div>
-                            <div class="user-stats">${valueDisplay}</div>
-                        </div>
+                leaderboardContainer.innerHTML = `
+                    <div class="leaderboard-list">
+                        ${leaderboardData.map(user => `
+                            <div class="leaderboard-item">
+                                <span class="rank">#${user.rank}</span>
+                                <span class="username">${escapeHtml(user.username)}</span>
+                                <span class="stats">Level ${user.level}</span>
+                                <span class="exp">${user.exp.toLocaleString()} XP</span>
+                            </div>
+                        `).join('')}
                     </div>
                 `;
-            }).join('');
+            }
+        }
 
-            container.innerHTML = leaderboardHTML;
+        function displayMessagesLeaderboard(leaderboardData) {
+            const container = document.getElementById('messagesLeaderboard');
+            if (!container) {
+                // Create container if it doesn't exist
+                const leaderboardsSection = document.querySelector('.leaderboards') || document.querySelector('#leaderboards');
+                if (leaderboardsSection) {
+                    const messagesSection = document.createElement('div');
+                    messagesSection.innerHTML = `
+                        <h3>Messages Leaderboard</h3>
+                        <div id="messagesLeaderboard" class="leaderboard-container"></div>
+                    `;
+                    leaderboardsSection.appendChild(messagesSection);
+                }
+            }
+
+            const leaderboardContainer = document.getElementById('messagesLeaderboard');
+            if (leaderboardContainer) {
+                if (leaderboardData.length === 0) {
+                    leaderboardContainer.innerHTML = '<p>No data available</p>';
+                    return;
+                }
+
+                leaderboardContainer.innerHTML = `
+                    <div class="leaderboard-list">
+                        ${leaderboardData.map(user => `
+                            <div class="leaderboard-item">
+                                <span class="rank">#${user.rank}</span>
+                                <span class="username">${escapeHtml(user.username)}</span>
+                                <span class="stats">${user.messages.toLocaleString()} messages</span>
+                                <span class="level">Level ${user.level}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Helper function for escaping HTML (if it doesn't already exist)
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function setupSettingsPanel() {
