@@ -711,7 +711,7 @@
         async function loadStats() {
             try {
                 const token = localStorage.getItem('discord_token');
-                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/stats`, {
+                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/stats-db`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -723,7 +723,6 @@
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
-                document.getElementById('statsGrid').innerHTML = '<div class="error-message">Failed to load statistics</div>';
             }
         }
 
@@ -754,10 +753,36 @@
         }
 
         async function loadLeaderboards() {
-            await Promise.all([
-                loadLevelLeaderboard(),
-                loadMessagesLeaderboard()
-            ]);
+            try {
+                const token = localStorage.getItem('discord_token');
+
+                // Load level leaderboard
+                const levelResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/leaderboard/level-db?limit=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (levelResponse.ok) {
+                    const levelData = await levelResponse.json();
+                    if (levelData.success) {
+                        displayLevelLeaderboard(levelData.data);
+                    }
+                }
+
+                // Load messages leaderboard
+                const messagesResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/leaderboard/messages-db?limit=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (messagesResponse.ok) {
+                    const messagesData = await messagesResponse.json();
+                    if (messagesData.success) {
+                        displayMessagesLeaderboard(messagesData.data);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading leaderboards:', error);
+            }
         }
 
         async function loadLevelLeaderboard() {
