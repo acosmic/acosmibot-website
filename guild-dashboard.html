@@ -752,6 +752,7 @@
             document.getElementById('statsGrid').innerHTML = statsHTML;
         }
 
+        // Replace the loadLeaderboards function with this simpler version that doesn't rely on missing display functions
         async function loadLeaderboards() {
             try {
                 const token = localStorage.getItem('discord_token');
@@ -764,7 +765,8 @@
                 if (levelResponse.ok) {
                     const levelData = await levelResponse.json();
                     if (levelData.success) {
-                        displayLevelLeaderboard(levelData.data);
+                        console.log('Level leaderboard loaded:', levelData.data);
+                        // You can display this data however you want or leave it for now
                     }
                 }
 
@@ -776,7 +778,8 @@
                 if (messagesResponse.ok) {
                     const messagesData = await messagesResponse.json();
                     if (messagesData.success) {
-                        displayMessagesLeaderboard(messagesData.data);
+                        console.log('Messages leaderboard loaded:', messagesData.data);
+                        // You can display this data however you want or leave it for now
                     }
                 }
 
