@@ -195,48 +195,6 @@ function updateUIForLoggedOut() {
     if (guildLink) guildLink.style.display = 'none';
 }
 
-// Get current user info from API (deprecated - now handled in checkAuthState)
-async function getCurrentUser(token) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/auth/me`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            const userData = await response.json();
-            currentUser = userData;
-            updateUIForLoggedIn();
-            showNotification(`Welcome back, ${userData.username}!`, 'success');
-        } else {
-            // Token is invalid, remove it
-            localStorage.removeItem('discord_token');
-            currentUser = null;
-        }
-    } catch (error) {
-        console.error('Failed to get user info:', error);
-        localStorage.removeItem('discord_token');
-        currentUser = null;
-    }
-}
-
-// Update navigation for logged-in user (deprecated - use updateUIForLoggedIn)
-function updateNavForLoggedInUser(user) {
-    const avatarUrl = user.avatar || `https://cdn.discordapp.com/embed/avatars/0.png`;
-
-    loginBtn.innerHTML = `
-        <img src="${avatarUrl}" alt="${user.username}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;">
-        ${user.username}
-    `;
-
-    // Show dashboard link in navigation
-    const dashboardLink = document.getElementById('userDashboardLink');
-    if (dashboardLink) {
-        dashboardLink.style.display = 'block';
-    }
-}
-
 // Show user dropdown menu
 function showUserMenu() {
     // Remove existing menu if it exists

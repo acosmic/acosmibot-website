@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guild Dashboard - Acosmibot</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,395 +12,173 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #5865F2 0%, #7289DA 50%, #99AAB5 100%);
-            background-attachment: fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #ffffff;
+            color: white;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        /* Header */
         .header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 24px 32px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .guild-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .guild-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #7c3aed, #3b82f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .guild-icon img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .guild-details h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .guild-meta {
-            display: flex;
-            gap: 20px;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 500;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #7c3aed, #3b82f6);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Navigation Tabs */
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 8px;
-        }
-
-        .nav-tab {
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-tab.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        .nav-tab:not(.active) {
-            opacity: 0.7;
-        }
-
-        .nav-tab:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 24px;
             text-align: center;
+            margin-bottom: 40px;
         }
 
-        .stat-icon {
+        .guild-name {
             font-size: 2.5rem;
-            margin-bottom: 12px;
-            display: block;
+            margin-bottom: 10px;
         }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: block;
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
         }
 
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        /* Content Sections */
-        .content-section {
+        .feature-card {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .section-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Leaderboard */
-        .leaderboard {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            border-radius: 15px;
+            padding: 25px;
             transition: all 0.3s ease;
         }
 
-        .leaderboard-item:hover {
-            background: rgba(255, 255, 255, 0.15);
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
         }
 
-        .rank {
-            font-size: 1.2rem;
-            font-weight: 700;
-            width: 40px;
-            text-align: center;
-        }
-
-        .rank.first { color: #fbbf24; }
-        .rank.second { color: #e5e7eb; }
-        .rank.third { color: #d97706; }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #7c3aed, #3b82f6);
+        .feature-header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.9rem;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
 
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .user-info {
-            flex: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .user-stats {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .user-value {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        /* Settings Panel */
-        .settings-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 24px;
-        }
-
-        .setting-group {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 24px;
-        }
-
-        .setting-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 16px;
+        .feature-title {
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-switch.active::before {
+            transform: translateX(30px);
+        }
+
+        .feature-content {
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card.enabled .feature-content {
+            opacity: 1;
+        }
+
         .setting-item {
-            margin-bottom: 20px;
+            margin: 15px 0;
         }
 
         .setting-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: 500;
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
+            border-radius: 5px;
             background: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: 1rem;
+            font-size: 14px;
         }
 
         .form-control::placeholder {
             color: rgba(255, 255, 255, 0.6);
         }
 
-        .form-control:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.5);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 14px;
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
             transition: all 0.3s ease;
         }
 
-        .toggle-switch.active {
-            background: linear-gradient(45deg, #7c3aed, #3b82f6);
+        .status.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s ease;
+        .status.success {
+            background: #28a745;
+            color: white;
         }
 
-        .toggle-switch.active::after {
-            transform: translateX(22px);
+        .status.error {
+            background: #dc3545;
+            color: white;
         }
 
-        /* Role Mapping */
-        .role-mapping {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .role-level {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-        }
-
-        .level-number {
-            font-weight: 700;
-            font-size: 1.1rem;
-            width: 60px;
-        }
-
-        .role-select {
-            flex: 1;
-        }
-
-        .role-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin: 2px;
-        }
-
-        /* Loading and Error States */
         .loading {
             text-align: center;
             padding: 40px;
@@ -410,11 +187,11 @@
         .spinner {
             width: 40px;
             height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            border-top: 3px solid #ffffff;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
+            margin: 0 auto 15px;
         }
 
         @keyframes spin {
@@ -422,602 +199,217 @@
             100% { transform: rotate(360deg); }
         }
 
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            border-radius: 12px;
-            padding: 16px;
-            margin: 16px 0;
-            color: #fca5a5;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-
-            .guild-info {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .nav-tabs {
-                flex-wrap: wrap;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 16px;
-            }
-
-            .settings-panel {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .leaderboard-container {
-            margin: 20px 0;
-        }
-
-        .leaderboard-list {
+        .guild-info {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 16px;
-            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .leaderboard-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(4px);
-        }
-
-        .leaderboard-item .rank {
-            font-weight: bold;
-            color: #fbbf24;
-            min-width: 40px;
-            font-size: 1.1rem;
-        }
-
-        .leaderboard-item .username {
-            flex: 1;
-            margin-left: 12px;
-            font-weight: 500;
-            color: #e5e7eb;
-        }
-
-        .leaderboard-item .stats {
-            color: #3b82f6;
-            font-weight: 600;
-            margin-right: 12px;
-        }
-
-        .leaderboard-item .exp,
-        .leaderboard-item .level {
-            color: #10b981;
-            font-size: 0.9rem;
-            margin-left: 8px;
-        }
-
-        .leaderboard-container h3 {
-            color: #f3f4f6;
-            margin-bottom: 16px;
-            font-size: 1.4rem;
+        .disabled {
+            opacity: 0.5;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
-            <div class="guild-info">
-                <div class="guild-icon" id="guildIcon">
-                    <!-- Guild icon will be loaded here -->
-                </div>
-                <div class="guild-details">
-                    <h1 id="guildName">Loading...</h1>
-                    <div class="guild-meta">
-                        <span id="memberCount">• members</span>
-                        <span id="botStatus">• Bot Status</span>
-                    </div>
-                </div>
-            </div>
-            <div class="header-actions">
-                <a href="/guild-dashboard.html" class="btn btn-secondary">← Back to Servers</a>
-                <button id="refreshBtn" class="btn btn-primary">🔄 Refresh</button>
-            </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" onclick="switchTab('overview')">
-                📊 Overview
-            </div>
-            <div class="nav-tab" onclick="switchTab('leaderboards')">
-                🏆 Leaderboards
-            </div>
-            <div class="nav-tab" id="settingsTab" onclick="switchTab('settings')" style="display: none;">
-                ⚙️ Settings
-            </div>
-        </div>
-
-        <!-- Overview Tab -->
-        <div id="overview" class="tab-content active">
-            <div class="stats-grid" id="statsGrid">
+            <div class="guild-name" id="guildName">Loading...</div>
+            <div class="guild-info" id="guildInfo">
                 <div class="loading">
                     <div class="spinner"></div>
-                    <p>Loading guild statistics...</p>
+                    <p>Loading guild information...</p>
                 </div>
             </div>
         </div>
 
-        <!-- Leaderboards Tab -->
-        <div id="leaderboards" class="tab-content">
-            <div class="content-section">
-                <div class="section-title">🏆 Top Members by Level</div>
-                <div id="levelLeaderboard" class="leaderboard">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading level leaderboard...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="content-section">
-                <div class="section-title">💬 Top Members by Messages</div>
-                <div id="messagesLeaderboard" class="leaderboard">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading messages leaderboard...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Tab -->
-        <div id="settings" class="tab-content">
-            <div class="settings-panel">
-                <!-- Leveling Settings -->
-                <div class="setting-group">
-                    <div class="setting-title">📈 Leveling System</div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Enable Leveling</label>
-                        <div class="toggle-switch" id="levelingEnabled" onclick="toggleSetting('levelingEnabled')"></div>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">XP per Message</label>
-                        <input type="number" class="form-control" id="expPerMessage" min="1" max="100" placeholder="15">
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">XP Cooldown (seconds)</label>
-                        <input type="number" class="form-control" id="expCooldown" min="0" max="300" placeholder="60">
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Level Up Announcements</label>
-                        <div class="toggle-switch" id="levelUpAnnouncements" onclick="toggleSetting('levelUpAnnouncements')"></div>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Announcement Channel</label>
-                        <select class="form-control" id="announcementChannel">
-                            <option value="">Select a channel...</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="saveLevelingSettings()">Save Leveling Settings</button>
-                </div>
-
-                <!-- Role Assignment Settings -->
-                <div class="setting-group">
-                    <div class="setting-title">🎭 Role Assignment</div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Enable Role Assignment</label>
-                        <div class="toggle-switch" id="roleSystemEnabled" onclick="toggleSetting('roleSystemEnabled')"></div>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Assignment Mode</label>
-                        <select class="form-control" id="roleMode">
-                            <option value="progressive">Progressive (Remove old roles)</option>
-                            <option value="additive">Additive (Keep all roles)</option>
-                        </select>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Role Announcements</label>
-                        <div class="toggle-switch" id="roleAnnouncements" onclick="toggleSetting('roleAnnouncements')"></div>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="saveRoleSettings()">Save Role Settings</button>
-                </div>
-
-                <!-- Role Mappings -->
-                <div class="setting-group" style="grid-column: 1 / -1;">
-                    <div class="setting-title">🎯 Level Role Mappings</div>
-                    <p style="opacity: 0.8; margin-bottom: 20px;">Configure which roles are assigned at each level</p>
-
-                    <div id="roleMappings" class="role-mapping">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Loading role mappings...</p>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 20px;">
-                        <button class="btn btn-secondary" onclick="addRoleMapping()">+ Add Level Mapping</button>
-                        <button class="btn btn-primary" onclick="saveRoleMappings()">Save All Mappings</button>
-                    </div>
-                </div>
+        <div class="dashboard-grid" id="dashboardGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading dashboard...</p>
             </div>
         </div>
     </div>
 
+    <div class="status" id="status"></div>
+
     <script>
         const API_BASE_URL = 'https://api.acosmibot.com';
-        let currentGuild = null;
+        let guildId = '1155577094940655696'; // Default to your guild
         let guildConfig = null;
-        let userPermissions = null;
-        let availableRoles = [];
-        let availableChannels = [];
 
-        // Get guild ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const guildId = urlParams.get('guild');
-        const initialTab = urlParams.get('tab') || 'overview';
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            if (!guildId) {
-                window.location.href = '/guild-selector.html';
-                return;
-            }
-
-            await loadGuildData();
-            switchTab(initialTab);
-
-            document.getElementById('refreshBtn').onclick = () => location.reload();
-        });
-
-        async function loadGuildData() {
+        async function loadDashboard() {
             try {
                 const token = localStorage.getItem('discord_token');
                 if (!token) {
-                    window.location.href = '/user-dashboard.html';
+                    showError('No authentication token found. Please login first.');
                     return;
                 }
 
-                // Load guild configuration
-                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-db`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                console.log('Loading dashboard for guild:', guildId);
+
+                // Load guild config using our working hybrid endpoint
+                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
 
+                console.log('Response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
+                    throw new Error(`Failed to load guild config: ${response.status} - ${errorText}`);
                 }
 
                 const data = await response.json();
+                console.log('Dashboard data:', data);
+
                 if (data.success) {
                     guildConfig = data.data;
-                    currentGuild = {
-                        id: guildConfig.guild_id,
-                        name: guildConfig.guild_name
-                    };
-                    availableRoles = guildConfig.available_roles;
-                    availableChannels = guildConfig.available_channels;
-
-                    updateGuildHeader();
-                    await loadPermissions();
-                    await loadStats();
-                    await loadLeaderboards();
-                    setupSettingsPanel();
+                    setupDashboard();
                 } else {
-                    throw new Error(data.message);
+                    throw new Error(data.message || 'Failed to load guild config');
                 }
 
             } catch (error) {
-                console.error('Error loading guild data:', error);
-                showError('Failed to load guild data. Please try again.');
+                console.error('Error loading dashboard:', error);
+                showError('Failed to load dashboard: ' + error.message);
+
+                // Show the error in the dashboard grid too
+                document.getElementById('dashboardGrid').innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                        <h3>Failed to load dashboard</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="loadDashboard()">Retry</button>
+                    </div>
+                `;
             }
         }
 
-        function updateGuildHeader() {
-            document.getElementById('guildName').textContent = currentGuild.name;
-            document.getElementById('memberCount').textContent = `${guildConfig.member_count || 0} members`;
-            document.getElementById('botStatus').textContent = 'Bot Active';
+        function setupDashboard() {
+            // Update guild name
+            document.getElementById('guildName').textContent = guildConfig.guild_name;
 
-            // Guild icon
-            const iconElement = document.getElementById('guildIcon');
-            iconElement.textContent = currentGuild.name.charAt(0);
+            // Update guild info
+            document.getElementById('guildInfo').innerHTML = `
+                <p><strong>Roles:</strong> ${guildConfig.available_roles.length} | <strong>Channels:</strong> ${guildConfig.available_channels.length}</p>
+                <p><strong>Permission Method:</strong> ${guildConfig.permissions.method}</p>
+            `;
+
+            // Create feature cards
+            createFeatureCards();
         }
 
-        async function loadPermissions() {
-            try {
-                const token = localStorage.getItem('discord_token');
-                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/permissions`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+        function createFeatureCards() {
+            const settings = guildConfig.settings;
+            const dashboardGrid = document.getElementById('dashboardGrid');
 
-                if (response.ok) {
-                    const data = await response.json();
-                    userPermissions = data.data;
-
-                    // Show settings tab if user has admin permissions
-                    if (userPermissions.can_configure_bot) {
-                        document.getElementById('settingsTab').style.display = 'block';
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading permissions:', error);
-            }
-        }
-
-        async function loadStats() {
-            try {
-                const token = localStorage.getItem('discord_token');
-                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/stats-db`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        displayStats(data.data);
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        function displayStats(stats) {
-            const statsHTML = `
-                <div class="stat-card">
-                    <span class="stat-icon">👥</span>
-                    <span class="stat-value">${stats.total_active_members || 0}</span>
-                    <span class="stat-label">Active Members</span>
+            dashboardGrid.innerHTML = `
+                <!-- Leveling System -->
+                <div class="feature-card ${settings.leveling?.enabled ? 'enabled' : ''}" id="levelingCard">
+                    <div class="feature-header">
+                        <div class="feature-title">
+                            📈 Leveling System
+                        </div>
+                        <div class="toggle-switch ${settings.leveling?.enabled ? 'active' : ''}"
+                             id="levelingToggle" onclick="toggleFeature('leveling')"></div>
+                    </div>
+                    <div class="feature-content">
+                        <div class="setting-item">
+                            <label class="setting-label">XP per Message</label>
+                            <input type="number" class="form-control" id="expPerMessage"
+                                   value="${settings.leveling?.exp_per_message || 15}" min="1" max="100">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">XP Cooldown (seconds)</label>
+                            <input type="number" class="form-control" id="expCooldown"
+                                   value="${settings.leveling?.exp_cooldown_seconds || 60}" min="0" max="300">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Level Up Announcements</label>
+                            <div class="toggle-switch ${settings.leveling?.level_up_announcements ? 'active' : ''}"
+                                 id="levelUpAnnouncements" onclick="toggleSetting('levelUpAnnouncements')"></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveLevelingSettings()">Save Settings</button>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon">💬</span>
-                    <span class="stat-value">${(stats.total_messages || 0).toLocaleString()}</span>
-                    <span class="stat-label">Total Messages</span>
+
+                <!-- Role System -->
+                <div class="feature-card ${settings.roles?.enabled ? 'enabled' : ''}" id="roleCard">
+                    <div class="feature-header">
+                        <div class="feature-title">
+                            🎭 Role Assignment
+                        </div>
+                        <div class="toggle-switch ${settings.roles?.enabled ? 'active' : ''}"
+                             id="roleToggle" onclick="toggleFeature('roles')"></div>
+                    </div>
+                    <div class="feature-content">
+                        <div class="setting-item">
+                            <label class="setting-label">Assignment Mode</label>
+                            <select class="form-control" id="roleMode">
+                                <option value="progressive" ${settings.roles?.mode === 'progressive' ? 'selected' : ''}>Progressive (Remove old roles)</option>
+                                <option value="additive" ${settings.roles?.mode === 'additive' ? 'selected' : ''}>Additive (Keep all roles)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Role Announcements</label>
+                            <div class="toggle-switch ${settings.roles?.role_announcement ? 'active' : ''}"
+                                 id="roleAnnouncements" onclick="toggleSetting('roleAnnouncements')"></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveRoleSettings()">Save Settings</button>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon">⭐</span>
-                    <span class="stat-value">${(stats.total_exp_distributed || 0).toLocaleString()}</span>
-                    <span class="stat-label">Total XP</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-icon">🏆</span>
-                    <span class="stat-value">${stats.highest_level || 0}</span>
-                    <span class="stat-label">Highest Level</span>
+
+                <!-- Economy System -->
+                <div class="feature-card ${settings.economy?.enabled ? 'enabled' : ''}" id="economyCard">
+                    <div class="feature-header">
+                        <div class="feature-title">
+                            💰 Economy System
+                        </div>
+                        <div class="toggle-switch ${settings.economy?.enabled ? 'active' : ''}"
+                             id="economyToggle" onclick="toggleFeature('economy')"></div>
+                    </div>
+                    <div class="feature-content">
+                        <div class="setting-item">
+                            <label class="setting-label">Daily Bonus Amount</label>
+                            <input type="number" class="form-control" id="dailyBonus"
+                                   value="${settings.economy?.daily_bonus || 100}" min="0" max="1000">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Enable Gambling</label>
+                            <div class="toggle-switch ${settings.economy?.gambling_enabled !== false ? 'active' : ''}"
+                                 id="gamblingEnabled" onclick="toggleSetting('gamblingEnabled')"></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveEconomySettings()">Save Settings</button>
+                    </div>
                 </div>
             `;
-            document.getElementById('statsGrid').innerHTML = statsHTML;
         }
 
-        // Replace the loadLeaderboards function with this simpler version that doesn't rely on missing display functions
-        async function loadLeaderboards() {
-            try {
-                const token = localStorage.getItem('discord_token');
+        function toggleFeature(feature) {
+            const toggle = document.getElementById(feature + 'Toggle');
+            const card = document.getElementById(feature + 'Card');
 
-                // Load level leaderboard
-                const levelResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/leaderboard/level-db?limit=10`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+            toggle.classList.toggle('active');
+            card.classList.toggle('enabled');
 
-                if (levelResponse.ok) {
-                    const levelData = await levelResponse.json();
-                    if (levelData.success) {
-                        displayLevelLeaderboard(levelData.data);
-                    }
-                }
+            const isEnabled = toggle.classList.contains('active');
 
-                // Load messages leaderboard
-                const messagesResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/leaderboard/messages-db?limit=10`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (messagesResponse.ok) {
-                    const messagesData = await messagesResponse.json();
-                    if (messagesData.success) {
-                        displayMessagesLeaderboard(messagesData.data);
-                    }
-                }
-
-            } catch (error) {
-                console.error('Error loading leaderboards:', error);
+            // Auto-save the main toggle
+            if (feature === 'leveling') {
+                saveLevelingSettings();
+            } else if (feature === 'roles') {
+                saveRoleSettings();
+            } else if (feature === 'economy') {
+                saveEconomySettings();
             }
         }
 
-        function displayLevelLeaderboard(leaderboardData) {
-            const container = document.getElementById('levelLeaderboard');
-            if (!container) {
-                // Create container if it doesn't exist
-                const leaderboardsSection = document.querySelector('.leaderboards') || document.querySelector('#leaderboards');
-                if (leaderboardsSection) {
-                    const levelSection = document.createElement('div');
-                    levelSection.innerHTML = `
-                        <h3>Level Leaderboard</h3>
-                        <div id="levelLeaderboard" class="leaderboard-container"></div>
-                    `;
-                    leaderboardsSection.appendChild(levelSection);
-                }
-            }
-
-            const leaderboardContainer = document.getElementById('levelLeaderboard');
-            if (leaderboardContainer) {
-                if (leaderboardData.length === 0) {
-                    leaderboardContainer.innerHTML = '<p>No data available</p>';
-                    return;
-                }
-
-                leaderboardContainer.innerHTML = `
-                    <div class="leaderboard-list">
-                        ${leaderboardData.map(user => `
-                            <div class="leaderboard-item">
-                                <span class="rank">#${user.rank}</span>
-                                <span class="username">${escapeHtml(user.username)}</span>
-                                <span class="stats">Level ${user.level}</span>
-                                <span class="exp">${user.exp.toLocaleString()} XP</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
-        }
-
-        function displayMessagesLeaderboard(leaderboardData) {
-            const container = document.getElementById('messagesLeaderboard');
-            if (!container) {
-                // Create container if it doesn't exist
-                const leaderboardsSection = document.querySelector('.leaderboards') || document.querySelector('#leaderboards');
-                if (leaderboardsSection) {
-                    const messagesSection = document.createElement('div');
-                    messagesSection.innerHTML = `
-                        <h3>Messages Leaderboard</h3>
-                        <div id="messagesLeaderboard" class="leaderboard-container"></div>
-                    `;
-                    leaderboardsSection.appendChild(messagesSection);
-                }
-            }
-
-            const leaderboardContainer = document.getElementById('messagesLeaderboard');
-            if (leaderboardContainer) {
-                if (leaderboardData.length === 0) {
-                    leaderboardContainer.innerHTML = '<p>No data available</p>';
-                    return;
-                }
-
-                leaderboardContainer.innerHTML = `
-                    <div class="leaderboard-list">
-                        ${leaderboardData.map(user => `
-                            <div class="leaderboard-item">
-                                <span class="rank">#${user.rank}</span>
-                                <span class="username">${escapeHtml(user.username)}</span>
-                                <span class="stats">${user.messages.toLocaleString()} messages</span>
-                                <span class="level">Level ${user.level}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
-        }
-
-        // Helper function for escaping HTML (if it doesn't already exist)
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function setupSettingsPanel() {
-            if (!userPermissions?.can_configure_bot) return;
-
-            const settings = guildConfig.settings;
-
-            // Populate leveling settings
-            setToggle('levelingEnabled', settings.leveling.enabled);
-            document.getElementById('expPerMessage').value = settings.leveling.exp_per_message;
-            document.getElementById('expCooldown').value = settings.leveling.exp_cooldown_seconds;
-            setToggle('levelUpAnnouncements', settings.leveling.level_up_announcements);
-
-            // Populate role settings
-            setToggle('roleSystemEnabled', settings.roles.enabled);
-            document.getElementById('roleMode').value = settings.roles.mode;
-            setToggle('roleAnnouncements', settings.roles.role_announcement);
-
-            // Populate channels
-            populateChannels();
-
-            // Load role mappings
-            loadRoleMappings();
-        }
-
-        function populateChannels() {
-            const select = document.getElementById('announcementChannel');
-            select.innerHTML = '<option value="">Select a channel...</option>';
-
-            availableChannels.forEach(channel => {
-                if (channel.type === 'text') {
-                    const option = document.createElement('option');
-                    option.value = channel.id;
-                    option.textContent = `# ${channel.name}`;
-                    select.appendChild(option);
-                }
-            });
-
-            // Set current value
-            if (guildConfig.settings.leveling.announcement_channel_id) {
-                select.value = guildConfig.settings.leveling.announcement_channel_id;
-            }
-        }
-
-        function loadRoleMappings() {
-            const container = document.getElementById('roleMappings');
-            const mappings = guildConfig.role_mappings || [];
-
-            if (mappings.length === 0) {
-                container.innerHTML = '<p style="text-align: center; opacity: 0.7;">No role mappings configured</p>';
-                return;
-            }
-
-            const mappingsHTML = mappings.map(mapping => {
-                const rolesHTML = mapping.roles.map(role =>
-                    `<span class="role-tag" style="background-color: ${role.color};">${role.name}</span>`
-                ).join('');
-
-                return `
-                    <div class="role-level">
-                        <div class="level-number">Level ${mapping.level}</div>
-                        <div class="role-select">
-                            ${rolesHTML}
-                        </div>
-                        <button class="btn btn-secondary" onclick="editRoleMapping(${mapping.level})">Edit</button>
-                        <button class="btn btn-secondary" onclick="deleteRoleMapping(${mapping.level})">Delete</button>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = mappingsHTML;
-        }
-
-        function switchTab(tabName) {
-            // Remove active class from all tabs and content
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            // Add active class to selected tab and content
-            event?.target?.classList.add('active') || document.querySelector(`[onclick="switchTab('${tabName}')"]`)?.classList.add('active');
-            document.getElementById(tabName)?.classList.add('active');
-        }
-
-        function setToggle(id, value) {
-            const toggle = document.getElementById(id);
-            if (value) {
-                toggle.classList.add('active');
-            } else {
-                toggle.classList.remove('active');
-            }
-        }
-
-        function toggleSetting(id) {
-            const toggle = document.getElementById(id);
+        function toggleSetting(settingId) {
+            const toggle = document.getElementById(settingId);
             toggle.classList.toggle('active');
         }
 
@@ -1025,11 +417,11 @@
             try {
                 const token = localStorage.getItem('discord_token');
                 const settings = {
-                    enabled: document.getElementById('levelingEnabled').classList.contains('active'),
-                    exp_per_message: parseInt(document.getElementById('expPerMessage').value),
-                    exp_cooldown_seconds: parseInt(document.getElementById('expCooldown').value),
+                    enabled: document.getElementById('levelingToggle').classList.contains('active'),
+                    exp_per_message: parseInt(document.getElementById('expPerMessage').value) || 15,
+                    exp_cooldown_seconds: parseInt(document.getElementById('expCooldown').value) || 60,
                     level_up_announcements: document.getElementById('levelUpAnnouncements').classList.contains('active'),
-                    announcement_channel_id: document.getElementById('announcementChannel').value || null
+                    announcement_channel_id: null
                 };
 
                 const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/leveling`, {
@@ -1041,10 +433,70 @@
                     body: JSON.stringify(settings)
                 });
 
-                if (response.ok) {
-                    showSuccess('Leveling settings saved successfully!');
+                const data = await response.json();
+                if (data.success) {
+                    showSuccess('Role settings saved!');
                 } else {
-                    throw new Error('Failed to save settings');
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error saving role settings:', error);
+                showError('Failed to save role settings');
+            }
+        }
+
+        async function saveEconomySettings() {
+            try {
+                const token = localStorage.getItem('discord_token');
+                const settings = {
+                    enabled: document.getElementById('economyToggle').classList.contains('active'),
+                    daily_bonus: parseInt(document.getElementById('dailyBonus').value) || 100,
+                    gambling_enabled: document.getElementById('gamblingEnabled').classList.contains('active')
+                };
+
+                const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/economy`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showSuccess('Economy settings saved!');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error saving economy settings:', error);
+                showError('Failed to save economy settings');
+            }
+        }
+
+        function showSuccess(message) {
+            showStatus(message, 'success');
+        }
+
+        function showError(message) {
+            showStatus(message, 'error');
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type} show`;
+
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', loadDashboard);('Leveling settings saved!');
+                } else {
+                    throw new Error(data.message);
                 }
             } catch (error) {
                 console.error('Error saving leveling settings:', error);
@@ -1056,7 +508,7 @@
             try {
                 const token = localStorage.getItem('discord_token');
                 const settings = {
-                    enabled: document.getElementById('roleSystemEnabled').classList.contains('active'),
+                    enabled: document.getElementById('roleToggle').classList.contains('active'),
                     mode: document.getElementById('roleMode').value,
                     role_announcement: document.getElementById('roleAnnouncements').classList.contains('active')
                 };
@@ -1070,51 +522,6 @@
                     body: JSON.stringify(settings)
                 });
 
-                if (response.ok) {
-                    showSuccess('Role settings saved successfully!');
-                } else {
-                    throw new Error('Failed to save settings');
-                }
-            } catch (error) {
-                console.error('Error saving role settings:', error);
-                showError('Failed to save role settings');
-            }
-        }
-
-        function showSuccess(message) {
-            // You can implement a toast notification here
-            alert(message);
-        }
-
-        function showError(message) {
-            // You can implement a toast notification here
-            alert(message);
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Placeholder functions for role mapping management
-        function addRoleMapping() {
-            alert('Role mapping editor coming soon!');
-        }
-
-        function editRoleMapping(level) {
-            alert(`Edit role mapping for level ${level} - coming soon!`);
-        }
-
-        function deleteRoleMapping(level) {
-            if (confirm(`Delete role mapping for level ${level}?`)) {
-                alert('Delete functionality coming soon!');
-            }
-        }
-
-        function saveRoleMappings() {
-            alert('Save role mappings - coming soon!');
-        }
-    </script>
-</body>
-</html>
+                const data = await response.json();
+                if (data.success) {
+                    showSuccess
