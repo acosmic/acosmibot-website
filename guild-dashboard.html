@@ -524,4 +524,15 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    showSuccess
+                                        showSuccess('Role settings saved!');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error saving role settings:', error);
+                showError('Failed to save role settings');
+            }
+        }
+    </script>
+</body>
+</html>
