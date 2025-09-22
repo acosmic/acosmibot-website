@@ -494,15 +494,7 @@
         }
 
         // Initialize dashboard when page loads
-        document.addEventListener('DOMContentLoaded', loadDashboard);('Leveling settings saved!');
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                console.error('Error saving leveling settings:', error);
-                showError('Failed to save leveling settings');
-            }
-        }
+        document.addEventListener('DOMContentLoaded', loadDashboard);
 
         async function saveRoleSettings() {
             try {
