@@ -241,7 +241,7 @@ function displayLeaderboard(data, elementId, type) {
     const html = data.map((user, index) => {
         const value = type === 'currency' ? user[3] :
                       type === 'messages' ? user[3] :
-                      type === 'level' ? `Level ${user[4]} (${user[3].toLocaleString()} XP)` : user[3];
+                      type === 'level' ? `Level ${user[3].toLocaleString()} (${user[4]} XP)` : user[3];
 
         return `
             <div class="leaderboard-item">
