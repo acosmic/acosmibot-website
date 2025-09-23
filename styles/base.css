@@ -89,6 +89,62 @@ nav {
     font-size: 28px;
 }
 
+/* Navigation Links */
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+    align-items: center;
+}
+
+.nav-links li {
+    list-style: none;
+}
+
+.nav-links a {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.nav-links a:hover {
+    color: #ffd700;
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Login Button */
+.login-btn {
+    background: linear-gradient(45deg, #5865F2, #7289DA);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4);
+    cursor: pointer;
+    border: none;
+    position: relative;
+}
+
+.login-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(88, 101, 242, 0.6);
+}
+
+.discord-icon {
+    width: 20px;
+    height: 20px;
+}
+
 /* Buttons */
 .btn {
     padding: 10px 20px;
@@ -263,6 +319,22 @@ nav {
 
 .grid-4 {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Mobile Navigation */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+    }
+
+    .nav-content {
+        justify-content: space-between;
+    }
+
+    .login-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
 }
 
 /* Responsive Design */
