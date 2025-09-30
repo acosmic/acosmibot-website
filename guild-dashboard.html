@@ -14,7 +14,7 @@
 
     <script type="text/babel">
         console.log('Script starting...');
-
+        const API_BASE_URL = 'https://api.acosmibot.com';
         const { useState, useEffect } = React;
 
         const GuildDashboard = () => {
@@ -72,7 +72,7 @@
                 return;
               }
 
-              const apiUrl = `/api/guilds/${guildId}/config-hybrid`;
+              const apiUrl = `${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`;
               console.log('Fetching config from:', apiUrl);
               const response = await fetch(apiUrl, {
                 credentials: 'include',
@@ -128,7 +128,7 @@
                 return;
               }
 
-              const response = await fetch(`/api/guilds/${guildId}/config-hybrid`, {
+              const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
