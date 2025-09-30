@@ -30,12 +30,10 @@
           const guildId = new URLSearchParams(window.location.search).get('guild');
           console.log('Guild ID:', guildId);
 
-          // Get JWT token from localStorage (stored from user-dashboard or login)
           const getAuthToken = () => {
             return localStorage.getItem('discord_token');
           };
 
-          // Check if user is authenticated
           const isAuthenticated = () => {
             return !!getAuthToken();
           };
@@ -67,7 +65,6 @@
 
               const token = getAuthToken();
               if (!token) {
-                // No token, redirect to login
                 window.location.href = `${API_BASE_URL}/auth/login`;
                 return;
               }
@@ -84,7 +81,6 @@
               console.log('Response status:', response.status);
 
               if (response.status === 401) {
-                // Token expired or invalid, redirect to login
                 localStorage.removeItem('discord_token');
                 window.location.href = `${API_BASE_URL}/auth/login`;
                 return;
@@ -128,6 +124,32 @@
                 return;
               }
 
+              // Ensure all boolean fields are explicitly set
+              const sanitizedSettings = {
+                ...settings,
+                leveling: {
+                  ...settings.leveling,
+                  enabled: settings.leveling?.enabled === true,
+                  level_up_announcements: settings.leveling?.level_up_announcements === true
+                },
+                economy: {
+                  ...settings.economy,
+                  enabled: settings.economy?.enabled === true,
+                  gambling_enabled: settings.economy?.gambling_enabled === true
+                },
+                ai: {
+                  ...settings.ai,
+                  enabled: settings.ai?.enabled === true
+                },
+                games: {
+                  ...settings.games,
+                  'slots-config': {
+                    ...settings.games?.['slots-config'],
+                    enabled: settings.games?.['slots-config']?.enabled === true
+                  }
+                }
+              };
+
               const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
                 method: 'POST',
                 headers: {
@@ -135,7 +157,7 @@
                   'Authorization': `Bearer ${token}`
                 },
                 credentials: 'include',
-                body: JSON.stringify({ settings })
+                body: JSON.stringify({ settings: sanitizedSettings })
               });
 
               const data = await response.json();
@@ -194,13 +216,40 @@
             updateSetting('roles.role_mappings', roleMappings);
           };
 
+          // Helper function to parse custom emoji format
+          const parseCustomEmoji = (symbolString) => {
+            const match = symbolString.match(/<(a?):([^:]+):(\d+)>/);
+            if (match) {
+              const [, animated, name, id] = match;
+              return {
+                id,
+                name,
+                animated: animated === 'a',
+                url: `https://cdn.discordapp.com/emojis/${id}.${animated === 'a' ? 'gif' : 'png'}`
+              };
+            }
+            return null;
+          };
+
           const toggleEmojiSelection = (emoji) => {
             const currentSymbols = settings?.games?.['slots-config']?.symbols || [];
-            const emojiValue = emoji.emoji || emoji.name;
-            if (currentSymbols.includes(emojiValue)) {
-              updateSetting('games.slots-config.symbols', currentSymbols.filter(s => s !== emojiValue));
+
+            let symbolToStore;
+            if (emoji.url && emoji.id) {
+              const animated = emoji.animated ? 'a' : '';
+              symbolToStore = `<${animated}:${emoji.name}:${emoji.id}>`;
+            } else {
+              symbolToStore = emoji.emoji || emoji.name;
+            }
+
+            if (currentSymbols.includes(symbolToStore)) {
+              updateSetting('games.slots-config.symbols',
+                currentSymbols.filter(s => s !== symbolToStore)
+              );
             } else if (currentSymbols.length < 12) {
-              updateSetting('games.slots-config.symbols', [...currentSymbols, emojiValue]);
+              updateSetting('games.slots-config.symbols',
+                [...currentSymbols, symbolToStore]
+              );
             }
           };
 
@@ -397,25 +446,78 @@
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Slot Symbols (Select 12)</label>
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-3">
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-3 min-h-[120px]">
                           <div className="flex flex-wrap gap-2">
-                            {(settings.games?.['slots-config']?.symbols || []).map((symbol, idx) => (
-                              <span key={idx} className="text-3xl">{symbol}</span>
-                            ))}
+                            {(settings.games?.['slots-config']?.symbols || []).length === 0 ? (
+                              <span className="text-gray-400 text-sm self-center">Click emojis below to select them</span>
+                            ) : (
+                              (settings.games?.['slots-config']?.symbols || []).map((symbol, idx) => {
+                                const customEmoji = parseCustomEmoji(symbol);
+                                const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
+
+                                return (
+                                  <button
+                                    key={idx}
+                                    onClick={() => {
+                                      if (customEmoji) {
+                                        toggleEmojiSelection({ ...customEmoji, emoji: null });
+                                      } else if (emojiData) {
+                                        toggleEmojiSelection(emojiData);
+                                      }
+                                    }}
+                                    className="p-2 rounded-lg border-2 border-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all cursor-pointer"
+                                    title="Click to deselect"
+                                  >
+                                    {(customEmoji?.url || emojiData?.url) ? (
+                                      <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} className="w-10 h-10" />
+                                    ) : (
+                                      <span className="text-3xl">{symbol}</span>
+                                    )}
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
+                          <div className="mt-2 text-xs text-gray-500">
+                            {(settings.games?.['slots-config']?.symbols?.length || 0)} / 12 selected
                             {(settings.games?.['slots-config']?.symbols?.length || 0) < 12 && (
-                              <span className="text-gray-400 text-sm self-center">
-                                {12 - (settings.games?.['slots-config']?.symbols?.length || 0)} more needed
+                              <span className="ml-2 text-indigo-600">
+                                ({12 - (settings.games?.['slots-config']?.symbols?.length || 0)} more needed)
                               </span>
                             )}
                           </div>
                         </div>
+
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Available Emojis (Click to select)</label>
                         <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg">
                           {availableEmojis.map((emoji) => {
-                            const emojiValue = emoji.emoji || emoji.name;
-                            const isSelected = settings.games?.['slots-config']?.symbols?.includes(emojiValue);
+                            let storedFormat;
+                            if (emoji.url && emoji.id) {
+                              const animated = emoji.animated ? 'a' : '';
+                              storedFormat = `<${animated}:${emoji.name}:${emoji.id}>`;
+                            } else {
+                              storedFormat = emoji.emoji || emoji.name;
+                            }
+
+                            const isSelected = settings.games?.['slots-config']?.symbols?.includes(storedFormat);
+
                             return (
-                              <button key={emoji.id} onClick={() => toggleEmojiSelection(emoji)} disabled={(settings.games?.['slots-config']?.symbols?.length || 0) >= 12 && !isSelected} className={`p-2 rounded-lg border-2 transition-all ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300 disabled:opacity-30'}`}>
-                                {emoji.url ? <img src={emoji.url} alt={emoji.name} className="w-8 h-8" /> : <span className="text-2xl">{emoji.emoji}</span>}
+                              <button
+                                key={emoji.id}
+                                onClick={() => toggleEmojiSelection(emoji)}
+                                disabled={(settings.games?.['slots-config']?.symbols?.length || 0) >= 12 && !isSelected}
+                                className={`p-2 rounded-lg border-2 transition-all ${
+                                  isSelected
+                                    ? 'border-indigo-600 bg-indigo-50 opacity-50'
+                                    : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed'
+                                }`}
+                                title={isSelected ? 'Already selected' : 'Click to select'}
+                              >
+                                {emoji.url ? (
+                                  <img src={emoji.url} alt={emoji.name} className="w-8 h-8" />
+                                ) : (
+                                  <span className="text-2xl">{emoji.emoji}</span>
+                                )}
                               </button>
                             );
                           })}
