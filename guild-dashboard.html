@@ -15,6 +15,7 @@
 
     <script type="text/babel">
         const { AlertCircle, Save, Plus, Trash2 } = lucide;
+        const API_BASE_URL = 'https://api.acosmibot.com';
 
         const GuildDashboard = () => {
           const [settings, setSettings] = React.useState(null);
@@ -54,7 +55,7 @@
           const fetchGuildConfig = async () => {
             try {
               setLoading(true);
-              const response = await fetch(`api.acosmibot.com/api/guilds/${guildId}/config-hybrid`, {
+              const response = await fetch('{API_BASE_URL}/api/guilds/${guildId}/config-hybrid', {
                 credentials: 'include'
               });
 
@@ -81,7 +82,7 @@
               setError(null);
               setSuccess(false);
 
-              const response = await fetch(`api.acosmibot.com/api/guilds/${guildId}/config-hybrid`, {
+              const response = await fetch(`{API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
