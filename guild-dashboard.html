@@ -14,7 +14,7 @@
 
     <script type="text/babel">
         console.log('Script starting...');
-
+        const API_BASE_URL = 'https://api.acosmibot.com';
         const { useState, useEffect } = React;
 
         const GuildDashboard = () => {
@@ -32,7 +32,7 @@
 
           // Get JWT token from localStorage (stored from user-dashboard or login)
           const getAuthToken = () => {
-            return localStorage.getItem('jwt_token');
+            return localStorage.getItem('discord_token');
           };
 
           // Check if user is authenticated
@@ -68,11 +68,11 @@
               const token = getAuthToken();
               if (!token) {
                 // No token, redirect to login
-                window.location.href = '/auth/login';
+                window.location.href = '${API_BASE_URL}/auth/login';
                 return;
               }
 
-              const apiUrl = `/api/guilds/${guildId}/config-hybrid`;
+              const apiUrl = `${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`;
               console.log('Fetching config from:', apiUrl);
               const response = await fetch(apiUrl, {
                 credentials: 'include',
@@ -85,8 +85,8 @@
 
               if (response.status === 401) {
                 // Token expired or invalid, redirect to login
-                localStorage.removeItem('jwt_token');
-                window.location.href = '/auth/login';
+                localStorage.removeItem('discord_token');
+                window.location.href = '${API_BASE_URL}/auth/login';
                 return;
               }
 
@@ -124,11 +124,11 @@
 
               const token = getAuthToken();
               if (!token) {
-                window.location.href = '/auth/login';
+                window.location.href = '${API_BASE_URL}/auth/login';
                 return;
               }
 
-              const response = await fetch(`/api/guilds/${guildId}/config-hybrid`, {
+              const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -141,8 +141,8 @@
               const data = await response.json();
 
               if (response.status === 401) {
-                localStorage.removeItem('jwt_token');
-                window.location.href = '/auth/login';
+                localStorage.removeItem('discord_token');
+                window.location.href = `${API_BASE_URL}/auth/login`;
                 return;
               }
 
