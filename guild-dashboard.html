@@ -54,7 +54,7 @@
           const fetchGuildConfig = async () => {
             try {
               setLoading(true);
-              const response = await fetch(`/api/guilds/${guildId}/config-hybrid`, {
+              const response = await fetch(`api.acosmibot.com/api/guilds/${guildId}/config-hybrid`, {
                 credentials: 'include'
               });
 
@@ -81,7 +81,7 @@
               setError(null);
               setSuccess(false);
 
-              const response = await fetch(`/api/guilds/${guildId}/config-hybrid`, {
+              const response = await fetch(`api.acosmibot.com/api/guilds/${guildId}/config-hybrid`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
