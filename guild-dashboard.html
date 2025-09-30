@@ -4,30 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guild Dashboard - Acosmibot</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { AlertCircle, Save, Plus, Trash2 } = lucide;
+        console.log('Script starting...');
+
+        const { useState, useEffect } = React;
         const API_BASE_URL = 'https://api.acosmibot.com';
 
         const GuildDashboard = () => {
-          const [settings, setSettings] = React.useState(null);
-          const [availableRoles, setAvailableRoles] = React.useState([]);
-          const [availableChannels, setAvailableChannels] = React.useState([]);
-          const [availableEmojis, setAvailableEmojis] = React.useState([]);
-          const [loading, setLoading] = React.useState(true);
-          const [saving, setSaving] = React.useState(false);
-          const [error, setError] = React.useState(null);
-          const [success, setSuccess] = React.useState(false);
+          const [settings, setSettings] = useState(null);
+          const [availableRoles, setAvailableRoles] = useState([]);
+          const [availableChannels, setAvailableChannels] = useState([]);
+          const [availableEmojis, setAvailableEmojis] = useState([]);
+          const [loading, setLoading] = useState(true);
+          const [saving, setSaving] = useState(false);
+          const [error, setError] = useState(null);
+          const [success, setSuccess] = useState(false);
 
           const guildId = new URLSearchParams(window.location.search).get('guild');
+          console.log('Guild ID:', guildId);
 
           const standardEmojis = [
             { id: 'cherry', name: 'cherry', url: null, emoji: '🍒' },
@@ -41,35 +43,46 @@
             { id: 'gem', name: 'gem', url: null, emoji: '💎' },
             { id: 'slot', name: 'slot', url: null, emoji: '🎰' },
             { id: 'clover', name: 'clover', url: null, emoji: '🍀' },
-            { id: 'heart', name: 'heart', url: null, emoji: '❤️' },
-            { id: 'money', name: 'money', url: null, emoji: '💰' },
-            { id: 'coin', name: 'coin', url: null, emoji: '🪙' },
-            { id: 'fire', name: 'fire', url: null, emoji: '🔥' },
-            { id: 'lightning', name: 'lightning', url: null, emoji: '⚡' }
+            { id: 'heart', name: 'heart', url: null, emoji: '❤️' }
           ];
 
-          React.useEffect(() => {
-            if (guildId) fetchGuildConfig();
+          useEffect(() => {
+            if (guildId) {
+              fetchGuildConfig();
+            }
           }, [guildId]);
 
           const fetchGuildConfig = async () => {
             try {
               setLoading(true);
-              const response = await fetch('{API_BASE_URL}/api/guilds/${guildId}/config-hybrid', {
+              const apiUrl = `${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`;
+              console.log('Fetching config from:', apiUrl);
+              const response = await fetch(apiUrl, {
                 credentials: 'include'
               });
 
-              if (!response.ok) throw new Error('Failed to fetch guild config');
+              console.log('Response status:', response.status);
+
+              if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`Failed to fetch guild config (${response.status}): ${errorText}`);
+              }
 
               const data = await response.json();
+              console.log('Received data:', data);
+
               if (data.success) {
                 setSettings(data.data.settings);
                 setAvailableRoles(data.data.available_roles || []);
                 setAvailableChannels(data.data.available_channels || []);
                 const serverEmojis = data.data.available_emojis || [];
                 setAvailableEmojis([...serverEmojis, ...standardEmojis]);
+              } else {
+                throw new Error(data.message || 'API returned success: false');
               }
             } catch (err) {
+              console.error('Error fetching config:', err);
               setError(err.message);
             } finally {
               setLoading(false);
@@ -82,7 +95,7 @@
               setError(null);
               setSuccess(false);
 
-              const response = await fetch(`{API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
+              const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -150,11 +163,10 @@
 
           if (!guildId) {
             return (
-              <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-                  <AlertCircle className="w-8 h-8 text-red-600 mb-2" />
-                  <h3 className="text-red-800 font-semibold mb-2">No Guild Selected</h3>
-                  <p className="text-red-600">Please select a guild from the guild selector.</p>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f9fafb'}}>
+                <div style={{backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.5rem', padding: '1.5rem', maxWidth: '28rem'}}>
+                  <h3 style={{color: '#991b1b', fontWeight: '600', marginBottom: '0.5rem'}}>No Guild Selected</h3>
+                  <p style={{color: '#dc2626'}}>Please select a guild from the guild selector.</p>
                 </div>
               </div>
             );
@@ -162,10 +174,10 @@
 
           if (loading) {
             return (
-              <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="text-center">
-                  <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading guild settings...</p>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f9fafb'}}>
+                <div style={{textAlign: 'center'}}>
+                  <div style={{width: '4rem', height: '4rem', border: '4px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem'}}></div>
+                  <p style={{color: '#4b5563'}}>Loading guild settings...</p>
                 </div>
               </div>
             );
@@ -173,11 +185,10 @@
 
           if (!settings) {
             return (
-              <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-                  <AlertCircle className="w-8 h-8 text-red-600 mb-2" />
-                  <h3 className="text-red-800 font-semibold mb-2">Error Loading Settings</h3>
-                  <p className="text-red-600">{error || 'Failed to load guild configuration'}</p>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f9fafb'}}>
+                <div style={{backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.5rem', padding: '1.5rem', maxWidth: '28rem'}}>
+                  <h3 style={{color: '#991b1b', fontWeight: '600', marginBottom: '0.5rem'}}>Error Loading Settings</h3>
+                  <p style={{color: '#dc2626'}}>{error || 'Failed to load guild configuration'}</p>
                 </div>
               </div>
             );
@@ -192,19 +203,15 @@
                       <h1 className="text-2xl font-bold text-gray-900">Guild Settings</h1>
                       <p className="text-gray-600 mt-1">Configure your server bot behavior</p>
                     </div>
-                    <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                      <Save className="w-4 h-4" />
+                    <button onClick={handleSave} disabled={saving} className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors">
                       {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
 
                   {error && (
-                    <div className="mx-6 mt-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="text-red-800 font-semibold">Error</h4>
-                        <p className="text-red-600 text-sm mt-1">{error}</p>
-                      </div>
+                    <div className="mx-6 mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                      <h4 className="text-red-800 font-semibold">Error</h4>
+                      <p className="text-red-600 text-sm mt-1">{error}</p>
                     </div>
                   )}
 
@@ -219,33 +226,33 @@
                       <h2 className="text-xl font-semibold text-gray-900">Leveling System</h2>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" checked={settings.leveling?.enabled || false} onChange={(e) => updateSetting('leveling.enabled', e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                       </label>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">XP Per Message</label>
-                        <input type="number" min="1" max="100" value={settings.leveling?.exp_per_message || 10} onChange={(e) => updateSetting('leveling.exp_per_message', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <input type="number" min="1" max="100" value={settings.leveling?.exp_per_message || 10} onChange={(e) => updateSetting('leveling.exp_per_message', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         <p className="text-xs text-gray-500 mt-1">Range: 1-100</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">XP Cooldown (seconds)</label>
-                        <input type="number" min="1" max="3600" value={settings.leveling?.exp_cooldown_seconds || 60} onChange={(e) => updateSetting('leveling.exp_cooldown_seconds', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <input type="number" min="1" max="3600" value={settings.leveling?.exp_cooldown_seconds || 60} onChange={(e) => updateSetting('leveling.exp_cooldown_seconds', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         <p className="text-xs text-gray-500 mt-1">Range: 1-3600</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Streak Multiplier</label>
-                        <input type="number" min="0" max="1" step="0.01" value={settings.leveling?.streak_multiplier || 0.05} onChange={(e) => updateSetting('leveling.streak_multiplier', parseFloat(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <input type="number" min="0" max="1" step="0.01" value={settings.leveling?.streak_multiplier || 0.05} onChange={(e) => updateSetting('leveling.streak_multiplier', parseFloat(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         <p className="text-xs text-gray-500 mt-1">Range: 0-1.0</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Max Streak Bonus</label>
-                        <input type="number" min="1" max="50" value={settings.leveling?.max_streak_bonus || 7} onChange={(e) => updateSetting('leveling.max_streak_bonus', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <input type="number" min="1" max="50" value={settings.leveling?.max_streak_bonus || 7} onChange={(e) => updateSetting('leveling.max_streak_bonus', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         <p className="text-xs text-gray-500 mt-1">Range: 1-50</p>
                       </div>
                       <div className="md:col-span-2">
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={settings.leveling?.level_up_announcements || false} onChange={(e) => updateSetting('leveling.level_up_announcements', e.target.checked)} className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                          <input type="checkbox" checked={settings.leveling?.level_up_announcements || false} onChange={(e) => updateSetting('leveling.level_up_announcements', e.target.checked)} className="w-4 h-4 rounded" />
                           <span className="text-sm font-medium text-gray-700">Enable level up announcements</span>
                         </label>
                       </div>
@@ -256,7 +263,7 @@
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Role Assignment</h2>
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Assignment Mode</label>
-                      <select value={settings.roles?.mode || 'progressive'} onChange={(e) => updateSetting('roles.mode', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                      <select value={settings.roles?.mode || 'progressive'} onChange={(e) => updateSetting('roles.mode', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
                         <option value="progressive">Progressive</option>
                         <option value="single">Single</option>
                         <option value="cumulative">Cumulative</option>
@@ -268,11 +275,11 @@
                           <div className="flex-1 grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-xs font-medium text-gray-600 mb-1">Level</label>
-                              <input type="number" min="1" value={level} onChange={(e) => updateRoleMapping(level, e.target.value, roleIds)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                              <input type="number" min="1" value={level} onChange={(e) => updateRoleMapping(level, e.target.value, roleIds)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                             </div>
                             <div>
                               <label className="block text-xs font-medium text-gray-600 mb-1">Roles</label>
-                              <select multiple value={roleIds} onChange={(e) => updateRoleMapping(level, level, Array.from(e.target.selectedOptions, option => option.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[80px]">
+                              <select multiple value={roleIds} onChange={(e) => updateRoleMapping(level, level, Array.from(e.target.selectedOptions, option => option.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg min-h-[80px]">
                                 {availableRoles.map(role => (
                                   <option key={role.id} value={role.id}>{role.name}</option>
                                 ))}
@@ -280,16 +287,11 @@
                               <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd for multiple</p>
                             </div>
                           </div>
-                          <button onClick={() => removeRoleMapping(level)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                          <button onClick={() => removeRoleMapping(level)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">🗑️</button>
                         </div>
                       ))}
                     </div>
-                    <button onClick={addRoleMapping} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                      <Plus className="w-4 h-4" />
-                      Add Role Mapping
-                    </button>
+                    <button onClick={addRoleMapping} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">+ Add Role Mapping</button>
                   </div>
 
                   <div className="p-6 border-b border-gray-200">
@@ -297,18 +299,18 @@
                       <h2 className="text-xl font-semibold text-gray-900">Economy</h2>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" checked={settings.economy?.enabled || false} onChange={(e) => updateSetting('economy.enabled', e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                       </label>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Daily Bonus Amount</label>
-                        <input type="number" min="1" max="10000" value={settings.economy?.daily_bonus || 100} onChange={(e) => updateSetting('economy.daily_bonus', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <input type="number" min="1" max="10000" value={settings.economy?.daily_bonus || 100} onChange={(e) => updateSetting('economy.daily_bonus', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         <p className="text-xs text-gray-500 mt-1">Range: 1-10000</p>
                       </div>
                       <div className="flex items-end">
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={settings.economy?.gambling_enabled || false} onChange={(e) => updateSetting('economy.gambling_enabled', e.target.checked)} className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                          <input type="checkbox" checked={settings.economy?.gambling_enabled || false} onChange={(e) => updateSetting('economy.gambling_enabled', e.target.checked)} className="w-4 h-4 rounded" />
                           <span className="text-sm font-medium text-gray-700">Enable gambling features</span>
                         </label>
                       </div>
@@ -320,13 +322,13 @@
                       <h2 className="text-xl font-semibold text-gray-900">AI Configuration</h2>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" checked={settings.ai?.enabled || false} onChange={(e) => updateSetting('ai.enabled', e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                       </label>
                     </div>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Response Channel</label>
-                        <select value={settings.ai?.response_channel || ''} onChange={(e) => updateSetting('ai.response_channel', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <select value={settings.ai?.response_channel || ''} onChange={(e) => updateSetting('ai.response_channel', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
                           <option value="">Select a channel</option>
                           {availableChannels.map(channel => (
                             <option key={channel.id} value={channel.id}>#{channel.name}</option>
@@ -335,7 +337,7 @@
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">AI Instructions</label>
-                        <textarea value={settings.ai?.instructions || ''} onChange={(e) => updateSetting('ai.instructions', e.target.value)} placeholder="Enter custom instructions for AI behavior..." rows={6} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" />
+                        <textarea value={settings.ai?.instructions || ''} onChange={(e) => updateSetting('ai.instructions', e.target.value)} placeholder="Enter custom instructions for AI behavior..." rows={6} className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none" />
                         <p className="text-xs text-gray-500 mt-1">Customize AI responses in your server</p>
                       </div>
                     </div>
@@ -343,15 +345,15 @@
 
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold text-gray-900">Games Slots Configuration</h2>
+                      <h2 className="text-xl font-semibold text-gray-900">Games - Slots</h2>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" checked={settings.games?.['slots-config']?.enabled || false} onChange={(e) => updateSetting('games.slots-config.enabled', e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                       </label>
                     </div>
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Slot Symbols (Select 12 emojis)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Slot Symbols (Select 12)</label>
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-3">
                           <div className="flex flex-wrap gap-2">
                             {(settings.games?.['slots-config']?.symbols || []).map((symbol, idx) => (
@@ -369,7 +371,7 @@
                             const emojiValue = emoji.emoji || emoji.name;
                             const isSelected = settings.games?.['slots-config']?.symbols?.includes(emojiValue);
                             return (
-                              <button key={emoji.id} onClick={() => toggleEmojiSelection(emoji)} disabled={(settings.games?.['slots-config']?.symbols?.length || 0) >= 12 && !isSelected} className={`p-2 rounded-lg border-2 transition-all ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300 disabled:opacity-30 disabled:cursor-not-allowed'}`}>
+                              <button key={emoji.id} onClick={() => toggleEmojiSelection(emoji)} disabled={(settings.games?.['slots-config']?.symbols?.length || 0) >= 12 && !isSelected} className={`p-2 rounded-lg border-2 transition-all ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300 disabled:opacity-30'}`}>
                                 {emoji.url ? <img src={emoji.url} alt={emoji.name} className="w-8 h-8" /> : <span className="text-2xl">{emoji.emoji}</span>}
                               </button>
                             );
@@ -379,28 +381,28 @@
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Match 2 Multiplier</label>
-                          <input type="number" min="1" max="10" value={settings.games?.['slots-config']?.match_two_multiplier || 2} onChange={(e) => updateSetting('games.slots-config.match_two_multiplier', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                          <input type="number" min="1" max="10" value={settings.games?.['slots-config']?.match_two_multiplier || 2} onChange={(e) => updateSetting('games.slots-config.match_two_multiplier', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                           <p className="text-xs text-gray-500 mt-1">Range: 1-10</p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Match 3 Multiplier</label>
-                          <input type="number" min="1" max="100" value={settings.games?.['slots-config']?.match_three_multiplier || 10} onChange={(e) => updateSetting('games.slots-config.match_three_multiplier', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                          <input type="number" min="1" max="100" value={settings.games?.['slots-config']?.match_three_multiplier || 10} onChange={(e) => updateSetting('games.slots-config.match_three_multiplier', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                           <p className="text-xs text-gray-500 mt-1">Range: 1-100</p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Bet</label>
-                          <input type="number" min="1" max="10000" value={settings.games?.['slots-config']?.min_bet || 100} onChange={(e) => updateSetting('games.slots-config.min_bet', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                          <input type="number" min="1" max="10000" value={settings.games?.['slots-config']?.min_bet || 100} onChange={(e) => updateSetting('games.slots-config.min_bet', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                           <p className="text-xs text-gray-500 mt-1">Range: 1-10000</p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Bet</label>
-                          <input type="number" min="1" max="1000000" value={settings.games?.['slots-config']?.max_bet || 25000} onChange={(e) => updateSetting('games.slots-config.max_bet', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                          <input type="number" min="1" max="1000000" value={settings.games?.['slots-config']?.max_bet || 25000} onChange={(e) => updateSetting('games.slots-config.max_bet', parseInt(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                           <p className="text-xs text-gray-500 mt-1">Range: min_bet-1000000</p>
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Bet Options (comma-separated)</label>
-                        <input type="text" value={(settings.games?.['slots-config']?.bet_options || []).join(', ')} onChange={(e) => { const values = e.target.value.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v)); updateSetting('games.slots-config.bet_options', values); }} placeholder="100, 1000, 5000, 10000, 25000" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <input type="text" value={(settings.games?.['slots-config']?.bet_options || []).join(', ')} onChange={(e) => { const values = e.target.value.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v)); updateSetting('games.slots-config.bet_options', values); }} placeholder="100, 1000, 5000, 10000, 25000" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         <p className="text-xs text-gray-500 mt-1">Quick bet amounts for users</p>
                       </div>
                     </div>
@@ -415,7 +417,16 @@
           );
         };
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<GuildDashboard />);
+        console.log('Rendering component...');
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GuildDashboard />);
+        console.log('Component rendered!');
     </script>
+
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </body>
 </html>
