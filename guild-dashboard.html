@@ -85,7 +85,7 @@
 
               if (response.status === 401) {
                 // Token expired or invalid, redirect to login
-                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('discord_token');
                 window.location.href = '/auth/login';
                 return;
               }
@@ -141,7 +141,7 @@
               const data = await response.json();
 
               if (response.status === 401) {
-                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('discord_token');
                 window.location.href = '/auth/login';
                 return;
               }
