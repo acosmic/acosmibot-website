@@ -220,22 +220,22 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 }
 
 .number-input-wrapper input[type="number"] {
-    padding-right: 40px;
+    padding-right: 36px;
 }
 
 .number-controls {
     position: absolute;
-    right: 4px;
+    right: 6px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 .number-btn {
-    width: 28px;
-    height: 20px;
+    width: 24px;
+    height: 18px;
     background: rgba(88, 101, 242, 0.3);
     border: 1px solid rgba(88, 101, 242, 0.5);
     border-radius: 4px;
@@ -244,7 +244,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     align-items: center;
     justify-content: center;
     color: var(--text-light);
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: bold;
     transition: all 0.2s ease;
     user-select: none;
