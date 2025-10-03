@@ -1,6 +1,85 @@
 // Guild Dashboard React Component
 const API_BASE_URL = 'https://api.acosmibot.com';
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
+
+// Custom Role Selector Component
+const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const selectedRoles = availableRoles.filter(role => selectedRoleIds.includes(role.id));
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const toggleRole = (roleId) => {
+    if (selectedRoleIds.includes(roleId)) {
+      onChange(selectedRoleIds.filter(id => id !== roleId));
+    } else {
+      onChange([...selectedRoleIds, roleId]);
+    }
+  };
+
+  const removeRole = (roleId, e) => {
+    e.stopPropagation();
+    onChange(selectedRoleIds.filter(id => id !== roleId));
+  };
+
+  return (
+    <div className="role-selector-wrapper" ref={dropdownRef}>
+      <div
+        className={`role-selector-display ${isOpen ? 'open' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedRoles.length === 0 ? (
+          <span className="role-selector-placeholder">Click to select roles...</span>
+        ) : (
+          selectedRoles.map(role => (
+            <span key={role.id} className="role-tag">
+              {role.name}
+              <span
+                className="role-tag-remove"
+                onClick={(e) => removeRole(role.id, e)}
+              >
+                ×
+              </span>
+            </span>
+          ))
+        )}
+      </div>
+      {isOpen && (
+        <div className="role-dropdown">
+          {availableRoles.map(role => {
+            const isSelected = selectedRoleIds.includes(role.id);
+            return (
+              <div
+                key={role.id}
+                className={`role-dropdown-item ${isSelected ? 'selected' : ''}`}
+                onClick={() => toggleRole(role.id)}
+              >
+                <span>{role.name}</span>
+                {isSelected && <span className="checkmark">✓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const GuildDashboard = () => {
   const [settings, setSettings] = useState(null);
@@ -373,18 +452,12 @@ const GuildDashboard = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Roles</label>
-                  <select
-                    multiple
-                    value={roleIds}
-                    onChange={(e) => updateRoleMapping(level, level, Array.from(e.target.selectedOptions, option => option.value))}
-                    className="form-control"
-                    style={{ minHeight: '80px' }}
-                  >
-                    {availableRoles.map(role => (
-                      <option key={role.id} value={role.id}>{role.name}</option>
-                    ))}
-                  </select>
-                  <p className="form-hint">Hold Ctrl/Cmd for multiple</p>
+                  <RoleSelector
+                    selectedRoleIds={roleIds}
+                    availableRoles={availableRoles}
+                    onChange={(newRoleIds) => updateRoleMapping(level, level, newRoleIds)}
+                  />
+                  <p className="form-hint">Click to select multiple roles</p>
                 </div>
               </div>
               <button onClick={() => removeRoleMapping(level)} className="delete-btn">

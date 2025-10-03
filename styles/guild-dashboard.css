@@ -235,6 +235,124 @@ select.form-control option {
     gap: 16px;
 }
 
+/* Custom Role Selector */
+.role-selector-wrapper {
+    position: relative;
+}
+
+.role-selector-display {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.role-selector-display:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+}
+
+.role-selector-display.open {
+    border-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.role-selector-placeholder {
+    opacity: 0.6;
+    font-size: 0.9rem;
+}
+
+.role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(88, 101, 242, 0.3);
+    border: 1px solid rgba(88, 101, 242, 0.5);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.role-tag-remove {
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.role-tag-remove:hover {
+    opacity: 1;
+}
+
+.role-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(44, 47, 51, 0.98);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.role-dropdown-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.role-dropdown-item:hover {
+    background: rgba(88, 101, 242, 0.2);
+}
+
+.role-dropdown-item.selected {
+    background: rgba(88, 101, 242, 0.3);
+}
+
+.role-dropdown-item .checkmark {
+    margin-left: auto;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.role-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.role-dropdown::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.role-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.role-dropdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 .delete-btn {
     padding: 10px;
     background: rgba(220, 53, 69, 0.2);
