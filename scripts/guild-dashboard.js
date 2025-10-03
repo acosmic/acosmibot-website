@@ -2,6 +2,38 @@
 const API_BASE_URL = 'https://api.acosmibot.com';
 const { useState, useEffect, useRef } = React;
 
+// Custom Number Input Component
+const NumberInput = ({ value, min, max, step = 1, onChange, ...props }) => {
+  const handleIncrement = () => {
+    const newValue = Math.min(max, value + step);
+    onChange({ target: { value: newValue } });
+  };
+
+  const handleDecrement = () => {
+    const newValue = Math.max(min, value - step);
+    onChange({ target: { value: newValue } });
+  };
+
+  return (
+    <div className="number-input-wrapper">
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={onChange}
+        className="form-control"
+        {...props}
+      />
+      <div className="number-controls">
+        <button type="button" className="number-btn" onClick={handleIncrement}>▲</button>
+        <button type="button" className="number-btn" onClick={handleDecrement}>▼</button>
+      </div>
+    </div>
+  );
+};
+
 // Custom Role Selector Component
 const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -549,7 +581,7 @@ const GuildDashboard = () => {
             onClick={() => updateSetting('games.slots-config.enabled', !settings.games?.['slots-config']?.enabled)}
           />
         </div>
-        
+
         <div className="form-group">
           <label className="form-label">Slot Symbols (Select 12)</label>
           <div className="emoji-selection-box">
@@ -626,52 +658,44 @@ const GuildDashboard = () => {
           </div>
         </div>
 
-        <div className="form-grid">
+        <div className="form-grid compact">
           <div className="form-group">
             <label className="form-label">Match 2 Multiplier</label>
-            <input
-              type="number"
-              min="1"
-              max="10"
+            <NumberInput
               value={settings.games?.['slots-config']?.match_two_multiplier || 2}
+              min={1}
+              max={10}
               onChange={(e) => updateSetting('games.slots-config.match_two_multiplier', parseInt(e.target.value))}
-              className="form-control"
             />
             <p className="form-hint">Range: 1-10</p>
           </div>
           <div className="form-group">
             <label className="form-label">Match 3 Multiplier</label>
-            <input
-              type="number"
-              min="1"
-              max="100"
+            <NumberInput
               value={settings.games?.['slots-config']?.match_three_multiplier || 10}
+              min={1}
+              max={100}
               onChange={(e) => updateSetting('games.slots-config.match_three_multiplier', parseInt(e.target.value))}
-              className="form-control"
             />
             <p className="form-hint">Range: 1-100</p>
           </div>
           <div className="form-group">
             <label className="form-label">Minimum Bet</label>
-            <input
-              type="number"
-              min="1"
-              max="10000"
+            <NumberInput
               value={settings.games?.['slots-config']?.min_bet || 100}
+              min={1}
+              max={10000}
               onChange={(e) => updateSetting('games.slots-config.min_bet', parseInt(e.target.value))}
-              className="form-control"
             />
             <p className="form-hint">Range: 1-10000</p>
           </div>
           <div className="form-group">
             <label className="form-label">Maximum Bet</label>
-            <input
-              type="number"
-              min="1"
-              max="1000000"
+            <NumberInput
               value={settings.games?.['slots-config']?.max_bet || 25000}
+              min={1}
+              max={1000000}
               onChange={(e) => updateSetting('games.slots-config.max_bet', parseInt(e.target.value))}
-              className="form-control"
             />
             <p className="form-hint">Range: min_bet-1000000</p>
           </div>

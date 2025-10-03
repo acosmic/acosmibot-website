@@ -144,6 +144,11 @@
     gap: 20px;
 }
 
+.form-grid.compact {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
 .form-group {
     margin-bottom: 20px;
 }
@@ -194,6 +199,64 @@ select.form-control {
 select.form-control option {
     background: #2c2f33;
     color: white;
+}
+
+/* Custom Number Input Styling */
+input[type="number"].form-control {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+input[type="number"].form-control::-webkit-inner-spin-button,
+input[type="number"].form-control::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.number-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.number-input-wrapper input[type="number"] {
+    padding-right: 40px;
+}
+
+.number-controls {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.number-btn {
+    width: 28px;
+    height: 20px;
+    background: rgba(88, 101, 242, 0.3);
+    border: 1px solid rgba(88, 101, 242, 0.5);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    font-size: 0.8rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.number-btn:hover {
+    background: rgba(88, 101, 242, 0.5);
+    transform: scale(1.05);
+}
+
+.number-btn:active {
+    transform: scale(0.95);
 }
 
 /* Checkbox */
