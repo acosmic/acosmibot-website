@@ -199,27 +199,48 @@ const GuildDashboard = () => {
         return;
       }
 
+      // Ensure all required sections exist with proper defaults
       const sanitizedSettings = {
-        ...settings,
         leveling: {
-          ...settings.leveling,
           enabled: settings.leveling?.enabled === true,
-          level_up_announcements: settings.leveling?.level_up_announcements === true
+          exp_per_message: settings.leveling?.exp_per_message || 10,
+          exp_cooldown_seconds: settings.leveling?.exp_cooldown_seconds || 60,
+          level_up_announcements: settings.leveling?.level_up_announcements === true,
+          announcement_channel_id: settings.leveling?.announcement_channel_id || null,
+          streak_multiplier: settings.leveling?.streak_multiplier || 0.05,
+          max_streak_bonus: settings.leveling?.max_streak_bonus || 7
+        },
+        roles: {
+          enabled: settings.roles?.enabled !== false,
+          mode: settings.roles?.mode || 'progressive',
+          role_mappings: settings.roles?.role_mappings || {},
+          role_cache: settings.roles?.role_cache || {},
+          role_announcement: settings.roles?.role_announcement !== false,
+          remove_previous_roles: settings.roles?.remove_previous_roles !== false,
+          max_level_tracked: settings.roles?.max_level_tracked || 100,
+          role_announcement_message: settings.roles?.role_announcement_message || 'Congratulations {user}! You reached level {level} and earned the {role} role!'
         },
         economy: {
-          ...settings.economy,
           enabled: settings.economy?.enabled === true,
+          daily_bonus: settings.economy?.daily_bonus || 100,
           gambling_enabled: settings.economy?.gambling_enabled === true
         },
         ai: {
-          ...settings.ai,
-          enabled: settings.ai?.enabled === true
+          enabled: settings.ai?.enabled === true,
+          instructions: settings.ai?.instructions || '',
+          model: settings.ai?.model || 'gpt-4o-mini',
+          daily_limit: settings.ai?.daily_limit || 100,
+          response_channel: settings.ai?.response_channel || null
         },
         games: {
-          ...settings.games,
           'slots-config': {
-            ...settings.games?.['slots-config'],
-            enabled: settings.games?.['slots-config']?.enabled === true
+            enabled: settings.games?.['slots-config']?.enabled === true,
+            symbols: settings.games?.['slots-config']?.symbols || ['🍒', '🍋', '🍊', '🍇', '🍎', '🍌', '⭐', '🔔', '💎', '🎰', '🍀', '❤️'],
+            match_two_multiplier: settings.games?.['slots-config']?.match_two_multiplier || 2,
+            match_three_multiplier: settings.games?.['slots-config']?.match_three_multiplier || 10,
+            min_bet: settings.games?.['slots-config']?.min_bet || 100,
+            max_bet: settings.games?.['slots-config']?.max_bet || 25000,
+            bet_options: settings.games?.['slots-config']?.bet_options || [100, 1000, 5000, 10000, 25000]
           }
         }
       };
