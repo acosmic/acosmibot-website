@@ -68,6 +68,34 @@ nav {
     transition: all 0.3s ease;
 }
 
+/* Compact Navigation for Dashboard Pages */
+nav.compact-nav {
+    padding: 8px 0;
+}
+
+nav.compact-nav .logo {
+    font-size: 20px;
+}
+
+nav.compact-nav .logo::before {
+    font-size: 22px;
+    margin-right: 6px;
+}
+
+nav.compact-nav .nav-links {
+    gap: 20px;
+}
+
+nav.compact-nav .nav-links a {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+}
+
+nav.compact-nav .login-btn {
+    padding: 8px 18px;
+    font-size: 0.9rem;
+}
+
 .nav-content {
     display: flex;
     justify-content: space-between;

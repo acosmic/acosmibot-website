@@ -13,7 +13,7 @@
     border: 1px solid var(--border-light);
     border-radius: 20px;
     padding: 30px;
-    margin-top: 80px;
+    margin-top: 100px; /* Account for fixed navigation */
     margin-bottom: 30px;
     display: flex;
     justify-content: space-between;

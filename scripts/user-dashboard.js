@@ -1,6 +1,5 @@
-// Configuration - Update this with your actual API URL
-const API_BASE_URL = 'https://api.acosmibot.com'; // Your API domain
-let currentUser = null;
+// Note: API_BASE_URL and currentUser are now provided by nav.js
+// This avoids variable redeclaration errors
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async function() {
