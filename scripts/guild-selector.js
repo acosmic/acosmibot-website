@@ -1,4 +1,3 @@
-const API_BASE_URL = 'https://api.acosmibot.com';
 let userGuilds = [];
 
 document.addEventListener('DOMContentLoaded', async function() {
