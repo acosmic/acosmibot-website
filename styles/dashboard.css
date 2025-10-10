@@ -1,32 +1,8 @@
-* {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* User Dashboard Page-Specific Styles */
+/* Note: Base styles (resets, body, container) are in base.css */
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #ffffff;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -100px;  /* Extend 100px above viewport */
-            left: 0;
-            width: 100%;
-            height: calc(100vh + 200px); /* Extend 100px above and below */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: -1; /* Behind all content */
-            pointer-events: none; /* Don't interfere with interactions */
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        /* Dashboard-specific container adjustment */
+        .user-dashboard .container {
             padding-top: 100px; /* Account for fixed navigation */
         }
 
