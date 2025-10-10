@@ -255,27 +255,4 @@ function displayLeaderboard(data, elementId, type) {
     container.innerHTML = html;
 }
 
-// Utility functions
-function logout() {
-    localStorage.removeItem('discord_token');
-    window.location.href = '/';
-}
-
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => notification.classList.add('show'), 100);
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
+// Note: logout() and showNotification() are now provided by nav.js
