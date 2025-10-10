@@ -1,5 +1,3 @@
-// Guild Dashboard React Component
-const API_BASE_URL = 'https://api.acosmibot.com';
 const { useState, useEffect, useRef } = React;
 
 // Custom Number Input Component
