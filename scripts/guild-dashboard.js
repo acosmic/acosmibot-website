@@ -153,6 +153,22 @@ const GuildDashboard = () => {
         return;
       }
 
+      // First check permissions
+      const permissionsResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/permissions`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (permissionsResponse.ok) {
+        const permissionsData = await permissionsResponse.json();
+        if (permissionsData.success && permissionsData.data) {
+          // If user doesn't have admin permissions, redirect to stats page
+          if (!permissionsData.data.has_admin && !permissionsData.data.can_configure_bot) {
+            window.location.href = `/guild-stats.html?guild=${guildId}`;
+            return;
+          }
+        }
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/config-hybrid`, {
         credentials: 'include',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -161,6 +177,12 @@ const GuildDashboard = () => {
       if (response.status === 401) {
         localStorage.removeItem('discord_token');
         window.location.href = `${API_BASE_URL}/auth/login`;
+        return;
+      }
+
+      if (response.status === 403) {
+        // User doesn't have permission, redirect to stats page
+        window.location.href = `/guild-stats.html?guild=${guildId}`;
         return;
       }
 

@@ -86,11 +86,11 @@ function displayGuilds() {
                 </div>
 
                 <div class="action-buttons">
-                    <a href="/guild-dashboard.html?guild=${guild.id}" class="btn btn-primary" onclick="event.stopPropagation()">
+                    <a href="/guild-stats.html?guild=${guild.id}" class="btn btn-primary" onclick="event.stopPropagation()">
                         📊 View Stats
                     </a>
                     ${canManage ? `
-                        <a href="/guild-dashboard.html?guild=${guild.id}&tab=settings" class="btn btn-secondary" onclick="event.stopPropagation()">
+                        <a href="/guild-dashboard.html?guild=${guild.id}" class="btn btn-secondary" onclick="event.stopPropagation()">
                             ⚙️ Settings
                         </a>
                     ` : ''}
