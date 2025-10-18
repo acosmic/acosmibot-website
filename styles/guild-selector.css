@@ -2,9 +2,9 @@
 /* Note: Base styles (resets, body, container) are in base.css */
 
 /* Guild selector specific container */
-.guild-selector .container {
+.container {
     max-width: 1000px;
-    padding-top: 100px; /* Account for fixed navigation */
+    /* padding-top: 100px; Account for fixed navigation */
 }
 
 /* Header */

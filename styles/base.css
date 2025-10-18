@@ -33,6 +33,7 @@ body {
     color: var(--text-light);
     overflow-x: hidden;
     min-height: 100vh;
+    padding-top: 100px;
 }
 
 body::before {
