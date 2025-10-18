@@ -9,43 +9,33 @@
 :root {
     --primary-color: #5865F2;
     --secondary-color: #7289DA;
-    --accent-color: #99AAB5;
+    --accent-color: #5865F2;
+    --text-dark: #333333;
+    --text-body: #666666;
     --text-light: #ffffff;
-    --text-muted: rgba(255, 255, 255, 0.8);
-    --bg-overlay: rgba(255, 255, 255, 0.1);
-    --bg-overlay-hover: rgba(255, 255, 255, 0.15);
-    --border-light: rgba(255, 255, 255, 0.2);
-    --shadow-light: rgba(0, 0, 0, 0.2);
-    --gradient-primary: linear-gradient(135deg, #5865F2 0%, #7289DA 50%, #99AAB5 100%);
+    --text-muted: rgba(0, 0, 0, 0.6);
+    --bg-white: #ffffff;
+    --bg-light-gray: #f8f9fa;
+    --bg-overlay: rgba(88, 101, 242, 0.05);
+    --bg-overlay-hover: rgba(88, 101, 242, 0.1);
+    --border-light: rgba(0, 0, 0, 0.1);
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
     --gradient-card: linear-gradient(45deg, #5865F2, #7289DA);
 }
 
 /* Body & Background */
 html {
-    background: var(--gradient-primary);
-    background-attachment: fixed;
+    background: var(--bg-white);
 }
 
 body {
     font-family: 'Inter', sans-serif;
-    background: var(--gradient-primary);
-    background-attachment: fixed;
-    color: var(--text-light);
+    background: var(--bg-white);
+    color: var(--text-body);
     overflow-x: hidden;
     min-height: 100vh;
     padding-top: 100px;
-}
-
-body::before {
-    content: '';
-    position: fixed;
-    top: -100px;
-    left: 0;
-    width: 100%;
-    height: calc(100vh + 200px);
-    background: var(--gradient-primary);
-    z-index: -1;
-    pointer-events: none;
 }
 
 /* Container */
@@ -62,11 +52,12 @@ nav {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(88, 101, 242, 0.15);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-light);
     padding: 15px 0;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 10px var(--shadow-light);
 }
 
 /* Compact Navigation for Dashboard Pages */
@@ -106,7 +97,7 @@ nav.compact-nav .login-btn {
 .logo {
     font-size: 24px;
     font-weight: 800;
-    color: var(--text-light);
+    color: var(--primary-color);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -131,7 +122,7 @@ nav.compact-nav .login-btn {
 }
 
 .nav-links a {
-    color: var(--text-light);
+    color: var(--text-dark);
     text-decoration: none;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -141,14 +132,14 @@ nav.compact-nav .login-btn {
 }
 
 .nav-links a:hover {
-    color: #ffd700;
+    color: var(--primary-color);
     transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-overlay);
 }
 
 .nav-links a.active {
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffd700;
+    background: var(--bg-overlay-hover);
+    color: var(--primary-color);
 }
 
 /* Login Button */
@@ -233,18 +224,19 @@ nav.compact-nav .login-btn {
 
 /* Cards */
 .card {
-    background: var(--bg-overlay);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-light);
     border-radius: 15px;
     padding: 24px;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 10px var(--shadow-light);
 }
 
 .card:hover {
-    background: var(--bg-overlay-hover);
+    background: rgba(255, 255, 255, 0.95);
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px var(--shadow-light);
+    box-shadow: 0 10px 30px var(--shadow-medium);
 }
 
 /* Headers */
@@ -258,15 +250,12 @@ nav.compact-nav .login-btn {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 10px;
-    background: linear-gradient(45deg, #ffffff, #f0f0f0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text-dark);
 }
 
 .page-header p {
     font-size: 1.1rem;
-    opacity: 0.9;
+    color: var(--text-body);
 }
 
 /* Back Button */
