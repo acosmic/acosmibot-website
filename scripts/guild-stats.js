@@ -241,36 +241,6 @@ const GuildStats = () => {
       {activeTab === 'leaderboards' && (
         <div className="tab-content">
           <div className="leaderboard-section">
-            <h3 className="leaderboard-title">Level Leaderboard</h3>
-            <div className="leaderboard-table">
-              <div className="leaderboard-header">
-                <div className="rank-col">Rank</div>
-                <div className="user-col">User</div>
-                <div className="level-col">Level</div>
-                <div className="exp-col">Experience</div>
-                <div className="messages-col">Messages</div>
-              </div>
-              {levelLeaderboard.length > 0 ? (
-                levelLeaderboard.map((entry) => (
-                  <div key={entry.user_id} className="leaderboard-row">
-                    <div className="rank-col">
-                      <span className={`rank-badge ${entry.rank <= 3 ? `rank-${entry.rank}` : ''}`}>
-                        #{entry.rank}
-                      </span>
-                    </div>
-                    <div className="user-col">{entry.username || `User ${entry.user_id}`}</div>
-                    <div className="level-col">{formatNumber(entry.level)}</div>
-                    <div className="exp-col">{formatNumber(entry.exp)}</div>
-                    <div className="messages-col">{formatNumber(entry.messages)}</div>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-leaderboard">No data available</div>
-              )}
-            </div>
-          </div>
-
-          <div className="leaderboard-section">
             <h3 className="leaderboard-title">Messages Leaderboard</h3>
             <div className="leaderboard-table">
               <div className="leaderboard-header">
