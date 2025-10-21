@@ -636,7 +636,7 @@ const GuildDashboard = () => {
       {/* AI Configuration */}
       <div className="feature-card">
         <div className="feature-header">
-          <h2 className="feature-title">🤖 AI Configuration</h2>
+          <h2 className="feature-title"><img src="images/acosmibot-logo.png" alt="" style={{height: '1.5em', width: 'auto', verticalAlign: 'middle', marginRight: '0.5em'}} /> AI Configuration</h2>
           <div
             className={`toggle-switch ${settings.ai?.enabled ? 'active' : ''}`}
             onClick={() => updateSetting('ai.enabled', !settings.ai?.enabled)}

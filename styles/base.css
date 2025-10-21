@@ -52,7 +52,7 @@ nav {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(88, 101, 242, 0.3);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-light);
     padding: 15px 0;
@@ -65,13 +65,8 @@ nav.compact-nav {
     padding: 8px 0;
 }
 
-nav.compact-nav .logo {
-    font-size: 20px;
-}
-
-nav.compact-nav .logo::before {
-    font-size: 22px;
-    margin-right: 6px;
+nav.compact-nav .logo img {
+    height: 32px;
 }
 
 nav.compact-nav .nav-links {
@@ -95,18 +90,14 @@ nav.compact-nav .login-btn {
 }
 
 .logo {
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--primary-color);
     text-decoration: none;
     display: flex;
     align-items: center;
 }
 
-.logo::before {
-    content: '🤖';
-    margin-right: 8px;
-    font-size: 28px;
+.logo img {
+    height: 40px;
+    width: auto;
 }
 
 /* Navigation Links */

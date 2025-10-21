@@ -108,9 +108,9 @@ function setupNavigationListeners() {
         const nav = document.querySelector('nav');
         if (nav) {
             if (window.scrollY > 100) {
-                nav.style.background = 'rgba(88, 101, 242, 0.3)';
+                nav.style.background = 'rgba(88, 101, 242, 0.5)';
             } else {
-                nav.style.background = 'rgba(88, 101, 242, 0.15)';
+                nav.style.background = 'rgba(88, 101, 242, 0.3)';
             }
         }
     });
