@@ -1,0 +1,457 @@
+/* Documentation Page Styles */
+
+.docs-container {
+    display: flex;
+    margin-top: 80px; /* Account for fixed nav */
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Sidebar Navigation */
+.docs-sidebar {
+    width: 280px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    padding: 30px 0;
+}
+
+.sidebar-content h3 {
+    padding: 0 30px;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-nav .nav-section {
+    padding: 12px 30px;
+    color: #555;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-nav .nav-section:hover {
+    background: rgba(88, 101, 242, 0.1);
+    border-left-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.sidebar-nav .nav-section.active {
+    background: rgba(88, 101, 242, 0.15);
+    border-left-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Main Content Area */
+.docs-content {
+    flex: 1;
+    padding: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.docs-header {
+    text-align: center;
+    margin-bottom: 50px;
+    color: white;
+}
+
+.docs-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.docs-header p {
+    font-size: 1.2rem;
+    opacity: 0.95;
+}
+
+/* Documentation Sections */
+.docs-section {
+    margin-bottom: 60px;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Feature Overview Cards */
+.feature-overview {
+    display: grid;
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.overview-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.overview-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.overview-card p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.overview-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.overview-card ul li {
+    padding: 8px 0;
+    color: #444;
+    line-height: 1.6;
+}
+
+.overview-card ul li::before {
+    content: "▸";
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.overview-card ul li strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.overview-card code {
+    background: rgba(88, 101, 242, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--primary-color);
+}
+
+/* Command Cards */
+.command-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.command-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.command-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.command-header h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.command-header h3 code {
+    background: rgba(88, 101, 242, 0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    color: var(--primary-color);
+}
+
+/* Cost Badges */
+.cost-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: rgba(88, 101, 242, 0.2);
+    color: var(--primary-color);
+    border: 1px solid rgba(88, 101, 242, 0.3);
+    white-space: nowrap;
+}
+
+.cost-badge.free {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.cost-badge.admin {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+/* Command Description */
+.command-desc {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+/* Command Parameters */
+.command-params {
+    margin: 15px 0;
+}
+
+.command-params h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.command-params ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.command-params ul li {
+    padding: 6px 0;
+    color: #444;
+    line-height: 1.5;
+}
+
+.command-params ul li code {
+    background: rgba(88, 101, 242, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.command-params ul ul {
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
+.command-params ul ul li::before {
+    content: "•";
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+/* Command Examples */
+.command-example {
+    background: rgba(0, 0, 0, 0.05);
+    border-left: 4px solid var(--primary-color);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.command-example strong {
+    color: #333;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.command-example code {
+    background: rgba(0, 0, 0, 0.08);
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95em;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Command Notes */
+.command-note {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(88, 101, 242, 0.08);
+    border-radius: 8px;
+    color: #555;
+    font-size: 0.9rem;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* AI Notice */
+.ai-notice {
+    background: rgba(255, 193, 7, 0.15);
+    border: 2px solid rgba(255, 193, 7, 0.5);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.ai-notice h4 {
+    color: #f57c00;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.ai-notice p {
+    color: #555;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.ai-notice code {
+    background: rgba(255, 193, 7, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: #f57c00;
+}
+
+/* Footer */
+.docs-footer {
+    text-align: center;
+    padding: 40px 20px;
+    margin-top: 60px;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.docs-footer p {
+    margin: 10px 0;
+    opacity: 0.9;
+}
+
+.docs-footer a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.docs-footer a:hover {
+    opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .docs-sidebar {
+        width: 240px;
+    }
+
+    .sidebar-content h3 {
+        padding: 0 20px;
+    }
+
+    .sidebar-nav .nav-section {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+
+    .docs-content {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .docs-container {
+        flex-direction: column;
+    }
+
+    .docs-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 20px 0;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 0 20px;
+    }
+
+    .sidebar-nav .nav-section {
+        padding: 10px 16px;
+        border-left: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    .docs-content {
+        padding: 20px;
+    }
+
+    .docs-header h1 {
+        font-size: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .command-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+}
+
+/* Scrollbar Styling */
+.docs-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.docs-sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.docs-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(88, 101, 242, 0.3);
+    border-radius: 4px;
+}
+
+.docs-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(88, 101, 242, 0.5);
+}

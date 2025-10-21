@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Acosmibot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/docs.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="nav-content">
+                <a href="/" class="logo">
+                    <img src="images/acosmibot-logo.png" alt="Acosmibot">
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/docs.html" class="active">Documentation</a></li>
+                    <li><a href="/user-dashboard.html" id="userDashboardLink">Dashboard</a></li>
+                    <li><a href="/guild-selector.html" id="guildManagementLink">Server Management</a></li>
+                    <li><a href="https://github.com/acosmic/acosmibot">GitHub</a></li>
+                </ul>
+                <button class="login-btn" id="loginBtn">
+                    <svg class="discord-icon" viewBox="0 0 24 24">
+                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+                        <path d="M8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                    </svg>
+                    Login with Discord
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="docs-container">
+        <!-- Sidebar Navigation -->
+        <aside class="docs-sidebar">
+            <div class="sidebar-content">
+                <h3>Documentation</h3>
+                <nav class="sidebar-nav">
+                    <a href="#features" class="nav-section">📚 Features & Systems</a>
+                    <a href="#economy" class="nav-section">💰 Economy Commands</a>
+                    <a href="#games" class="nav-section">🎮 Games & Gambling</a>
+                    <a href="#stats" class="nav-section">📊 Stats & Profile</a>
+                    <a href="#utility" class="nav-section">🛠️ Utility & Tools</a>
+                    <a href="#reminders" class="nav-section">⏰ Reminders</a>
+                    <a href="#ai" class="nav-section">🤖 AI Features</a>
+                    <a href="#misc" class="nav-section">🔧 Miscellaneous</a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>Acosmibot Documentation</h1>
+                <p>Complete guide to features, commands, and systems</p>
+            </div>
+
+            <!-- Features & Systems Section -->
+            <section id="features" class="docs-section">
+                <h2 class="section-title">📚 Features & Systems</h2>
+
+                <div class="feature-overview">
+                    <div class="overview-card">
+                        <h3>📊 Leveling System</h3>
+                        <p>Acosmibot features a participation-based leveling system that rewards active members:</p>
+                        <ul>
+                            <li><strong>Experience Points (XP):</strong> Earn XP for every message sent (cooldown applies)</li>
+                            <li><strong>Level Progression:</strong> Level = √(XP / 100), so higher levels require more XP</li>
+                            <li><strong>Auto-Role Assignment:</strong> Automatically receive Discord roles at specific levels</li>
+                            <li><strong>Streak System:</strong> Daily activity streaks provide XP multipliers</li>
+                            <li><strong>Leaderboards:</strong> Compete with others for top rankings</li>
+                        </ul>
+                    </div>
+
+                    <div class="overview-card">
+                        <h3>💰 Economy System</h3>
+                        <p>A complete fake currency system with Credits as the main currency:</p>
+                        <ul>
+                            <li><strong>Daily Rewards:</strong> Collect daily credits with streak bonuses (up to 20 days)</li>
+                            <li><strong>Server Bank:</strong> 10% of gambling losses go to the server vault</li>
+                            <li><strong>Transactions:</strong> Transfer credits between players using <code>/give</code></li>
+                            <li><strong>Multi-Server:</strong> Currency is guild-specific but tracked globally</li>
+                            <li><strong>Gambling Games:</strong> Risk your credits for potential rewards</li>
+                        </ul>
+                    </div>
+
+                    <div class="overview-card">
+                        <h3>🎮 Games & Gambling</h3>
+                        <p>Various games to test your luck and strategy:</p>
+                        <ul>
+                            <li><strong>Coinflip:</strong> Simple 50/50 heads or tails bet</li>
+                            <li><strong>Slots:</strong> Spin the slot machine with customizable symbols</li>
+                            <li><strong>Blackjack:</strong> Classic card game against the dealer</li>
+                            <li><strong>Deathroll:</strong> PvP dice game - first to roll 1 loses</li>
+                            <li><strong>Rock Paper Scissors:</strong> Best of 3 rounds against another player</li>
+                            <li><strong>Magic 8Ball:</strong> Ask yes/no questions for humorous answers</li>
+                        </ul>
+                    </div>
+
+                    <div class="overview-card">
+                        <h3>🤖 AI Integration</h3>
+                        <p>OpenAI-powered conversational AI with customizable behavior:</p>
+                        <ul>
+                            <li><strong>Custom Instructions:</strong> Set personality and behavior for your server</li>
+                            <li><strong>Multiple Models:</strong> Choose from GPT-4o, GPT-4o-mini, GPT-4-turbo, or GPT-3.5-turbo</li>
+                            <li><strong>Conversation Memory:</strong> AI remembers context within conversations</li>
+                            <li><strong>Daily Limits:</strong> Control usage with configurable daily message limits</li>
+                            <li><strong>Server-Specific:</strong> Each server has its own AI configuration</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Economy Commands -->
+            <section id="economy" class="docs-section">
+                <h2 class="section-title">💰 Economy Commands</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/balance</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Check your Credit balance in the server or view another user's balance.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>user</code> (optional) - Specify another user to check their balance</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/balance</code> or <code>/balance @username</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/checkbank</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Check the total amount of Credits in the server's bank vault. The vault collects 10% of all gambling losses.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/checkbank</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/give</code></h3>
+                        <span class="cost-badge">Transfers Credits</span>
+                    </div>
+                    <p class="command-desc">Transfer Credits from your balance to another user. Cannot give to bots or yourself.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>target</code> (required) - Guild member to receive credits</li>
+                            <li><code>amount</code> (required) - Number of credits to transfer</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/give target:@friend amount:1000</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/admin-give</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Give Credits or Experience Points to a user. Requires Administrator permission.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>target</code> (required) - Guild member</li>
+                            <li><code>stat</code> (required) - Choose "Currency" or "EXP"</li>
+                            <li><code>amount</code> (required) - Amount to give</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/admin-give target:@user stat:Currency amount:10000</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/color</code></h3>
+                        <span class="cost-badge">5,000 Credits</span>
+                    </div>
+                    <p class="command-desc">Create and assign yourself a custom color role using RGB values.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>r</code> (required) - Red value (0-255)</li>
+                            <li><code>g</code> (required) - Green value (0-255)</li>
+                            <li><code>b</code> (required) - Blue value (0-255)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/color r:88 g:101 b:242</code> (Discord purple)
+                    </div>
+                    <p class="command-note">⚠️ Server must have less than 200 roles</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/polymorph</code></h3>
+                        <span class="cost-badge">10,000 / 1,000 Credits</span>
+                    </div>
+                    <p class="command-desc">Change someone's display name (or your own for a cheaper price).</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>target</code> (required) - Guild member to rename</li>
+                            <li><code>rename</code> (required) - New nickname (max 32 characters)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/polymorph target:@user rename:"New Name"</code>
+                    </div>
+                    <p class="command-note">💡 Only 1,000 credits to change your own name</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/bailout</code></h3>
+                        <span class="cost-badge">100,000 Credits</span>
+                    </div>
+                    <p class="command-desc">Pay bail to get yourself or someone else out of jail (remove "Inmate" role).</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>target</code> (optional) - User to bail out (defaults to yourself)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/bailout</code> or <code>/bailout target:@prisoner</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Games & Gambling -->
+            <section id="games" class="docs-section">
+                <h2 class="section-title">🎮 Games & Gambling</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/coinflip</code></h3>
+                        <span class="cost-badge">Your Bet</span>
+                    </div>
+                    <p class="command-desc">Flip a coin and call heads or tails. Win double your bet if you guess correctly!</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>call</code> (required) - Choose "Heads" or "Tails"</li>
+                            <li><code>bet</code> (required) - Amount to wager (minimum 1 credit)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/coinflip call:Heads bet:1000</code>
+                    </div>
+                    <p class="command-note">💡 10% of losses go to the server vault</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/slots</code></h3>
+                        <span class="cost-badge">Your Bet</span>
+                    </div>
+                    <p class="command-desc">Spin the slot machine! Match 2 symbols for 2x payout, match 3 for 5x payout.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>bet</code> (required) - Amount to wager (autocomplete suggestions available)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/slots bet:1000</code>
+                    </div>
+                    <p class="command-note">⚙️ Default: Min 10, Max 2,000 credits (configurable by server)</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/blackjack</code></h3>
+                        <span class="cost-badge">Your Bet</span>
+                    </div>
+                    <p class="command-desc">Play classic blackjack against the dealer. Get as close to 21 as possible without going over!</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>bet</code> (required) - Amount to wager (autocomplete available)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/blackjack bet:500</code>
+                    </div>
+                    <p class="command-note">⚙️ Default: Min 50, Max 10,000 credits</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/deathroll</code></h3>
+                        <span class="cost-badge">Your Bet</span>
+                    </div>
+                    <p class="command-desc">Challenge another player to Deathroll! Players take turns rolling dice with decreasing max values. First to roll 1 loses.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>target</code> (required) - Guild member to challenge</li>
+                            <li><code>bet</code> (required) - Wager amount (minimum 100 credits)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/deathroll target:@opponent bet:1000</code>
+                    </div>
+                    <p class="command-note">⚠️ Both players must have sufficient balance</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/rockpaperscissors</code></h3>
+                        <span class="cost-badge">Your Bet</span>
+                    </div>
+                    <p class="command-desc">Challenge another player to Rock Paper Scissors! Best of 3 rounds wins.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>bet</code> (required) - Wager amount</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/rockpaperscissors bet:500</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/8ball</code></h3>
+                        <span class="cost-badge">50 Credits</span>
+                    </div>
+                    <p class="command-desc">Ask the magic 8-ball a yes/no question and receive a humorous prediction!</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>question</code> (required) - Your yes/no question</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/8ball question:"Will I win the lottery?"</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats & Profile -->
+            <section id="stats" class="docs-section">
+                <h2 class="section-title">📊 Stats & Profile</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/rank</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">View a beautiful rank card showing level, XP progress, and server ranking with user avatar.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>user</code> (optional) - Specify another user (shows your rank if blank)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/rank</code> or <code>/rank user:@someone</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/stats</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">View detailed leveling and activity statistics including rank, level, messages, reactions, and streaks.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>user</code> (optional) - View another user's stats or your own</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/stats</code> or <code>/stats user:@username</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/stats-games</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">View comprehensive gambling statistics across all games including wins, losses, win rate, net profit, and biggest wins.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>user</code> (optional) - View another user's game stats</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/stats-games</code>
+                    </div>
+                    <p class="command-note">📈 Shows data for: Coinflip, Slots, Deathroll, RPS, Blackjack</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/leaderboard</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">View top 10 users ranked by various statistics.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>stat</code> (required) - Choose from:
+                                <ul>
+                                    <li>Currency, Exp, Level (guild-specific)</li>
+                                    <li>Global Exp, Global Level (across all servers)</li>
+                                    <li>Coinflip Wins, Coinflip Losses (top 5)</li>
+                                    <li>Slots Wins (top 5)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/leaderboard stat:Currency</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Utility & Tools -->
+            <section id="utility" class="docs-section">
+                <h2 class="section-title">🛠️ Utility & Tools</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/weather</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Get current weather information for any city including temperature, feels like, humidity, and local time.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>cityname</code> (required) - Name of the city</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/weather cityname:"New York"</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/apod</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Get NASA's Astronomy Picture of the Day with title, description, and high-resolution image or video.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/apod</code>
+                    </div>
+                    <p class="command-note">🚀 Powered by NASA API</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/giphy</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Search for and return a random GIF from Giphy based on your search term.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>search_term</code> (required) - What to search for</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/giphy search_term:"funny cat"</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/define</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Look up the definition of any word including part of speech and multiple definitions.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>word</code> (required) - Word to define</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/define word:"ephemeral"</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ripaudio</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Convert a YouTube or Twitch video to MP3 and receive the audio file.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>url</code> (required) - YouTube or Twitch video URL</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ripaudio url:"https://youtube.com/watch?v=..."</code>
+                    </div>
+                    <p class="command-note">⚙️ Uses yt-dlp for extraction</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ping</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Check the bot's response time and latency in milliseconds.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ping</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reminders -->
+            <section id="reminders" class="docs-section">
+                <h2 class="section-title">⏰ Reminders</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/remind</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Set a personal reminder and receive a DM notification when the time arrives.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>time</code> (required) - Duration (e.g., 5m, 2h, 1d, 30s, 2h30m, 1w, 1y)</li>
+                            <li><code>message</code> (required) - Reminder text (max 1000 characters)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/remind time:2h30m message:"Check the oven"</code>
+                    </div>
+                    <p class="command-note">⏱️ Maximum 5 years in the future</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/reminders</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">View all your active reminders with their IDs and scheduled times.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/reminders</code>
+                    </div>
+                    <p class="command-note">🔒 Only visible to you (ephemeral)</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/cancelreminder</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Cancel a specific reminder using its ID from the /reminders list.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>reminder_id</code> (required) - ID from /reminders command</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/cancelreminder reminder_id:12345</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Features -->
+            <section id="ai" class="docs-section">
+                <h2 class="section-title">🤖 AI Features</h2>
+
+                <div class="ai-notice">
+                    <h4>⚠️ AI Features Require Setup</h4>
+                    <p>Server administrators must enable AI features using <code>/ai-enable</code> before members can chat with the bot.</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ai-enable</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Enable AI chat features for your server. Requires Manage Guild permission.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ai-enable</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ai-disable</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Disable AI chat features for your server.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ai-disable</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ai-status</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Check AI configuration including enabled status, current model, daily usage, and custom instructions.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ai-status</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ai-model</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Set which OpenAI model to use for AI chat responses.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>model</code> (required) - Choose from:
+                                <ul>
+                                    <li>gpt-4o-mini (fastest, cheapest)</li>
+                                    <li>gpt-4o (balanced)</li>
+                                    <li>gpt-4-turbo</li>
+                                    <li>gpt-3.5-turbo</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ai-model model:gpt-4o-mini</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ai-limit</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Set the daily AI message limit for your server (1-100 messages per day).</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>limit</code> (required) - Daily message limit (1-100)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ai-limit limit:50</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ai-instructions</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Set custom instructions to control the AI's personality and behavior in your server.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>instructions</code> (required) - Custom prompt (max 500 characters)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ai-instructions instructions:"You are a helpful pirate assistant. Always respond with pirate language."</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/ai-clear</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Clear the conversation history for the entire server, starting fresh.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/ai-clear</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3>💬 Mention to Chat</h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Simply mention the bot to start a conversation with AI. The bot remembers context within conversations.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>@Acosmibot What's the weather like today?</code>
+                    </div>
+                    <p class="command-note">💡 Respects daily limits and custom instructions</p>
+                </div>
+            </section>
+
+            <!-- Miscellaneous -->
+            <section id="misc" class="docs-section">
+                <h2 class="section-title">🔧 Miscellaneous</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/roll</code></h3>
+                        <span class="cost-badge">500 Credits</span>
+                    </div>
+                    <p class="command-desc">Roll two dice to try and escape jail. Must have the "Inmate" role. Rolling doubles releases you!</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/roll</code>
+                    </div>
+                    <p class="command-note">🎲 Success adds "Microbe" role and removes "Inmate"</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/help</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Display all available commands organized by category with brief descriptions and costs.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/help</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/reset-ai-thread</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Reset your personal AI conversation thread, clearing your chat history with the bot.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/reset-ai-thread</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <div class="docs-footer">
+                <p>Need more help? Join our <a href="https://github.com/acosmic/acosmibot">GitHub</a> or contact the developer.</p>
+                <p>Last updated: 2025</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="scripts/nav.js"></script>
+    <script src="scripts/docs.js"></script>
+</body>
+</html>
