@@ -1,6 +1,9 @@
 /* Guild Dashboard Specific Styles */
 
-.container {
+/* Override container padding for page content only, not navbar */
+body > .container,
+#root > .container,
+.dashboard-content .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
