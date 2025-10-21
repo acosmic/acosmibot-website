@@ -8,53 +8,45 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // Check authentication and load user data
 async function checkAuthAndLoadData() {
-    // Check for token in URL parameters first (from OAuth redirect)
-    const urlParams = new URLSearchParams(window.location.search);
-    let token = urlParams.get('token');
+    // Wait for nav.js to finish authentication
+    // nav.js handles token extraction from URL and /auth/me call
+    let attempts = 0;
+    const maxAttempts = 50; // Wait up to 5 seconds (50 * 100ms)
 
-    if (token) {
-        // Store token from URL and clean up URL
-        localStorage.setItem('discord_token', token);
-        window.history.replaceState({}, document.title, window.location.pathname);
-        console.log('Token received from URL and stored');
-    } else {
-        // Try to get token from localStorage
-        token = localStorage.getItem('discord_token');
-        console.log('Token from localStorage:', token ? 'Found' : 'Not found');
+    // Wait for nav.js to complete auth check
+    while (attempts < maxAttempts) {
+        // Check if currentUser is set by nav.js
+        if (currentUser) {
+            console.log('User authenticated by nav.js:', currentUser);
+            break;
+        }
+
+        // Check if we explicitly logged out (no token)
+        const token = localStorage.getItem('discord_token');
+        if (!token && attempts > 10) {
+            console.log('No token found, redirecting to home');
+            setTimeout(() => window.location.href = '/', 1000);
+            return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
     }
 
-    if (!token) {
-        console.log('No token found, redirecting to home');
-        setTimeout(() => window.location.href = '/', 1000); // Delay to see what's happening
+    if (!currentUser) {
+        console.error('Authentication timeout - nav.js did not complete');
+        showNotification('Authentication failed. Please try again.', 'error');
+        setTimeout(() => window.location.href = '/', 3000);
         return;
     }
 
+    // Load dashboard data using currentUser from nav.js
     try {
-        console.log('Making API request to validate token...');
-        const response = await fetch(`${API_BASE_URL}/auth/me`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        console.log('API response status:', response.status);
-
-        if (response.ok) {
-            currentUser = await response.json();
-            console.log('User data loaded:', currentUser);
-            await loadUserData();
-            await loadLeaderboards();
-        } else {
-            const errorData = await response.json();
-            console.error('API error:', errorData);
-            localStorage.removeItem('discord_token');
-            showNotification(`Authentication failed: ${errorData.error}`, 'error');
-            setTimeout(() => window.location.href = '/', 3000);
-        }
+        await loadUserData();
+        await loadLeaderboards();
     } catch (error) {
-        console.error('Auth check failed:', error);
-        showNotification(`Failed to connect to API: ${error.message}`, 'error');
-        setTimeout(() => window.location.href = '/', 3000);
+        console.error('Failed to load dashboard:', error);
+        showNotification(`Failed to load dashboard: ${error.message}`, 'error');
     }
 }
 

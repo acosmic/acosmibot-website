@@ -18,7 +18,20 @@ async function initializeNavigation() {
 // Check authentication state
 async function checkAuthState() {
     try {
-        const token = localStorage.getItem('discord_token');
+        // Check for token in URL parameters first (from OAuth redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        let token = urlParams.get('token');
+
+        if (token) {
+            // Store token from URL and clean up URL
+            localStorage.setItem('discord_token', token);
+            window.history.replaceState({}, document.title, window.location.pathname);
+            console.log('Token received from URL and stored in nav.js');
+        } else {
+            // Try to get token from localStorage
+            token = localStorage.getItem('discord_token');
+        }
+
         if (!token) {
             updateNavForLoggedOut();
             return;
