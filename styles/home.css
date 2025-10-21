@@ -2,7 +2,7 @@
 
 /* Navigation Extensions (homepage-specific) */
 .nav-links a:hover {
-    color: #ffd700;
+    color: #5865F2;
     transform: translateY(-2px);
 }
 
@@ -16,11 +16,11 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(88, 101, 242, 0.95);
     backdrop-filter: blur(20px);
     border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid rgba(88, 101, 242, 0.3);
     min-width: 200px;
     z-index: 1001;
     padding: 10px 0;
@@ -29,29 +29,29 @@
 
 .user-menu .user-info {
     padding: 15px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.3);
 }
 
 .user-menu .user-name {
-    color: #333;
+    color: white;
     font-weight: 600;
 }
 
 .user-menu .user-stats {
-    color: #666;
+    color: rgba(255, 255, 255, 0.9);
     font-size: 0.9rem;
 }
 
 .user-menu a {
     display: block;
     padding: 12px 20px;
-    color: #333;
+    color: white;
     text-decoration: none;
     transition: background 0.2s;
 }
 
 .user-menu a:hover {
-    background: rgba(88,101,242,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .user-menu .logout-btn {
@@ -59,7 +59,7 @@
 }
 
 .user-menu .logout-btn:hover {
-    background: rgba(231,76,60,0.1);
+    background: rgba(231,76,60,0.2);
 }
 
 /* Hero Section */
@@ -80,19 +80,15 @@
     font-size: clamp(3rem, 6vw, 5rem);
     font-weight: 800;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, #ffffff, #ffd700, #ffed4e);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #333333;
     line-height: 1.1;
 }
 
 .hero p {
     font-size: 1.25rem;
     margin-bottom: 40px;
-    opacity: 0.95;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.9);
+    color: #666666;
 }
 
 .hero-buttons {
@@ -123,9 +119,9 @@
 }
 
 .hero .btn-secondary {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.9);
+    color: #5865F2;
+    border: 2px solid #5865F2;
     backdrop-filter: blur(10px);
 }
 
@@ -138,39 +134,12 @@
 }
 
 .hero .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: #5865F2;
+    color: white;
+    border-color: #5865F2;
 }
 
-/* Floating Animation for Hero */
-.hero::before {
-    content: '';
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
-    border-radius: 50%;
-    top: 20%;
-    right: 10%;
-    animation: float 6s ease-in-out infinite;
-}
-
-.hero::after {
-    content: '';
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
-    border-radius: 50%;
-    bottom: 20%;
-    left: 10%;
-    animation: float 8s ease-in-out infinite reverse;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(5deg); }
-}
+/* Floating Animation for Hero - Removed for clean white background */
 
 /* Features Section */
 .features {
@@ -183,18 +152,14 @@
     font-size: 3rem;
     font-weight: 800;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, #ffffff, #ffd700, #ffed4e);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #333333;
 }
 
 .section-subtitle {
     text-align: center;
     font-size: 1.2rem;
     margin-bottom: 60px;
-    opacity: 0.85;
-    color: rgba(255, 255, 255, 0.9);
+    color: #666666;
 }
 
 .features-grid {
@@ -205,21 +170,22 @@
 }
 
 .feature-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 20px;
     padding: 40px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .feature-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 215, 0, 0.5);
-    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    border-color: rgba(88, 101, 242, 0.3);
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .feature-icon {
@@ -232,14 +198,13 @@
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 15px;
-    color: #ffd700;
+    color: #5865F2;
 }
 
 .feature-card p {
-    opacity: 0.9;
     line-height: 1.6;
     margin-bottom: 20px;
-    color: rgba(255, 255, 255, 0.9);
+    color: #666666;
 }
 
 .feature-list {
@@ -251,7 +216,7 @@
     display: flex;
     align-items: center;
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: #666666;
 }
 
 .feature-list li::before {
@@ -261,10 +226,10 @@
 
 /* Support Section */
 .support-section {
-    background: rgba(88, 101, 242, 0.1);
+    background: #f8f9fa;
     padding: 80px 0;
     margin-top: 50px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .support-content {
@@ -275,11 +240,12 @@
 }
 
 .dev-story-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
     border-radius: 20px;
     padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .dev-info {
@@ -292,8 +258,8 @@
 .dev-avatar {
     width: 60px;
     height: 60px;
-    background: rgba(255, 215, 0, 0.2);
-    border: 2px solid rgba(255, 215, 0, 0.5);
+    background: rgba(88, 101, 242, 0.1);
+    border: 2px solid rgba(88, 101, 242, 0.3);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -304,25 +270,24 @@
 .dev-details h3 {
     margin: 0 0 5px 0;
     font-size: 1.2rem;
-    color: #ffd700;
+    color: #5865F2;
 }
 
 .dev-details p {
     margin: 0;
-    opacity: 0.8;
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: #666666;
 }
 
 .dev-story-card h2 {
-    color: #ffd700;
+    color: #5865F2;
     margin-bottom: 15px;
     font-size: 1.8rem;
 }
 
 .dev-story-card p {
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.9);
+    color: #666666;
     margin-bottom: 20px;
 }
 
@@ -331,7 +296,7 @@
 }
 
 .tip-goals h4 {
-    color: #ffd700;
+    color: #5865F2;
     margin-bottom: 15px;
 }
 
@@ -343,23 +308,24 @@
 }
 
 .goal-item {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(88, 101, 242, 0.05);
     padding: 15px;
     border-radius: 10px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(88, 101, 242, 0.15);
+    color: #666666;
 }
 
 .goal-amount {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #ffd700;
+    color: #5865F2;
     margin-bottom: 5px;
 }
 
 .goal-description {
     font-size: 0.9rem;
-    opacity: 0.8;
+    color: #666666;
 }
 
 /* Tip Buttons */
@@ -371,9 +337,9 @@
 }
 
 .tip-btn {
-    background: rgba(255, 215, 0, 0.2);
-    border: 2px solid rgba(255, 215, 0, 0.5);
-    color: #ffd700;
+    background: rgba(88, 101, 242, 0.05);
+    border: 2px solid rgba(88, 101, 242, 0.2);
+    color: #5865F2;
     padding: 20px;
     border-radius: 15px;
     cursor: pointer;
@@ -384,16 +350,95 @@
     flex-direction: column;
     align-items: center;
     gap: 5px;
+    text-decoration: none;
 }
 
 .tip-btn:hover {
-    background: rgba(255, 215, 0, 0.3);
-    border-color: rgba(255, 215, 0, 0.8);
+    background: rgba(88, 101, 242, 0.1);
+    border-color: rgba(88, 101, 242, 0.4);
     transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.15);
 }
 
 .tip-icon {
     font-size: 1.5rem;
+}
+
+/* Supporter Perks */
+.supporter-perks {
+    margin-top: 25px;
+}
+
+.supporter-perks h4 {
+    color: #5865F2;
+    margin-bottom: 15px;
+}
+
+.perks-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.perk {
+    background: rgba(88, 101, 242, 0.1);
+    border: 1px solid rgba(88, 101, 242, 0.2);
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    color: #5865F2;
+}
+
+/* Tip Methods */
+.tip-methods {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.tip-methods h3 {
+    color: #5865F2;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.tip-info {
+    flex: 1;
+}
+
+.tip-method {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333333;
+}
+
+.tip-desc {
+    font-size: 0.9rem;
+    color: #666666;
+}
+
+.tip-arrow {
+    font-size: 1.2rem;
+    color: #5865F2;
+}
+
+.gratitude-note {
+    background: rgba(88, 101, 242, 0.1);
+    border: 1px solid rgba(88, 101, 242, 0.15);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 25px;
+    text-align: center;
+}
+
+.gratitude-note p {
+    margin: 0;
+    line-height: 1.5;
+    color: #666666;
 }
 
 /* Modal Styles */
@@ -436,7 +481,7 @@
 }
 
 .modal-content h3 {
-    color: #ffd700;
+    color: white;
     margin-bottom: 15px;
 }
 
@@ -489,7 +534,7 @@
 
 .qr-note em {
     font-weight: 600;
-    color: #ffd700;
+    color: white;
 }
 
 .qr-note small {
