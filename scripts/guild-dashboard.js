@@ -832,80 +832,79 @@ const GuildDashboard = () => {
 
               {settings.games?.['slots-config']?.enabled && (
                 <div className="form-group">
-          <label className="form-label">Slot Symbols (Select 12)</label>
-          <div className="emoji-selection-box">
-            <div className="emoji-grid">
-              {(settings.games?.['slots-config']?.symbols || []).length === 0 ? (
-                <span style={{ opacity: 0.6 }}>Click emojis below to select them</span>
-              ) : (
-                (settings.games?.['slots-config']?.symbols || []).map((symbol, idx) => {
-                  const customEmoji = parseCustomEmoji(symbol);
-                  const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
-
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        if (customEmoji) {
-                          toggleEmojiSelection({ ...customEmoji, emoji: null });
-                        } else if (emojiData) {
-                          toggleEmojiSelection(emojiData);
-                        }
-                      }}
-                      className="emoji-btn selected"
-                      title="Click to deselect"
-                    >
-                      {(customEmoji?.url || emojiData?.url) ? (
-                        <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} />
+                  <label className="form-label">Slot Symbols (Select 12)</label>
+                  <div className="emoji-selection-box">
+                    <div className="emoji-grid">
+                      {(settings.games?.['slots-config']?.symbols || []).length === 0 ? (
+                        <span style={{ opacity: 0.6 }}>Click emojis below to select them</span>
                       ) : (
-                        <span>{symbol}</span>
+                        (settings.games?.['slots-config']?.symbols || []).map((symbol, idx) => {
+                          const customEmoji = parseCustomEmoji(symbol);
+                          const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
+
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                if (customEmoji) {
+                                  toggleEmojiSelection({ ...customEmoji, emoji: null });
+                                } else if (emojiData) {
+                                  toggleEmojiSelection(emojiData);
+                                }
+                              }}
+                              className="emoji-btn selected"
+                              title="Click to deselect"
+                            >
+                              {(customEmoji?.url || emojiData?.url) ? (
+                                <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} />
+                              ) : (
+                                <span>{symbol}</span>
+                              )}
+                            </button>
+                          );
+                        })
                       )}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-            <div className="emoji-counter">
-              {(settings.games?.['slots-config']?.symbols?.length || 0)} / 12 selected
-              {(settings.games?.['slots-config']?.symbols?.length || 0) < 12 && (
-                <span className="needed">
-                  {' '}({12 - (settings.games?.['slots-config']?.symbols?.length || 0)} more needed)
-                </span>
-              )}
-            </div>
-          </div>
+                    </div>
+                    <div className="emoji-counter">
+                      {(settings.games?.['slots-config']?.symbols?.length || 0)} / 12 selected
+                      {(settings.games?.['slots-config']?.symbols?.length || 0) < 12 && (
+                        <span className="needed">
+                          {' '}({12 - (settings.games?.['slots-config']?.symbols?.length || 0)} more needed)
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-          <label className="form-label">Available Emojis (Click to select)</label>
-          <div className="emoji-picker-grid">
-            {availableEmojis.map((emoji) => {
-              let storedFormat;
-              if (emoji.url && emoji.id) {
-                const animated = emoji.animated ? 'a' : '';
-                storedFormat = `<${animated}:${emoji.name}:${emoji.id}>`;
-              } else {
-                storedFormat = emoji.emoji || emoji.name;
-              }
+                  <label className="form-label">Available Emojis (Click to select)</label>
+                  <div className="emoji-picker-grid">
+                    {availableEmojis.map((emoji) => {
+                      let storedFormat;
+                      if (emoji.url && emoji.id) {
+                        const animated = emoji.animated ? 'a' : '';
+                        storedFormat = `<${animated}:${emoji.name}:${emoji.id}>`;
+                      } else {
+                        storedFormat = emoji.emoji || emoji.name;
+                      }
 
-              const isSelected = settings.games?.['slots-config']?.symbols?.includes(storedFormat);
+                      const isSelected = settings.games?.['slots-config']?.symbols?.includes(storedFormat);
 
-              return (
-                <button
-                  key={emoji.id}
-                  onClick={() => toggleEmojiSelection(emoji)}
-                  disabled={(settings.games?.['slots-config']?.symbols?.length || 0) >= 12 && !isSelected}
-                  className={`emoji-btn ${isSelected ? 'selected' : ''}`}
-                  title={isSelected ? 'Already selected' : 'Click to select'}
-                >
-                  {emoji.url ? (
-                    <img src={emoji.url} alt={emoji.name} />
-                  ) : (
-                    <span>{emoji.emoji}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                      return (
+                        <button
+                          key={emoji.id}
+                          onClick={() => toggleEmojiSelection(emoji)}
+                          disabled={(settings.games?.['slots-config']?.symbols?.length || 0) >= 12 && !isSelected}
+                          className={`emoji-btn ${isSelected ? 'selected' : ''}`}
+                          title={isSelected ? 'Already selected' : 'Click to select'}
+                        >
+                          {emoji.url ? (
+                            <img src={emoji.url} alt={emoji.name} />
+                          ) : (
+                            <span>{emoji.emoji}</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
