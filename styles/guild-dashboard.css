@@ -619,6 +619,116 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     font-size: 0.9rem;
 }
 
+/* Nested Feature Sections (for Games) */
+.nested-feature {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.nested-feature .feature-header {
+    margin-bottom: 20px;
+}
+
+.nested-feature .feature-header h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333333;
+}
+
+/* Message Template Textarea */
+.message-template {
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.message-template::placeholder {
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    opacity: 0.5;
+}
+
+/* Radio Group for AI Channel Mode */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 2px solid var(--border-light);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.radio-option:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: var(--primary-color);
+}
+
+.radio-option input[type="radio"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.radio-option input[type="radio"]:checked ~ span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.radio-option span {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #333333;
+    transition: all 0.3s ease;
+}
+
+/* Enhanced Role Mapping Item for Custom Messages */
+.role-mapping-item {
+    position: relative;
+}
+
+.role-mapping-item .form-group:last-of-type {
+    margin-bottom: 0;
+}
+
+/* Collapse Animation for Nested Features */
+.nested-feature {
+    animation: expandIn 0.3s ease;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 2000px;
+        padding-top: 24px;
+        padding-bottom: 24px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .dashboard-header {
@@ -637,5 +747,17 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 
     .emoji-picker-grid {
         grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    }
+
+    .radio-option {
+        padding: 10px 12px;
+    }
+
+    .radio-option span {
+        font-size: 0.9rem;
+    }
+
+    .nested-feature {
+        padding: 16px;
     }
 }

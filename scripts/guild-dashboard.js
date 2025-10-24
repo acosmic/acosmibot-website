@@ -111,6 +111,85 @@ const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
   );
 };
 
+// Custom Channel Selector Component
+const ChannelSelector = ({ selectedChannelIds, availableChannels, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const selectedChannels = availableChannels.filter(channel => selectedChannelIds.includes(channel.id));
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const toggleChannel = (channelId) => {
+    if (selectedChannelIds.includes(channelId)) {
+      onChange(selectedChannelIds.filter(id => id !== channelId));
+    } else {
+      onChange([...selectedChannelIds, channelId]);
+    }
+  };
+
+  const removeChannel = (channelId, e) => {
+    e.stopPropagation();
+    onChange(selectedChannelIds.filter(id => id !== channelId));
+  };
+
+  return (
+    <div className="role-selector-wrapper" ref={dropdownRef}>
+      <div
+        className={`role-selector-display ${isOpen ? 'open' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedChannels.length === 0 ? (
+          <span className="role-selector-placeholder">Click to select channels...</span>
+        ) : (
+          selectedChannels.map(channel => (
+            <span key={channel.id} className="role-tag">
+              #{channel.name}
+              <span
+                className="role-tag-remove"
+                onClick={(e) => removeChannel(channel.id, e)}
+              >
+                ×
+              </span>
+            </span>
+          ))
+        )}
+      </div>
+      {isOpen && (
+        <div className="role-dropdown">
+          {availableChannels.map(channel => {
+            const isSelected = selectedChannelIds.includes(channel.id);
+            return (
+              <div
+                key={channel.id}
+                className={`role-dropdown-item ${isSelected ? 'selected' : ''}`}
+                onClick={() => toggleChannel(channel.id)}
+              >
+                <span>#{channel.name}</span>
+                {isSelected && <span className="checkmark">✓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const GuildDashboard = () => {
   const [settings, setSettings] = useState(null);
   const [availableRoles, setAvailableRoles] = useState([]);
@@ -223,14 +302,13 @@ const GuildDashboard = () => {
       const sanitizedSettings = {
         leveling: {
           enabled: settings.leveling?.enabled === true,
-          exp_per_message: settings.leveling?.exp_per_message || 10,
-          exp_cooldown_seconds: settings.leveling?.exp_cooldown_seconds || 60,
           level_up_announcements: settings.leveling?.level_up_announcements === true,
+          level_up_message: settings.leveling?.level_up_message || "🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!",
+          level_up_message_with_streak: settings.leveling?.level_up_message_with_streak || "🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits! {base_credits} + {streak_bonus} from {streak}x Streak!",
           announcement_channel_id: settings.leveling?.announcement_channel_id || null,
-          streak_multiplier: settings.leveling?.streak_multiplier || 0.05,
-          max_streak_bonus: settings.leveling?.max_streak_bonus || 7,
-          daily_bonus: settings.leveling?.daily_bonus || 1000,
           daily_announcements_enabled: settings.leveling?.daily_announcements_enabled === true,
+          daily_announcement_message: settings.leveling?.daily_announcement_message || "💰 {mention} claimed their daily reward! +{credits} Credits!",
+          daily_announcement_message_with_streak: settings.leveling?.daily_announcement_message_with_streak || "💰 {mention} claimed their daily reward! +{credits} Credits! ({base_credits} + {streak_bonus} from {streak}x streak!)",
           daily_announcement_channel_id: settings.leveling?.daily_announcement_channel_id || null
         },
         roles: {
@@ -248,17 +326,15 @@ const GuildDashboard = () => {
           enabled: settings.ai?.enabled === true,
           instructions: settings.ai?.instructions || '',
           model: settings.ai?.model || 'gpt-4o-mini',
-          daily_limit: settings.ai?.daily_limit || 100
+          channel_mode: settings.ai?.channel_mode || 'all',
+          allowed_channels: settings.ai?.allowed_channels || [],
+          excluded_channels: settings.ai?.excluded_channels || []
         },
         games: {
+          enabled: settings.games?.enabled === true,
           'slots-config': {
             enabled: settings.games?.['slots-config']?.enabled === true,
-            symbols: settings.games?.['slots-config']?.symbols || ['🍒', '🍋', '🍊', '🍇', '🍎', '🍌', '⭐', '🔔', '💎', '🎰', '🍀', '❤️'],
-            match_two_multiplier: settings.games?.['slots-config']?.match_two_multiplier || 2,
-            match_three_multiplier: settings.games?.['slots-config']?.match_three_multiplier || 10,
-            min_bet: settings.games?.['slots-config']?.min_bet || 100,
-            max_bet: settings.games?.['slots-config']?.max_bet || 25000,
-            bet_options: settings.games?.['slots-config']?.bet_options || [100, 1000, 5000, 10000, 25000]
+            symbols: settings.games?.['slots-config']?.symbols || ['🍒', '🍋', '🍊', '🍇', '🍎', '🍌', '⭐', '🔔', '💎', '🎰', '🍀', '❤️']
           }
         }
       };
@@ -313,7 +389,13 @@ const GuildDashboard = () => {
     const newLevel = Object.keys(roleMappings).length > 0
       ? Math.max(...Object.keys(roleMappings).map(Number)) + 5
       : 5;
-    updateSetting('roles.role_mappings', { ...roleMappings, [newLevel]: [] });
+    updateSetting('roles.role_mappings', {
+      ...roleMappings,
+      [newLevel]: {
+        role_ids: [],
+        announcement_message: "🎉 {mention} reached level {level} and earned the {role} role!"
+      }
+    });
   };
 
   const removeRoleMapping = (level) => {
@@ -322,10 +404,22 @@ const GuildDashboard = () => {
     updateSetting('roles.role_mappings', roleMappings);
   };
 
-  const updateRoleMapping = (oldLevel, newLevel, roleIds) => {
+  const updateRoleMapping = (oldLevel, newLevel, roleIds, message) => {
     const roleMappings = { ...settings.roles.role_mappings };
+    const currentEntry = roleMappings[oldLevel];
+
+    // Preserve the announcement message if not provided
+    const announcementMessage = message !== undefined
+      ? message
+      : (currentEntry?.announcement_message || "🎉 {mention} reached level {level} and earned the {role} role!");
+
     if (oldLevel !== newLevel) delete roleMappings[oldLevel];
-    roleMappings[newLevel] = roleIds;
+
+    roleMappings[newLevel] = {
+      role_ids: roleIds,
+      announcement_message: announcementMessage
+    };
+
     updateSetting('roles.role_mappings', roleMappings);
   };
 
@@ -431,70 +525,6 @@ const GuildDashboard = () => {
         </div>
         {settings.leveling?.enabled && (
           <>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">XP Per Message</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={settings.leveling?.exp_per_message || 10}
-                  onChange={(e) => updateSetting('leveling.exp_per_message', parseInt(e.target.value))}
-                  className="form-control"
-                />
-                <p className="form-hint">Range: 1-100</p>
-              </div>
-              <div className="form-group">
-                <label className="form-label">XP Cooldown (seconds)</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="3600"
-                  value={settings.leveling?.exp_cooldown_seconds || 60}
-                  onChange={(e) => updateSetting('leveling.exp_cooldown_seconds', parseInt(e.target.value))}
-                  className="form-control"
-                />
-                <p className="form-hint">Range: 1-3600</p>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Streak Multiplier</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={settings.leveling?.streak_multiplier || 0.05}
-                  onChange={(e) => updateSetting('leveling.streak_multiplier', parseFloat(e.target.value))}
-                  className="form-control"
-                />
-                <p className="form-hint">Range: 0-1.0</p>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Max Streak Bonus</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={settings.leveling?.max_streak_bonus || 7}
-                  onChange={(e) => updateSetting('leveling.max_streak_bonus', parseInt(e.target.value))}
-                  className="form-control"
-                />
-                <p className="form-hint">Range: 1-50</p>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Daily Reward Bonus</label>
-                <input
-                  type="number"
-                  min="100"
-                  max="10000"
-                  value={settings.leveling?.daily_bonus || 1000}
-                  onChange={(e) => updateSetting('leveling.daily_bonus', parseInt(e.target.value))}
-                  className="form-control"
-                />
-                <p className="form-hint">Range: 100-10000</p>
-              </div>
-            </div>
-
             <div className="checkbox-wrapper">
               <input
                 type="checkbox"
@@ -505,19 +535,33 @@ const GuildDashboard = () => {
             </div>
 
             {settings.leveling?.level_up_announcements && (
-              <div className="form-group">
-                <label className="form-label">Level Up Announcement Channel</label>
-                <select
-                  value={settings.leveling?.announcement_channel_id || ''}
-                  onChange={(e) => updateSetting('leveling.announcement_channel_id', e.target.value)}
-                  className="form-control"
-                >
-                  <option value="">Current channel (where user leveled up)</option>
-                  {availableChannels.map(channel => (
-                    <option key={channel.id} value={channel.id}>#{channel.name}</option>
-                  ))}
-                </select>
-              </div>
+              <>
+                <div className="form-group">
+                  <label className="form-label">Level Up Announcement Channel</label>
+                  <select
+                    value={settings.leveling?.announcement_channel_id || ''}
+                    onChange={(e) => updateSetting('leveling.announcement_channel_id', e.target.value)}
+                    className="form-control"
+                  >
+                    <option value="">Current channel (where user leveled up)</option>
+                    {availableChannels.map(channel => (
+                      <option key={channel.id} value={channel.id}>#{channel.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Level Up Message Template</label>
+                  <textarea
+                    value={settings.leveling?.level_up_message || ''}
+                    onChange={(e) => updateSetting('leveling.level_up_message', e.target.value)}
+                    className="form-control message-template"
+                    rows="3"
+                    placeholder="🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!"
+                  />
+                  <p className="form-hint">Placeholders: {mention}, {username}, {level}, {credits}, {xp}</p>
+                </div>
+              </>
             )}
 
             <div className="checkbox-wrapper">
@@ -530,19 +574,33 @@ const GuildDashboard = () => {
             </div>
 
             {settings.leveling?.daily_announcements_enabled && (
-              <div className="form-group">
-                <label className="form-label">Daily Reward Announcement Channel</label>
-                <select
-                  value={settings.leveling?.daily_announcement_channel_id || ''}
-                  onChange={(e) => updateSetting('leveling.daily_announcement_channel_id', e.target.value)}
-                  className="form-control"
-                >
-                  <option value="">Select a channel</option>
-                  {availableChannels.map(channel => (
-                    <option key={channel.id} value={channel.id}>#{channel.name}</option>
-                  ))}
-                </select>
-              </div>
+              <>
+                <div className="form-group">
+                  <label className="form-label">Daily Reward Announcement Channel</label>
+                  <select
+                    value={settings.leveling?.daily_announcement_channel_id || ''}
+                    onChange={(e) => updateSetting('leveling.daily_announcement_channel_id', e.target.value)}
+                    className="form-control"
+                  >
+                    <option value="">Select a channel</option>
+                    {availableChannels.map(channel => (
+                      <option key={channel.id} value={channel.id}>#{channel.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Daily Reward Message Template</label>
+                  <textarea
+                    value={settings.leveling?.daily_announcement_message || ''}
+                    onChange={(e) => updateSetting('leveling.daily_announcement_message', e.target.value)}
+                    className="form-control message-template"
+                    rows="3"
+                    placeholder="💰 {mention} claimed their daily reward! +{credits} Credits!"
+                  />
+                  <p className="form-hint">Placeholders: {mention}, {username}, {credits}, {streak}</p>
+                </div>
+              </>
             )}
           </>
         )}
@@ -597,34 +655,53 @@ const GuildDashboard = () => {
             </div>
 
             <div style={{ marginTop: '20px' }}>
-              {Object.entries(settings.roles?.role_mappings || {}).map(([level, roleIds]) => (
-                <div key={level} className="role-mapping-item">
-                  <div className="role-mapping-content">
-                    <div className="form-group">
-                      <label className="form-label">Level</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={level}
-                        onChange={(e) => updateRoleMapping(level, e.target.value, roleIds)}
-                        className="form-control"
-                      />
+              {Object.entries(settings.roles?.role_mappings || {}).map(([level, roleData]) => {
+                // Handle both old format (array) and new format (object)
+                const roleIds = Array.isArray(roleData) ? roleData : (roleData?.role_ids || []);
+                const announcementMessage = Array.isArray(roleData)
+                  ? "🎉 {mention} reached level {level} and earned the {role} role!"
+                  : (roleData?.announcement_message || "🎉 {mention} reached level {level} and earned the {role} role!");
+
+                return (
+                  <div key={level} className="role-mapping-item">
+                    <div className="role-mapping-content">
+                      <div className="form-group">
+                        <label className="form-label">Level</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={level}
+                          onChange={(e) => updateRoleMapping(level, e.target.value, roleIds, announcementMessage)}
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Roles</label>
+                        <RoleSelector
+                          selectedRoleIds={roleIds}
+                          availableRoles={availableRoles}
+                          onChange={(newRoleIds) => updateRoleMapping(level, level, newRoleIds, announcementMessage)}
+                        />
+                        <p className="form-hint">Click to select multiple roles</p>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Role Announcement Message</label>
+                        <textarea
+                          value={announcementMessage}
+                          onChange={(e) => updateRoleMapping(level, level, roleIds, e.target.value)}
+                          className="form-control message-template"
+                          rows="2"
+                          placeholder="🎉 {mention} reached level {level} and earned the {role} role!"
+                        />
+                        <p className="form-hint">Placeholders: {mention}, {username}, {level}, {role}, {roles}</p>
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label className="form-label">Roles</label>
-                      <RoleSelector
-                        selectedRoleIds={roleIds}
-                        availableRoles={availableRoles}
-                        onChange={(newRoleIds) => updateRoleMapping(level, level, newRoleIds)}
-                      />
-                      <p className="form-hint">Click to select multiple roles</p>
-                    </div>
+                    <button onClick={() => removeRoleMapping(level)} className="delete-btn">
+                      🗑️
+                    </button>
                   </div>
-                  <button onClick={() => removeRoleMapping(level)} className="delete-btn">
-                    🗑️
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <button onClick={addRoleMapping} className="add-btn">
               + Add Role Mapping
@@ -668,33 +745,93 @@ const GuildDashboard = () => {
               />
               <p className="form-hint">Customize AI personality and response style</p>
             </div>
+
             <div className="form-group">
-              <label className="form-label">Daily Interaction Limit</label>
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={settings.ai?.daily_limit || 100}
-                onChange={(e) => updateSetting('ai.daily_limit', parseInt(e.target.value))}
-                className="form-control"
-              />
-              <p className="form-hint">Maximum AI interactions per day</p>
+              <label className="form-label">Channel Restrictions</label>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="channel_mode"
+                    value="all"
+                    checked={settings.ai?.channel_mode === 'all'}
+                    onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
+                  />
+                  <span>All channels (AI works everywhere)</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="channel_mode"
+                    value="specific"
+                    checked={settings.ai?.channel_mode === 'specific'}
+                    onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
+                  />
+                  <span>Specific channels only</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="channel_mode"
+                    value="exclude"
+                    checked={settings.ai?.channel_mode === 'exclude'}
+                    onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
+                  />
+                  <span>Exclude channels (AI works everywhere except selected)</span>
+                </label>
+              </div>
             </div>
+
+            {settings.ai?.channel_mode === 'specific' && (
+              <div className="form-group">
+                <label className="form-label">Allowed Channels</label>
+                <ChannelSelector
+                  selectedChannelIds={settings.ai?.allowed_channels || []}
+                  availableChannels={availableChannels}
+                  onChange={(newChannelIds) => updateSetting('ai.allowed_channels', newChannelIds)}
+                />
+                <p className="form-hint">AI will only respond in these channels</p>
+              </div>
+            )}
+
+            {settings.ai?.channel_mode === 'exclude' && (
+              <div className="form-group">
+                <label className="form-label">Excluded Channels</label>
+                <ChannelSelector
+                  selectedChannelIds={settings.ai?.excluded_channels || []}
+                  availableChannels={availableChannels}
+                  onChange={(newChannelIds) => updateSetting('ai.excluded_channels', newChannelIds)}
+                />
+                <p className="form-hint">AI will not respond in these channels</p>
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {/* Games - Slots */}
+      {/* Games */}
       <div className="feature-card">
         <div className="feature-header">
-          <h2 className="feature-title">🎰 Games - Slots</h2>
+          <h2 className="feature-title">🎮 Games</h2>
           <div
-            className={`toggle-switch ${settings.games?.['slots-config']?.enabled ? 'active' : ''}`}
-            onClick={() => updateSetting('games.slots-config.enabled', !settings.games?.['slots-config']?.enabled)}
+            className={`toggle-switch ${settings.games?.enabled ? 'active' : ''}`}
+            onClick={() => updateSetting('games.enabled', !settings.games?.enabled)}
           />
         </div>
+        {settings.games?.enabled && (
+          <>
+            {/* Slots Game */}
+            <div className="nested-feature">
+              <div className="feature-header">
+                <h3 className="feature-title">🎰 Slots</h3>
+                <div
+                  className={`toggle-switch ${settings.games?.['slots-config']?.enabled ? 'active' : ''}`}
+                  onClick={() => updateSetting('games.slots-config.enabled', !settings.games?.['slots-config']?.enabled)}
+                />
+              </div>
 
-        <div className="form-group">
+              {settings.games?.['slots-config']?.enabled && (
+                <div className="form-group">
           <label className="form-label">Slot Symbols (Select 12)</label>
           <div className="emoji-selection-box">
             <div className="emoji-grid">
@@ -769,64 +906,11 @@ const GuildDashboard = () => {
             })}
           </div>
         </div>
-
-        <div className="form-grid compact">
-          <div className="form-group">
-            <label className="form-label">Match 2 Multiplier</label>
-            <NumberInput
-              value={settings.games?.['slots-config']?.match_two_multiplier || 2}
-              min={1}
-              max={10}
-              onChange={(e) => updateSetting('games.slots-config.match_two_multiplier', parseInt(e.target.value))}
-            />
-            <p className="form-hint">Range: 1-10</p>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Match 3 Multiplier</label>
-            <NumberInput
-              value={settings.games?.['slots-config']?.match_three_multiplier || 10}
-              min={1}
-              max={100}
-              onChange={(e) => updateSetting('games.slots-config.match_three_multiplier', parseInt(e.target.value))}
-            />
-            <p className="form-hint">Range: 1-100</p>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Minimum Bet</label>
-            <NumberInput
-              value={settings.games?.['slots-config']?.min_bet || 100}
-              min={1}
-              max={10000}
-              onChange={(e) => updateSetting('games.slots-config.min_bet', parseInt(e.target.value))}
-            />
-            <p className="form-hint">Range: 1-10000</p>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Maximum Bet</label>
-            <NumberInput
-              value={settings.games?.['slots-config']?.max_bet || 25000}
-              min={1}
-              max={1000000}
-              onChange={(e) => updateSetting('games.slots-config.max_bet', parseInt(e.target.value))}
-            />
-            <p className="form-hint">Range: min_bet-1000000</p>
-          </div>
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Bet Options (comma-separated)</label>
-          <input
-            type="text"
-            value={(settings.games?.['slots-config']?.bet_options || []).join(', ')}
-            onChange={(e) => {
-              const values = e.target.value.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
-              updateSetting('games.slots-config.bet_options', values);
-            }}
-            placeholder="100, 1000, 5000, 10000, 25000"
-            className="form-control"
-          />
-          <p className="form-hint">Quick bet amounts for users</p>
-        </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="dashboard-footer">
