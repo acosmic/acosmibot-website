@@ -559,7 +559,7 @@ const GuildDashboard = () => {
                     rows="3"
                     placeholder="🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!"
                   />
-                  <p className="form-hint">Placeholders: {mention}, {username}, {level}, {credits}, {xp}</p>
+                  <p className="form-hint">Placeholders: mention, username, level, credits, xp</p>
                 </div>
               </>
             )}
@@ -598,7 +598,7 @@ const GuildDashboard = () => {
                     rows="3"
                     placeholder="💰 {mention} claimed their daily reward! +{credits} Credits!"
                   />
-                  <p className="form-hint">Placeholders: {mention}, {username}, {credits}, {streak}</p>
+                  <p className="form-hint">Placeholders: mention, username, credits, streak</p>
                 </div>
               </>
             )}
@@ -693,7 +693,7 @@ const GuildDashboard = () => {
                           rows="2"
                           placeholder="🎉 {mention} reached level {level} and earned the {role} role!"
                         />
-                        <p className="form-hint">Placeholders: {mention}, {username}, {level}, {role}, {roles}</p>
+                        <p className="form-hint">Placeholders: mention, username, level, role, roles</p>
                       </div>
                     </div>
                     <button onClick={() => removeRoleMapping(level)} className="delete-btn">
