@@ -301,6 +301,12 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 
 .role-mapping-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.role-mapping-grid {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 16px;
@@ -378,7 +384,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     border-radius: 10px;
     max-height: 300px;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: 10000;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
@@ -653,6 +659,36 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     opacity: 0.5;
 }
 
+.message-template-wrapper {
+    width: 100%;
+}
+
+.placeholder-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.placeholder-btn {
+    padding: 6px 12px;
+    background: rgba(88, 101, 242, 0.1);
+    border: 1px solid rgba(88, 101, 242, 0.3);
+    border-radius: 6px;
+    color: var(--primary-color);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.placeholder-btn:hover {
+    background: rgba(88, 101, 242, 0.2);
+    border-color: rgba(88, 101, 242, 0.5);
+    transform: translateY(-1px);
+}
+
 /* Radio Group for AI Channel Mode */
 .radio-group {
     display: flex;
@@ -741,7 +777,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
         grid-template-columns: 1fr;
     }
 
-    .role-mapping-content {
+    .role-mapping-grid {
         grid-template-columns: 1fr;
     }
 
