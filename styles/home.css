@@ -1,5 +1,10 @@
 /*home.css*/
 
+/* Home page - remove default body padding since hero handles spacing */
+body {
+    padding-top: 0;
+}
+
 /* Navigation Extensions (homepage-specific) */
 .nav-links a:hover {
     color: #5865F2;
