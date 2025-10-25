@@ -26,6 +26,17 @@ async function loadUserGuilds() {
 
         if (data.success) {
             userGuilds = data.guilds;
+
+            // Sort guilds: Owner > Admin > Member
+            userGuilds.sort((a, b) => {
+                const getRank = (guild) => {
+                    if (guild.owner) return 3;
+                    if (guild.permissions && guild.permissions.includes('administrator')) return 2;
+                    return 1;
+                };
+                return getRank(b) - getRank(a); // Descending order
+            });
+
             displayGuilds();
         } else {
             throw new Error(data.message || 'Failed to load guilds');
@@ -67,8 +78,13 @@ function displayGuilds() {
 
         const canManage = guild.owner || (guild.permissions && guild.permissions.includes('administrator'));
 
+        // Build banner background style
+        const bannerStyle = guild.banner
+            ? `background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.95)), url('https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=480'); background-size: cover; background-position: center;`
+            : '';
+
         return `
-            <div class="guild-card" onclick="selectGuild('${guild.id}', ${canManage})">
+            <div class="guild-card" onclick="selectGuild('${guild.id}', ${canManage})" style="${bannerStyle}">
                 <div class="guild-header">
                     <div class="guild-icon">
                         ${guildIconHTML}
