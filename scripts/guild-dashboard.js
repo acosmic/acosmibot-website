@@ -559,7 +559,7 @@ const GuildDashboard = () => {
                     rows="3"
                     placeholder="🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!"
                   />
-                  <p className="form-hint">Placeholders: mention, username, level, credits, xp</p>
+                  <p className="form-hint">Placeholders: mention, username, level, credits, xp, streak</p>
                 </div>
               </>
             )}
