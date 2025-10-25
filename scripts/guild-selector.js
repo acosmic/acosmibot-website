@@ -80,7 +80,7 @@ function displayGuilds() {
 
         // Build banner background style
         const bannerStyle = guild.banner
-            ? `background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.95)), url('https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=480'); background-size: cover; background-position: center;`
+            ? `background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.7)), url('https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=480'); background-size: cover; background-position: center;`
             : '';
 
         return `
