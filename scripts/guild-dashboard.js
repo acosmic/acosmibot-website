@@ -247,6 +247,7 @@ const GuildDashboard = () => {
   const [availableRoles, setAvailableRoles] = useState([]);
   const [availableChannels, setAvailableChannels] = useState([]);
   const [availableEmojis, setAvailableEmojis] = useState([]);
+  const [guildName, setGuildName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -323,6 +324,7 @@ const GuildDashboard = () => {
 
       const data = await response.json();
       if (data.success) {
+        setGuildName(data.data.guild_name || 'Guild Settings');
         setSettings(data.data.settings);
         setAvailableRoles(data.data.available_roles || []);
         setAvailableChannels(data.data.available_channels || []);
@@ -546,7 +548,7 @@ const GuildDashboard = () => {
     <div className="container">
       <div className="dashboard-header">
         <div className="header-info">
-          <h1>Guild Settings</h1>
+          <h1>{guildName || 'Guild Settings'}</h1>
           <p>Configure your server bot behavior</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="save-btn">
