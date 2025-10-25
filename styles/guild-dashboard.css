@@ -96,6 +96,11 @@ body > .container,
     box-shadow: 0 15px 35px var(--shadow-light);
 }
 
+.feature-card:has(.role-dropdown) {
+    position: relative;
+    z-index: 100;
+}
+
 .feature-header {
     display: flex;
     align-items: center;
