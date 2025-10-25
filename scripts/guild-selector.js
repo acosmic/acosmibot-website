@@ -76,6 +76,8 @@ function displayGuilds() {
             ? `<img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128" alt="${guild.name}">`
             : guild.name.charAt(0).toUpperCase();
 
+        const guildIconClass = guild.icon ? 'guild-icon' : 'guild-icon guild-icon-fallback';
+
         const canManage = guild.owner || (guild.permissions && guild.permissions.includes('administrator'));
 
         // Build banner background style
@@ -86,7 +88,7 @@ function displayGuilds() {
         return `
             <div class="guild-card" onclick="selectGuild('${guild.id}', ${canManage})" style="${bannerStyle}">
                 <div class="guild-header">
-                    <div class="guild-icon">
+                    <div class="${guildIconClass}">
                         ${guildIconHTML}
                     </div>
                     <div class="guild-info">

@@ -248,6 +248,7 @@ const GuildDashboard = () => {
   const [availableChannels, setAvailableChannels] = useState([]);
   const [availableEmojis, setAvailableEmojis] = useState([]);
   const [guildName, setGuildName] = useState('');
+  const [guildIcon, setGuildIcon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -325,6 +326,7 @@ const GuildDashboard = () => {
       const data = await response.json();
       if (data.success) {
         setGuildName(data.data.guild_name || 'Guild Settings');
+        setGuildIcon(data.data.guild_icon || null);
         setSettings(data.data.settings);
         setAvailableRoles(data.data.available_roles || []);
         setAvailableChannels(data.data.available_channels || []);
@@ -548,8 +550,21 @@ const GuildDashboard = () => {
     <div className="container">
       <div className="dashboard-header">
         <div className="header-info">
-          <h1>{guildName || 'Guild Settings'}</h1>
-          <p>Configure your server bot behavior</p>
+          {guildIcon ? (
+            <img
+              src={`https://cdn.discordapp.com/icons/${guildId}/${guildIcon}.png?size=128`}
+              alt="Guild Icon"
+              className="guild-settings-icon"
+            />
+          ) : (
+            <div className="guild-settings-icon guild-icon-fallback">
+              {(guildName || 'G').charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="header-text">
+            <h1>{guildName || 'Guild Settings'}</h1>
+            <p>Configure your server bot behavior</p>
+          </div>
         </div>
         <button onClick={handleSave} disabled={saving} className="save-btn">
           {saving ? 'Saving...' : 'Save Changes'}
