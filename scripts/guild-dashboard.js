@@ -607,7 +607,7 @@ const GuildDashboard = () => {
                   <MessageTemplateInput
                     value={settings.leveling?.level_up_message || ''}
                     onChange={(e) => updateSetting('leveling.level_up_message', e.target.value)}
-                    placeholders={['mention', 'username', 'level', 'credits', 'xp', 'streak']}
+                    placeholders={['mention', 'username', 'level', 'credits', 'xp', 'streak', 'base_credits', 'streak_bonus']}
                     rows={3}
                     placeholder="🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!"
                   />
@@ -645,7 +645,7 @@ const GuildDashboard = () => {
                   <MessageTemplateInput
                     value={settings.leveling?.daily_announcement_message || ''}
                     onChange={(e) => updateSetting('leveling.daily_announcement_message', e.target.value)}
-                    placeholders={['mention', 'username', 'credits', 'streak']}
+                    placeholders={['mention', 'username', 'credits', 'streak', 'base_credits', 'streak_bonus']}
                     rows={3}
                     placeholder="💰 {mention} claimed their daily reward! +{credits} Credits!"
                   />
