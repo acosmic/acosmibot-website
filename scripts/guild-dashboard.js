@@ -781,10 +781,10 @@ const GuildDashboard = () => {
                 onChange={(e) => updateSetting('ai.model', e.target.value)}
                 className="form-control"
               >
-                <option value="gpt-4o-mini">GPT-4o Mini (Fast & Affordable)</option>
-                <option value="gpt-4o">GPT-4o (Recommended)</option>
-                <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>
+                <option value="gpt-4o-mini">GPT-4o Mini</option>
+                {/*<option value="gpt-4o">GPT-4o (Recommended)</option>*/}
+                {/*<option value="gpt-4-turbo">GPT-4 Turbo</option>*/}
+                {/*<option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>*/}
               </select>
               <p className="form-hint">Higher tier models provide better responses</p>
             </div>
