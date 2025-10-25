@@ -190,6 +190,58 @@ const ChannelSelector = ({ selectedChannelIds, availableChannels, onChange }) =>
   );
 };
 
+// Message Template Input with Placeholder Buttons
+const MessageTemplateInput = ({ value, onChange, placeholders, rows = 3, placeholder: placeholderText }) => {
+  const textareaRef = useRef(null);
+
+  const insertPlaceholder = (placeholder) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = value || '';
+
+    // Insert the placeholder at cursor position
+    const newText = text.substring(0, start) + `{${placeholder}}` + text.substring(end);
+
+    // Update the value
+    onChange({ target: { value: newText } });
+
+    // Restore focus and set cursor position after the inserted placeholder
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + placeholder.length + 2; // +2 for the curly braces
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  return (
+    <div className="message-template-wrapper">
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={onChange}
+        className="form-control message-template"
+        rows={rows}
+        placeholder={placeholderText}
+      />
+      <div className="placeholder-buttons">
+        {placeholders.map(placeholder => (
+          <button
+            key={placeholder}
+            type="button"
+            className="placeholder-btn"
+            onClick={() => insertPlaceholder(placeholder)}
+          >
+            {'{' + placeholder + '}'}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const GuildDashboard = () => {
   const [settings, setSettings] = useState(null);
   const [availableRoles, setAvailableRoles] = useState([]);
@@ -552,14 +604,13 @@ const GuildDashboard = () => {
 
                 <div className="form-group">
                   <label className="form-label">Level Up Message Template</label>
-                  <textarea
+                  <MessageTemplateInput
                     value={settings.leveling?.level_up_message || ''}
                     onChange={(e) => updateSetting('leveling.level_up_message', e.target.value)}
-                    className="form-control message-template"
-                    rows="3"
+                    placeholders={['mention', 'username', 'level', 'credits', 'xp', 'streak']}
+                    rows={3}
                     placeholder="🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!"
                   />
-                  <p className="form-hint">Placeholders: mention, username, level, credits, xp, streak</p>
                 </div>
               </>
             )}
@@ -591,14 +642,13 @@ const GuildDashboard = () => {
 
                 <div className="form-group">
                   <label className="form-label">Daily Reward Message Template</label>
-                  <textarea
+                  <MessageTemplateInput
                     value={settings.leveling?.daily_announcement_message || ''}
                     onChange={(e) => updateSetting('leveling.daily_announcement_message', e.target.value)}
-                    className="form-control message-template"
-                    rows="3"
+                    placeholders={['mention', 'username', 'credits', 'streak']}
+                    rows={3}
                     placeholder="💰 {mention} claimed their daily reward! +{credits} Credits!"
                   />
-                  <p className="form-hint">Placeholders: mention, username, credits, streak</p>
                 </div>
               </>
             )}
@@ -665,35 +715,36 @@ const GuildDashboard = () => {
                 return (
                   <div key={level} className="role-mapping-item">
                     <div className="role-mapping-content">
-                      <div className="form-group">
-                        <label className="form-label">Level</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={level}
-                          onChange={(e) => updateRoleMapping(level, e.target.value, roleIds, announcementMessage)}
-                          className="form-control"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">Roles</label>
-                        <RoleSelector
-                          selectedRoleIds={roleIds}
-                          availableRoles={availableRoles}
-                          onChange={(newRoleIds) => updateRoleMapping(level, level, newRoleIds, announcementMessage)}
-                        />
-                        <p className="form-hint">Click to select multiple roles</p>
+                      <div className="role-mapping-grid">
+                        <div className="form-group">
+                          <label className="form-label">Level</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={level}
+                            onChange={(e) => updateRoleMapping(level, e.target.value, roleIds, announcementMessage)}
+                            className="form-control"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Roles</label>
+                          <RoleSelector
+                            selectedRoleIds={roleIds}
+                            availableRoles={availableRoles}
+                            onChange={(newRoleIds) => updateRoleMapping(level, level, newRoleIds, announcementMessage)}
+                          />
+                          <p className="form-hint">Click to select multiple roles</p>
+                        </div>
                       </div>
                       <div className="form-group">
                         <label className="form-label">Role Announcement Message</label>
-                        <textarea
+                        <MessageTemplateInput
                           value={announcementMessage}
                           onChange={(e) => updateRoleMapping(level, level, roleIds, e.target.value)}
-                          className="form-control message-template"
-                          rows="2"
+                          placeholders={['mention', 'username', 'level', 'role', 'roles']}
+                          rows={2}
                           placeholder="🎉 {mention} reached level {level} and earned the {role} role!"
                         />
-                        <p className="form-hint">Placeholders: mention, username, level, role, roles</p>
                       </div>
                     </div>
                     <button onClick={() => removeRoleMapping(level)} className="delete-btn">
