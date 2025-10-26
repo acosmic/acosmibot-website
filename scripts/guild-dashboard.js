@@ -392,6 +392,13 @@ const GuildDashboard = () => {
             enabled: settings.games?.['slots-config']?.enabled === true,
             symbols: settings.games?.['slots-config']?.symbols || ['🍒', '🍋', '🍊', '🍇', '🍎', '🍌', '⭐', '🔔', '💎', '🎰', '🍀', '❤️']
           }
+        },
+        cross_server_portal: {
+          enabled: settings.cross_server_portal?.enabled === true,
+          channel_id: settings.cross_server_portal?.channel_id || null,
+          public_listing: settings.cross_server_portal?.public_listing !== false,
+          display_name: settings.cross_server_portal?.display_name || null,
+          portal_cost: settings.cross_server_portal?.portal_cost || 1000
         }
       };
 
