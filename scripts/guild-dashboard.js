@@ -980,6 +980,83 @@ const GuildDashboard = () => {
         )}
       </div>
 
+      {/* Cross-Server Portal System */}
+      <div className="feature-card">
+        <div className="feature-header">
+          <h2 className="feature-title">🌀 Cross-Server Portal</h2>
+          <div
+            className={`toggle-switch ${settings.cross_server_portal?.enabled ? 'active' : ''}`}
+            onClick={() => updateSetting('cross_server_portal.enabled', !settings.cross_server_portal?.enabled)}
+          />
+        </div>
+        {settings.cross_server_portal?.enabled && (
+          <>
+            <p className="feature-description">
+              Enable temporary 2-minute portals between servers. Users can spend credits to open a portal
+              and exchange messages with another server in real-time!
+            </p>
+
+            <div className="form-group">
+              <label className="form-label">Portal Channel</label>
+              <p className="form-help">Choose which channel portals will open in</p>
+              <select
+                value={settings.cross_server_portal?.channel_id || ''}
+                onChange={(e) => updateSetting('cross_server_portal.channel_id', e.target.value)}
+                className="form-control"
+              >
+                <option value="">Select a channel...</option>
+                {availableChannels.map(channel => (
+                  <option key={channel.id} value={channel.id}>#{channel.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="checkbox-wrapper">
+              <input
+                type="checkbox"
+                checked={settings.cross_server_portal?.public_listing !== false}
+                onChange={(e) => updateSetting('cross_server_portal.public_listing', e.target.checked)}
+              />
+              <span>Show in public portal search</span>
+              <p className="form-help" style={{marginLeft: '24px', marginTop: '4px'}}>
+                Allow other servers to find and connect to your server
+              </p>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Display Name (Optional)</label>
+              <p className="form-help">Custom name shown in portal search results. Leave blank to use server name.</p>
+              <input
+                type="text"
+                value={settings.cross_server_portal?.display_name || ''}
+                onChange={(e) => updateSetting('cross_server_portal.display_name', e.target.value)}
+                className="form-control"
+                placeholder={guildName || "Your Server Name"}
+                maxLength={50}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Portal Cost (Credits)</label>
+              <p className="form-help">How many credits users must spend to open a portal</p>
+              <NumberInput
+                value={settings.cross_server_portal?.portal_cost || 1000}
+                min={100}
+                max={100000}
+                step={100}
+                onChange={(e) => updateSetting('cross_server_portal.portal_cost', parseInt(e.target.value))}
+              />
+            </div>
+
+            <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(88, 101, 242, 0.1)', borderRadius: '8px', border: '1px solid rgba(88, 101, 242, 0.3)'}}>
+              <p style={{margin: 0, fontSize: '0.9rem', color: '#dcddde'}}>
+                <strong>ℹ️ How it works:</strong> Users can use <code>/portal-search</code> to find servers, then <code>/portal-open</code> to create a 2-minute connection. Messages are limited to 100 characters and displayed in a shared embed.
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
       <div className="dashboard-footer">
         <p>All changes are saved to the database and will take effect immediately.</p>
       </div>
