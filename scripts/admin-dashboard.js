@@ -1,5 +1,5 @@
 const { useState, useEffect } = React;
-const API_BASE_URL = 'https://api.acosmibot.com';
+
 
 function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('settings');
