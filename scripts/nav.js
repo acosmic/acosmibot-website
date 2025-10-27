@@ -58,7 +58,7 @@ async function checkAuthState() {
 }
 
 // Update navigation for logged in state
-function updateNavForLoggedIn() {
+async function updateNavForLoggedIn() {
     const loginBtn = document.getElementById('loginBtn');
     if (!loginBtn) return;
 
@@ -73,6 +73,33 @@ function updateNavForLoggedIn() {
 
     if (dashboardLink) dashboardLink.style.display = 'block';
     if (guildLink) guildLink.style.display = 'block';
+
+    // Check if user is an admin and show admin panel link
+    await checkAndShowAdminLink();
+}
+
+// Check if user is an admin and show the admin panel link
+async function checkAndShowAdminLink() {
+    try {
+        const token = localStorage.getItem('discord_token');
+        if (!token) return;
+
+        const response = await fetch(`${API_BASE_URL}/api/admin/check`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        const adminLink = document.getElementById('adminPanelLink');
+
+        if (data.success && data.is_admin && adminLink) {
+            adminLink.style.display = 'block';
+        }
+    } catch (error) {
+        // Silently fail - user is not an admin
+        console.log('Admin check failed (user is not an admin)');
+    }
 }
 
 // Update navigation for logged out state
@@ -91,9 +118,11 @@ function updateNavForLoggedOut() {
     // Hide navigation links
     const dashboardLink = document.getElementById('userDashboardLink');
     const guildLink = document.getElementById('guildManagementLink');
+    const adminLink = document.getElementById('adminPanelLink');
 
     if (dashboardLink) dashboardLink.style.display = 'none';
     if (guildLink) guildLink.style.display = 'none';
+    if (adminLink) adminLink.style.display = 'none';
 }
 
 // Setup navigation event listeners
