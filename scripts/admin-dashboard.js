@@ -462,7 +462,9 @@ function FeatureGroup({ featureName, group, onSettingChange, saving, settings })
     const [expanded, setExpanded] = useState(false);
     const displayName = featureName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const isEnabled = group.toggle.setting_value;
-    const schema = CONFIG_SCHEMAS[group.toggle.setting_key];
+    // Extract feature name from "features.leveling_enabled" -> "leveling_enabled"
+    const schemaKey = group.toggle.setting_key.split('.')[1];
+    const schema = CONFIG_SCHEMAS[schemaKey];
 
     // Get current values from settings state
     const getFieldValue = (fieldKey) => {
