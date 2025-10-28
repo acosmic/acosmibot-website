@@ -307,6 +307,37 @@ function AdminDashboard() {
     );
 }
 
+// Feature Group Component
+function FeatureGroup({ featureName, group, onSettingChange, saving, renderSetting }) {
+    const [expanded, setExpanded] = useState(false);
+    const displayName = featureName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const isEnabled = group.toggle.setting_value;
+
+    return (
+        <div className="feature-group">
+            <div className="feature-header" onClick={() => setExpanded(!expanded)}>
+                <span className="expand-icon-small">{expanded ? '▼' : '▶'}</span>
+                <span className="feature-name">{displayName}</span>
+                <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
+                    <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        onChange={(e) => onSettingChange(group.toggle.setting_key, e.target.checked)}
+                        disabled={saving}
+                    />
+                    <span className="toggle-slider"></span>
+                </label>
+            </div>
+            {expanded && group.configs.length > 0 && (
+                <div className="feature-configs">
+                    <div className="configs-label">Default Configurations:</div>
+                    {group.configs.map(renderSetting)}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // Settings Tab Component
 function SettingsTab({ settings, onSettingChange, saving }) {
     const [expandedCategory, setExpandedCategory] = useState('features');
@@ -402,36 +433,6 @@ function SettingsTab({ settings, onSettingChange, saving }) {
         return featureGroups;
     };
 
-    const renderFeatureGroup = (featureName, group) => {
-        const [expanded, setExpanded] = useState(false);
-        const displayName = featureName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const isEnabled = group.toggle.setting_value;
-
-        return (
-            <div key={featureName} className="feature-group">
-                <div className="feature-header" onClick={() => setExpanded(!expanded)}>
-                    <span className="expand-icon-small">{expanded ? '▼' : '▶'}</span>
-                    <span className="feature-name">{displayName}</span>
-                    <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
-                        <input
-                            type="checkbox"
-                            checked={isEnabled}
-                            onChange={(e) => onSettingChange(group.toggle.setting_key, e.target.checked)}
-                            disabled={saving}
-                        />
-                        <span className="toggle-slider"></span>
-                    </label>
-                </div>
-                {expanded && group.configs.length > 0 && (
-                    <div className="feature-configs">
-                        <div className="configs-label">Default Configurations:</div>
-                        {group.configs.map(renderSetting)}
-                    </div>
-                )}
-            </div>
-        );
-    };
-
     return (
         <div className="settings-tab">
             {categories.map(category => (
@@ -452,7 +453,14 @@ function SettingsTab({ settings, onSettingChange, saving }) {
                                     const groupKeys = Object.keys(featureGroups);
                                     return groupKeys.length > 0 ? (
                                         groupKeys.map(featureName =>
-                                            renderFeatureGroup(featureName, featureGroups[featureName])
+                                            <FeatureGroup
+                                                key={featureName}
+                                                featureName={featureName}
+                                                group={featureGroups[featureName]}
+                                                onSettingChange={onSettingChange}
+                                                saving={saving}
+                                                renderSetting={renderSetting}
+                                            />
                                         )
                                     ) : (
                                         <p className="empty-state">No features configured</p>
