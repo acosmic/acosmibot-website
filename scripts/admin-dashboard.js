@@ -205,6 +205,28 @@ function AdminDashboard() {
             return;
         }
 
+        // Filter out invalid values
+        const validChanges = {};
+        const invalidKeys = [];
+
+        for (const [key, value] of Object.entries(pendingChanges)) {
+            if (value === undefined || value === null || (typeof value === 'number' && isNaN(value))) {
+                invalidKeys.push(key);
+            } else {
+                validChanges[key] = value;
+            }
+        }
+
+        if (invalidKeys.length > 0) {
+            showNotification(`Invalid values for: ${invalidKeys.join(', ')}`, 'error');
+            return;
+        }
+
+        if (Object.keys(validChanges).length === 0) {
+            showNotification('No valid changes to save', 'error');
+            return;
+        }
+
         setSaving(true);
         try {
             const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
@@ -213,12 +235,12 @@ function AdminDashboard() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ settings: pendingChanges })
+                body: JSON.stringify({ settings: validChanges })
             });
 
             const data = await response.json();
             if (data.success) {
-                showNotification(`Successfully updated ${Object.keys(pendingChanges).length} setting(s)`, 'success');
+                showNotification(`Successfully updated ${Object.keys(validChanges).length} setting(s)`, 'success');
                 setPendingChanges({});
                 await loadSettings();
             } else {
@@ -375,25 +397,42 @@ const CONFIG_SCHEMAS = {
 
 // Input component renderers
 function NumberInput({ field, value, onChange, disabled }) {
+    // Ensure value is a valid number or use minimum/default
+    const displayValue = value !== undefined && value !== null && !isNaN(value) ? value : (field.min ?? 0);
+
     return (
         <input
             type="number"
             className="config-input config-number-input"
-            value={value ?? field.min ?? 0}
+            value={displayValue}
             min={field.min}
             max={field.max}
             step={field.step || 1}
-            onChange={(e) => onChange(field.key, parseFloat(e.target.value))}
+            onChange={(e) => {
+                const val = e.target.value;
+                // Allow empty string during typing, default to minimum
+                if (val === '' || val === '-') {
+                    onChange(field.key, field.min ?? 0);
+                } else {
+                    const numVal = Number(val);
+                    if (!isNaN(numVal)) {
+                        onChange(field.key, numVal);
+                    }
+                }
+            }}
             disabled={disabled}
         />
     );
 }
 
 function TextAreaInput({ field, value, onChange, disabled }) {
+    // Handle undefined, null, or non-string values
+    const displayValue = (value !== undefined && value !== null) ? String(value) : '';
+
     return (
         <textarea
             className="config-input config-textarea"
-            value={value ?? ''}
+            value={displayValue}
             onChange={(e) => onChange(field.key, e.target.value)}
             disabled={disabled}
             rows={3}
@@ -402,10 +441,13 @@ function TextAreaInput({ field, value, onChange, disabled }) {
 }
 
 function DropdownInput({ field, value, onChange, disabled }) {
+    // Ensure we have a valid option selected
+    const displayValue = (value !== undefined && value !== null) ? value : field.options[0];
+
     return (
         <select
             className="config-input config-select"
-            value={value ?? field.options[0]}
+            value={displayValue}
             onChange={(e) => onChange(field.key, e.target.value)}
             disabled={disabled}
         >
@@ -417,11 +459,19 @@ function DropdownInput({ field, value, onChange, disabled }) {
 }
 
 function ToggleInput({ field, value, onChange, disabled }) {
+    // Handle string "true"/"false" from database
+    let isChecked = false;
+    if (value === true || value === 'true') {
+        isChecked = true;
+    } else if (value === false || value === 'false') {
+        isChecked = false;
+    }
+
     return (
         <label className="toggle-switch">
             <input
                 type="checkbox"
-                checked={value ?? false}
+                checked={isChecked}
                 onChange={(e) => onChange(field.key, e.target.checked)}
                 disabled={disabled}
             />
@@ -431,7 +481,20 @@ function ToggleInput({ field, value, onChange, disabled }) {
 }
 
 function MultiSelectInput({ field, value, onChange, disabled }) {
-    const selectedValues = Array.isArray(value) ? value : (field.options || []);
+    // Parse value if it's a string (from JSON), or use as array, or default to empty
+    let selectedValues = [];
+    if (Array.isArray(value)) {
+        selectedValues = value;
+    } else if (typeof value === 'string') {
+        try {
+            selectedValues = JSON.parse(value);
+            if (!Array.isArray(selectedValues)) {
+                selectedValues = [];
+            }
+        } catch (e) {
+            selectedValues = [];
+        }
+    }
 
     const toggleOption = (option) => {
         if (selectedValues.includes(option)) {
@@ -459,11 +522,24 @@ function MultiSelectInput({ field, value, onChange, disabled }) {
 }
 
 function ArrayInput({ field, value, onChange, disabled }) {
-    const arrayValue = Array.isArray(value) ? value.join(', ') : '';
+    // Parse value if needed
+    let arrayValue = '';
+    if (Array.isArray(value)) {
+        arrayValue = value.join(', ');
+    } else if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+                arrayValue = parsed.join(', ');
+            }
+        } catch (e) {
+            arrayValue = '';
+        }
+    }
 
     const handleChange = (e) => {
         const str = e.target.value;
-        const arr = str.split(',').map(v => v.trim()).filter(v => v).map(v => parseInt(v)).filter(v => !isNaN(v));
+        const arr = str.split(',').map(v => v.trim()).filter(v => v).map(v => parseInt(v, 10)).filter(v => !isNaN(v));
         onChange(field.key, arr);
     };
 
@@ -503,14 +579,30 @@ function FeatureGroup({ featureName, group, onSettingChange, saving, settings, p
                 // Check if it's an array of settings (like defaults array)
                 if (Array.isArray(value)) {
                     const setting = value.find(s => s.setting_key === fieldKey);
-                    return setting?.setting_value;
+                    const settingValue = setting?.setting_value;
+                    // Parse numeric strings to numbers
+                    if (typeof settingValue === 'string' && settingValue !== '') {
+                        const parsed = Number(settingValue);
+                        if (!isNaN(parsed)) {
+                            return parsed;
+                        }
+                    }
+                    return settingValue;
                 }
                 value = value[part];
             } else {
                 return undefined;
             }
         }
-        return value?.setting_value;
+        const finalValue = value?.setting_value;
+        // Parse numeric strings to numbers
+        if (typeof finalValue === 'string' && finalValue !== '') {
+            const parsed = Number(finalValue);
+            if (!isNaN(parsed)) {
+                return parsed;
+            }
+        }
+        return finalValue;
     };
 
     const renderConfigField = (field) => {
