@@ -307,11 +307,217 @@ function AdminDashboard() {
     );
 }
 
+// Configuration field schemas for each feature
+const CONFIG_SCHEMAS = {
+    leveling_enabled: {
+        fields: [
+            { key: 'leveling.exp_per_message', label: 'XP Per Message', type: 'number', min: 1, max: 100, description: 'Base experience points awarded per message' },
+            { key: 'leveling.exp_cooldown_seconds', label: 'XP Cooldown (seconds)', type: 'number', min: 1, max: 3600, description: 'Cooldown period between XP gains for the same user' },
+            { key: 'leveling.streak_multiplier', label: 'Streak Multiplier', type: 'float', min: 0, max: 1, step: 0.01, description: 'Bonus multiplier per day of streak (5% = 0.05)' },
+            { key: 'leveling.max_streak_bonus', label: 'Max Streak Bonus', type: 'number', min: 1, max: 50, description: 'Maximum streak days counted for bonus calculation' },
+            { key: 'leveling.daily_bonus', label: 'Daily Bonus', type: 'number', min: 100, max: 10000, description: 'Base currency reward for daily claim' }
+        ]
+    },
+    ai_enabled: {
+        fields: [
+            { key: 'ai.daily_limit', label: 'Daily Limit', type: 'number', min: 1, max: 1000, description: 'Maximum AI interactions per guild per day' },
+            { key: 'ai.available_models', label: 'Available Models', type: 'multiselect', options: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'], description: 'AI models guilds can choose from' },
+            { key: 'ai.default_instructions', label: 'Default Instructions', type: 'textarea', description: 'Default system instructions if guild doesn\'t customize' }
+        ]
+    },
+    economy_enabled: {
+        fields: [
+            { key: 'economy.deposit_fee_percent', label: 'Deposit Fee %', type: 'float', min: 0, max: 10, step: 0.1, description: 'Percentage fee when depositing to bank' },
+            { key: 'economy.withdraw_fee_percent', label: 'Withdraw Fee %', type: 'float', min: 0, max: 10, step: 0.1, description: 'Percentage fee when withdrawing from bank' },
+            { key: 'economy.min_transaction', label: 'Min Transaction', type: 'number', min: 1, max: 10000, description: 'Minimum amount for bank transactions' },
+            { key: 'economy.max_transaction', label: 'Max Transaction', type: 'number', min: 100, max: 10000000, description: 'Maximum amount for bank transactions' },
+            { key: 'economy.daily_transfer_limit', label: 'Daily Transfer Limit', type: 'number', min: 1000, max: 10000000, description: 'Maximum credits transferred per day' },
+            { key: 'economy.interest_enabled', label: 'Interest Enabled', type: 'toggle', description: 'Enable interest on bank balances' },
+            { key: 'economy.interest_rate_percent', label: 'Interest Rate %', type: 'float', min: 0, max: 10, step: 0.1, description: 'Interest rate percentage' },
+            { key: 'economy.interest_interval', label: 'Interest Interval', type: 'dropdown', options: ['daily', 'weekly', 'monthly'], description: 'How often interest is applied' }
+        ]
+    },
+    games_enabled: {
+        fields: [
+            { key: 'games.slots.match_two_multiplier', label: 'Match 2 Multiplier', type: 'number', min: 1, max: 10, description: 'Win multiplier for matching 2 symbols' },
+            { key: 'games.slots.match_three_multiplier', label: 'Match 3 Multiplier', type: 'number', min: 1, max: 100, description: 'Win multiplier for matching 3 symbols' },
+            { key: 'games.slots.min_bet', label: 'Min Bet', type: 'number', min: 1, max: 10000, description: 'Minimum bet amount in credits' },
+            { key: 'games.slots.max_bet', label: 'Max Bet', type: 'number', min: 100, max: 1000000, description: 'Maximum bet amount in credits' },
+            { key: 'games.slots.bet_options', label: 'Bet Options', type: 'array', description: 'Quick bet amounts (comma-separated)' }
+        ]
+    },
+    cross_server_enabled: {
+        fields: []
+    }
+};
+
+// Input component renderers
+function NumberInput({ field, value, onChange, disabled }) {
+    return (
+        <input
+            type="number"
+            className="config-input config-number-input"
+            value={value ?? field.min ?? 0}
+            min={field.min}
+            max={field.max}
+            step={field.step || 1}
+            onChange={(e) => onChange(field.key, parseFloat(e.target.value))}
+            disabled={disabled}
+        />
+    );
+}
+
+function TextAreaInput({ field, value, onChange, disabled }) {
+    return (
+        <textarea
+            className="config-input config-textarea"
+            value={value ?? ''}
+            onChange={(e) => onChange(field.key, e.target.value)}
+            disabled={disabled}
+            rows={3}
+        />
+    );
+}
+
+function DropdownInput({ field, value, onChange, disabled }) {
+    return (
+        <select
+            className="config-input config-select"
+            value={value ?? field.options[0]}
+            onChange={(e) => onChange(field.key, e.target.value)}
+            disabled={disabled}
+        >
+            {field.options.map(option => (
+                <option key={option} value={option}>{option}</option>
+            ))}
+        </select>
+    );
+}
+
+function ToggleInput({ field, value, onChange, disabled }) {
+    return (
+        <label className="toggle-switch">
+            <input
+                type="checkbox"
+                checked={value ?? false}
+                onChange={(e) => onChange(field.key, e.target.checked)}
+                disabled={disabled}
+            />
+            <span className="toggle-slider"></span>
+        </label>
+    );
+}
+
+function MultiSelectInput({ field, value, onChange, disabled }) {
+    const selectedValues = Array.isArray(value) ? value : (field.options || []);
+
+    const toggleOption = (option) => {
+        if (selectedValues.includes(option)) {
+            onChange(field.key, selectedValues.filter(v => v !== option));
+        } else {
+            onChange(field.key, [...selectedValues, option]);
+        }
+    };
+
+    return (
+        <div className="config-multiselect">
+            {field.options.map(option => (
+                <label key={option} className="multiselect-option">
+                    <input
+                        type="checkbox"
+                        checked={selectedValues.includes(option)}
+                        onChange={() => toggleOption(option)}
+                        disabled={disabled}
+                    />
+                    <span className="option-label">{option}</span>
+                </label>
+            ))}
+        </div>
+    );
+}
+
+function ArrayInput({ field, value, onChange, disabled }) {
+    const arrayValue = Array.isArray(value) ? value.join(', ') : '';
+
+    const handleChange = (e) => {
+        const str = e.target.value;
+        const arr = str.split(',').map(v => v.trim()).filter(v => v).map(v => parseInt(v)).filter(v => !isNaN(v));
+        onChange(field.key, arr);
+    };
+
+    return (
+        <input
+            type="text"
+            className="config-input config-array-input"
+            value={arrayValue}
+            onChange={handleChange}
+            placeholder="e.g., 100, 1000, 5000"
+            disabled={disabled}
+        />
+    );
+}
+
 // Feature Group Component
-function FeatureGroup({ featureName, group, onSettingChange, saving, renderSetting }) {
+function FeatureGroup({ featureName, group, onSettingChange, saving, settings }) {
     const [expanded, setExpanded] = useState(false);
     const displayName = featureName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const isEnabled = group.toggle.setting_value;
+    const schema = CONFIG_SCHEMAS[group.toggle.setting_key];
+
+    // Get current values from settings state
+    const getFieldValue = (fieldKey) => {
+        const parts = fieldKey.split('.');
+        let value = settings;
+        for (const part of parts) {
+            if (value && typeof value === 'object') {
+                value = value[part];
+            } else {
+                return undefined;
+            }
+        }
+        return value?.setting_value;
+    };
+
+    const renderConfigField = (field) => {
+        const value = getFieldValue(field.key);
+        let inputComponent;
+
+        switch (field.type) {
+            case 'number':
+            case 'float':
+                inputComponent = <NumberInput field={field} value={value} onChange={onSettingChange} disabled={saving} />;
+                break;
+            case 'textarea':
+                inputComponent = <TextAreaInput field={field} value={value} onChange={onSettingChange} disabled={saving} />;
+                break;
+            case 'dropdown':
+                inputComponent = <DropdownInput field={field} value={value} onChange={onSettingChange} disabled={saving} />;
+                break;
+            case 'toggle':
+                inputComponent = <ToggleInput field={field} value={value} onChange={onSettingChange} disabled={saving} />;
+                break;
+            case 'multiselect':
+                inputComponent = <MultiSelectInput field={field} value={value} onChange={onSettingChange} disabled={saving} />;
+                break;
+            case 'array':
+                inputComponent = <ArrayInput field={field} value={value} onChange={onSettingChange} disabled={saving} />;
+                break;
+            default:
+                inputComponent = null;
+        }
+
+        return (
+            <div key={field.key} className="config-field">
+                <div className="config-field-info">
+                    <label className="config-label">{field.label}</label>
+                    {field.description && <p className="config-description">{field.description}</p>}
+                </div>
+                <div className="config-field-control">
+                    {inputComponent}
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="feature-group">
@@ -328,10 +534,17 @@ function FeatureGroup({ featureName, group, onSettingChange, saving, renderSetti
                     <span className="toggle-slider"></span>
                 </label>
             </div>
-            {expanded && group.configs.length > 0 && (
+            {expanded && schema && schema.fields.length > 0 && (
                 <div className="feature-configs">
                     <div className="configs-label">Default Configurations:</div>
-                    {group.configs.map(renderSetting)}
+                    <div className="config-fields-container">
+                        {schema.fields.map(renderConfigField)}
+                    </div>
+                </div>
+            )}
+            {expanded && (!schema || schema.fields.length === 0) && (
+                <div className="feature-configs">
+                    <div className="configs-label">No additional configuration available.</div>
                 </div>
             )}
         </div>
@@ -459,7 +672,7 @@ function SettingsTab({ settings, onSettingChange, saving }) {
                                                 group={featureGroups[featureName]}
                                                 onSettingChange={onSettingChange}
                                                 saving={saving}
-                                                renderSetting={renderSetting}
+                                                settings={settings}
                                             />
                                         )
                                     ) : (
