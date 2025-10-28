@@ -363,11 +363,74 @@ function SettingsTab({ settings, onSettingChange, saving }) {
     };
 
     const categories = [
-        { key: 'features', label: 'Feature Toggles', icon: '🎛️' },
+        { key: 'features', label: 'Features', icon: '✨' },
         { key: 'rate_limits', label: 'Rate Limits & Quotas', icon: '⏱️' },
-        { key: 'defaults', label: 'Default Configurations', icon: '📋' },
         { key: 'maintenance', label: 'Maintenance Mode', icon: '🔧' }
     ];
+
+    // Group features with their defaults
+    const groupFeatureSettings = () => {
+        const featureSettings = settings.features || [];
+        const defaultSettings = settings.defaults || [];
+
+        // Create a map of feature toggles
+        const featureGroups = {};
+
+        featureSettings.forEach(setting => {
+            const key = setting.setting_key;
+            const featureName = key.split('.')[1]?.replace(/_enabled$/, '');
+            if (featureName && key.endsWith('_enabled')) {
+                featureGroups[featureName] = {
+                    toggle: setting,
+                    configs: []
+                };
+            }
+        });
+
+        // Add corresponding default configs to each feature
+        defaultSettings.forEach(setting => {
+            const key = setting.setting_key;
+            const parts = key.split('.');
+            if (parts[0] === 'defaults' && parts[1]) {
+                const featureName = parts[1];
+                if (featureGroups[featureName]) {
+                    featureGroups[featureName].configs.push(setting);
+                }
+            }
+        });
+
+        return featureGroups;
+    };
+
+    const renderFeatureGroup = (featureName, group) => {
+        const [expanded, setExpanded] = useState(false);
+        const displayName = featureName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const isEnabled = group.toggle.setting_value;
+
+        return (
+            <div key={featureName} className="feature-group">
+                <div className="feature-header" onClick={() => setExpanded(!expanded)}>
+                    <span className="expand-icon-small">{expanded ? '▼' : '▶'}</span>
+                    <span className="feature-name">{displayName}</span>
+                    <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
+                        <input
+                            type="checkbox"
+                            checked={isEnabled}
+                            onChange={(e) => onSettingChange(group.toggle.setting_key, e.target.checked)}
+                            disabled={saving}
+                        />
+                        <span className="toggle-slider"></span>
+                    </label>
+                </div>
+                {expanded && group.configs.length > 0 && (
+                    <div className="feature-configs">
+                        <div className="configs-label">Default Configurations:</div>
+                        {group.configs.map(renderSetting)}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="settings-tab">
@@ -383,10 +446,24 @@ function SettingsTab({ settings, onSettingChange, saving }) {
                     </div>
                     {expandedCategory === category.key && (
                         <div className="category-content">
-                            {settings[category.key]?.length > 0 ? (
-                                settings[category.key].map(renderSetting)
+                            {category.key === 'features' ? (
+                                (() => {
+                                    const featureGroups = groupFeatureSettings();
+                                    const groupKeys = Object.keys(featureGroups);
+                                    return groupKeys.length > 0 ? (
+                                        groupKeys.map(featureName =>
+                                            renderFeatureGroup(featureName, featureGroups[featureName])
+                                        )
+                                    ) : (
+                                        <p className="empty-state">No features configured</p>
+                                    );
+                                })()
                             ) : (
-                                <p className="empty-state">No settings in this category</p>
+                                settings[category.key]?.length > 0 ? (
+                                    settings[category.key].map(renderSetting)
+                                ) : (
+                                    <p className="empty-state">No settings in this category</p>
+                                )
                             )}
                         </div>
                     )}
