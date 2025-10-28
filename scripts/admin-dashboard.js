@@ -571,15 +571,16 @@ function FeatureGroup({ featureName, group, onSettingChange, saving, settings, p
             return pendingChanges[fieldKey];
         }
 
-        // Otherwise get from settings
-        const parts = fieldKey.split('.');
-        let value = settings;
-        for (const part of parts) {
-            if (value && typeof value === 'object') {
-                // Check if it's an array of settings (like defaults array)
-                if (Array.isArray(value)) {
-                    const setting = value.find(s => s.setting_key === fieldKey);
-                    const settingValue = setting?.setting_value;
+        // Search all category arrays for this setting key
+        // Settings structure: { features: [...], defaults: [...], rate_limits: [...], maintenance: [...] }
+        const categories = ['features', 'defaults', 'rate_limits', 'maintenance'];
+
+        for (const category of categories) {
+            const categorySettings = settings[category];
+            if (Array.isArray(categorySettings)) {
+                const setting = categorySettings.find(s => s.setting_key === fieldKey);
+                if (setting !== undefined) {
+                    const settingValue = setting.setting_value;
                     // Parse numeric strings to numbers
                     if (typeof settingValue === 'string' && settingValue !== '') {
                         const parsed = Number(settingValue);
@@ -589,20 +590,10 @@ function FeatureGroup({ featureName, group, onSettingChange, saving, settings, p
                     }
                     return settingValue;
                 }
-                value = value[part];
-            } else {
-                return undefined;
             }
         }
-        const finalValue = value?.setting_value;
-        // Parse numeric strings to numbers
-        if (typeof finalValue === 'string' && finalValue !== '') {
-            const parsed = Number(finalValue);
-            if (!isNaN(parsed)) {
-                return parsed;
-            }
-        }
-        return finalValue;
+
+        return undefined;
     };
 
     const renderConfigField = (field) => {
@@ -767,13 +758,15 @@ function SettingsTab({ settings, pendingChanges, onSettingChange, onSave, onDisc
         const featureSettings = settings.features || [];
         const defaultSettings = settings.defaults || [];
 
-        // Create a map of feature toggles
+        // Create a map of feature toggles (deduplicate by featureName)
         const featureGroups = {};
+        const seenFeatures = new Set();
 
         featureSettings.forEach(setting => {
             const key = setting.setting_key;
             const featureName = key.split('.')[1]?.replace(/_enabled$/, '');
-            if (featureName && key.endsWith('_enabled')) {
+            if (featureName && key.endsWith('_enabled') && !seenFeatures.has(featureName)) {
+                seenFeatures.add(featureName);
                 featureGroups[featureName] = {
                     toggle: setting,
                     configs: []
@@ -782,14 +775,14 @@ function SettingsTab({ settings, pendingChanges, onSettingChange, onSave, onDisc
         });
 
         // Add corresponding default configs to each feature
+        // Settings are like "leveling.exp_per_message", NOT "defaults.leveling.exp_per_message"
+        // Extract feature name from first part of setting_key
         defaultSettings.forEach(setting => {
             const key = setting.setting_key;
             const parts = key.split('.');
-            if (parts[0] === 'defaults' && parts[1]) {
-                const featureName = parts[1];
-                if (featureGroups[featureName]) {
-                    featureGroups[featureName].configs.push(setting);
-                }
+            const featureName = parts[0]; // "leveling", "ai", "economy", "games"
+            if (featureGroups[featureName]) {
+                featureGroups[featureName].configs.push(setting);
             }
         });
 
