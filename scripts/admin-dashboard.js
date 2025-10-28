@@ -16,6 +16,9 @@ function AdminDashboard() {
         maintenance: []
     });
 
+    // Pending changes (unsaved edits)
+    const [pendingChanges, setPendingChanges] = useState({});
+
     // Guild management state
     const [guilds, setGuilds] = useState([]);
     const [guildsLoading, setGuildsLoading] = useState(false);
@@ -188,7 +191,20 @@ function AdminDashboard() {
         }
     };
 
-    const updateSettings = async (updatedSettings) => {
+    const handleSettingChange = (key, value) => {
+        // Update local pending changes instead of immediately saving
+        setPendingChanges(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+
+    const saveAllChanges = async () => {
+        if (Object.keys(pendingChanges).length === 0) {
+            showNotification('No changes to save', 'info');
+            return;
+        }
+
         setSaving(true);
         try {
             const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
@@ -197,12 +213,13 @@ function AdminDashboard() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ settings: updatedSettings })
+                body: JSON.stringify({ settings: pendingChanges })
             });
 
             const data = await response.json();
             if (data.success) {
-                showNotification('Settings updated successfully', 'success');
+                showNotification(`Successfully updated ${Object.keys(pendingChanges).length} setting(s)`, 'success');
+                setPendingChanges({});
                 await loadSettings();
             } else {
                 showNotification(data.message || 'Failed to update settings', 'error');
@@ -215,11 +232,12 @@ function AdminDashboard() {
         }
     };
 
-    const handleSettingChange = (key, value) => {
-        const updates = {};
-        updates[key] = value;
-        updateSettings(updates);
+    const discardChanges = () => {
+        setPendingChanges({});
+        showNotification('Changes discarded', 'info');
     };
+
+    const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
     if (loading) {
         return (
@@ -271,8 +289,12 @@ function AdminDashboard() {
                 {activeTab === 'settings' && (
                     <SettingsTab
                         settings={settings}
+                        pendingChanges={pendingChanges}
                         onSettingChange={handleSettingChange}
+                        onSave={saveAllChanges}
+                        onDiscard={discardChanges}
                         saving={saving}
+                        hasPendingChanges={hasPendingChanges}
                     />
                 )}
 
@@ -458,7 +480,7 @@ function ArrayInput({ field, value, onChange, disabled }) {
 }
 
 // Feature Group Component
-function FeatureGroup({ featureName, group, onSettingChange, saving, settings }) {
+function FeatureGroup({ featureName, group, onSettingChange, saving, settings, pendingChanges }) {
     const [expanded, setExpanded] = useState(false);
     const displayName = featureName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const isEnabled = group.toggle.setting_value;
@@ -466,12 +488,23 @@ function FeatureGroup({ featureName, group, onSettingChange, saving, settings })
     const schemaKey = group.toggle.setting_key.split('.')[1];
     const schema = CONFIG_SCHEMAS[schemaKey];
 
-    // Get current values from settings state
+    // Get current values from settings state or pending changes
     const getFieldValue = (fieldKey) => {
+        // First check if there's a pending change
+        if (fieldKey in pendingChanges) {
+            return pendingChanges[fieldKey];
+        }
+
+        // Otherwise get from settings
         const parts = fieldKey.split('.');
         let value = settings;
         for (const part of parts) {
             if (value && typeof value === 'object') {
+                // Check if it's an array of settings (like defaults array)
+                if (Array.isArray(value)) {
+                    const setting = value.find(s => s.setting_key === fieldKey);
+                    return setting?.setting_value;
+                }
                 value = value[part];
             } else {
                 return undefined;
@@ -554,11 +587,34 @@ function FeatureGroup({ featureName, group, onSettingChange, saving, settings })
 }
 
 // Settings Tab Component
-function SettingsTab({ settings, onSettingChange, saving }) {
+function SettingsTab({ settings, pendingChanges, onSettingChange, onSave, onDiscard, saving, hasPendingChanges }) {
     const [expandedCategory, setExpandedCategory] = useState('features');
 
     const toggleCategory = (category) => {
         setExpandedCategory(expandedCategory === category ? null : category);
+    };
+
+    // Helper to get effective value (pending change or current setting)
+    const getEffectiveValue = (key) => {
+        if (key in pendingChanges) {
+            return pendingChanges[key];
+        }
+        // Navigate through nested settings structure
+        const parts = key.split('.');
+        let value = settings;
+        for (const part of parts) {
+            if (value && typeof value === 'object') {
+                // Check if it's an array of settings
+                if (Array.isArray(value)) {
+                    const setting = value.find(s => s.setting_key === key);
+                    return setting?.setting_value;
+                }
+                value = value[part];
+            } else {
+                return undefined;
+            }
+        }
+        return value?.setting_value;
     };
 
     const renderSetting = (setting) => {
@@ -650,6 +706,32 @@ function SettingsTab({ settings, onSettingChange, saving }) {
 
     return (
         <div className="settings-tab">
+            {hasPendingChanges && (
+                <div className="save-changes-bar">
+                    <div className="save-bar-content">
+                        <div className="save-bar-info">
+                            <span className="unsaved-badge">{Object.keys(pendingChanges).length}</span>
+                            <span className="save-bar-text">unsaved change{Object.keys(pendingChanges).length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="save-bar-actions">
+                            <button
+                                className="btn-discard"
+                                onClick={onDiscard}
+                                disabled={saving}
+                            >
+                                Discard
+                            </button>
+                            <button
+                                className="btn-save"
+                                onClick={onSave}
+                                disabled={saving}
+                            >
+                                {saving ? 'Saving...' : 'Save All Changes'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {categories.map(category => (
                 <div key={category.key} className="settings-category">
                     <div
@@ -675,6 +757,7 @@ function SettingsTab({ settings, onSettingChange, saving }) {
                                                 onSettingChange={onSettingChange}
                                                 saving={saving}
                                                 settings={settings}
+                                                pendingChanges={pendingChanges}
                                             />
                                         )
                                     ) : (
