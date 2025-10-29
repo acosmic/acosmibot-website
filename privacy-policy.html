@@ -7,112 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/base.css">
     <link rel="stylesheet" href="styles/footer.css">
-    <style>
-        .legal-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .page-header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 15px;
-        }
-
-        .page-header .subtitle {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1.1rem;
-        }
-
-        .legal-section {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .legal-section h2 {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .legal-section p {
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.8;
-            margin-bottom: 15px;
-        }
-
-        .legal-section ul {
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.8;
-            margin-left: 20px;
-            margin-bottom: 15px;
-        }
-
-        .legal-section li {
-            margin-bottom: 10px;
-        }
-
-        .legal-section strong {
-            color: rgba(255, 255, 255, 0.95);
-            font-weight: 600;
-        }
-
-        .highlight-box {
-            background: rgba(88, 101, 242, 0.1);
-            border-left: 4px solid var(--primary-color);
-            padding: 15px 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-        }
-
-        .highlight-box p {
-            margin: 0;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .last-updated {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.9rem;
-            margin-top: 40px;
-        }
-
-        .discord-link {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.3s ease;
-        }
-
-        .discord-link:hover {
-            opacity: 0.8;
-        }
-
-        @media (max-width: 768px) {
-            .page-header h1 {
-                font-size: 2rem;
-            }
-
-            .legal-section {
-                padding: 20px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles/privacy.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -159,7 +54,7 @@
             <h2>2. Information We Collect</h2>
             <p>Acosmibot collects the following types of data to provide its features and services:</p>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.1 Discord Account Information</h3>
+            <h3>2.1 Discord Account Information</h3>
             <ul>
                 <li><strong>User IDs:</strong> Your unique Discord user identifier</li>
                 <li><strong>Username & Discriminator:</strong> Your Discord display name and tag</li>
@@ -167,7 +62,7 @@
                 <li><strong>Server Membership:</strong> List of servers where you and the bot share membership</li>
             </ul>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.2 Activity & Usage Data</h3>
+            <h3>2.2 Activity & Usage Data</h3>
             <ul>
                 <li><strong>Message Statistics:</strong> Count of messages sent in servers (not message content)</li>
                 <li><strong>Activity Streaks:</strong> Consecutive days of server activity for leveling features</li>
@@ -175,7 +70,7 @@
                 <li><strong>Level Information:</strong> Your current level in each server and globally</li>
             </ul>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.3 Economy & Game Data</h3>
+            <h3>2.3 Economy & Game Data</h3>
             <ul>
                 <li><strong>Virtual Currency:</strong> Balance of bot currency in each server and globally</li>
                 <li><strong>Transaction History:</strong> Records of currency transfers, purchases, and rewards</li>
@@ -183,14 +78,14 @@
                 <li><strong>Gambling History:</strong> Results from slots, blackjack, and other game features</li>
             </ul>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.4 AI Chat Interactions</h3>
+            <h3>2.4 AI Chat Interactions</h3>
             <ul>
                 <li><strong>Message Content:</strong> Messages sent to AI chat features are processed by OpenAI</li>
                 <li><strong>Thread IDs:</strong> Conversation thread identifiers for context continuity</li>
                 <li><strong>Usage Metrics:</strong> Number of AI messages sent for rate limiting purposes</li>
             </ul>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.5 Server (Guild) Information</h3>
+            <h3>2.5 Server (Guild) Information</h3>
             <ul>
                 <li><strong>Server ID:</strong> Unique identifier for Discord servers</li>
                 <li><strong>Server Name:</strong> Display name of the server</li>
@@ -218,10 +113,10 @@
             <h2>4. Third-Party Services</h2>
             <p>Acosmibot integrates with the following third-party services that may have access to your data:</p>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">4.1 Discord Platform</h3>
+            <h3>4.1 Discord Platform</h3>
             <p>All data collected is obtained through Discord's API and is subject to Discord's Privacy Policy. By using Discord, you agree to their terms and data practices.</p>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">4.2 OpenAI (AI Chat Features)</h3>
+            <h3>4.2 OpenAI (AI Chat Features)</h3>
             <p>When you use AI chat features, your messages are sent to OpenAI's API for processing. OpenAI's data usage is governed by their Privacy Policy and API Data Usage Policies. Key points:</p>
             <ul>
                 <li>Messages sent to AI chat are processed by OpenAI's GPT models</li>
@@ -230,7 +125,7 @@
                 <li>OpenAI's data retention policies apply to AI chat interactions</li>
             </ul>
 
-            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">4.3 Database & Hosting</h3>
+            <h3>4.3 Database & Hosting</h3>
             <p>Your data is stored on secure database servers provided by trusted hosting providers. These providers have access to infrastructure but do not actively access or use your data.</p>
         </div>
 
