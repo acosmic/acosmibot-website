@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Acosmibot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/footer.css">
+    <style>
+        .legal-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .page-header .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+
+        .legal-section {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .legal-section h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .legal-section p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .legal-section ul {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .legal-section li {
+            margin-bottom: 10px;
+        }
+
+        .legal-section strong {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+
+        .highlight-box {
+            background: rgba(88, 101, 242, 0.1);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .highlight-box p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .last-updated {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+
+        .discord-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+
+        .discord-link:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .legal-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="/" class="logo">Acosmibot</a>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/docs.html">Documentation</a>
+                    <a href="/user-dashboard.html">Dashboard</a>
+                    <a href="/guild-selector.html">Server Management</a>
+                    <a href="https://github.com/acosmic/acosmibot" target="_blank">GitHub</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <button id="loginBtn" class="btn btn-primary">Login with Discord</button>
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <button class="user-button">
+                        <img id="userAvatar" src="" alt="User Avatar">
+                        <span id="username"></span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="/user-dashboard.html">Dashboard</a>
+                        <a href="/guild-selector.html">My Servers</a>
+                        <a id="adminLink" href="/admin-dashboard.html" style="display: none;">Admin Panel</a>
+                        <a href="#" id="logoutBtn">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="legal-container">
+        <div class="page-header">
+            <h1>Privacy Policy</h1>
+            <p class="subtitle">Your privacy is important to us. Learn how we collect and protect your data.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>1. Introduction</h2>
+            <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
+            <p>By using Acosmibot, you consent to the data practices described in this policy. If you do not agree with this policy, please discontinue use of our services.</p>
+            <div class="highlight-box">
+                <p><strong>Important:</strong> Acosmibot is not affiliated with Discord Inc. We are an independent third-party bot operating on the Discord platform.</p>
+            </div>
+        </div>
+
+        <div class="legal-section">
+            <h2>2. Information We Collect</h2>
+            <p>Acosmibot collects the following types of data to provide its features and services:</p>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.1 Discord Account Information</h3>
+            <ul>
+                <li><strong>User IDs:</strong> Your unique Discord user identifier</li>
+                <li><strong>Username & Discriminator:</strong> Your Discord display name and tag</li>
+                <li><strong>Avatar:</strong> Your profile picture for display in leaderboards and dashboards</li>
+                <li><strong>Server Membership:</strong> List of servers where you and the bot share membership</li>
+            </ul>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.2 Activity & Usage Data</h3>
+            <ul>
+                <li><strong>Message Statistics:</strong> Count of messages sent in servers (not message content)</li>
+                <li><strong>Activity Streaks:</strong> Consecutive days of server activity for leveling features</li>
+                <li><strong>Experience Points (XP):</strong> Calculated based on your server participation</li>
+                <li><strong>Level Information:</strong> Your current level in each server and globally</li>
+            </ul>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.3 Economy & Game Data</h3>
+            <ul>
+                <li><strong>Virtual Currency:</strong> Balance of bot currency in each server and globally</li>
+                <li><strong>Transaction History:</strong> Records of currency transfers, purchases, and rewards</li>
+                <li><strong>Game Statistics:</strong> Win/loss records, games played, total amounts wagered</li>
+                <li><strong>Gambling History:</strong> Results from slots, blackjack, and other game features</li>
+            </ul>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.4 AI Chat Interactions</h3>
+            <ul>
+                <li><strong>Message Content:</strong> Messages sent to AI chat features are processed by OpenAI</li>
+                <li><strong>Thread IDs:</strong> Conversation thread identifiers for context continuity</li>
+                <li><strong>Usage Metrics:</strong> Number of AI messages sent for rate limiting purposes</li>
+            </ul>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">2.5 Server (Guild) Information</h3>
+            <ul>
+                <li><strong>Server ID:</strong> Unique identifier for Discord servers</li>
+                <li><strong>Server Name:</strong> Display name of the server</li>
+                <li><strong>Server Owner:</strong> User ID of the server owner</li>
+                <li><strong>Member Count:</strong> Number of members in the server</li>
+                <li><strong>Configuration Settings:</strong> Bot feature settings customized by server administrators</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>3. How We Use Your Data</h2>
+            <p>We collect and use your data for the following purposes:</p>
+            <ul>
+                <li><strong>Feature Delivery:</strong> To provide leveling, economy, games, and other bot features</li>
+                <li><strong>User Experience:</strong> To track progress, display leaderboards, and personalize interactions</li>
+                <li><strong>System Operations:</strong> To maintain functionality, prevent abuse, and optimize performance</li>
+                <li><strong>Analytics:</strong> To understand usage patterns and improve bot features</li>
+                <li><strong>Communication:</strong> To send announcements, notifications, and support responses</li>
+                <li><strong>Security:</strong> To detect and prevent abuse, fraud, or violations of our Terms of Service</li>
+            </ul>
+            <p>We do <strong>not</strong> sell, rent, or trade your personal information to third parties for marketing purposes.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>4. Third-Party Services</h2>
+            <p>Acosmibot integrates with the following third-party services that may have access to your data:</p>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">4.1 Discord Platform</h3>
+            <p>All data collected is obtained through Discord's API and is subject to Discord's Privacy Policy. By using Discord, you agree to their terms and data practices.</p>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">4.2 OpenAI (AI Chat Features)</h3>
+            <p>When you use AI chat features, your messages are sent to OpenAI's API for processing. OpenAI's data usage is governed by their Privacy Policy and API Data Usage Policies. Key points:</p>
+            <ul>
+                <li>Messages sent to AI chat are processed by OpenAI's GPT models</li>
+                <li>OpenAI may temporarily store messages for API operation</li>
+                <li>We do not share additional personal information beyond the chat messages</li>
+                <li>OpenAI's data retention policies apply to AI chat interactions</li>
+            </ul>
+
+            <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; margin-top: 20px; margin-bottom: 10px;">4.3 Database & Hosting</h3>
+            <p>Your data is stored on secure database servers provided by trusted hosting providers. These providers have access to infrastructure but do not actively access or use your data.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>5. Data Storage & Security</h2>
+            <p>We take data security seriously and implement the following measures:</p>
+            <ul>
+                <li><strong>Secure Databases:</strong> Data is stored in password-protected MySQL databases</li>
+                <li><strong>Access Controls:</strong> Limited access to data by authorized personnel only</li>
+                <li><strong>Encrypted Connections:</strong> API communications use HTTPS/TLS encryption</li>
+                <li><strong>Regular Backups:</strong> Database backups to prevent data loss</li>
+                <li><strong>Monitoring:</strong> Activity logs to detect unauthorized access attempts</li>
+            </ul>
+            <div class="highlight-box">
+                <p><strong>Note:</strong> While we implement security measures, no system is 100% secure. We cannot guarantee absolute security of your data.</p>
+            </div>
+        </div>
+
+        <div class="legal-section">
+            <h2>6. Data Retention</h2>
+            <p>We retain your data for the following periods:</p>
+            <ul>
+                <li><strong>Active Users:</strong> Data is retained as long as you use Acosmibot in any server</li>
+                <li><strong>Inactive Users:</strong> Data may be retained indefinitely for historical leaderboards and statistics</li>
+                <li><strong>Deleted Accounts:</strong> If you delete your Discord account, associated data may remain until manually requested for deletion</li>
+                <li><strong>Server Removal:</strong> When Acosmibot is removed from a server, per-server data is retained for potential re-addition</li>
+            </ul>
+            <p>To request data deletion, please contact us through our Discord support server.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>7. Your Rights & Choices</h2>
+            <p>You have the following rights regarding your personal data:</p>
+            <ul>
+                <li><strong>Access:</strong> Request a copy of the data we have collected about you</li>
+                <li><strong>Correction:</strong> Request correction of inaccurate or incomplete data</li>
+                <li><strong>Deletion:</strong> Request deletion of your personal data (subject to limitations)</li>
+                <li><strong>Opt-Out:</strong> Stop using Acosmibot by removing it from your servers or discontinuing commands</li>
+                <li><strong>Data Portability:</strong> Request your data in a machine-readable format</li>
+            </ul>
+            <p>To exercise these rights, contact us through our <a href="https://discord.gg/qhY9XEdMc9" class="discord-link" target="_blank">Discord support server</a>.</p>
+            <div class="highlight-box">
+                <p><strong>Note:</strong> Some data may be retained for legitimate business purposes, such as fraud prevention or legal compliance, even after deletion requests.</p>
+            </div>
+        </div>
+
+        <div class="legal-section">
+            <h2>8. Children's Privacy</h2>
+            <p>Acosmibot does not knowingly collect information from users under the age of 13. Discord's Terms of Service require users to be at least 13 years old (or older in some jurisdictions).</p>
+            <p>If we become aware that we have collected data from a user under 13, we will take steps to delete that information. Parents or guardians who believe their child has provided data should contact us immediately.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>9. International Data Transfers</h2>
+            <p>Your data may be transferred to and processed in countries other than your own. By using Acosmibot, you consent to the transfer of your data to these locations.</p>
+            <p>We take steps to ensure appropriate safeguards are in place when data is transferred internationally, in accordance with applicable data protection laws.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>10. Changes to This Privacy Policy</h2>
+            <p>We may update this Privacy Policy from time to time to reflect changes in our practices or for legal, operational, or regulatory reasons.</p>
+            <p>When we make changes:</p>
+            <ul>
+                <li>The "Last Updated" date will be revised</li>
+                <li>Significant changes may be announced in our Discord support server</li>
+                <li>Continued use after changes constitutes acceptance of the new policy</li>
+            </ul>
+            <p>We encourage you to review this policy periodically to stay informed about how we protect your data.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>11. Cookie Policy</h2>
+            <p>The Acosmibot website uses the following types of data storage:</p>
+            <ul>
+                <li><strong>Local Storage:</strong> Stores authentication tokens for dashboard login persistence</li>
+                <li><strong>Session Storage:</strong> Temporary storage for user session information</li>
+                <li><strong>Essential Cookies:</strong> Required for website functionality (authentication, preferences)</li>
+            </ul>
+            <p>We do not use tracking cookies or third-party advertising cookies. All data storage is essential for providing our services.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>12. Contact Information</h2>
+            <p>If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us through our <a href="https://discord.gg/your-server" class="discord-link" target="_blank">Discord support server</a>.</p>
+            <p>We will respond to inquiries within a reasonable timeframe and work to address your concerns in accordance with applicable privacy laws.</p>
+        </div>
+
+        <div class="last-updated">
+            Last Updated: October 29, 2025
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">Acosmibot</div>
+            <div class="footer-links">
+                <a href="/terms-of-service.html">Terms of Service</a>
+                <span class="divider">•</span>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+            </div>
+            <div class="footer-copyright">
+                © 2025 Acosmibot. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="scripts/nav.js"></script>
+</body>
+</html>

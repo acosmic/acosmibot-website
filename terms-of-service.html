@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - Acosmibot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/footer.css">
+    <style>
+        .legal-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .page-header .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+
+        .legal-section {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .legal-section h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .legal-section p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .legal-section ul {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .legal-section li {
+            margin-bottom: 10px;
+        }
+
+        .legal-section strong {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+
+        .discord-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+
+        .discord-link:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .legal-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="/" class="logo">Acosmibot</a>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/docs.html">Documentation</a>
+                    <a href="/user-dashboard.html">Dashboard</a>
+                    <a href="/guild-selector.html">Server Management</a>
+                    <a href="https://github.com/acosmic/acosmibot" target="_blank">GitHub</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <button id="loginBtn" class="btn btn-primary">Login with Discord</button>
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <button class="user-button">
+                        <img id="userAvatar" src="" alt="User Avatar">
+                        <span id="username"></span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="/user-dashboard.html">Dashboard</a>
+                        <a href="/guild-selector.html">My Servers</a>
+                        <a id="adminLink" href="/admin-dashboard.html" style="display: none;">Admin Panel</a>
+                        <a href="#" id="logoutBtn">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="legal-container">
+        <div class="page-header">
+            <h1>Terms of Service</h1>
+            <p class="subtitle">Please read these terms carefully before using Acosmibot</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>1. Introduction</h2>
+            <p>Welcome to Acosmibot! By using our Discord bot and related services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use Acosmibot.</p>
+            <p>These terms govern your access to and use of Acosmibot, including any features, content, and services provided through the bot.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>2. Service Description</h2>
+            <p>Acosmibot is a multi-featured Discord bot that provides the following services:</p>
+            <ul>
+                <li><strong>Leveling System:</strong> Experience points and level progression based on server activity</li>
+                <li><strong>Economy System:</strong> Virtual currency, daily bonuses, and trading features</li>
+                <li><strong>Games & Gambling:</strong> Entertainment games including slots, blackjack, and other gambling features</li>
+                <li><strong>AI Chat:</strong> Interactive AI-powered conversations using OpenAI technology</li>
+                <li><strong>Utility Features:</strong> Reminders, server management tools, and other utilities</li>
+            </ul>
+            <p>All features are subject to change, addition, or removal at any time without prior notice.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>3. User Responsibilities</h2>
+            <p>By using Acosmibot, you agree to:</p>
+            <ul>
+                <li>Comply with Discord's Terms of Service and Community Guidelines</li>
+                <li>Not abuse, exploit, or manipulate bot features for unfair advantages</li>
+                <li>Not attempt to hack, reverse engineer, or compromise bot security</li>
+                <li>Not use the bot for illegal activities or to harass other users</li>
+                <li>Not spam commands or attempt to overload bot services</li>
+                <li>Accept that server administrators have the right to configure or disable bot features</li>
+            </ul>
+            <p>Violation of these responsibilities may result in being banned from using Acosmibot.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>4. Data Usage</h2>
+            <p>Acosmibot collects and stores certain data to provide its services. This includes:</p>
+            <ul>
+                <li>Discord user IDs and usernames</li>
+                <li>Server (guild) IDs and basic server information</li>
+                <li>Activity data such as message counts and streaks</li>
+                <li>Economy data including virtual currency balances</li>
+                <li>Game statistics and history</li>
+            </ul>
+            <p>For detailed information about data collection and privacy, please review our <a href="/privacy-policy.html" class="discord-link">Privacy Policy</a>.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>5. Virtual Currency & Economy</h2>
+            <p><strong>Important Notice:</strong> All virtual currency, items, and assets within Acosmibot have <strong>no real-world monetary value</strong> and cannot be exchanged for real money, goods, or services.</p>
+            <ul>
+                <li>Virtual currency is for entertainment purposes only</li>
+                <li>We reserve the right to adjust, reset, or remove virtual currency at any time</li>
+                <li>Lost or stolen virtual currency will not be restored</li>
+                <li>Currency transfers and economy features may be modified or discontinued without notice</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>6. Gambling & Games Disclaimer</h2>
+            <p>Acosmibot includes gambling features such as slots, blackjack, and other games of chance. Please note:</p>
+            <ul>
+                <li>All gambling is conducted with virtual currency that has no real-world value</li>
+                <li>Games are designed for entertainment only and do not constitute real gambling</li>
+                <li>Game outcomes are generated programmatically and may not represent true randomness</li>
+                <li>We do not promote or encourage real-world gambling</li>
+                <li>Users under the age of 13 should not use gambling features (per Discord's age requirements)</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>7. AI Chat Services</h2>
+            <p>Acosmibot uses third-party AI services (OpenAI) to provide chat functionality:</p>
+            <ul>
+                <li>AI responses are generated automatically and may not always be accurate</li>
+                <li>We are not responsible for the content of AI-generated messages</li>
+                <li>AI chat messages may be subject to rate limits and daily usage caps</li>
+                <li>AI features are provided "as is" without warranties of any kind</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>8. Limitations of Liability</h2>
+            <p>Acosmibot is provided "as is" without warranties of any kind, either express or implied. We are not liable for:</p>
+            <ul>
+                <li>Service interruptions, downtime, or data loss</li>
+                <li>Errors, bugs, or inaccuracies in bot functionality</li>
+                <li>Any damages or losses resulting from your use of the bot</li>
+                <li>Third-party services or content accessed through the bot</li>
+                <li>Actions taken by server administrators using bot management features</li>
+            </ul>
+            <p>To the maximum extent permitted by law, our total liability shall not exceed $0.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>9. Service Modifications</h2>
+            <p>We reserve the right to:</p>
+            <ul>
+                <li>Modify, suspend, or discontinue any part of Acosmibot at any time</li>
+                <li>Change features, functionality, or availability without notice</li>
+                <li>Implement usage limits, rate limits, or restrictions</li>
+                <li>Update these Terms of Service at any time</li>
+            </ul>
+            <p>Continued use of Acosmibot after changes constitutes acceptance of the modified terms.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>10. Termination</h2>
+            <p>We reserve the right to terminate or suspend your access to Acosmibot at any time, with or without cause, and with or without notice. Reasons for termination may include:</p>
+            <ul>
+                <li>Violation of these Terms of Service</li>
+                <li>Abuse or exploitation of bot features</li>
+                <li>Illegal activities or harassment</li>
+                <li>Any conduct that we deem harmful to the bot or its users</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>11. Changes to Terms</h2>
+            <p>We may update these Terms of Service from time to time. Changes will be effective immediately upon posting. Your continued use of Acosmibot after changes are posted constitutes acceptance of the new terms.</p>
+            <p>We encourage you to review these terms periodically to stay informed about your rights and obligations.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>12. Contact Information</h2>
+            <p>If you have questions about these Terms of Service or need support, please contact us through our <a href="https://discord.gg/qhY9XEdMc9" class="discord-link" target="_blank">Discord support server</a>.</p>
+        </div>
+
+        <div class="last-updated">
+            Last Updated: October 29, 2025
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">Acosmibot</div>
+            <div class="footer-links">
+                <a href="/terms-of-service.html">Terms of Service</a>
+                <span class="divider">•</span>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+            </div>
+            <div class="footer-copyright">
+                © 2025 Acosmibot. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="scripts/nav.js"></script>
+</body>
+</html>
