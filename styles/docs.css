@@ -10,8 +10,7 @@
 /* Sidebar Navigation */
 .docs-sidebar {
     width: 280px;
-    background: rgba(0, 0, 0, 0.03);
-    backdrop-filter: blur(10px);
+    background: #ffffff;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 80px;
@@ -58,8 +57,8 @@
 /* Main Content Area */
 .docs-content {
     flex: 1;
-    padding: 40px;
-    max-width: 900px;
+    padding: 40px 40px 40px 180px;
+    max-width: 1080px;
     margin: 0 auto;
 }
 
