@@ -45,6 +45,36 @@
     border-bottom: 3px solid rgba(0, 0, 0, 0.1);
 }
 
+.section-title.collapsible {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.section-title.collapsible:hover {
+    color: var(--primary-color);
+}
+
+.collapse-icon {
+    float: right;
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.section-title.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
+
+.section-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.section-content.collapsed {
+    max-height: 0 !important;
+}
+
 /* Feature Overview Cards */
 .feature-overview {
     display: grid;
