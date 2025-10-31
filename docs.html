@@ -52,12 +52,15 @@
                 <nav class="sidebar-nav">
                     <a href="#features" class="nav-section">📚 Features & Systems</a>
                     <a href="#economy" class="nav-section">💰 Economy Commands</a>
+                    <a href="#banking" class="nav-section">💳 Banking</a>
+                    <a href="#portals" class="nav-section">🌀 Portals</a>
+                    <a href="#lottery" class="nav-section">🎟️ Lottery</a>
                     <a href="#games" class="nav-section">🎮 Games & Gambling</a>
                     <a href="#stats" class="nav-section">📊 Stats & Profile</a>
                     <a href="#utility" class="nav-section">🛠️ Utility & Tools</a>
                     <a href="#reminders" class="nav-section">⏰ Reminders</a>
                     <a href="#ai" class="nav-section">🤖 AI Features</a>
-                    <a href="#misc" class="nav-section">🔧 Miscellaneous</a>
+                    <a href="#misc" class="nav-section">ℹ️ Help & Information</a>
                 </nav>
             </div>
         </aside>
@@ -148,12 +151,12 @@
 
                 <div class="command-card">
                     <div class="command-header">
-                        <h3><code>/checkbank</code></h3>
+                        <h3><code>/guildbank</code></h3>
                         <span class="cost-badge free">Free</span>
                     </div>
                     <p class="command-desc">Check the total amount of Credits in the server's bank vault. The vault collects 10% of all gambling losses.</p>
                     <div class="command-example">
-                        <strong>Example:</strong> <code>/checkbank</code>
+                        <strong>Example:</strong> <code>/guildbank</code>
                     </div>
                 </div>
 
@@ -196,26 +199,6 @@
 
                 <div class="command-card">
                     <div class="command-header">
-                        <h3><code>/color</code></h3>
-                        <span class="cost-badge">5,000 Credits</span>
-                    </div>
-                    <p class="command-desc">Create and assign yourself a custom color role using RGB values.</p>
-                    <div class="command-params">
-                        <h4>Parameters:</h4>
-                        <ul>
-                            <li><code>r</code> (required) - Red value (0-255)</li>
-                            <li><code>g</code> (required) - Green value (0-255)</li>
-                            <li><code>b</code> (required) - Blue value (0-255)</li>
-                        </ul>
-                    </div>
-                    <div class="command-example">
-                        <strong>Example:</strong> <code>/color r:88 g:101 b:242</code> (Discord purple)
-                    </div>
-                    <p class="command-note">⚠️ Server must have less than 200 roles</p>
-                </div>
-
-                <div class="command-card">
-                    <div class="command-header">
                         <h3><code>/polymorph</code></h3>
                         <span class="cost-badge">10,000 / 1,000 Credits</span>
                     </div>
@@ -232,22 +215,200 @@
                     </div>
                     <p class="command-note">💡 Only 1,000 credits to change your own name</p>
                 </div>
+            </section>
+
+            <!-- Banking -->
+            <section id="banking" class="docs-section">
+                <h2 class="section-title">💳 Banking</h2>
 
                 <div class="command-card">
                     <div class="command-header">
-                        <h3><code>/bailout</code></h3>
-                        <span class="cost-badge">100,000 Credits</span>
+                        <h3><code>/deposit</code></h3>
+                        <span class="cost-badge">Transfers Credits</span>
                     </div>
-                    <p class="command-desc">Pay bail to get yourself or someone else out of jail (remove "Inmate" role).</p>
+                    <p class="command-desc">Deposit credits from your server wallet to your global bank. Includes a deposit fee (default 2%) and daily transfer limit.</p>
                     <div class="command-params">
                         <h4>Parameters:</h4>
                         <ul>
-                            <li><code>target</code> (optional) - User to bail out (defaults to yourself)</li>
+                            <li><code>amount</code> (required) - Amount to deposit, or "all" to deposit everything</li>
                         </ul>
                     </div>
                     <div class="command-example">
-                        <strong>Example:</strong> <code>/bailout</code> or <code>/bailout target:@prisoner</code>
+                        <strong>Example:</strong> <code>/deposit 1000</code> or <code>/deposit all</code>
                     </div>
+                    <p class="command-note">⚙️ Minimum deposit: 100 credits (configurable)</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/withdraw</code></h3>
+                        <span class="cost-badge">Transfers Credits</span>
+                    </div>
+                    <p class="command-desc">Withdraw credits from your global bank to your server wallet. Includes a withdrawal fee (default 2%) calculated on top of the withdrawal amount.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>amount</code> (required) - Amount to withdraw, or "all" to withdraw everything</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/withdraw 5000</code> or <code>/withdraw all</code>
+                    </div>
+                    <p class="command-note">⚠️ Daily transfer limit applies (default: 500,000 credits)</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/bank</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">View your global bank balance and detailed statistics including total deposited, withdrawn, fees paid, and interest earned.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>user</code> (optional) - View another user's bank information</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/bank</code> or <code>/bank @username</code>
+                    </div>
+                    <p class="command-note">💡 Shows daily transfer limit usage and current interest rate</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/bank-history</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">View your recent bank transactions with timestamps, transaction types, amounts, fees, and balance changes.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>limit</code> (optional) - Number of transactions to show (default: 10, max: 25)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/bank-history</code> or <code>/bank-history 20</code>
+                    </div>
+                    <p class="command-note">🔒 Only visible to you (ephemeral message)</p>
+                </div>
+            </section>
+
+            <!-- Portals -->
+            <section id="portals" class="docs-section">
+                <h2 class="section-title">🌀 Cross-Server Portals</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/portal-search</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Search for servers with portals enabled. Only shows publicly listed servers with active portal systems.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>query</code> (required) - Server name to search for</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/portal-search gaming</code>
+                    </div>
+                    <p class="command-note">📊 Results show server ID, member count, and portal cost</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/portal-open</code></h3>
+                        <span class="cost-badge">Your Credits</span>
+                    </div>
+                    <p class="command-desc">Open a 2-minute portal connection to another Discord server. Allows cross-server messaging with a synchronized chat interface.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>target_guild_id</code> (required) - The ID of the server to connect to</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/portal-open 1234567890123456789</code>
+                    </div>
+                    <p class="command-note">⚙️ Default cost: 1,000 credits. Both servers must have portals enabled</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/portal-close</code></h3>
+                        <span class="cost-badge admin">Manage Server</span>
+                    </div>
+                    <p class="command-desc">Manually close an active portal before the 2-minute timer expires. Requires "Manage Server" permission.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/portal-close</code>
+                    </div>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/portal-send</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Send a message through the active portal. Messages are color-coded (🔵 your server, 🟢 other server) and limited to 100 characters.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>message</code> (required) - Message to send (1-100 characters)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/portal-send Hello from the other side!</code>
+                    </div>
+                    <p class="command-note">💬 Keeps last 20 messages in chat log</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/portal-status</code></h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Check the current portal status including connected server name, time remaining, and who opened the portal.</p>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/portal-status</code>
+                    </div>
+                    <p class="command-note">🔒 Only visible to you (ephemeral message)</p>
+                </div>
+            </section>
+
+            <!-- Lottery -->
+            <section id="lottery" class="docs-section">
+                <h2 class="section-title">🎟️ Lottery System</h2>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3><code>/admin-start-lotto</code></h3>
+                        <span class="cost-badge admin">Admin Only</span>
+                    </div>
+                    <p class="command-desc">Start a server-wide lottery. Players enter by reacting with 🎟️ emoji. The prize is the guild vault credits, distributed to a randomly selected winner.</p>
+                    <div class="command-params">
+                        <h4>Parameters:</h4>
+                        <ul>
+                            <li><code>duration</code> (required) - Duration in hours until winner is announced</li>
+                            <li><code>channel</code> (optional) - Channel to start lottery in (defaults to current channel)</li>
+                        </ul>
+                    </div>
+                    <div class="command-example">
+                        <strong>Example:</strong> <code>/admin-start-lotto duration:24</code> or <code>/admin-start-lotto duration:48 channel:#events</code>
+                    </div>
+                    <p class="command-note">⚠️ Only one lottery can be active per server at a time</p>
+                </div>
+
+                <div class="command-card">
+                    <div class="command-header">
+                        <h3>🎟️ Lottery Entry</h3>
+                        <span class="cost-badge free">Free</span>
+                    </div>
+                    <p class="command-desc">Enter the active lottery by reacting with the 🎟️ emoji on the lottery announcement message. Participants receive the "LotteryParticipant" role if it exists in the server.</p>
+                    <div class="command-example">
+                        <strong>How to Enter:</strong> React with 🎟️ on the lottery message
+                    </div>
+                    <p class="command-note">💡 Users can only enter once per lottery. Winner is selected randomly</p>
                 </div>
             </section>
 
@@ -514,24 +675,6 @@
 
                 <div class="command-card">
                     <div class="command-header">
-                        <h3><code>/ripaudio</code></h3>
-                        <span class="cost-badge free">Free</span>
-                    </div>
-                    <p class="command-desc">Convert a YouTube or Twitch video to MP3 and receive the audio file.</p>
-                    <div class="command-params">
-                        <h4>Parameters:</h4>
-                        <ul>
-                            <li><code>url</code> (required) - YouTube or Twitch video URL</li>
-                        </ul>
-                    </div>
-                    <div class="command-example">
-                        <strong>Example:</strong> <code>/ripaudio url:"https://youtube.com/watch?v=..."</code>
-                    </div>
-                    <p class="command-note">⚙️ Uses yt-dlp for extraction</p>
-                </div>
-
-                <div class="command-card">
-                    <div class="command-header">
                         <h3><code>/ping</code></h3>
                         <span class="cost-badge free">Free</span>
                     </div>
@@ -719,20 +862,20 @@
                 </div>
             </section>
 
-            <!-- Miscellaneous -->
+            <!-- Help Command -->
             <section id="misc" class="docs-section">
-                <h2 class="section-title">🔧 Miscellaneous</h2>
+                <h2 class="section-title">ℹ️ Help & Information</h2>
 
                 <div class="command-card">
                     <div class="command-header">
-                        <h3><code>/roll</code></h3>
-                        <span class="cost-badge">500 Credits</span>
+                        <h3><code>/commands</code></h3>
+                        <span class="cost-badge free">Free</span>
                     </div>
-                    <p class="command-desc">Roll two dice to try and escape jail. Must have the "Inmate" role. Rolling doubles releases you!</p>
+                    <p class="command-desc">Display all available commands organized by category with brief descriptions. Features a paginated interface with navigation buttons.</p>
                     <div class="command-example">
-                        <strong>Example:</strong> <code>/roll</code>
+                        <strong>Example:</strong> <code>/commands</code>
                     </div>
-                    <p class="command-note">🎲 Success adds "Microbe" role and removes "Inmate"</p>
+                    <p class="command-note">📄 4 pages of commands covering all bot features</p>
                 </div>
 
                 <div class="command-card">
@@ -740,21 +883,11 @@
                         <h3><code>/help</code></h3>
                         <span class="cost-badge free">Free</span>
                     </div>
-                    <p class="command-desc">Display all available commands organized by category with brief descriptions and costs.</p>
+                    <p class="command-desc">Get comprehensive information about Acosmibot, including features, setup notes, and important configuration details for leveling roles and Twitch notifications.</p>
                     <div class="command-example">
                         <strong>Example:</strong> <code>/help</code>
                     </div>
-                </div>
-
-                <div class="command-card">
-                    <div class="command-header">
-                        <h3><code>/reset-ai-thread</code></h3>
-                        <span class="cost-badge free">Free</span>
-                    </div>
-                    <p class="command-desc">Reset your personal AI conversation thread, clearing your chat history with the bot.</p>
-                    <div class="command-example">
-                        <strong>Example:</strong> <code>/reset-ai-thread</code>
-                    </div>
+                    <p class="command-note">💡 Includes setup instructions and links to documentation</p>
                 </div>
             </section>
 
