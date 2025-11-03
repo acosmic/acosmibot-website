@@ -242,6 +242,134 @@ const MessageTemplateInput = ({ value, onChange, placeholders, rows = 3, placeho
   );
 };
 
+// StreamerListItem component for Twitch streamers
+const StreamerListItem = ({ streamer, index, onUpdate, onRemove, availableRoles }) => {
+  const [validating, setValidating] = React.useState(false);
+  const [isValid, setIsValid] = React.useState(null);
+  const [expanded, setExpanded] = React.useState(false);
+
+  const validateUsername = async (username) => {
+    if (!username || username.trim() === '') {
+      setIsValid(null);
+      return;
+    }
+
+    setValidating(true);
+    try {
+      const token = localStorage.getItem('discord_token');
+      const response = await fetch(`${window.API_BASE_URL}/api/twitch/validate-username`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: username.trim() })
+      });
+
+      const data = await response.json();
+      setIsValid(data.valid);
+    } catch (error) {
+      console.error('Error validating Twitch username:', error);
+      setIsValid(false);
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const handleUsernameChange = (e) => {
+    const newUsername = e.target.value;
+    onUpdate(index, { ...streamer, twitch_username: newUsername });
+    if (isValid !== null) setIsValid(null); // Reset validation on change
+  };
+
+  const handleUsernameBlur = () => {
+    if (streamer.twitch_username) {
+      validateUsername(streamer.twitch_username);
+    }
+  };
+
+  return (
+    <div className="streamer-item">
+      <div className="streamer-item-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Twitch username"
+            value={streamer.twitch_username || ''}
+            onChange={handleUsernameChange}
+            onBlur={handleUsernameBlur}
+            style={{ flex: 1 }}
+          />
+          {validating && <span style={{ color: '#999' }}>⏳</span>}
+          {!validating && isValid === true && <span style={{ color: '#4CAF50', fontSize: '1.2rem' }}>✓</span>}
+          {!validating && isValid === false && <span style={{ color: '#dc3545', fontSize: '1.2rem' }}>✗</span>}
+        </div>
+        <button
+          className="btn-icon"
+          onClick={() => setExpanded(!expanded)}
+          style={{ background: 'rgba(88, 101, 242, 0.1)', border: '1px solid #5865F2', borderRadius: '4px', padding: '0.5rem', cursor: 'pointer' }}
+        >
+          {expanded ? '▼' : '▶'}
+        </button>
+        <button
+          className="btn-danger btn-sm"
+          onClick={() => onRemove(index)}
+          style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '0.5rem 1rem', cursor: 'pointer' }}
+        >
+          Remove
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="streamer-item-body">
+          <div className="form-group">
+            <label className="form-label">Ping Roles (Optional)</label>
+            <RoleSelector
+              selectedRoleIds={streamer.mention_role_ids || []}
+              availableRoles={availableRoles}
+              onChange={(roleIds) => onUpdate(index, { ...streamer, mention_role_ids: roleIds })}
+            />
+            <p className="form-hint">Roles to mention when this streamer goes live</p>
+          </div>
+
+          <div className="checkbox-wrapper">
+            <input
+              type="checkbox"
+              id={`streamer-${index}-everyone`}
+              checked={streamer.mention_everyone || false}
+              onChange={(e) => onUpdate(index, { ...streamer, mention_everyone: e.target.checked })}
+            />
+            <label htmlFor={`streamer-${index}-everyone`}>Mention @everyone</label>
+          </div>
+
+          <div className="checkbox-wrapper">
+            <input
+              type="checkbox"
+              id={`streamer-${index}-here`}
+              checked={streamer.mention_here || false}
+              onChange={(e) => onUpdate(index, { ...streamer, mention_here: e.target.checked })}
+            />
+            <label htmlFor={`streamer-${index}-here`}>Mention @here</label>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Custom Message (Optional)</label>
+            <MessageTemplateInput
+              value={streamer.custom_message || ''}
+              onChange={(e) => onUpdate(index, { ...streamer, custom_message: e.target.value })}
+              placeholders={['username', 'game', 'title', 'viewer_count']}
+              rows={2}
+              placeholder="🔴 {username} is now live playing {game}!"
+            />
+            <p className="form-hint">Leave empty to use default message</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const GuildDashboard = () => {
   const [settings, setSettings] = useState(null);
   const [availableRoles, setAvailableRoles] = useState([]);
@@ -399,6 +527,26 @@ const GuildDashboard = () => {
           public_listing: settings.cross_server_portal?.public_listing !== false,
           display_name: settings.cross_server_portal?.display_name || null,
           portal_cost: settings.cross_server_portal?.portal_cost || 1000
+        },
+        twitch: {
+          enabled: settings.twitch?.enabled === true,
+          announcement_channel_id: settings.twitch?.announcement_channel_id || null,
+          tracked_streamers: settings.twitch?.tracked_streamers || [],
+          announcement_settings: {
+            include_thumbnail: settings.twitch?.announcement_settings?.include_thumbnail !== false,
+            include_game: settings.twitch?.announcement_settings?.include_game !== false,
+            include_viewer_count: settings.twitch?.announcement_settings?.include_viewer_count !== false,
+            include_start_time: settings.twitch?.announcement_settings?.include_start_time !== false,
+            timezone: settings.twitch?.announcement_settings?.timezone || 'UTC',
+            color: settings.twitch?.announcement_settings?.color || '0x6441A4'
+          },
+          vod_settings: {
+            enabled: settings.twitch?.vod_settings?.enabled === true,
+            edit_message_when_vod_available: settings.twitch?.vod_settings?.edit_message_when_vod_available !== false,
+            vod_check_interval_seconds: settings.twitch?.vod_settings?.vod_check_interval_seconds || 300,
+            vod_message_suffix: settings.twitch?.vod_settings?.vod_message_suffix || '\n\n📺 **VOD Available:** [Watch Recording]({vod_url})'
+          },
+          notification_method: settings.twitch?.notification_method || 'polling'
         }
       };
 
@@ -1058,6 +1206,189 @@ const GuildDashboard = () => {
             <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(88, 101, 242, 0.1)', borderRadius: '8px', border: '1px solid rgba(88, 101, 242, 0.3)'}}>
               <p style={{margin: 0, fontSize: '0.9rem', color: '#dcddde'}}>
                 <strong>ℹ️ How it works:</strong> Users can use <code>/portal-search</code> to find servers, then <code>/portal-open</code> to create a 2-minute connection. Messages are limited to 100 characters and displayed in a shared embed.
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Twitch Integration */}
+      <div className="feature-card">
+        <div className="feature-header">
+          <h2 className="feature-title">📺 Twitch Integration</h2>
+          <div
+            className={`toggle-switch ${settings.twitch?.enabled ? 'active' : ''}`}
+            onClick={() => updateSetting('twitch.enabled', !settings.twitch?.enabled)}
+          />
+        </div>
+        {settings.twitch?.enabled && (
+          <>
+            <p className="feature-description">
+              Get notified in Discord when your favorite Twitch streamers go live! Supports custom messages, role pings, and automatic VOD detection.
+            </p>
+
+            {/* Announcement Channel */}
+            <div className="form-group">
+              <label className="form-label">Announcement Channel</label>
+              <p className="form-hint">Where to post live notifications</p>
+              <select
+                value={settings.twitch?.announcement_channel_id || ''}
+                onChange={(e) => updateSetting('twitch.announcement_channel_id', e.target.value)}
+                className="form-control"
+              >
+                <option value="">Select a channel...</option>
+                {availableChannels.map(channel => (
+                  <option key={channel.id} value={channel.id}>#{channel.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tracked Streamers */}
+            <div className="form-group">
+              <label className="form-label">Tracked Streamers ({(settings.twitch?.tracked_streamers || []).length}/2)</label>
+              <p className="form-hint">Add up to 2 Twitch usernames to monitor</p>
+
+              <div className="streamer-list">
+                {(settings.twitch?.tracked_streamers || []).map((streamer, index) => (
+                  <StreamerListItem
+                    key={index}
+                    streamer={streamer}
+                    index={index}
+                    availableRoles={availableRoles}
+                    onUpdate={(idx, updatedStreamer) => {
+                      const newStreamers = [...(settings.twitch?.tracked_streamers || [])];
+                      newStreamers[idx] = updatedStreamer;
+                      updateSetting('twitch.tracked_streamers', newStreamers);
+                    }}
+                    onRemove={(idx) => {
+                      const newStreamers = (settings.twitch?.tracked_streamers || []).filter((_, i) => i !== idx);
+                      updateSetting('twitch.tracked_streamers', newStreamers);
+                    }}
+                  />
+                ))}
+              </div>
+
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  const newStreamers = [...(settings.twitch?.tracked_streamers || []), {
+                    twitch_username: '',
+                    mention_role_ids: [],
+                    mention_everyone: false,
+                    mention_here: false,
+                    custom_message: null
+                  }];
+                  updateSetting('twitch.tracked_streamers', newStreamers);
+                }}
+                disabled={(settings.twitch?.tracked_streamers || []).length >= 2}
+                style={{ marginTop: '1rem', opacity: (settings.twitch?.tracked_streamers || []).length >= 2 ? 0.5 : 1 }}
+              >
+                + Add Streamer
+              </button>
+              {(settings.twitch?.tracked_streamers || []).length >= 2 && (
+                <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
+                  ⚠️ Maximum of 2 streamers reached. Upgrade to premium for unlimited tracking!
+                </p>
+              )}
+            </div>
+
+            {/* VOD Settings */}
+            <div className="subsection" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>📺 VOD Settings</h3>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-vod-enabled"
+                  checked={settings.twitch?.vod_settings?.enabled || false}
+                  onChange={(e) => updateSetting('twitch.vod_settings.enabled', e.target.checked)}
+                />
+                <label htmlFor="twitch-vod-enabled">Enable VOD Detection</label>
+              </div>
+              <p className="form-hint">Automatically detect when VODs become available after streams end</p>
+
+              {settings.twitch?.vod_settings?.enabled && (
+                <div className="checkbox-wrapper" style={{ marginTop: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    id="twitch-vod-edit"
+                    checked={settings.twitch?.vod_settings?.edit_message_when_vod_available !== false}
+                    onChange={(e) => updateSetting('twitch.vod_settings.edit_message_when_vod_available', e.target.checked)}
+                  />
+                  <label htmlFor="twitch-vod-edit">Auto-edit announcement with VOD link</label>
+                </div>
+              )}
+            </div>
+
+            {/* Announcement Customization */}
+            <div className="subsection" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>🎨 Announcement Customization</h3>
+
+              <div className="form-group">
+                <label className="form-label">Timezone</label>
+                <select
+                  value={settings.twitch?.announcement_settings?.timezone || 'UTC'}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.timezone', e.target.value)}
+                  className="form-control"
+                >
+                  <option value="UTC">UTC</option>
+                  <option value="America/New_York">Eastern (ET)</option>
+                  <option value="America/Chicago">Central (CT)</option>
+                  <option value="America/Denver">Mountain (MT)</option>
+                  <option value="America/Los_Angeles">Pacific (PT)</option>
+                  <option value="Europe/London">London (GMT)</option>
+                  <option value="Europe/Paris">Paris (CET)</option>
+                  <option value="Asia/Tokyo">Tokyo (JST)</option>
+                  <option value="Australia/Sydney">Sydney (AEDT)</option>
+                </select>
+                <p className="form-hint">Timezone for stream start time display</p>
+              </div>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-thumbnail"
+                  checked={settings.twitch?.announcement_settings?.include_thumbnail !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_thumbnail', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-thumbnail">Show stream thumbnail</label>
+              </div>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-game"
+                  checked={settings.twitch?.announcement_settings?.include_game !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_game', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-game">Show game/category</label>
+              </div>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-viewers"
+                  checked={settings.twitch?.announcement_settings?.include_viewer_count !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_viewer_count', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-viewers">Show viewer count</label>
+              </div>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-start-time"
+                  checked={settings.twitch?.announcement_settings?.include_start_time !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_start_time', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-start-time">Show start time</label>
+              </div>
+            </div>
+
+            {/* Info Box */}
+            <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(145, 70, 255, 0.1)', borderRadius: '8px', border: '1px solid rgba(145, 70, 255, 0.3)'}}>
+              <p style={{margin: 0, fontSize: '0.9rem', color: '#dcddde'}}>
+                <strong>ℹ️ How it works:</strong> The bot checks Twitch every 60 seconds for live streams. When a tracked streamer goes live, a notification is posted to your announcement channel. VODs are checked every 5 minutes after streams end.
               </p>
             </div>
           </>

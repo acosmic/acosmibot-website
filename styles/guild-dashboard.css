@@ -823,4 +823,138 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     .nested-feature {
         padding: 16px;
     }
+
+    .streamer-item {
+        padding: 12px;
+    }
+
+    .streamer-item-header {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .streamer-item-body {
+        padding-top: 0.75rem;
+    }
+}
+
+/* Twitch Integration Styles */
+.streamer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.streamer-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.streamer-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(88, 101, 242, 0.3);
+}
+
+.streamer-item-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.streamer-item-body {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.subsection {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.subsection h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.btn-icon {
+    background: rgba(88, 101, 242, 0.1);
+    border: 1px solid #5865F2;
+    border-radius: 4px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #5865F2;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.btn-icon:hover {
+    background: rgba(88, 101, 242, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(88, 101, 242, 0.1);
+    color: #5865F2;
+    border: 1px solid #5865F2;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(88, 101, 242, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.btn-secondary:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.info-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(145, 70, 255, 0.1);
+    borderRadius: 8px;
+    border: 1px solid rgba(145, 70, 255, 0.3);
+}
+
+.info-box p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #dcddde;
+    line-height: 1.5;
 }
