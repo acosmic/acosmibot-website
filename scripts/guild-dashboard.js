@@ -354,15 +354,15 @@ const StreamerListItem = ({ streamer, index, onUpdate, onRemove, availableRoles 
           </div>
 
           <div className="form-group">
-            <label className="form-label">Custom Message (Optional)</label>
+            <label className="form-label">Custom Announcement Message (Optional)</label>
             <MessageTemplateInput
               value={streamer.custom_message || ''}
               onChange={(e) => onUpdate(index, { ...streamer, custom_message: e.target.value })}
               placeholders={['username', 'game', 'title', 'viewer_count']}
               rows={2}
-              placeholder="🔴 {username} is now live playing {game}!"
+              placeholder="🎮 {username} is streaming {game}! Come watch!"
             />
-            <p className="form-hint">Leave empty to use default message</p>
+            <p className="form-hint">Message sent above the embed (with pings prepended). Leave empty for embed only.</p>
           </div>
         </div>
       )}
