@@ -537,7 +537,6 @@ const GuildDashboard = () => {
             include_game: settings.twitch?.announcement_settings?.include_game !== false,
             include_viewer_count: settings.twitch?.announcement_settings?.include_viewer_count !== false,
             include_start_time: settings.twitch?.announcement_settings?.include_start_time !== false,
-            timezone: settings.twitch?.announcement_settings?.timezone || 'UTC',
             color: settings.twitch?.announcement_settings?.color || '0x6441A4'
           },
           vod_settings: {
@@ -1323,26 +1322,6 @@ const GuildDashboard = () => {
             {/* Announcement Customization */}
             <div className="subsection" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px' }}>
               <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>🎨 Announcement Customization</h3>
-
-              <div className="form-group">
-                <label className="form-label">Timezone</label>
-                <select
-                  value={settings.twitch?.announcement_settings?.timezone || 'UTC'}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.timezone', e.target.value)}
-                  className="form-control"
-                >
-                  <option value="UTC">UTC</option>
-                  <option value="America/New_York">Eastern (ET)</option>
-                  <option value="America/Chicago">Central (CT)</option>
-                  <option value="America/Denver">Mountain (MT)</option>
-                  <option value="America/Los_Angeles">Pacific (PT)</option>
-                  <option value="Europe/London">London (GMT)</option>
-                  <option value="Europe/Paris">Paris (CET)</option>
-                  <option value="Asia/Tokyo">Tokyo (JST)</option>
-                  <option value="Australia/Sydney">Sydney (AEDT)</option>
-                </select>
-                <p className="form-hint">Timezone for stream start time display</p>
-              </div>
 
               <div className="checkbox-wrapper">
                 <input
