@@ -257,7 +257,7 @@ const StreamerListItem = ({ streamer, index, onUpdate, onRemove, availableRoles 
     setValidating(true);
     try {
       const token = localStorage.getItem('discord_token');
-      const response = await fetch(`${window.API_BASE_URL}/api/twitch/validate-username`, {
+      const response = await fetch(`${API_BASE_URL}/api/twitch/validate-username`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
