@@ -697,7 +697,7 @@ const EmbedBuilder = ({ value, onChange }) => {
 };
 
 // Button Config Builder Component
-const ButtonConfigBuilder = ({ buttons, onChange, availableEmojis }) => {
+const ButtonConfigBuilder = ({ buttons, onChange, availableEmojis, availableRoles }) => {
   const [buttonStyles] = useState(['primary', 'secondary', 'success', 'danger']);
 
   const addButton = () => {
@@ -796,7 +796,7 @@ const ButtonConfigBuilder = ({ buttons, onChange, availableEmojis }) => {
 };
 
 // Dropdown Config Builder Component
-const DropdownConfigBuilder = ({ config, onChange, availableEmojis }) => {
+const DropdownConfigBuilder = ({ config, onChange, availableEmojis, availableRoles }) => {
   const [dropdownConfig, setDropdownConfig] = useState(config || {
     placeholder: 'Select an option...',
     min_values: 1,
@@ -1298,6 +1298,7 @@ const ReactionRolesCard = ({
                 buttons={formData.button_configs}
                 onChange={(buttons) => updateFormField('button_configs', buttons)}
                 availableEmojis={availableEmojis}
+                availableRoles={availableRoles}
               />
             )}
 
@@ -1306,6 +1307,7 @@ const ReactionRolesCard = ({
                 config={formData.dropdown_config}
                 onChange={(config) => updateFormField('dropdown_config', config)}
                 availableEmojis={availableEmojis}
+                availableRoles={availableRoles}
               />
             )}
 
