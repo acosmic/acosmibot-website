@@ -382,12 +382,12 @@ const GuildDashboard = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({
-    leveling: false,
-    roles: false,
-    ai: false,
-    games: false,
-    cross_server_portal: false,
-    twitch: false
+    leveling: true,
+    roles: true,
+    ai: true,
+    games: true,
+    cross_server_portal: true,
+    twitch: true
   });
 
   const guildId = new URLSearchParams(window.location.search).get('guild');
@@ -412,20 +412,6 @@ const GuildDashboard = () => {
   useEffect(() => {
     if (guildId) fetchGuildConfig();
   }, [guildId]);
-
-  // Initialize collapsed state based on toggle values when settings load
-  useEffect(() => {
-    if (settings) {
-      setCollapsedSections({
-        leveling: settings.leveling?.level_up_announcements === false,
-        roles: settings.roles?.enabled === false,
-        ai: settings.ai?.enabled === false,
-        games: settings.games?.enabled === false,
-        cross_server_portal: settings.cross_server_portal?.enabled === false,
-        twitch: settings.twitch?.enabled === false
-      });
-    }
-  }, [settings?.leveling?.level_up_announcements, settings?.roles?.enabled, settings?.ai?.enabled, settings?.games?.enabled, settings?.cross_server_portal?.enabled, settings?.twitch?.enabled]);
 
   const fetchGuildConfig = async () => {
     try {
