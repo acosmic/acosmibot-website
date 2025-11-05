@@ -952,6 +952,7 @@ const DropdownConfigBuilder = ({ config, onChange, availableEmojis, availableRol
 // Reaction Roles Card Component (Inline Form)
 const ReactionRolesCard = ({
   settings,
+  setSettings,
   collapsedSections,
   showForm,
   editingId,
@@ -965,7 +966,8 @@ const ReactionRolesCard = ({
   onToggleForm,
   onSetEditingId,
   currentGuildId,
-  token
+  token,
+  onSaveConfig
 }) => {
   const [formData, setFormData] = useState({
     channel_id: '',
@@ -1057,10 +1059,22 @@ const ReactionRolesCard = ({
         throw new Error(result.message || 'Failed to create reaction role');
       }
 
-      updateSetting('reaction_roles.messages', [
-        ...(settings.reaction_roles?.messages || []),
-        result.data
-      ]);
+      // Update local state with new message and ensure feature is enabled
+      setSettings(prev => {
+        const newSettings = { ...prev };
+        if (!newSettings.reaction_roles) {
+          newSettings.reaction_roles = { enabled: true, messages: [] };
+        }
+        newSettings.reaction_roles = {
+          ...newSettings.reaction_roles,
+          enabled: true,
+          messages: [...(newSettings.reaction_roles?.messages || []), result.data]
+        };
+        return newSettings;
+      });
+
+      // Save the guild config to persist the changes
+      await onSaveConfig();
 
       showNotification('Reaction role created!', 'success');
       resetForm();
@@ -1144,10 +1158,17 @@ const ReactionRolesCard = ({
                     </button>
                     <button
                       className="btn-danger"
-                      onClick={() => {
+                      onClick={async () => {
                         if (confirm('Delete this reaction role message?')) {
                           const updated = settings.reaction_roles.messages.filter((_, i) => i !== idx);
-                          updateSetting('reaction_roles.messages', updated);
+                          setSettings(prev => ({
+                            ...prev,
+                            reaction_roles: {
+                              ...prev.reaction_roles,
+                              messages: updated
+                            }
+                          }));
+                          await onSaveConfig();
                         }
                       }}
                       style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
@@ -2575,6 +2596,7 @@ const GuildDashboard = () => {
       {/* Reaction Roles System */}
       <ReactionRolesCard
         settings={settings}
+        setSettings={setSettings}
         collapsedSections={collapsedSections}
         showForm={showReactionRoleForm}
         editingId={editingReactionRoleId}
@@ -2589,6 +2611,7 @@ const GuildDashboard = () => {
         onSetEditingId={setEditingReactionRoleId}
         currentGuildId={guildId}
         token={getAuthToken()}
+        onSaveConfig={handleSave}
       />
 
 
