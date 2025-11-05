@@ -388,7 +388,7 @@ const ColorPicker = ({ value, onChange }) => {
 };
 
 // Emoji Selector Component
-const EmojiSelector = ({ value, onSelect, availableEmojis = [] }) => {
+const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Guild' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('standard');
@@ -428,6 +428,28 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [] }) => {
     return value;
   };
 
+  const buildCustomEmojiValue = (emoji) => {
+    // Build Discord emoji format: <:name:id> or <a:name:id> for animated
+    const prefix = emoji.animated ? 'a' : '';
+    return `<${prefix}:${emoji.name}:${emoji.id}>`;
+  };
+
+  const renderCustomEmojiDisplay = (emoji) => {
+    // Display custom emoji using CDN URL
+    if (emoji.url) {
+      return (
+        <img
+          src={emoji.url}
+          alt={emoji.name}
+          title={emoji.name}
+          style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+        />
+      );
+    }
+    // Fallback to text format if URL not available
+    return buildCustomEmojiValue(emoji);
+  };
+
   const filteredEmojis = category === 'custom'
     ? availableEmojis.filter(e => e.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : Object.values(standardEmojiCategories).flat().filter((e, i, arr) => arr.indexOf(e) === i);
@@ -456,7 +478,7 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [] }) => {
                 className={`category-btn ${category === 'custom' ? 'active' : ''}`}
                 onClick={() => setCategory('custom')}
               >
-                Custom ({availableEmojis.length})
+                {guildName} Emojis ({availableEmojis.length})
               </button>
             )}
           </div>
@@ -472,20 +494,27 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [] }) => {
           )}
 
           <div className="emoji-grid">
-            {(category === 'custom' ? availableEmojis : filteredEmojis).map((emoji, idx) => (
-              <button
-                key={idx}
-                className={`emoji-item ${value === (emoji.emoji || emoji) ? 'selected' : ''}`}
-                onClick={() => {
-                  const emojiValue = category === 'custom' ? emoji.emoji : emoji;
-                  onSelect(emojiValue);
-                  setIsOpen(false);
-                }}
-                title={category === 'custom' ? emoji.name : ''}
-              >
-                {category === 'custom' ? emoji.emoji : emoji}
-              </button>
-            ))}
+            {(category === 'custom' ? availableEmojis : filteredEmojis).map((emoji, idx) => {
+              const emojiValue = category === 'custom' ? buildCustomEmojiValue(emoji) : emoji;
+              const isSelected = category === 'custom'
+                ? value === emojiValue
+                : value === emoji;
+
+              return (
+                <button
+                  key={idx}
+                  className={`emoji-item ${isSelected ? 'selected' : ''}`}
+                  onClick={() => {
+                    onSelect(emojiValue);
+                    setIsOpen(false);
+                  }}
+                  title={category === 'custom' ? emoji.name : ''}
+                  type="button"
+                >
+                  {category === 'custom' ? renderCustomEmojiDisplay(emoji) : emoji}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -769,6 +798,7 @@ const ButtonConfigBuilder = ({ buttons, onChange, availableEmojis, availableRole
                 value={button.emoji}
                 onSelect={(emoji) => updateButton(idx, 'emoji', emoji)}
                 availableEmojis={availableEmojis}
+                guildName={guildName}
               />
             </div>
 
@@ -923,6 +953,7 @@ const DropdownConfigBuilder = ({ config, onChange, availableEmojis, availableRol
                 value={option.emoji}
                 onSelect={(emoji) => updateOption(idx, 'emoji', emoji)}
                 availableEmojis={availableEmojis}
+                guildName={guildName}
               />
             </div>
 
@@ -967,7 +998,8 @@ const ReactionRolesCard = ({
   onSetEditingId,
   currentGuildId,
   token,
-  onSaveConfig
+  onSaveConfig,
+  guildName
 }) => {
   const [formData, setFormData] = useState({
     channel_id: '',
@@ -1479,6 +1511,7 @@ const EmojiRoleMapping = ({ mappings, onChange, availableRoles, availableEmojis 
                     value={mapping.emoji}
                     onSelect={(emoji) => updateMapping(idx, 'emoji', emoji)}
                     availableEmojis={availableEmojis}
+                    guildName={guildName}
                   />
                 </td>
                 <td style={{ padding: '12px' }}>
@@ -2612,6 +2645,7 @@ const GuildDashboard = () => {
         currentGuildId={guildId}
         token={getAuthToken()}
         onSaveConfig={handleSave}
+        guildName={guildName}
       />
 
 
