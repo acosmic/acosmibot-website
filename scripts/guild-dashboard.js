@@ -965,6 +965,178 @@ const GuildDashboard = () => {
         </div>
       </div>
 
+      {/* Twitch Integration */}
+      <div className="feature-card">
+        <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('twitch')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.twitch ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
+          <h2 className="feature-title">📺 Twitch Integration</h2>
+          <div
+            className={`toggle-switch ${settings.twitch?.enabled ? 'active' : ''}`}
+            onClick={() => updateToggleAndCollapse('twitch.enabled', !settings.twitch?.enabled, 'twitch')}
+          />
+        </div>
+        <div className={`feature-content ${collapsedSections.twitch ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.twitch ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.twitch?.enabled && (
+          <>
+            <p className="feature-description">
+              Get notified in Discord when your favorite Twitch streamers go live! Supports custom messages, role pings, and automatic VOD detection.
+            </p>
+
+            {/* Announcement Channel */}
+            <div className="form-group">
+              <label className="form-label">Announcement Channel</label>
+              <p className="form-hint">Where to post live notifications</p>
+              <select
+                value={settings.twitch?.announcement_channel_id || ''}
+                onChange={(e) => updateSetting('twitch.announcement_channel_id', e.target.value)}
+                className="form-control"
+              >
+                <option value="">Select a channel...</option>
+                {availableChannels.map(channel => (
+                  <option key={channel.id} value={channel.id}>#{channel.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tracked Streamers */}
+            <div className="form-group">
+              <label className="form-label">Tracked Streamers ({(settings.twitch?.tracked_streamers || []).length}/2)</label>
+              <p className="form-hint">Add up to 2 Twitch usernames to monitor</p>
+
+              <div className="streamer-list">
+                {(settings.twitch?.tracked_streamers || []).map((streamer, index) => (
+                  <StreamerListItem
+                    key={index}
+                    streamer={streamer}
+                    index={index}
+                    availableRoles={availableRoles}
+                    onUpdate={(idx, updatedStreamer) => {
+                      const newStreamers = [...(settings.twitch?.tracked_streamers || [])];
+                      newStreamers[idx] = updatedStreamer;
+                      updateSetting('twitch.tracked_streamers', newStreamers);
+                    }}
+                    onRemove={(idx) => {
+                      const newStreamers = (settings.twitch?.tracked_streamers || []).filter((_, i) => i !== idx);
+                      updateSetting('twitch.tracked_streamers', newStreamers);
+                    }}
+                  />
+                ))}
+              </div>
+
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  const newStreamers = [...(settings.twitch?.tracked_streamers || []), {
+                    twitch_username: '',
+                    mention_role_ids: [],
+                    mention_everyone: false,
+                    mention_here: false,
+                    custom_message: null
+                  }];
+                  updateSetting('twitch.tracked_streamers', newStreamers);
+                }}
+                disabled={(settings.twitch?.tracked_streamers || []).length >= 2}
+                style={{ marginTop: '1rem', opacity: (settings.twitch?.tracked_streamers || []).length >= 2 ? 0.5 : 1 }}
+              >
+                + Add Streamer
+              </button>
+              {(settings.twitch?.tracked_streamers || []).length >= 2 && (
+                <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
+                  ⚠️ Maximum of 2 streamers reached. Upgrade to premium for unlimited tracking!
+                </p>
+              )}
+            </div>
+
+            {/* VOD Settings */}
+            <div className="subsection" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>📺 VOD Settings</h3>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-vod-enabled"
+                  checked={settings.twitch?.vod_settings?.enabled || false}
+                  onChange={(e) => updateSetting('twitch.vod_settings.enabled', e.target.checked)}
+                />
+                <label htmlFor="twitch-vod-enabled">Enable VOD Detection</label>
+              </div>
+              <p className="form-hint">Automatically detect when VODs become available after streams end</p>
+
+              {settings.twitch?.vod_settings?.enabled && (
+                <div className="checkbox-wrapper" style={{ marginTop: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    id="twitch-vod-edit"
+                    checked={settings.twitch?.vod_settings?.edit_message_when_vod_available !== false}
+                    onChange={(e) => updateSetting('twitch.vod_settings.edit_message_when_vod_available', e.target.checked)}
+                  />
+                  <label htmlFor="twitch-vod-edit">Auto-edit announcement with VOD link</label>
+                </div>
+              )}
+            </div>
+
+            {/* Announcement Customization */}
+            <div className="subsection" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>🎨 Announcement Customization</h3>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-thumbnail"
+                  checked={settings.twitch?.announcement_settings?.include_thumbnail !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_thumbnail', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-thumbnail">Show stream thumbnail</label>
+              </div>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-game"
+                  checked={settings.twitch?.announcement_settings?.include_game !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_game', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-game">Show game/category</label>
+              </div>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-viewers"
+                  checked={settings.twitch?.announcement_settings?.include_viewer_count !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_viewer_count', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-viewers">Show viewer count</label>
+              </div>
+
+              <div className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="twitch-include-start-time"
+                  checked={settings.twitch?.announcement_settings?.include_start_time !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_start_time', e.target.checked)}
+                />
+                <label htmlFor="twitch-include-start-time">Show start time</label>
+              </div>
+            </div>
+
+            {/* Info Box */}
+            <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(145, 70, 255, 0.1)', borderRadius: '8px', border: '1px solid rgba(145, 70, 255, 0.3)'}}>
+              <p style={{margin: 0, fontSize: '0.9rem', color: '#3900a0'}}>
+                <strong>ℹ️ How it works:</strong> The bot checks Twitch every 60 seconds for live streams. When a tracked streamer goes live, a notification is posted to your announcement channel. VODs are checked every 5 minutes after streams end.
+              </p>
+            </div>
+          </>
+        )}
+        </div>
+      </div>
+
       {/* AI Configuration */}
       <div className="feature-card">
         <div className="feature-header">
@@ -1262,180 +1434,8 @@ const GuildDashboard = () => {
             </div>
 
             <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(88, 101, 242, 0.1)', borderRadius: '8px', border: '1px solid rgba(88, 101, 242, 0.3)'}}>
-              <p style={{margin: 0, fontSize: '0.9rem', color: '#dcddde'}}>
+              <p style={{margin: 0, fontSize: '0.9rem', color: '#3900a0'}}>
                 <strong>ℹ️ How it works:</strong> Users can use <code>/portal-search</code> to find servers, then <code>/portal-open</code> to create a 2-minute connection. Messages are limited to 100 characters and displayed in a shared embed.
-              </p>
-            </div>
-          </>
-        )}
-        </div>
-      </div>
-
-      {/* Twitch Integration */}
-      <div className="feature-card">
-        <div className="feature-header">
-          <span
-            className="collapse-icon"
-            onClick={() => toggleSectionCollapse('twitch')}
-            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.twitch ? 'rotate(0deg)' : 'rotate(90deg)' }}
-          >
-            ▶
-          </span>
-          <h2 className="feature-title">📺 Twitch Integration</h2>
-          <div
-            className={`toggle-switch ${settings.twitch?.enabled ? 'active' : ''}`}
-            onClick={() => updateToggleAndCollapse('twitch.enabled', !settings.twitch?.enabled, 'twitch')}
-          />
-        </div>
-        <div className={`feature-content ${collapsedSections.twitch ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.twitch ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
-          {settings.twitch?.enabled && (
-          <>
-            <p className="feature-description">
-              Get notified in Discord when your favorite Twitch streamers go live! Supports custom messages, role pings, and automatic VOD detection.
-            </p>
-
-            {/* Announcement Channel */}
-            <div className="form-group">
-              <label className="form-label">Announcement Channel</label>
-              <p className="form-hint">Where to post live notifications</p>
-              <select
-                value={settings.twitch?.announcement_channel_id || ''}
-                onChange={(e) => updateSetting('twitch.announcement_channel_id', e.target.value)}
-                className="form-control"
-              >
-                <option value="">Select a channel...</option>
-                {availableChannels.map(channel => (
-                  <option key={channel.id} value={channel.id}>#{channel.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Tracked Streamers */}
-            <div className="form-group">
-              <label className="form-label">Tracked Streamers ({(settings.twitch?.tracked_streamers || []).length}/2)</label>
-              <p className="form-hint">Add up to 2 Twitch usernames to monitor</p>
-
-              <div className="streamer-list">
-                {(settings.twitch?.tracked_streamers || []).map((streamer, index) => (
-                  <StreamerListItem
-                    key={index}
-                    streamer={streamer}
-                    index={index}
-                    availableRoles={availableRoles}
-                    onUpdate={(idx, updatedStreamer) => {
-                      const newStreamers = [...(settings.twitch?.tracked_streamers || [])];
-                      newStreamers[idx] = updatedStreamer;
-                      updateSetting('twitch.tracked_streamers', newStreamers);
-                    }}
-                    onRemove={(idx) => {
-                      const newStreamers = (settings.twitch?.tracked_streamers || []).filter((_, i) => i !== idx);
-                      updateSetting('twitch.tracked_streamers', newStreamers);
-                    }}
-                  />
-                ))}
-              </div>
-
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  const newStreamers = [...(settings.twitch?.tracked_streamers || []), {
-                    twitch_username: '',
-                    mention_role_ids: [],
-                    mention_everyone: false,
-                    mention_here: false,
-                    custom_message: null
-                  }];
-                  updateSetting('twitch.tracked_streamers', newStreamers);
-                }}
-                disabled={(settings.twitch?.tracked_streamers || []).length >= 2}
-                style={{ marginTop: '1rem', opacity: (settings.twitch?.tracked_streamers || []).length >= 2 ? 0.5 : 1 }}
-              >
-                + Add Streamer
-              </button>
-              {(settings.twitch?.tracked_streamers || []).length >= 2 && (
-                <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
-                  ⚠️ Maximum of 2 streamers reached. Upgrade to premium for unlimited tracking!
-                </p>
-              )}
-            </div>
-
-            {/* VOD Settings */}
-            <div className="subsection" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>📺 VOD Settings</h3>
-
-              <div className="checkbox-wrapper">
-                <input
-                  type="checkbox"
-                  id="twitch-vod-enabled"
-                  checked={settings.twitch?.vod_settings?.enabled || false}
-                  onChange={(e) => updateSetting('twitch.vod_settings.enabled', e.target.checked)}
-                />
-                <label htmlFor="twitch-vod-enabled">Enable VOD Detection</label>
-              </div>
-              <p className="form-hint">Automatically detect when VODs become available after streams end</p>
-
-              {settings.twitch?.vod_settings?.enabled && (
-                <div className="checkbox-wrapper" style={{ marginTop: '0.5rem' }}>
-                  <input
-                    type="checkbox"
-                    id="twitch-vod-edit"
-                    checked={settings.twitch?.vod_settings?.edit_message_when_vod_available !== false}
-                    onChange={(e) => updateSetting('twitch.vod_settings.edit_message_when_vod_available', e.target.checked)}
-                  />
-                  <label htmlFor="twitch-vod-edit">Auto-edit announcement with VOD link</label>
-                </div>
-              )}
-            </div>
-
-            {/* Announcement Customization */}
-            <div className="subsection" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>🎨 Announcement Customization</h3>
-
-              <div className="checkbox-wrapper">
-                <input
-                  type="checkbox"
-                  id="twitch-include-thumbnail"
-                  checked={settings.twitch?.announcement_settings?.include_thumbnail !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_thumbnail', e.target.checked)}
-                />
-                <label htmlFor="twitch-include-thumbnail">Show stream thumbnail</label>
-              </div>
-
-              <div className="checkbox-wrapper">
-                <input
-                  type="checkbox"
-                  id="twitch-include-game"
-                  checked={settings.twitch?.announcement_settings?.include_game !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_game', e.target.checked)}
-                />
-                <label htmlFor="twitch-include-game">Show game/category</label>
-              </div>
-
-              <div className="checkbox-wrapper">
-                <input
-                  type="checkbox"
-                  id="twitch-include-viewers"
-                  checked={settings.twitch?.announcement_settings?.include_viewer_count !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_viewer_count', e.target.checked)}
-                />
-                <label htmlFor="twitch-include-viewers">Show viewer count</label>
-              </div>
-
-              <div className="checkbox-wrapper">
-                <input
-                  type="checkbox"
-                  id="twitch-include-start-time"
-                  checked={settings.twitch?.announcement_settings?.include_start_time !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_start_time', e.target.checked)}
-                />
-                <label htmlFor="twitch-include-start-time">Show start time</label>
-              </div>
-            </div>
-
-            {/* Info Box */}
-            <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(145, 70, 255, 0.1)', borderRadius: '8px', border: '1px solid rgba(145, 70, 255, 0.3)'}}>
-              <p style={{margin: 0, fontSize: '0.9rem', color: '#dcddde'}}>
-                <strong>ℹ️ How it works:</strong> The bot checks Twitch every 60 seconds for live streams. When a tracked streamer goes live, a notification is posted to your announcement channel. VODs are checked every 5 minutes after streams end.
               </p>
             </div>
           </>
