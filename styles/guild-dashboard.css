@@ -137,6 +137,35 @@ body > .container,
     align-items: center;
     gap: 10px;
     color: #333333;
+    flex: 1;
+}
+
+/* Collapse Icon */
+.collapse-icon {
+    cursor: pointer;
+    margin-right: 0.5rem;
+    transition: transform 0.2s ease;
+    display: inline-block;
+    font-size: 0.9rem;
+    color: #666666;
+    user-select: none;
+}
+
+.collapse-icon:hover {
+    color: var(--primary-color);
+}
+
+/* Collapsible Content */
+.feature-content {
+    max-height: 5000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    opacity: 1;
+}
+
+.feature-content.collapsed {
+    max-height: 0;
+    opacity: 0;
 }
 
 /* Toggle Switch */

@@ -381,6 +381,14 @@ const GuildDashboard = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState({
+    leveling: false,
+    roles: false,
+    ai: false,
+    games: false,
+    cross_server_portal: false,
+    twitch: false
+  });
 
   const guildId = new URLSearchParams(window.location.search).get('guild');
 
@@ -404,6 +412,20 @@ const GuildDashboard = () => {
   useEffect(() => {
     if (guildId) fetchGuildConfig();
   }, [guildId]);
+
+  // Initialize collapsed state based on toggle values when settings load
+  useEffect(() => {
+    if (settings) {
+      setCollapsedSections({
+        leveling: settings.leveling?.level_up_announcements === false,
+        roles: settings.roles?.enabled === false,
+        ai: settings.ai?.enabled === false,
+        games: settings.games?.enabled === false,
+        cross_server_portal: settings.cross_server_portal?.enabled === false,
+        twitch: settings.twitch?.enabled === false
+      });
+    }
+  }, [settings?.leveling?.level_up_announcements, settings?.roles?.enabled, settings?.ai?.enabled, settings?.games?.enabled, settings?.cross_server_portal?.enabled, settings?.twitch?.enabled]);
 
   const fetchGuildConfig = async () => {
     try {
@@ -594,6 +616,23 @@ const GuildDashboard = () => {
     });
   };
 
+  const toggleSectionCollapse = (section) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const updateToggleAndCollapse = (path, value, section) => {
+    // Update the setting
+    updateSetting(path, value);
+    // Update collapse state: OFF = collapsed, ON = expanded
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !value
+    }));
+  };
+
   const addRoleMapping = () => {
     const roleMappings = settings?.roles?.role_mappings || {};
     const newLevel = Object.keys(roleMappings).length > 0
@@ -740,16 +779,24 @@ const GuildDashboard = () => {
       {/* Leveling System */}
       <div className="feature-card">
         <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('leveling')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.leveling ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
           <h2 className="feature-title">⭐ Level-Up Announcements</h2>
           <div
             className={`toggle-switch ${settings.leveling?.level_up_announcements !== false ? 'active' : ''}`}
-            onClick={() => updateSetting('leveling.level_up_announcements', !settings.leveling?.level_up_announcements)}
+            onClick={() => updateToggleAndCollapse('leveling.level_up_announcements', !settings.leveling?.level_up_announcements, 'leveling')}
           />
         </div>
         <p className="feature-description" style={{marginBottom: '16px', color: '#888'}}>
           Stats (messages, exp, levels) are always tracked. This toggle controls level-up announcement messages.
         </p>
-        {settings.leveling?.level_up_announcements !== false && (
+        <div className={`feature-content ${collapsedSections.leveling ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.leveling ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.leveling?.level_up_announcements !== false && (
           <>
             <div className="form-group">
               <label className="form-label">Level Up Announcement Channel</label>
@@ -815,18 +862,27 @@ const GuildDashboard = () => {
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* Role Assignment */}
       <div className="feature-card">
         <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('roles')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.roles ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
           <h2 className="feature-title">🎭 Role Assignment</h2>
           <div
             className={`toggle-switch ${settings.roles?.enabled ? 'active' : ''}`}
-            onClick={() => updateSetting('roles.enabled', !settings.roles?.enabled)}
+            onClick={() => updateToggleAndCollapse('roles.enabled', !settings.roles?.enabled, 'roles')}
           />
         </div>
-        {settings.roles?.enabled && (
+        <div className={`feature-content ${collapsedSections.roles ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.roles ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.roles?.enabled && (
           <>
             <div className="form-group">
               <label className="form-label">Assignment Mode</label>
@@ -920,18 +976,27 @@ const GuildDashboard = () => {
             </button>
           </>
         )}
+        </div>
       </div>
 
       {/* AI Configuration */}
       <div className="feature-card">
         <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('ai')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.ai ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
           <h2 className="feature-title"><img src="images/acosmibot-logo3.png" alt="" style={{height: '1.5em', width: 'auto', verticalAlign: 'middle', marginRight: '0.5em'}} /> AI Configuration</h2>
           <div
             className={`toggle-switch ${settings.ai?.enabled ? 'active' : ''}`}
-            onClick={() => updateSetting('ai.enabled', !settings.ai?.enabled)}
+            onClick={() => updateToggleAndCollapse('ai.enabled', !settings.ai?.enabled, 'ai')}
           />
         </div>
-        {settings.ai?.enabled && (
+        <div className={`feature-content ${collapsedSections.ai ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.ai ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.ai?.enabled && (
           <>
             <div className="form-group">
               <label className="form-label">AI Model</label>
@@ -1019,18 +1084,27 @@ const GuildDashboard = () => {
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* Games */}
       <div className="feature-card">
         <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('games')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.games ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
           <h2 className="feature-title">🎮 Games</h2>
           <div
             className={`toggle-switch ${settings.games?.enabled ? 'active' : ''}`}
-            onClick={() => updateSetting('games.enabled', !settings.games?.enabled)}
+            onClick={() => updateToggleAndCollapse('games.enabled', !settings.games?.enabled, 'games')}
           />
         </div>
-        {settings.games?.enabled && (
+        <div className={`feature-content ${collapsedSections.games ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.games ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.games?.enabled && (
           <>
             {/* Slots Game */}
             <div className="nested-feature">
@@ -1122,18 +1196,27 @@ const GuildDashboard = () => {
             </div>
           </>
         )}
+        </div>
       </div>
 
       {/* Cross-Server Portal System */}
       <div className="feature-card">
         <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('cross_server_portal')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.cross_server_portal ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
           <h2 className="feature-title">🌀 Cross-Server Portal</h2>
           <div
             className={`toggle-switch ${settings.cross_server_portal?.enabled ? 'active' : ''}`}
-            onClick={() => updateSetting('cross_server_portal.enabled', !settings.cross_server_portal?.enabled)}
+            onClick={() => updateToggleAndCollapse('cross_server_portal.enabled', !settings.cross_server_portal?.enabled, 'cross_server_portal')}
           />
         </div>
-        {settings.cross_server_portal?.enabled && (
+        <div className={`feature-content ${collapsedSections.cross_server_portal ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.cross_server_portal ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.cross_server_portal?.enabled && (
           <>
             <p className="feature-description">
               Enable temporary 2-minute portals between servers. Users can spend credits to open a portal
@@ -1199,18 +1282,27 @@ const GuildDashboard = () => {
             </div>
           </>
         )}
+        </div>
       </div>
 
       {/* Twitch Integration */}
       <div className="feature-card">
         <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('twitch')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.twitch ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
           <h2 className="feature-title">📺 Twitch Integration</h2>
           <div
             className={`toggle-switch ${settings.twitch?.enabled ? 'active' : ''}`}
-            onClick={() => updateSetting('twitch.enabled', !settings.twitch?.enabled)}
+            onClick={() => updateToggleAndCollapse('twitch.enabled', !settings.twitch?.enabled, 'twitch')}
           />
         </div>
-        {settings.twitch?.enabled && (
+        <div className={`feature-content ${collapsedSections.twitch ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.twitch ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.twitch?.enabled && (
           <>
             <p className="feature-description">
               Get notified in Discord when your favorite Twitch streamers go live! Supports custom messages, role pings, and automatic VOD detection.
@@ -1362,6 +1454,7 @@ const GuildDashboard = () => {
             </div>
           </>
         )}
+        </div>
       </div>
 
       <div className="dashboard-footer">
