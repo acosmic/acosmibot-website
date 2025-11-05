@@ -949,28 +949,52 @@ const DropdownConfigBuilder = ({ config, onChange, availableEmojis }) => {
   );
 };
 
-// Reaction Role Modal Component
-const ReactionRoleModal = ({
-  config,
+// Reaction Roles Card Component (Inline Form)
+const ReactionRolesCard = ({
+  settings,
+  collapsedSections,
+  showForm,
+  editingId,
+  toggleSectionCollapse,
+  updateToggleAndCollapse,
+  updateSetting,
   availableRoles,
   availableChannels,
   availableEmojis,
-  onSave,
-  onCancel
+  showNotification,
+  onToggleForm,
+  onSetEditingId,
+  currentGuildId,
+  token
 }) => {
-  const [formData, setFormData] = useState(config || {
-    message_id: '',
+  const [formData, setFormData] = useState({
     channel_id: '',
     interaction_type: 'emoji',
     text_content: '',
     embed_config: null,
     allow_removal: true,
-    emoji_role_mappings: {},
+    emoji_role_mappings: [{ emoji: null, role_ids: [] }],
     button_configs: [],
-    dropdown_config: {}
+    dropdown_config: { placeholder: 'Select...', min_values: 1, max_values: 1, options: [] }
   });
   const [errors, setErrors] = useState({});
+  const [previewMode, setPreviewMode] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const resetForm = () => {
+    setFormData({
+      channel_id: '',
+      interaction_type: 'emoji',
+      text_content: '',
+      embed_config: null,
+      allow_removal: true,
+      emoji_role_mappings: [{ emoji: null, role_ids: [] }],
+      button_configs: [],
+      dropdown_config: { placeholder: 'Select...', min_values: 1, max_values: 1, options: [] }
+    });
+    setErrors({});
+    setPreviewMode(false);
+  };
 
   const updateFormField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -982,42 +1006,24 @@ const ReactionRoleModal = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.message_id || formData.message_id.trim() === '') {
-      newErrors.message_id = 'Message ID is required';
-    }
-    if (!formData.channel_id || formData.channel_id.trim() === '') {
+    if (!formData.channel_id) {
       newErrors.channel_id = 'Channel is required';
     }
-
     if (!formData.text_content && !formData.embed_config) {
       newErrors.content = 'Either message text or embed is required';
     }
 
     if (formData.interaction_type === 'emoji') {
-      if (!formData.emoji_role_mappings || Object.keys(formData.emoji_role_mappings).length === 0) {
+      if (!formData.emoji_role_mappings || formData.emoji_role_mappings.every(m => !m.emoji)) {
         newErrors.emoji = 'At least one emoji with roles is required';
       }
     } else if (formData.interaction_type === 'button') {
       if (!formData.button_configs || formData.button_configs.length === 0) {
         newErrors.buttons = 'At least one button is required';
       }
-      for (let i = 0; i < (formData.button_configs || []).length; i++) {
-        const btn = formData.button_configs[i];
-        if (!btn.label || !btn.role_ids || btn.role_ids.length === 0) {
-          newErrors.buttons = 'All buttons must have a label and at least one role';
-          break;
-        }
-      }
     } else if (formData.interaction_type === 'dropdown') {
-      if (!formData.dropdown_config || !formData.dropdown_config.options || formData.dropdown_config.options.length === 0) {
-        newErrors.dropdown = 'At least one dropdown option is required';
-      }
-      for (let i = 0; i < (formData.dropdown_config.options || []).length; i++) {
-        const opt = formData.dropdown_config.options[i];
-        if (!opt.label || !opt.role_ids || opt.role_ids.length === 0) {
-          newErrors.dropdown = 'All options must have a label and at least one role';
-          break;
-        }
+      if (!formData.dropdown_config?.options || formData.dropdown_config.options.length === 0) {
+        newErrors.dropdown = 'At least one option is required';
       }
     }
 
@@ -1030,221 +1036,456 @@ const ReactionRoleModal = ({
       return;
     }
 
+    setPreviewMode(true);
+  };
+
+  const handleConfirmPost = async () => {
     setSaving(true);
     try {
-      await onSave(formData);
+      const response = await fetch(`${API_BASE_URL}/api/guilds/${currentGuildId}/reaction-roles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to create reaction role');
+      }
+
+      updateSetting('reaction_roles.messages', [
+        ...(settings.reaction_roles?.messages || []),
+        result.data
+      ]);
+
+      showNotification('Reaction role created!', 'success');
+      resetForm();
+      onToggleForm(false);
+      onSetEditingId(null);
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification(error.message, 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0, 0, 0, 0.7)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 2000
-    }}>
-      <div style={{
-        background: 'var(--bg-primary)',
-        border: '1px solid var(--border-light)',
-        borderRadius: '16px',
-        maxWidth: '800px',
-        maxHeight: '90vh',
-        overflow: 'auto',
-        padding: '24px',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem' }}>
-            {config?.message_id ? 'Edit Reaction Role' : 'Create Reaction Role Message'}
-          </h2>
-          <button
-            onClick={onCancel}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              color: 'var(--text-secondary)'
-            }}
+  if (!settings.reaction_roles?.enabled) {
+    return (
+      <div className="feature-card">
+        <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('reaction_roles')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.reaction_roles ? 'rotate(0deg)' : 'rotate(90deg)' }}
           >
-            ✕
-          </button>
-        </div>
-
-        {Object.keys(errors).length > 0 && (
-          <div style={{
-            background: 'rgba(220, 53, 69, 0.1)',
-            border: '1px solid rgba(220, 53, 69, 0.3)',
-            borderRadius: '8px',
-            padding: '12px',
-            marginBottom: '16px',
-            color: '#dc3545'
-          }}>
-            {Object.entries(errors).map(([key, error]) => (
-              <p key={key} style={{ margin: '4px 0', fontSize: '0.9rem' }}>
-                ❌ {error}
-              </p>
-            ))}
-          </div>
-        )}
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-          <div className="form-group">
-            <label>Message ID *</label>
-            <input
-              type="text"
-              value={formData.message_id}
-              onChange={(e) => updateFormField('message_id', e.target.value)}
-              placeholder="Enter Discord message ID"
-              className="form-control"
-            />
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Post message in Discord first, then copy ID
-            </p>
-          </div>
-
-          <div className="form-group">
-            <label>Channel *</label>
-            <select
-              value={formData.channel_id}
-              onChange={(e) => updateFormField('channel_id', e.target.value)}
-              className="form-control"
-            >
-              <option value="">Select a channel...</option>
-              {(availableChannels || []).map(ch => (
-                <option key={ch.id} value={ch.id}>#{ch.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="form-group" style={{ marginBottom: '16px' }}>
-          <label>Interaction Type *</label>
-          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            {['emoji', 'button', 'dropdown'].map(type => (
-              <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                <input
-                  type="radio"
-                  name="interaction_type"
-                  value={type}
-                  checked={formData.interaction_type === type}
-                  onChange={(e) => updateFormField('interaction_type', e.target.value)}
-                />
-                <span style={{ textTransform: 'capitalize' }}>
-                  {type === 'emoji' ? '😀 Emoji' : type === 'button' ? '🔘 Button' : '📋 Dropdown'}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '1rem', marginBottom: '12px' }}>Message Content (at least one required)</h3>
-
-          <div className="form-group">
-            <label>Text Message (Optional)</label>
-            <textarea
-              value={formData.text_content || ''}
-              onChange={(e) => updateFormField('text_content', e.target.value)}
-              placeholder="Optional: Add text above the embed"
-              className="form-control"
-              rows="3"
-            />
-          </div>
-
-          <div style={{ marginBottom: '8px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-              <input
-                type="checkbox"
-                checked={!!formData.embed_config}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    updateFormField('embed_config', { title: '', description: '' });
-                  } else {
-                    updateFormField('embed_config', null);
-                  }
-                }}
-              />
-              Include Embed
-            </label>
-          </div>
-
-          {formData.embed_config && (
-            <EmbedBuilder
-              value={formData.embed_config}
-              onChange={(embed) => updateFormField('embed_config', embed)}
-            />
-          )}
-        </div>
-
-        <div className="form-group" style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={formData.allow_removal}
-              onChange={(e) => updateFormField('allow_removal', e.target.checked)}
-            />
-            <span>Allow users to remove roles by removing their reaction</span>
-          </label>
-        </div>
-
-        {formData.interaction_type === 'emoji' && (
-          <div style={{ marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1rem', marginBottom: '12px' }}>Emoji → Role Mapping (coming soon)</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              Configure emoji to role mappings through the advanced editor
-            </p>
-          </div>
-        )}
-
-        {formData.interaction_type === 'button' && (
-          <ButtonConfigBuilder
-            buttons={formData.button_configs || []}
-            onChange={(buttons) => updateFormField('button_configs', buttons)}
-            availableEmojis={availableEmojis}
+            ▶
+          </span>
+          <h2 className="feature-title">⚙️ Reaction Roles</h2>
+          <div
+            className={`toggle-switch ${settings.reaction_roles?.enabled ? 'active' : ''}`}
+            onClick={() => updateToggleAndCollapse('reaction_roles.enabled', !settings.reaction_roles?.enabled, 'reaction_roles')}
           />
-        )}
-
-        {formData.interaction_type === 'dropdown' && (
-          <DropdownConfigBuilder
-            config={formData.dropdown_config}
-            onChange={(config) => updateFormField('dropdown_config', config)}
-            availableEmojis={availableEmojis}
-          />
-        )}
-
-        <div style={{ display: 'flex', gap: '12px', marginTop: '24px', borderTop: '1px solid var(--border-light)', paddingTop: '20px' }}>
-          <button
-            className="btn-secondary"
-            onClick={onCancel}
-            disabled={saving}
-            style={{ flex: 1 }}
-          >
-            Cancel
-          </button>
-          <button
-            className="btn-primary"
-            onClick={handleSave}
-            disabled={saving}
-            style={{
-              flex: 1,
-              background: saving ? 'var(--bg-overlay)' : 'var(--primary)',
-              opacity: saving ? 0.6 : 1,
-              cursor: saving ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {saving ? 'Saving...' : config?.message_id ? 'Update' : 'Create'}
-          </button>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="feature-card">
+      <div className="feature-header">
+        <span
+          className="collapse-icon"
+          onClick={() => toggleSectionCollapse('reaction_roles')}
+          style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.reaction_roles ? 'rotate(0deg)' : 'rotate(90deg)' }}
+        >
+          ▶
+        </span>
+        <h2 className="feature-title">⚙️ Reaction Roles</h2>
+        <div
+          className={`toggle-switch ${settings.reaction_roles?.enabled ? 'active' : ''}`}
+          onClick={() => updateToggleAndCollapse('reaction_roles.enabled', !settings.reaction_roles?.enabled, 'reaction_roles')}
+        />
+      </div>
+      <div className={`feature-content ${collapsedSections.reaction_roles ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.reaction_roles ? '0' : '10000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+        <p className="feature-description">
+          Create custom messages where users can click emoji reactions, buttons, or dropdowns to get roles!
+        </p>
+
+        {/* Existing Messages List */}
+        {(settings.reaction_roles?.messages || []).length > 0 && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Current Reaction Role Messages</h3>
+            {(settings.reaction_roles?.messages || []).map((message, idx) => (
+              <div key={idx} style={{ padding: '1rem', background: 'var(--bg-overlay)', border: '1px solid var(--border-light)', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ margin: '0 0 0.5rem 0', fontWeight: '500' }}>
+                      Message ID: <code style={{ fontFamily: 'monospace', color: '#5865F2' }}>{message.message_id}</code>
+                    </p>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      Type: <strong>{message.interaction_type}</strong> • Removal: {message.allow_removal ? '✅ Enabled' : '❌ Disabled'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        onSetEditingId(message.message_id);
+                        onToggleForm(true);
+                      }}
+                      style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn-danger"
+                      onClick={() => {
+                        if (confirm('Delete this reaction role message?')) {
+                          const updated = settings.reaction_roles.messages.filter((_, i) => i !== idx);
+                          updateSetting('reaction_roles.messages', updated);
+                        }
+                      }}
+                      style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Form Toggle & Content */}
+        {!showForm && (
+          <button
+            className="btn-secondary"
+            onClick={() => {
+              resetForm();
+              onSetEditingId(null);
+              onToggleForm(true);
+            }}
+            style={{ width: '100%', padding: '0.75rem', marginBottom: '1rem', fontSize: '1rem', fontWeight: '600' }}
+          >
+            + Create New Reaction Role
+          </button>
+        )}
+
+        {showForm && !previewMode && (
+          <div style={{ background: 'var(--bg-overlay)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Create Reaction Role Message</h3>
+
+            {Object.keys(errors).length > 0 && (
+              <div style={{
+                background: 'rgba(220, 53, 69, 0.1)',
+                border: '1px solid rgba(220, 53, 69, 0.3)',
+                borderRadius: '8px',
+                padding: '12px',
+                marginBottom: '16px',
+                color: '#dc3545'
+              }}>
+                {Object.entries(errors).map(([key, error]) => (
+                  <p key={key} style={{ margin: '4px 0', fontSize: '0.9rem' }}>
+                    ❌ {error}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {/* Channel Selection */}
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label>Channel *</label>
+              <select
+                value={formData.channel_id}
+                onChange={(e) => updateFormField('channel_id', e.target.value)}
+                className="form-control"
+              >
+                <option value="">Select a channel...</option>
+                {(availableChannels || []).map(ch => (
+                  <option key={ch.id} value={ch.id}>#{ch.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Interaction Type */}
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label>Interaction Type *</label>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                {['emoji', 'button', 'dropdown'].map(type => (
+                  <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="interaction_type"
+                      value={type}
+                      checked={formData.interaction_type === type}
+                      onChange={(e) => updateFormField('interaction_type', e.target.value)}
+                    />
+                    <span>{type === 'emoji' ? '😀 Emoji' : type === 'button' ? '🔘 Button' : '📋 Dropdown'}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Message Content */}
+            <div style={{ marginBottom: '16px' }}>
+              <h4 style={{ fontSize: '0.95rem', marginBottom: '12px' }}>Message Content (at least one required)</h4>
+
+              <div className="form-group" style={{ marginBottom: '12px' }}>
+                <label>Text Message</label>
+                <textarea
+                  value={formData.text_content || ''}
+                  onChange={(e) => updateFormField('text_content', e.target.value)}
+                  placeholder="Optional: Add text above the embed"
+                  className="form-control"
+                  rows="2"
+                />
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!formData.embed_config}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        updateFormField('embed_config', { title: '', description: '' });
+                      } else {
+                        updateFormField('embed_config', null);
+                      }
+                    }}
+                  />
+                  Include Embed
+                </label>
+              </div>
+
+              {formData.embed_config && (
+                <EmbedBuilder
+                  value={formData.embed_config}
+                  onChange={(embed) => updateFormField('embed_config', embed)}
+                />
+              )}
+            </div>
+
+            {/* Allow Removal */}
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.allow_removal}
+                  onChange={(e) => updateFormField('allow_removal', e.target.checked)}
+                />
+                Allow users to remove roles
+              </label>
+            </div>
+
+            {/* Type-Specific Configuration */}
+            {formData.interaction_type === 'emoji' && (
+              <EmojiRoleMapping
+                mappings={formData.emoji_role_mappings}
+                onChange={(mappings) => updateFormField('emoji_role_mappings', mappings)}
+                availableRoles={availableRoles}
+                availableEmojis={availableEmojis}
+              />
+            )}
+
+            {formData.interaction_type === 'button' && (
+              <ButtonConfigBuilder
+                buttons={formData.button_configs}
+                onChange={(buttons) => updateFormField('button_configs', buttons)}
+                availableEmojis={availableEmojis}
+              />
+            )}
+
+            {formData.interaction_type === 'dropdown' && (
+              <DropdownConfigBuilder
+                config={formData.dropdown_config}
+                onChange={(config) => updateFormField('dropdown_config', config)}
+                availableEmojis={availableEmojis}
+              />
+            )}
+
+            {/* Form Actions */}
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px', borderTop: '1px solid var(--border-light)', paddingTop: '20px' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  resetForm();
+                  onToggleForm(false);
+                  onSetEditingId(null);
+                }}
+                disabled={saving}
+                style={{ flex: 1 }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleSave}
+                disabled={saving}
+                style={{ flex: 1 }}
+              >
+                Preview & Post
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Preview Screen */}
+        {showForm && previewMode && (
+          <div style={{ background: 'var(--bg-overlay)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Preview - This is how your message will appear:</h3>
+
+            <div style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border-light)' }}>
+              {formData.text_content && (
+                <p style={{ whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>{formData.text_content}</p>
+              )}
+
+              {formData.embed_config && (
+                <div style={{ background: 'var(--bg-overlay)', borderLeft: `4px solid ${formData.embed_config.color || '#5865F2'}`, padding: '12px', borderRadius: '4px' }}>
+                  {formData.embed_config.title && (
+                    <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>{formData.embed_config.title}</h4>
+                  )}
+                  {formData.embed_config.description && (
+                    <p style={{ margin: '0 0 0.5rem 0', whiteSpace: 'pre-wrap' }}>{formData.embed_config.description}</p>
+                  )}
+                  {formData.embed_config.fields && formData.embed_config.fields.map((field, idx) => (
+                    <div key={idx} style={{ marginTop: '0.5rem' }}>
+                      <strong>{field.name}</strong>
+                      <p style={{ margin: '0.25rem 0 0 0' }}>{field.value}</p>
+                    </div>
+                  ))}
+                  {formData.embed_config.footer && (
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{formData.embed_config.footer}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: 'rgba(88, 101, 242, 0.1)', border: '1px solid rgba(88, 101, 242, 0.3)', borderRadius: '8px', padding: '12px', marginBottom: '1.5rem' }}>
+              <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                ✅ <strong>{formData.interaction_type}</strong> interaction type
+              </p>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
+                📌 Posted in: <strong>#{availableChannels?.find(c => c.id === formData.channel_id)?.name || 'Unknown'}</strong>
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => setPreviewMode(false)}
+                disabled={saving}
+                style={{ flex: 1 }}
+              >
+                Back to Edit
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleConfirmPost}
+                disabled={saving}
+                style={{ flex: 1 }}
+              >
+                {saving ? 'Posting...' : 'Confirm & Post'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="info-box" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(88, 101, 242, 0.1)', borderRadius: '8px', border: '1px solid rgba(88, 101, 242, 0.3)' }}>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: '#3900a0', lineHeight: '1.5' }}>
+            <strong>ℹ️ How it works:</strong> Configure your message content and interaction type. We'll automatically post it to Discord and assign it a message ID.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Emoji Role Mapping Component (Table UI)
+const EmojiRoleMapping = ({ mappings, onChange, availableRoles, availableEmojis }) => {
+  const addMapping = () => {
+    const updated = [...mappings];
+    updated.push({ emoji: null, role_ids: [] });
+    onChange(updated);
+  };
+
+  const updateMapping = (idx, field, value) => {
+    const updated = [...mappings];
+    updated[idx][field] = value;
+    onChange(updated);
+  };
+
+  const removeMapping = (idx) => {
+    const updated = mappings.filter((_, i) => i !== idx);
+    onChange(updated);
+  };
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <h3 style={{ fontSize: '1rem', margin: 0 }}>Emoji → Role Mapping</h3>
+        <button
+          type="button"
+          className="btn-small"
+          onClick={addMapping}
+          style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+        >
+          + Add Emoji
+        </button>
+      </div>
+
+      <div style={{ overflowX: 'auto', border: '1px solid var(--border-light)', borderRadius: '8px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: 'var(--bg-overlay)', borderBottom: '1px solid var(--border-light)' }}>
+              <th style={{ padding: '12px', textAlign: 'left', fontSize: '0.9rem', fontWeight: '600' }}>Emoji</th>
+              <th style={{ padding: '12px', textAlign: 'left', fontSize: '0.9rem', fontWeight: '600' }}>Assign Roles</th>
+              <th style={{ padding: '12px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600', width: '80px' }}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mappings.map((mapping, idx) => (
+              <tr key={idx} style={{ borderBottom: idx < mappings.length - 1 ? '1px solid var(--border-light)' : 'none' }}>
+                <td style={{ padding: '12px', width: '150px' }}>
+                  <EmojiSelector
+                    value={mapping.emoji}
+                    onSelect={(emoji) => updateMapping(idx, 'emoji', emoji)}
+                    availableEmojis={availableEmojis}
+                  />
+                </td>
+                <td style={{ padding: '12px' }}>
+                  <RoleSelector
+                    selectedRoleIds={mapping.role_ids || []}
+                    availableRoles={availableRoles}
+                    onChange={(roleIds) => updateMapping(idx, 'role_ids', roleIds)}
+                  />
+                </td>
+                <td style={{ padding: '12px', textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn-danger btn-small"
+                    onClick={() => removeMapping(idx)}
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {mappings.length === 0 && (
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>
+          No emoji mappings yet. Click "Add Emoji" to get started.
+        </p>
+      )}
     </div>
   );
 };
@@ -1269,8 +1510,8 @@ const GuildDashboard = () => {
     twitch: true,
     reaction_roles: true
   });
-  const [showReactionRoleModal, setShowReactionRoleModal] = useState(false);
-  const [editingReactionRole, setEditingReactionRole] = useState(null);
+  const [showReactionRoleForm, setShowReactionRoleForm] = useState(false);
+  const [editingReactionRoleId, setEditingReactionRoleId] = useState(null);
 
   const guildId = new URLSearchParams(window.location.search).get('guild');
 
@@ -2330,156 +2571,24 @@ const GuildDashboard = () => {
       </div>
 
       {/* Reaction Roles System */}
-      <div className="feature-card">
-        <div className="feature-header">
-          <span
-            className="collapse-icon"
-            onClick={() => toggleSectionCollapse('reaction_roles')}
-            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.reaction_roles ? 'rotate(0deg)' : 'rotate(90deg)' }}
-          >
-            ▶
-          </span>
-          <h2 className="feature-title">⚙️ Reaction Roles</h2>
-          <div
-            className={`toggle-switch ${settings.reaction_roles?.enabled ? 'active' : ''}`}
-            onClick={() => updateToggleAndCollapse('reaction_roles.enabled', !settings.reaction_roles?.enabled, 'reaction_roles')}
-          />
-        </div>
-        <div className={`feature-content ${collapsedSections.reaction_roles ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.reaction_roles ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
-          {settings.reaction_roles?.enabled && (
-          <>
-            <p className="feature-description">
-              Create custom messages where users can click emoji reactions, buttons, or dropdowns to get roles!
-            </p>
+      <ReactionRolesCard
+        settings={settings}
+        collapsedSections={collapsedSections}
+        showForm={showReactionRoleForm}
+        editingId={editingReactionRoleId}
+        toggleSectionCollapse={toggleSectionCollapse}
+        updateToggleAndCollapse={updateToggleAndCollapse}
+        updateSetting={updateSetting}
+        availableRoles={availableRoles}
+        availableChannels={availableChannels}
+        availableEmojis={availableEmojis}
+        showNotification={showNotification}
+        onToggleForm={setShowReactionRoleForm}
+        onSetEditingId={setEditingReactionRoleId}
+        currentGuildId={guildId}
+        token={getAuthToken()}
+      />
 
-            {/* Reaction Role Messages List */}
-            {(settings.reaction_roles?.messages || []).length > 0 && (
-              <div className="reaction-messages-list" style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Current Reaction Role Messages</h3>
-                {(settings.reaction_roles?.messages || []).map((message, idx) => (
-                  <div key={idx} className="reaction-message-card" style={{ padding: '1rem', background: 'var(--bg-overlay)', border: '1px solid var(--border-light)', borderRadius: '8px', marginBottom: '0.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <p style={{ margin: '0 0 0.5rem 0', fontWeight: '500' }}>
-                          Message ID: <code style={{ fontFamily: 'monospace', color: '#5865F2' }}>{message.message_id}</code>
-                        </p>
-                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                          Type: <strong>{message.interaction_type}</strong> • Removal: {message.allow_removal ? '✅ Enabled' : '❌ Disabled'}
-                        </p>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                          className="btn-secondary"
-                          onClick={() => {
-                            setShowReactionRoleModal(true);
-                            setEditingReactionRole(message);
-                          }}
-                          style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn-danger"
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this reaction role message?')) {
-                              const updated = settings.reaction_roles.messages.filter((_, i) => i !== idx);
-                              updateSetting('reaction_roles.messages', updated);
-                            }
-                          }}
-                          style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Create New Reaction Role Button */}
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setShowReactionRoleModal(true);
-                setEditingReactionRole(null);
-              }}
-              style={{ width: '100%', padding: '0.75rem', marginBottom: '1rem', fontSize: '1rem', fontWeight: '600' }}
-            >
-              + Create New Reaction Role Message
-            </button>
-
-            <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(88, 101, 242, 0.1)', borderRadius: '8px', border: '1px solid rgba(88, 101, 242, 0.3)'}}>
-              <p style={{margin: 0, fontSize: '0.9rem', color: '#3900a0', lineHeight: '1.5'}}>
-                <strong>ℹ️ How it works:</strong> Create emoji reactions, buttons, or dropdowns on messages. Users interact to get assigned roles. Configure text/embed messages, choose roles for each interaction, and control if users can remove roles.
-              </p>
-            </div>
-          </>
-        )}
-        </div>
-      </div>
-
-      {/* Reaction Role Modal */}
-      {showReactionRoleModal && (
-        <ReactionRoleModal
-          config={editingReactionRole}
-          availableRoles={availableRoles}
-          availableChannels={availableChannels}
-          availableEmojis={availableEmojis}
-          onSave={async (formData) => {
-            try {
-              const method = editingReactionRole ? 'PUT' : 'POST';
-              const endpoint = editingReactionRole
-                ? `/api/guilds/${currentGuild.id}/reaction-roles/${editingReactionRole.message_id}`
-                : `/api/guilds/${currentGuild.id}/reaction-roles`;
-
-              const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                method,
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-              });
-
-              const result = await response.json();
-
-              if (!response.ok) {
-                throw new Error(result.message || 'Failed to save reaction role');
-              }
-
-              // Update the local messages list
-              if (editingReactionRole) {
-                // Update existing
-                const updatedMessages = settings.reaction_roles.messages.map(msg =>
-                  msg.message_id === editingReactionRole.message_id ? result.data : msg
-                );
-                updateSetting('reaction_roles.messages', updatedMessages);
-              } else {
-                // Add new
-                updateSetting('reaction_roles.messages', [
-                  ...(settings.reaction_roles?.messages || []),
-                  result.data
-                ]);
-              }
-
-              showNotification(
-                editingReactionRole ? 'Reaction role updated!' : 'Reaction role created!',
-                'success'
-              );
-              setShowReactionRoleModal(false);
-              setEditingReactionRole(null);
-            } catch (error) {
-              console.error('Error saving reaction role:', error);
-              showNotification(error.message, 'error');
-            }
-          }}
-          onCancel={() => {
-            setShowReactionRoleModal(false);
-            setEditingReactionRole(null);
-          }}
-        />
-      )}
 
       <div className="dashboard-footer">
         <p>All changes are saved to the database and will take effect immediately.</p>
