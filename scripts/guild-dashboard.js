@@ -387,7 +387,8 @@ const GuildDashboard = () => {
     ai: true,
     games: true,
     cross_server_portal: true,
-    twitch: true
+    twitch: true,
+    reaction_roles: true
   });
 
   const guildId = new URLSearchParams(window.location.search).get('guild');
@@ -554,6 +555,10 @@ const GuildDashboard = () => {
             vod_message_suffix: settings.twitch?.vod_settings?.vod_message_suffix || '\n\n📺 **VOD Available:** [Watch Recording]({vod_url})'
           },
           notification_method: settings.twitch?.notification_method || 'polling'
+        },
+        reaction_roles: {
+          enabled: settings.reaction_roles?.enabled === true,
+          messages: settings.reaction_roles?.messages || []
         }
       };
 
@@ -1436,6 +1441,95 @@ const GuildDashboard = () => {
             <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(88, 101, 242, 0.1)', borderRadius: '8px', border: '1px solid rgba(88, 101, 242, 0.3)'}}>
               <p style={{margin: 0, fontSize: '0.9rem', color: '#3900a0'}}>
                 <strong>ℹ️ How it works:</strong> Users can use <code>/portal-search</code> to find servers, then <code>/portal-open</code> to create a 2-minute connection. Messages are limited to 100 characters and displayed in a shared embed.
+              </p>
+            </div>
+          </>
+        )}
+        </div>
+      </div>
+
+      {/* Reaction Roles System */}
+      <div className="feature-card">
+        <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('reaction_roles')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.reaction_roles ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
+          <h2 className="feature-title">⚙️ Reaction Roles</h2>
+          <div
+            className={`toggle-switch ${settings.reaction_roles?.enabled ? 'active' : ''}`}
+            onClick={() => updateToggleAndCollapse('reaction_roles.enabled', !settings.reaction_roles?.enabled, 'reaction_roles')}
+          />
+        </div>
+        <div className={`feature-content ${collapsedSections.reaction_roles ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.reaction_roles ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.reaction_roles?.enabled && (
+          <>
+            <p className="feature-description">
+              Create custom messages where users can click emoji reactions, buttons, or dropdowns to get roles!
+            </p>
+
+            {/* Reaction Role Messages List */}
+            {(settings.reaction_roles?.messages || []).length > 0 && (
+              <div className="reaction-messages-list" style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Current Reaction Role Messages</h3>
+                {(settings.reaction_roles?.messages || []).map((message, idx) => (
+                  <div key={idx} className="reaction-message-card" style={{ padding: '1rem', background: 'var(--bg-overlay)', border: '1px solid var(--border-light)', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <p style={{ margin: '0 0 0.5rem 0', fontWeight: '500' }}>
+                          Message ID: <code style={{ fontFamily: 'monospace', color: '#5865F2' }}>{message.message_id}</code>
+                        </p>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                          Type: <strong>{message.interaction_type}</strong> • Removal: {message.allow_removal ? '✅ Enabled' : '❌ Disabled'}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          className="btn-secondary"
+                          onClick={() => {
+                            // Edit functionality can be added here
+                            alert('Edit feature coming soon!');
+                          }}
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-danger"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this reaction role message?')) {
+                              const updated = settings.reaction_roles.messages.filter((_, i) => i !== idx);
+                              updateSetting('reaction_roles.messages', updated);
+                            }
+                          }}
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Create New Reaction Role Button */}
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                alert('Reaction role creation dialog coming soon!');
+              }}
+              style={{ width: '100%', padding: '0.75rem', marginBottom: '1rem', fontSize: '1rem', fontWeight: '600' }}
+            >
+              + Create New Reaction Role Message
+            </button>
+
+            <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(88, 101, 242, 0.1)', borderRadius: '8px', border: '1px solid rgba(88, 101, 242, 0.3)'}}>
+              <p style={{margin: 0, fontSize: '0.9rem', color: '#3900a0', lineHeight: '1.5'}}>
+                <strong>ℹ️ How it works:</strong> Create emoji reactions, buttons, or dropdowns on messages. Users interact to get assigned roles. Configure text/embed messages, choose roles for each interaction, and control if users can remove roles.
               </p>
             </div>
           </>
