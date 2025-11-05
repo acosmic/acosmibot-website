@@ -740,51 +740,41 @@ const GuildDashboard = () => {
       {/* Leveling System */}
       <div className="feature-card">
         <div className="feature-header">
-          <h2 className="feature-title">⭐ Leveling System</h2>
+          <h2 className="feature-title">⭐ Level-Up Announcements</h2>
           <div
-            className={`toggle-switch ${settings.leveling?.enabled ? 'active' : ''}`}
-            onClick={() => updateSetting('leveling.enabled', !settings.leveling?.enabled)}
+            className={`toggle-switch ${settings.leveling?.level_up_announcements !== false ? 'active' : ''}`}
+            onClick={() => updateSetting('leveling.level_up_announcements', !settings.leveling?.level_up_announcements)}
           />
         </div>
-        {settings.leveling?.enabled && (
+        <p className="feature-description" style={{marginBottom: '16px', color: '#888'}}>
+          Stats (messages, exp, levels) are always tracked. This toggle controls level-up announcement messages.
+        </p>
+        {settings.leveling?.level_up_announcements !== false && (
           <>
-            <div className="checkbox-wrapper">
-              <input
-                type="checkbox"
-                checked={settings.leveling?.level_up_announcements || false}
-                onChange={(e) => updateSetting('leveling.level_up_announcements', e.target.checked)}
-              />
-              <span>Enable level up announcements</span>
+            <div className="form-group">
+              <label className="form-label">Level Up Announcement Channel</label>
+              <select
+                value={settings.leveling?.announcement_channel_id || ''}
+                onChange={(e) => updateSetting('leveling.announcement_channel_id', e.target.value)}
+                className="form-control"
+              >
+                <option value="">Current channel (where user leveled up)</option>
+                {availableChannels.map(channel => (
+                  <option key={channel.id} value={channel.id}>#{channel.name}</option>
+                ))}
+              </select>
             </div>
 
-            {settings.leveling?.level_up_announcements && (
-              <>
-                <div className="form-group">
-                  <label className="form-label">Level Up Announcement Channel</label>
-                  <select
-                    value={settings.leveling?.announcement_channel_id || ''}
-                    onChange={(e) => updateSetting('leveling.announcement_channel_id', e.target.value)}
-                    className="form-control"
-                  >
-                    <option value="">Current channel (where user leveled up)</option>
-                    {availableChannels.map(channel => (
-                      <option key={channel.id} value={channel.id}>#{channel.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Level Up Message Template</label>
-                  <MessageTemplateInput
-                    value={settings.leveling?.level_up_message || ''}
-                    onChange={(e) => updateSetting('leveling.level_up_message', e.target.value)}
-                    placeholders={['mention', 'username', 'level', 'credits', 'xp', 'streak', 'base_credits', 'streak_bonus']}
-                    rows={3}
-                    placeholder="🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!"
-                  />
-                </div>
-              </>
-            )}
+            <div className="form-group">
+              <label className="form-label">Level Up Message Template</label>
+              <MessageTemplateInput
+                value={settings.leveling?.level_up_message || ''}
+                onChange={(e) => updateSetting('leveling.level_up_message', e.target.value)}
+                placeholders={['mention', 'username', 'level', 'credits', 'xp', 'streak', 'base_credits', 'streak_bonus']}
+                rows={3}
+                placeholder="🎉 {mention} GUILD LEVEL UP! You have reached level {level}! Gained {credits} Credits!"
+              />
+            </div>
 
             <div className="checkbox-wrapper">
               <input
