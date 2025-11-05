@@ -1343,6 +1343,7 @@ const ReactionRolesCard = ({
                 onChange={(mappings) => updateFormField('emoji_role_mappings', mappings)}
                 availableRoles={availableRoles}
                 availableEmojis={availableEmojis}
+                guildName={guildName}
               />
             )}
 
@@ -1462,7 +1463,7 @@ const ReactionRolesCard = ({
 };
 
 // Emoji Role Mapping Component (Table UI)
-const EmojiRoleMapping = ({ mappings, onChange, availableRoles, availableEmojis }) => {
+const EmojiRoleMapping = ({ mappings, onChange, availableRoles, availableEmojis, guildName }) => {
   const addMapping = () => {
     const updated = [...mappings];
     updated.push({ emoji: null, role_ids: [] });
