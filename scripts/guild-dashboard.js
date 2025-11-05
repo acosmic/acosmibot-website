@@ -390,6 +390,8 @@ const GuildDashboard = () => {
     twitch: true,
     reaction_roles: true
   });
+  const [showReactionRoleModal, setShowReactionRoleModal] = useState(false);
+  const [editingReactionRole, setEditingReactionRole] = useState(null);
 
   const guildId = new URLSearchParams(window.location.search).get('guild');
 
@@ -1490,8 +1492,8 @@ const GuildDashboard = () => {
                         <button
                           className="btn-secondary"
                           onClick={() => {
-                            // Edit functionality can be added here
-                            alert('Edit feature coming soon!');
+                            setShowReactionRoleModal(true);
+                            setEditingReactionRole(message);
                           }}
                           style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
                         >
@@ -1520,7 +1522,8 @@ const GuildDashboard = () => {
             <button
               className="btn-secondary"
               onClick={() => {
-                alert('Reaction role creation dialog coming soon!');
+                setShowReactionRoleModal(true);
+                setEditingReactionRole(null);
               }}
               style={{ width: '100%', padding: '0.75rem', marginBottom: '1rem', fontSize: '1rem', fontWeight: '600' }}
             >
@@ -1536,6 +1539,68 @@ const GuildDashboard = () => {
         )}
         </div>
       </div>
+
+      {/* Reaction Role Modal */}
+      {showReactionRoleModal && (
+        <ReactionRoleModal
+          config={editingReactionRole}
+          availableRoles={availableRoles}
+          availableChannels={availableChannels}
+          availableEmojis={availableEmojis}
+          onSave={async (formData) => {
+            try {
+              const method = editingReactionRole ? 'PUT' : 'POST';
+              const endpoint = editingReactionRole
+                ? `/api/guilds/${currentGuild.id}/reaction-roles/${editingReactionRole.message_id}`
+                : `/api/guilds/${currentGuild.id}/reaction-roles`;
+
+              const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+              });
+
+              const result = await response.json();
+
+              if (!response.ok) {
+                throw new Error(result.message || 'Failed to save reaction role');
+              }
+
+              // Update the local messages list
+              if (editingReactionRole) {
+                // Update existing
+                const updatedMessages = settings.reaction_roles.messages.map(msg =>
+                  msg.message_id === editingReactionRole.message_id ? result.data : msg
+                );
+                updateSetting('reaction_roles.messages', updatedMessages);
+              } else {
+                // Add new
+                updateSetting('reaction_roles.messages', [
+                  ...(settings.reaction_roles?.messages || []),
+                  result.data
+                ]);
+              }
+
+              showNotification(
+                editingReactionRole ? 'Reaction role updated!' : 'Reaction role created!',
+                'success'
+              );
+              setShowReactionRoleModal(false);
+              setEditingReactionRole(null);
+            } catch (error) {
+              console.error('Error saving reaction role:', error);
+              showNotification(error.message, 'error');
+            }
+          }}
+          onCancel={() => {
+            setShowReactionRoleModal(false);
+            setEditingReactionRole(null);
+          }}
+        />
+      )}
 
       <div className="dashboard-footer">
         <p>All changes are saved to the database and will take effect immediately.</p>
