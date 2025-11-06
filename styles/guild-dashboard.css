@@ -992,6 +992,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 
 .btn-danger:hover {
     background: #c82333;
+    color: white;
     transform: translateY(-1px);
 }
 
@@ -1180,7 +1181,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     border-radius: 6px;
     border: none;
     background: var(--primary);
-    color: white;
+    color: rgb(92, 28, 255);
     cursor: pointer;
     transition: all 0.2s ease;
 }
