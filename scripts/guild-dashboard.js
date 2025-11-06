@@ -35,7 +35,9 @@ const NumberInput = ({ value, min, max, step = 1, onChange, ...props }) => {
 // Custom Role Selector Component
 const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
 
   const selectedRoles = availableRoles.filter(role => selectedRoleIds.includes(role.id));
 
@@ -68,43 +70,66 @@ const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
     onChange(selectedRoleIds.filter(id => id !== roleId));
   };
 
+  // Filter roles based on search query
+  const filteredRoles = availableRoles.filter(role =>
+    role.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="role-selector-wrapper" ref={dropdownRef}>
       <div
         className={`role-selector-display ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(true);
+          setTimeout(() => inputRef.current?.focus(), 0);
+        }}
       >
-        {selectedRoles.length === 0 ? (
-          <span className="role-selector-placeholder">Click to select roles...</span>
-        ) : (
-          selectedRoles.map(role => (
-            <span key={role.id} className="role-tag">
-              {role.name}
-              <span
-                className="role-tag-remove"
-                onClick={(e) => removeRole(role.id, e)}
-              >
-                ×
-              </span>
+        {selectedRoles.map(role => (
+          <span key={role.id} className="role-tag">
+            {role.name}
+            <span
+              className="role-tag-remove"
+              onClick={(e) => removeRole(role.id, e)}
+            >
+              ×
             </span>
-          ))
-        )}
+          </span>
+        ))}
+        <input
+          ref={inputRef}
+          type="text"
+          className="role-selector-input"
+          placeholder={selectedRoles.length === 0 ? "Type to search roles..." : ""}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsOpen(true)}
+          onClick={(e) => e.stopPropagation()}
+        />
       </div>
       {isOpen && (
         <div className="role-dropdown">
-          {availableRoles.map(role => {
-            const isSelected = selectedRoleIds.includes(role.id);
-            return (
-              <div
-                key={role.id}
-                className={`role-dropdown-item ${isSelected ? 'selected' : ''}`}
-                onClick={() => toggleRole(role.id)}
-              >
-                <span>{role.name}</span>
-                {isSelected && <span className="checkmark">✓</span>}
-              </div>
-            );
-          })}
+          {filteredRoles.length > 0 ? (
+            filteredRoles.map(role => {
+              const isSelected = selectedRoleIds.includes(role.id);
+              return (
+                <div
+                  key={role.id}
+                  className={`role-dropdown-item ${isSelected ? 'selected' : ''}`}
+                  onClick={() => {
+                    toggleRole(role.id);
+                    setSearchQuery('');
+                  }}
+                >
+                  <span>{role.name}</span>
+                  {isSelected && <span className="checkmark">✓</span>}
+                </div>
+              );
+            })
+          ) : (
+            <div className="role-dropdown-item disabled">
+              <span>No roles found</span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -407,7 +432,9 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('standard');
+  const [openUpward, setOpenUpward] = useState(false);
   const dropdownRef = useRef(null);
+  const displayRef = useRef(null);
 
   const standardEmojiCategories = {
     people: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😌', '😔', '😑', '😐', '🤐', '🤨', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤮', '🤢', '🤮', '🤮', '🤮'],
@@ -425,6 +452,16 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+
+      // Determine if dropdown should open upward
+      if (displayRef.current) {
+        const rect = displayRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const dropdownHeight = 550; // Max height from CSS
+
+        // Open upward if there's not enough space below
+        setOpenUpward(spaceBelow < dropdownHeight && rect.top > dropdownHeight);
+      }
     }
 
     return () => {
@@ -483,6 +520,7 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
   return (
     <div className="emoji-selector-wrapper" ref={dropdownRef}>
       <div
+        ref={displayRef}
         className={`emoji-selector-display ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -493,7 +531,7 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
       </div>
 
       {isOpen && (
-        <div className="emoji-selector-dropdown">
+        <div className={`emoji-selector-dropdown ${openUpward ? 'open-upward' : ''}`}>
           <div className="emoji-categories">
             <button
               className={`category-btn ${category === 'standard' ? 'active' : ''}`}
@@ -546,7 +584,7 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
           )}
 
           <div className="emoji-grid">
-            {(category === 'custom' ? availableEmojis : filteredEmojis).map((emoji, idx) => {
+            {filteredEmojis.map((emoji, idx) => {
               const emojiValue = category === 'custom' ? buildCustomEmojiValue(emoji) : emoji;
               const isSelected = category === 'custom'
                 ? value === emojiValue

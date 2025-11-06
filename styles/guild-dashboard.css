@@ -405,6 +405,21 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     font-size: 0.9rem;
 }
 
+.role-selector-input {
+    flex: 1;
+    min-width: 120px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: #333333;
+    padding: 0;
+}
+
+.role-selector-input::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+}
+
 .role-tag {
     display: inline-flex;
     align-items: center;
@@ -467,6 +482,16 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     margin-left: auto;
     color: var(--primary-color);
     font-weight: bold;
+}
+
+.role-dropdown-item.disabled {
+    cursor: default;
+    opacity: 0.6;
+    color: #999999;
+}
+
+.role-dropdown-item.disabled:hover {
+    background: transparent;
 }
 
 .role-dropdown::-webkit-scrollbar {
@@ -977,7 +1002,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     margin-top: 1rem;
     padding: 1rem;
     background: rgba(145, 70, 255, 0.1);
-    borderRadius: 8px;
+    border-radius: 8px;
     border: 1px solid rgba(145, 70, 255, 0.3);
 }
 
@@ -1064,6 +1089,13 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     min-width: 500px;
+}
+
+.emoji-selector-dropdown.open-upward {
+    top: auto;
+    bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 4px;
 }
 
 .emoji-categories {
