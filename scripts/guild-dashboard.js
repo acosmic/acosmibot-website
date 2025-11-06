@@ -1324,10 +1324,27 @@ const ReactionRolesCard = ({
                 if (message.interaction_type !== 'emoji') return null;
                 if (!message.emoji_role_mappings) return null;
 
-                // Handle both object and array formats
-                const mappings = typeof message.emoji_role_mappings === 'object' && !Array.isArray(message.emoji_role_mappings)
-                  ? Object.entries(message.emoji_role_mappings).map(([emoji, roleIds]) => ({ emoji, roleIds }))
-                  : message.emoji_role_mappings;
+                let mappings;
+                try {
+                  // Handle JSON string, object, and array formats
+                  if (typeof message.emoji_role_mappings === 'string') {
+                    const parsed = JSON.parse(message.emoji_role_mappings);
+                    mappings = typeof parsed === 'object' && !Array.isArray(parsed)
+                      ? Object.entries(parsed).map(([emoji, roleIds]) => ({ emoji, roleIds }))
+                      : parsed;
+                  } else if (typeof message.emoji_role_mappings === 'object' && !Array.isArray(message.emoji_role_mappings)) {
+                    mappings = Object.entries(message.emoji_role_mappings).map(([emoji, roleIds]) => ({ emoji, roleIds }));
+                  } else if (Array.isArray(message.emoji_role_mappings)) {
+                    mappings = message.emoji_role_mappings;
+                  } else {
+                    return null;
+                  }
+                } catch (e) {
+                  console.error('Error parsing emoji mappings:', e);
+                  return null;
+                }
+
+                if (!Array.isArray(mappings) || mappings.length === 0) return null;
 
                 return mappings.map((mapping, i) => {
                   const roleNames = (Array.isArray(mapping.roleIds) ? mapping.roleIds : [mapping.roleIds])
