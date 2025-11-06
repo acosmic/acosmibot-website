@@ -1104,19 +1104,19 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 
 .emoji-grid {
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
     padding: 12px;
 }
 
 .emoji-item {
-    padding: 12px;
+    padding: 4px;
     border: 1px solid transparent;
     border-radius: 6px;
     background: transparent;
     cursor: pointer;
-    font-size: 2rem;
-    min-height: 50px;
+    font-size: 1.8rem;
+    min-height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;

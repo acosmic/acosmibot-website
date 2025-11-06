@@ -387,6 +387,21 @@ const ColorPicker = ({ value, onChange }) => {
   );
 };
 
+// Helper function to parse Discord emoji format
+const parseDiscordEmojiFormat = (value) => {
+  if (!value || !value.includes(':')) return null;
+  // Matches: <:name:id> or <a:name:id>
+  const match = value.match(/<(a?):([^:]+):(\d+)>/);
+  if (match) {
+    return {
+      animated: match[1] === 'a',
+      name: match[2],
+      id: match[3]
+    };
+  }
+  return null;
+};
+
 // Emoji Selector Component
 const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Guild' }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -419,12 +434,23 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
 
   const getDisplayEmoji = () => {
     if (!value) return '😀';
-    if (value.includes(':')) {
-      const match = value.match(/:(\d+)>/);
-      if (match) {
-        return `<:custom:${match[1]}>`;
+    // For custom Discord emoji format, return the original value
+    const parsedEmoji = parseDiscordEmojiFormat(value);
+    if (parsedEmoji) {
+      // Look up emoji in available emojis to get URL for image rendering
+      const emojiObj = availableEmojis.find(e => e.id === parsedEmoji.id);
+      if (emojiObj && emojiObj.url) {
+        return (
+          <img
+            src={emojiObj.url}
+            alt={parsedEmoji.name}
+            title={value}
+            style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+          />
+        );
       }
     }
+    // Return standard emoji as-is
     return value;
   };
 
@@ -461,7 +487,9 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="emoji-display">{getDisplayEmoji()}</span>
-        <span className="emoji-label">{value || 'Select emoji'}</span>
+        {!parseDiscordEmojiFormat(value) && (
+          <span className="emoji-label">{value || 'Select emoji'}</span>
+        )}
       </div>
 
       {isOpen && (
@@ -484,13 +512,37 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
           </div>
 
           {category === 'custom' && (
-            <input
-              type="text"
-              placeholder="Search custom emojis..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="emoji-search"
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search custom emojis..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="emoji-search"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '1.2rem',
+                    padding: '4px 8px',
+                    color: 'var(--text-secondary)'
+                  }}
+                  title="Clear search"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           )}
 
           <div className="emoji-grid">
@@ -1269,7 +1321,7 @@ const ReactionRolesCard = ({
             <div className="form-group" style={{ marginBottom: '16px' }}>
               <label>Interaction Type *</label>
               <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                {['emoji', 'button', 'dropdown'].map(type => (
+                {['emoji'].map(type => (
                   <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
                       type="radio"
@@ -1347,7 +1399,8 @@ const ReactionRolesCard = ({
               />
             )}
 
-            {formData.interaction_type === 'button' && (
+            {/* Button and Dropdown types temporarily hidden - backend framework preserved */}
+            {/* {formData.interaction_type === 'button' && (
               <ButtonConfigBuilder
                 buttons={formData.button_configs}
                 onChange={(buttons) => updateFormField('button_configs', buttons)}
@@ -1363,7 +1416,7 @@ const ReactionRolesCard = ({
                 availableEmojis={availableEmojis}
                 availableRoles={availableRoles}
               />
-            )}
+            )} */}
 
             {/* Form Actions */}
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px', borderTop: '1px solid var(--border-light)', paddingTop: '20px' }}>
@@ -1647,7 +1700,7 @@ const GuildDashboard = () => {
         setAvailableRoles(data.data.available_roles || []);
         setAvailableChannels(data.data.available_channels || []);
         const serverEmojis = data.data.available_emojis || [];
-        setAvailableEmojis([...serverEmojis, ...standardEmojis]);
+        setAvailableEmojis(serverEmojis);
       } else {
         throw new Error(data.message || 'API returned success: false');
       }
