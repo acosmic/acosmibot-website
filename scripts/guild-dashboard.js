@@ -1319,51 +1319,86 @@ const ReactionRolesCard = ({
         {(settings.reaction_roles?.messages || []).length > 0 && (
           <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Current Reaction Role Messages</h3>
-            {(settings.reaction_roles?.messages || []).map((message, idx) => (
-              <div key={idx} style={{ padding: '1rem', background: 'var(--bg-overlay)', border: '1px solid var(--border-light)', borderRadius: '8px', marginBottom: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ margin: '0 0 0.5rem 0', fontWeight: '500' }}>
-                      Message ID: <code style={{ fontFamily: 'monospace', color: '#5865F2' }}>{message.message_id}</code>
-                    </p>
-                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      Type: <strong>{message.interaction_type}</strong> • Removal: {message.allow_removal ? '✅ Enabled' : '❌ Disabled'}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => {
-                        onSetEditingId(message.message_id);
-                        onToggleForm(true);
-                      }}
-                      style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn-danger"
-                      onClick={async () => {
-                        if (confirm('Delete this reaction role message?')) {
-                          const updated = settings.reaction_roles.messages.filter((_, i) => i !== idx);
-                          setSettings(prev => ({
-                            ...prev,
-                            reaction_roles: {
-                              ...prev.reaction_roles,
-                              messages: updated
-                            }
-                          }));
-                          await onSaveConfig();
-                        }
-                      }}
-                      style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
-                    >
-                      Delete
-                    </button>
+            {(settings.reaction_roles?.messages || []).map((message, idx) => {
+              const getEmojiMapping = () => {
+                if (message.interaction_type !== 'emoji') return null;
+                if (!message.emoji_role_mappings) return null;
+
+                // Handle both object and array formats
+                const mappings = typeof message.emoji_role_mappings === 'object' && !Array.isArray(message.emoji_role_mappings)
+                  ? Object.entries(message.emoji_role_mappings).map(([emoji, roleIds]) => ({ emoji, roleIds }))
+                  : message.emoji_role_mappings;
+
+                return mappings.map((mapping, i) => {
+                  const roleNames = (Array.isArray(mapping.roleIds) ? mapping.roleIds : [mapping.roleIds])
+                    .map(roleId => availableRoles?.find(r => r.id === roleId)?.name || roleId)
+                    .join(', ');
+                  return `${mapping.emoji} → ${roleNames}`;
+                }).join(' | ');
+              };
+
+              const emojiMapping = getEmojiMapping();
+
+              return (
+                <div key={idx} style={{ padding: '1rem', background: 'var(--bg-overlay)', border: '1px solid var(--border-light)', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: '0 0 0.5rem 0', fontWeight: '500' }}>
+                        Message ID: <code style={{ fontFamily: 'monospace', color: '#5865F2' }}>{message.message_id}</code>
+                      </p>
+                      <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        Type: <strong>{message.interaction_type}</strong> • Removal: {message.allow_removal ? '✅ Enabled' : '❌ Disabled'}
+                      </p>
+                      {emojiMapping && (
+                        <div style={{
+                          marginTop: '0.5rem',
+                          padding: '0.5rem',
+                          background: 'var(--bg-primary)',
+                          borderRadius: '4px',
+                          fontSize: '0.85rem',
+                          maxHeight: '60px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          <strong>Mappings:</strong> {emojiMapping}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => {
+                          onSetEditingId(message.message_id);
+                          onToggleForm(true);
+                        }}
+                        style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn-danger"
+                        onClick={async () => {
+                          if (confirm('Delete this reaction role message?')) {
+                            const updated = settings.reaction_roles.messages.filter((_, i) => i !== idx);
+                            setSettings(prev => ({
+                              ...prev,
+                              reaction_roles: {
+                                ...prev.reaction_roles,
+                                messages: updated
+                              }
+                            }));
+                            await onSaveConfig();
+                          }
+                        }}
+                        style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
