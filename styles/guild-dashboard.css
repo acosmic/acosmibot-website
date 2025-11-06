@@ -1088,6 +1088,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     gap: 4px;
     padding: 8px;
     border-bottom: 1px solid var(--border-light);
+    background-color: white;
 }
 
 .category-btn {
@@ -1107,7 +1108,8 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 
 .category-btn.active {
     background: var(--primary);
-    color: white;
+    color: rgb(0, 64, 255);
+    background-color: whitesmoke;
 }
 
 .emoji-search {
@@ -1117,6 +1119,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     border-bottom: 1px solid var(--border-light);
     background: var(--bg-input);
     font-size: 0.9rem;
+    background-color: white;
 }
 
 .emoji-grid {
@@ -1124,6 +1127,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     grid-template-columns: repeat(5, 1fr);
     gap: 4px;
     padding: 12px;
+    background-color: white;
 }
 
 .emoji-item {
