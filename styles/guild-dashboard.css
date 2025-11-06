@@ -445,10 +445,6 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 }
 
 .role-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-light);
@@ -457,6 +453,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     overflow-y: auto;
     z-index: 10000;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
 }
 
 .role-dropdown-item {
@@ -1076,26 +1073,14 @@ input[type="number"].form-control::-webkit-outer-spin-button {
 }
 
 .emoji-selector-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
     background: var(--bg-primary);
     border: 1px solid var(--border-light);
     border-radius: 8px;
-    margin-top: 4px;
     z-index: 1000;
     max-height: 550px;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     min-width: 500px;
-}
-
-.emoji-selector-dropdown.open-upward {
-    top: auto;
-    bottom: 100%;
-    margin-top: 0;
-    margin-bottom: 4px;
 }
 
 .emoji-categories {

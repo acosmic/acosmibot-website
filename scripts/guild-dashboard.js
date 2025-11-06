@@ -36,14 +36,26 @@ const NumberInput = ({ value, min, max, step = 1, onChange, ...props }) => {
 const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const dropdownRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Floating UI setup
+  const { refs, floatingStyles } = FloatingUIReactDOM.useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    middleware: [
+      FloatingUIReactDOM.offset(8),
+      FloatingUIReactDOM.flip(),
+      FloatingUIReactDOM.shift({ padding: 8 })
+    ],
+    whileElementsMounted: FloatingUIReactDOM.autoUpdate
+  });
 
   const selectedRoles = availableRoles.filter(role => selectedRoleIds.includes(role.id));
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (refs.floating.current && !refs.floating.current.contains(event.target) &&
+          refs.reference.current && !refs.reference.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
@@ -55,7 +67,7 @@ const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, refs]);
 
   const toggleRole = (roleId) => {
     if (selectedRoleIds.includes(roleId)) {
@@ -76,8 +88,9 @@ const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
   );
 
   return (
-    <div className="role-selector-wrapper" ref={dropdownRef}>
+    <div className="role-selector-wrapper">
       <div
+        ref={refs.setReference}
         className={`role-selector-display ${isOpen ? 'open' : ''}`}
         onClick={() => {
           setIsOpen(true);
@@ -107,7 +120,11 @@ const RoleSelector = ({ selectedRoleIds, availableRoles, onChange }) => {
         />
       </div>
       {isOpen && (
-        <div className="role-dropdown">
+        <div
+          ref={refs.setFloating}
+          style={floatingStyles}
+          className="role-dropdown"
+        >
           {filteredRoles.length > 0 ? (
             filteredRoles.map(role => {
               const isSelected = selectedRoleIds.includes(role.id);
@@ -432,9 +449,18 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('standard');
-  const [openUpward, setOpenUpward] = useState(false);
-  const dropdownRef = useRef(null);
-  const displayRef = useRef(null);
+
+  // Floating UI setup
+  const { refs, floatingStyles } = FloatingUIReactDOM.useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    middleware: [
+      FloatingUIReactDOM.offset(8),
+      FloatingUIReactDOM.flip(),
+      FloatingUIReactDOM.shift({ padding: 8 })
+    ],
+    whileElementsMounted: FloatingUIReactDOM.autoUpdate
+  });
 
   const standardEmojiCategories = {
     people: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😌', '😔', '😑', '😐', '🤐', '🤨', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤮', '🤢', '🤮', '🤮', '🤮'],
@@ -445,29 +471,20 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (refs.floating.current && !refs.floating.current.contains(event.target) &&
+          refs.reference.current && !refs.reference.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-
-      // Determine if dropdown should open upward
-      if (displayRef.current) {
-        const rect = displayRef.current.getBoundingClientRect();
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const dropdownHeight = 550; // Max height from CSS
-
-        // Open upward if there's not enough space below
-        setOpenUpward(spaceBelow < dropdownHeight && rect.top > dropdownHeight);
-      }
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, refs]);
 
   const getDisplayEmoji = () => {
     if (!value) return '😀';
@@ -518,9 +535,9 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
     : Object.values(standardEmojiCategories).flat().filter((e, i, arr) => arr.indexOf(e) === i);
 
   return (
-    <div className="emoji-selector-wrapper" ref={dropdownRef}>
+    <div className="emoji-selector-wrapper">
       <div
-        ref={displayRef}
+        ref={refs.setReference}
         className={`emoji-selector-display ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -531,7 +548,11 @@ const EmojiSelector = ({ value, onSelect, availableEmojis = [], guildName = 'Gui
       </div>
 
       {isOpen && (
-        <div className={`emoji-selector-dropdown ${openUpward ? 'open-upward' : ''}`}>
+        <div
+          ref={refs.setFloating}
+          style={floatingStyles}
+          className="emoji-selector-dropdown"
+        >
           <div className="emoji-categories">
             <button
               className={`category-btn ${category === 'standard' ? 'active' : ''}`}
