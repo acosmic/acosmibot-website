@@ -1346,12 +1346,32 @@ const ReactionRolesCard = ({
 
                 if (!Array.isArray(mappings) || mappings.length === 0) return null;
 
+                // Helper to get display emoji (show as image for custom emojis)
+                const getDisplayEmoji = (emojiStr) => {
+                  if (!emojiStr) return '❓';
+                  // For custom emojis like <:name:id> or <a:name:id>, extract ID and create img
+                  const match = emojiStr.match(/:(\d+)>/);
+                  if (match) {
+                    const emojiId = match[1];
+                    const isAnimated = emojiStr.startsWith('<a:');
+                    const ext = isAnimated ? 'gif' : 'png';
+                    return `<img src="https://cdn.discordapp.com/emojis/${emojiId}.${ext}" alt="emoji" style="height: 1.2em; vertical-align: middle; margin: 0 2px;" />`;
+                  }
+                  // Standard emoji
+                  return emojiStr;
+                };
+
                 return mappings.map((mapping, i) => {
                   const roleNames = (Array.isArray(mapping.roleIds) ? mapping.roleIds : [mapping.roleIds])
                     .map(roleId => availableRoles?.find(r => r.id === roleId)?.name || roleId)
+                    .filter(Boolean)
                     .join(', ');
-                  return `${mapping.emoji} → ${roleNames}`;
-                }).join(' | ');
+
+                  if (!roleNames) return null;
+
+                  const displayEmoji = getDisplayEmoji(mapping.emoji);
+                  return `${displayEmoji} → ${roleNames}`;
+                }).filter(Boolean).join(' | ');
               };
 
               const emojiMapping = getEmojiMapping();
@@ -1374,10 +1394,56 @@ const ReactionRolesCard = ({
                           borderRadius: '4px',
                           fontSize: '0.85rem',
                           maxHeight: '60px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          overflow: 'auto'
                         }}>
-                          <strong>Mappings:</strong> {emojiMapping}
+                          <strong>Mappings:</strong>{' '}
+                          {message.emoji_role_mappings && (() => {
+                            let mappings;
+                            try {
+                              if (typeof message.emoji_role_mappings === 'string') {
+                                const parsed = JSON.parse(message.emoji_role_mappings);
+                                mappings = typeof parsed === 'object' && !Array.isArray(parsed)
+                                  ? Object.entries(parsed).map(([emoji, roleIds]) => ({ emoji, roleIds }))
+                                  : parsed;
+                              } else if (typeof message.emoji_role_mappings === 'object' && !Array.isArray(message.emoji_role_mappings)) {
+                                mappings = Object.entries(message.emoji_role_mappings).map(([emoji, roleIds]) => ({ emoji, roleIds }));
+                              } else if (Array.isArray(message.emoji_role_mappings)) {
+                                mappings = message.emoji_role_mappings;
+                              }
+                            } catch (e) {
+                              return null;
+                            }
+
+                            if (!Array.isArray(mappings)) return null;
+
+                            return mappings.map((mapping, i) => {
+                              const match = mapping.emoji.match(/:(\d+)>/);
+                              const isAnimated = mapping.emoji.startsWith('<a:');
+                              const emojiId = match ? match[1] : null;
+                              const roleNames = (Array.isArray(mapping.roleIds) ? mapping.roleIds : [mapping.roleIds])
+                                .map(roleId => availableRoles?.find(r => r.id === roleId)?.name || roleId)
+                                .filter(Boolean)
+                                .join(', ');
+
+                              return (
+                                <span key={i}>
+                                  {i > 0 && ' | '}
+                                  {emojiId ? (
+                                    <img
+                                      src={`https://cdn.discordapp.com/emojis/${emojiId}.${isAnimated ? 'gif' : 'png'}`}
+                                      alt="emoji"
+                                      style={{ height: '1.2em', verticalAlign: 'middle', marginRight: '2px' }}
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  ) : (
+                                    mapping.emoji
+                                  )}
+                                  {' → '}
+                                  {roleNames}
+                                </span>
+                              );
+                            });
+                          })()}
                         </div>
                       )}
                     </div>
