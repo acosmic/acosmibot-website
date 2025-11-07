@@ -2003,7 +2003,7 @@ const GuildDashboard = () => {
             enabled: settings.twitch?.vod_settings?.enabled === true,
             edit_message_when_vod_available: settings.twitch?.vod_settings?.edit_message_when_vod_available !== false,
             vod_check_interval_seconds: settings.twitch?.vod_settings?.vod_check_interval_seconds || 300,
-            vod_message_suffix: settings.twitch?.vod_settings?.vod_message_suffix || '\n\n📺 **VOD Available:** [Watch Recording]({vod_url})'
+            vod_message_suffix: settings.twitch?.vod_settings?.vod_message_suffix || '📺 VOD Available: {vod_url}'
           },
           notification_method: settings.twitch?.notification_method || 'polling'
         },
