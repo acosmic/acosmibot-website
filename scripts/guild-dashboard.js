@@ -1819,6 +1819,332 @@ const EmojiRoleMapping = ({ mappings, onChange, availableRoles, availableEmojis,
   );
 };
 
+// Custom Command Form Component
+const CustomCommandForm = ({ guildId, commandId, existingCommand, onClose, onSave, getAuthToken }) => {
+  const [formData, setFormData] = useState({
+    name: existingCommand?.name || '',
+    prefix: existingCommand?.prefix || '!',
+    response_type: existingCommand?.response_type || 'text',
+    text_response: existingCommand?.text_response || '',
+    embed_config: existingCommand?.embed_config || {
+      title: '',
+      description: '',
+      color: '#5865F2',
+      fields: [],
+      footer: '',
+      thumbnail: '',
+      image: ''
+    }
+  });
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Command name is required';
+    } else if (!/^[a-z0-9_-]+$/i.test(formData.name)) {
+      newErrors.name = 'Command name can only contain letters, numbers, hyphens, and underscores';
+    }
+
+    if (formData.response_type === 'text' && !formData.text_response.trim()) {
+      newErrors.text_response = 'Text response is required';
+    }
+
+    if (formData.response_type === 'embed') {
+      if (!formData.embed_config.title && !formData.embed_config.description) {
+        newErrors.embed = 'Embed must have at least a title or description';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    try {
+      setSaving(true);
+      const token = getAuthToken();
+
+      const method = commandId ? 'PUT' : 'POST';
+      const url = commandId
+        ? `${API_BASE_URL}/api/guilds/${guildId}/custom-commands/${commandId}`
+        : `${API_BASE_URL}/api/guilds/${guildId}/custom-commands`;
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        await onSave();
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Failed to save command');
+      }
+    } catch (err) {
+      console.error('Error saving command:', err);
+      alert('Failed to save command');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addEmbedField = () => {
+    setFormData({
+      ...formData,
+      embed_config: {
+        ...formData.embed_config,
+        fields: [...(formData.embed_config.fields || []), { name: '', value: '', inline: false }]
+      }
+    });
+  };
+
+  const removeEmbedField = (index) => {
+    const fields = [...formData.embed_config.fields];
+    fields.splice(index, 1);
+    setFormData({
+      ...formData,
+      embed_config: { ...formData.embed_config, fields }
+    });
+  };
+
+  const updateEmbedField = (index, key, value) => {
+    const fields = [...formData.embed_config.fields];
+    fields[index][key] = value;
+    setFormData({
+      ...formData,
+      embed_config: { ...formData.embed_config, fields }
+    });
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>{commandId ? 'Edit' : 'Create'} Custom Command</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group">
+            <label className="form-label">Command Name *</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="ping"
+            />
+            {errors.name && <span className="error-text">{errors.name}</span>}
+            <p className="form-hint">Command will be triggered as: {formData.prefix}{formData.name}</p>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Prefix</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.prefix}
+              onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
+              style={{ width: '100px' }}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Response Type</label>
+            <div className="radio-group">
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="response_type"
+                  value="text"
+                  checked={formData.response_type === 'text'}
+                  onChange={(e) => setFormData({ ...formData, response_type: e.target.value })}
+                />
+                <span>Text Response</span>
+              </label>
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="response_type"
+                  value="embed"
+                  checked={formData.response_type === 'embed'}
+                  onChange={(e) => setFormData({ ...formData, response_type: e.target.value })}
+                />
+                <span>Embed Response</span>
+              </label>
+            </div>
+          </div>
+
+          {formData.response_type === 'text' ? (
+            <div className="form-group">
+              <label className="form-label">Text Response *</label>
+              <textarea
+                className="form-control"
+                rows={4}
+                value={formData.text_response}
+                onChange={(e) => setFormData({ ...formData, text_response: e.target.value })}
+                placeholder="Enter the response message..."
+              />
+              {errors.text_response && <span className="error-text">{errors.text_response}</span>}
+            </div>
+          ) : (
+            <>
+              <div className="form-group">
+                <label className="form-label">Embed Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.embed_config.title}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    embed_config: { ...formData.embed_config, title: e.target.value }
+                  })}
+                  placeholder="Embed title"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Embed Description</label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  value={formData.embed_config.description}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    embed_config: { ...formData.embed_config, description: e.target.value }
+                  })}
+                  placeholder="Embed description"
+                />
+                {errors.embed && <span className="error-text">{errors.embed}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Embed Color</label>
+                <ColorPicker
+                  value={formData.embed_config.color}
+                  onChange={(color) => setFormData({
+                    ...formData,
+                    embed_config: { ...formData.embed_config, color }
+                  })}
+                />
+              </div>
+
+              <div className="form-group">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label">Embed Fields</label>
+                  <button
+                    type="button"
+                    className="btn-primary btn-sm"
+                    onClick={addEmbedField}
+                    style={{ background: '#5865F2', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem 0.75rem', cursor: 'pointer' }}
+                  >
+                    + Add Field
+                  </button>
+                </div>
+                {formData.embed_config.fields?.map((field, idx) => (
+                  <div key={idx} className="embed-field-item" style={{ marginTop: '0.5rem', padding: '0.75rem', background: 'rgba(0,0,0,0.1)', borderRadius: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <strong>Field {idx + 1}</strong>
+                      <button
+                        type="button"
+                        className="btn-danger btn-sm"
+                        onClick={() => removeEmbedField(idx)}
+                        style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem 0.5rem', cursor: 'pointer' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Field name"
+                      value={field.name}
+                      onChange={(e) => updateEmbedField(idx, 'name', e.target.value)}
+                      style={{ marginBottom: '0.5rem' }}
+                    />
+                    <textarea
+                      className="form-control"
+                      rows={2}
+                      placeholder="Field value"
+                      value={field.value}
+                      onChange={(e) => updateEmbedField(idx, 'value', e.target.value)}
+                      style={{ marginBottom: '0.5rem' }}
+                    />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={field.inline}
+                        onChange={(e) => updateEmbedField(idx, 'inline', e.target.checked)}
+                      />
+                      <span>Inline</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Footer Text</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.embed_config.footer}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    embed_config: { ...formData.embed_config, footer: e.target.value }
+                  })}
+                  placeholder="Footer text"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Thumbnail URL</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.embed_config.thumbnail}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    embed_config: { ...formData.embed_config, thumbnail: e.target.value }
+                  })}
+                  placeholder="https://example.com/image.png"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Image URL</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.embed_config.image}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    embed_config: { ...formData.embed_config, image: e.target.value }
+                  })}
+                  placeholder="https://example.com/image.png"
+                />
+              </div>
+            </>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-primary" onClick={handleSubmit} disabled={saving}>
+            {saving ? 'Saving...' : commandId ? 'Update' : 'Create'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const GuildDashboard = () => {
   const [settings, setSettings] = useState(null);
   const [availableRoles, setAvailableRoles] = useState([]);
@@ -1834,6 +2160,7 @@ const GuildDashboard = () => {
     leveling: true,
     roles: true,
     ai: true,
+    custom_commands: true,
     games: true,
     cross_server_portal: true,
     twitch: true,
@@ -1841,6 +2168,13 @@ const GuildDashboard = () => {
   });
   const [showReactionRoleForm, setShowReactionRoleForm] = useState(false);
   const [editingReactionRoleId, setEditingReactionRoleId] = useState(null);
+  const [aiImages, setAiImages] = useState([]);
+  const [aiImageStats, setAiImageStats] = useState(null);
+  const [premiumTier, setPremiumTier] = useState('free');
+  const [customCommands, setCustomCommands] = useState([]);
+  const [customCommandsStats, setCustomCommandsStats] = useState(null);
+  const [showCustomCommandForm, setShowCustomCommandForm] = useState(false);
+  const [editingCommandId, setEditingCommandId] = useState(null);
 
   const guildId = new URLSearchParams(window.location.search).get('guild');
 
@@ -1862,7 +2196,11 @@ const GuildDashboard = () => {
   ];
 
   useEffect(() => {
-    if (guildId) fetchGuildConfig();
+    if (guildId) {
+      fetchGuildConfig();
+      fetchAIImageData();
+      fetchCustomCommands();
+    }
   }, [guildId]);
 
   const fetchGuildConfig = async () => {
@@ -1927,6 +2265,73 @@ const GuildDashboard = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAIImageData = async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) return;
+
+      // Fetch AI image stats
+      const statsResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/ai-images/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        if (statsData.success) {
+          setAiImageStats(statsData.data);
+          setPremiumTier(statsData.data.tier || 'free');
+        }
+      }
+
+      // Fetch AI images history
+      const imagesResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/ai-images`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (imagesResponse.ok) {
+        const imagesData = await imagesResponse.json();
+        if (imagesData.success) {
+          setAiImages(imagesData.data || []);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching AI image data:', err);
+    }
+  };
+
+  const fetchCustomCommands = async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) return;
+
+      // Fetch custom commands
+      const commandsResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/custom-commands`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (commandsResponse.ok) {
+        const commandsData = await commandsResponse.json();
+        if (commandsData.success) {
+          setCustomCommands(commandsData.data || []);
+        }
+      }
+
+      // Fetch custom commands stats
+      const statsResponse = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/custom-commands/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        if (statsData.success) {
+          setCustomCommandsStats(statsData.data);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching custom commands:', err);
     }
   };
 
@@ -2593,7 +2998,7 @@ const GuildDashboard = () => {
         </div>
       </div>
 
-      {/* AI Configuration */}
+      {/* AI Features */}
       <div className="feature-card">
         <div className="feature-header">
           <span
@@ -2603,7 +3008,7 @@ const GuildDashboard = () => {
           >
             ▶
           </span>
-          <h2 className="feature-title"><img src="images/acosmibot-logo3.png" alt="" style={{height: '1.5em', width: 'auto', verticalAlign: 'middle', marginRight: '0.5em'}} /> AI Configuration</h2>
+          <h2 className="feature-title"><img src="images/acosmibot-logo3.png" alt="" style={{height: '1.5em', width: 'auto', verticalAlign: 'middle', marginRight: '0.5em'}} /> AI Features</h2>
           <div
             className={`toggle-switch ${settings.ai?.enabled ? 'active' : ''}`}
             onClick={() => updateToggleAndCollapse('ai.enabled', !settings.ai?.enabled, 'ai')}
@@ -2612,92 +3017,405 @@ const GuildDashboard = () => {
         <div className={`feature-content ${collapsedSections.ai ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.ai ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
           {settings.ai?.enabled && (
           <>
-            <div className="form-group">
-              <label className="form-label">AI Model</label>
-              <select
-                value={settings.ai?.model || 'gpt-4o-mini'}
-                onChange={(e) => updateSetting('ai.model', e.target.value)}
-                className="form-control"
-              >
-                <option value="gpt-4o-mini">GPT-4o Mini</option>
-                {/*<option value="gpt-4o">GPT-4o (Recommended)</option>*/}
-                {/*<option value="gpt-4-turbo">GPT-4 Turbo</option>*/}
-                {/*<option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>*/}
-              </select>
-              <p className="form-hint">Higher tier models provide better responses</p>
-            </div>
-            <div className="form-group">
-              <label className="form-label">AI Instructions</label>
-              <textarea
-                value={settings.ai?.instructions || ''}
-                onChange={(e) => updateSetting('ai.instructions', e.target.value)}
-                placeholder="Enter custom instructions for AI behavior..."
-                className="form-control"
-              />
-              <p className="form-hint">Customize AI personality and response style</p>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Channel Restrictions</label>
-              <div className="radio-group">
-                <label className="radio-option">
-                  <input
-                    type="radio"
-                    name="channel_mode"
-                    value="all"
-                    checked={settings.ai?.channel_mode === 'all'}
-                    onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
-                  />
-                  <span>All channels (AI works everywhere)</span>
-                </label>
-                <label className="radio-option">
-                  <input
-                    type="radio"
-                    name="channel_mode"
-                    value="specific"
-                    checked={settings.ai?.channel_mode === 'specific'}
-                    onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
-                  />
-                  <span>Specific channels only</span>
-                </label>
-                <label className="radio-option">
-                  <input
-                    type="radio"
-                    name="channel_mode"
-                    value="exclude"
-                    checked={settings.ai?.channel_mode === 'exclude'}
-                    onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
-                  />
-                  <span>Exclude channels (AI works everywhere except selected)</span>
-                </label>
-              </div>
-            </div>
-
-            {settings.ai?.channel_mode === 'specific' && (
-              <div className="form-group">
-                <label className="form-label">Allowed Channels</label>
-                <ChannelSelector
-                  selectedChannelIds={settings.ai?.allowed_channels || []}
-                  availableChannels={availableChannels}
-                  onChange={(newChannelIds) => updateSetting('ai.allowed_channels', newChannelIds)}
+            {/* AI Chat Subsection */}
+            <div className="nested-feature">
+              <div className="feature-header">
+                <h3 className="feature-title">💬 AI Chat</h3>
+                <div
+                  className={`toggle-switch ${settings.ai?.enabled ? 'active' : ''}`}
+                  onClick={() => updateSetting('ai.enabled', !settings.ai?.enabled)}
                 />
-                <p className="form-hint">AI will only respond in these channels</p>
               </div>
-            )}
 
-            {settings.ai?.channel_mode === 'exclude' && (
-              <div className="form-group">
-                <label className="form-label">Excluded Channels</label>
-                <ChannelSelector
-                  selectedChannelIds={settings.ai?.excluded_channels || []}
-                  availableChannels={availableChannels}
-                  onChange={(newChannelIds) => updateSetting('ai.excluded_channels', newChannelIds)}
-                />
-                <p className="form-hint">AI will not respond in these channels</p>
+              {settings.ai?.enabled && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">AI Model</label>
+                    <select
+                      value={settings.ai?.model || 'gpt-4o-mini'}
+                      onChange={(e) => updateSetting('ai.model', e.target.value)}
+                      className="form-control"
+                    >
+                      <option value="gpt-4o-mini">GPT-4o Mini</option>
+                      {/*<option value="gpt-4o">GPT-4o (Recommended)</option>*/}
+                      {/*<option value="gpt-4-turbo">GPT-4 Turbo</option>*/}
+                      {/*<option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>*/}
+                    </select>
+                    <p className="form-hint">Higher tier models provide better responses</p>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">AI Instructions</label>
+                    <textarea
+                      value={settings.ai?.instructions || ''}
+                      onChange={(e) => updateSetting('ai.instructions', e.target.value)}
+                      placeholder="Enter custom instructions for AI behavior..."
+                      className="form-control"
+                      rows={4}
+                    />
+                    <p className="form-hint">Customize AI personality and response style</p>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Channel Restrictions</label>
+                    <div className="radio-group">
+                      <label className="radio-option">
+                        <input
+                          type="radio"
+                          name="channel_mode"
+                          value="all"
+                          checked={settings.ai?.channel_mode === 'all'}
+                          onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
+                        />
+                        <span>All channels (AI works everywhere)</span>
+                      </label>
+                      <label className="radio-option">
+                        <input
+                          type="radio"
+                          name="channel_mode"
+                          value="specific"
+                          checked={settings.ai?.channel_mode === 'specific'}
+                          onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
+                        />
+                        <span>Specific channels only</span>
+                      </label>
+                      <label className="radio-option">
+                        <input
+                          type="radio"
+                          name="channel_mode"
+                          value="exclude"
+                          checked={settings.ai?.channel_mode === 'exclude'}
+                          onChange={(e) => updateSetting('ai.channel_mode', e.target.value)}
+                        />
+                        <span>Exclude channels (AI works everywhere except selected)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {settings.ai?.channel_mode === 'specific' && (
+                    <div className="form-group">
+                      <label className="form-label">Allowed Channels</label>
+                      <ChannelSelector
+                        selectedChannelIds={settings.ai?.allowed_channels || []}
+                        availableChannels={availableChannels}
+                        onChange={(newChannelIds) => updateSetting('ai.allowed_channels', newChannelIds)}
+                      />
+                      <p className="form-hint">AI will only respond in these channels</p>
+                    </div>
+                  )}
+
+                  {settings.ai?.channel_mode === 'exclude' && (
+                    <div className="form-group">
+                      <label className="form-label">Excluded Channels</label>
+                      <ChannelSelector
+                        selectedChannelIds={settings.ai?.excluded_channels || []}
+                        availableChannels={availableChannels}
+                        onChange={(newChannelIds) => updateSetting('ai.excluded_channels', newChannelIds)}
+                      />
+                      <p className="form-hint">AI will not respond in these channels</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Image Generation Subsection */}
+            <div className="nested-feature">
+              <div className="feature-header">
+                <h3 className="feature-title">🎨 Image Generation</h3>
+                {premiumTier === 'free' ? (
+                  <span className="premium-badge">Premium Only</span>
+                ) : (
+                  <span className="premium-badge active">Premium</span>
+                )}
               </div>
-            )}
+
+              {premiumTier === 'premium' ? (
+                <>
+                  <div className="ai-usage-stats">
+                    <div className="stat-card">
+                      <div className="stat-label">Monthly Usage</div>
+                      <div className="stat-value">
+                        {aiImageStats?.generation_monthly_used || 0} / {aiImageStats?.generation_monthly_limit || 50}
+                      </div>
+                      <div className="stat-progress">
+                        <div
+                          className="stat-progress-bar"
+                          style={{width: `${((aiImageStats?.generation_monthly_used || 0) / (aiImageStats?.generation_monthly_limit || 50)) * 100}%`}}
+                        />
+                      </div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-label">Total Generated</div>
+                      <div className="stat-value">{aiImageStats?.generation_total || 0}</div>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Recent Generations</label>
+                    <div className="image-history-grid">
+                      {aiImages?.filter(img => img.type === 'generation').slice(0, 6).map(img => (
+                        <div key={img.id} className="image-history-item">
+                          <img src={img.image_url} alt="Generated" />
+                          <div className="image-history-overlay">
+                            <div className="image-prompt">{img.prompt}</div>
+                            <div className="image-meta">
+                              <span>{img.username}</span>
+                              <span>{new Date(img.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {(!aiImages || aiImages.filter(img => img.type === 'generation').length === 0) && (
+                      <p className="form-hint">No images generated yet. Use /generate-image command in Discord.</p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="premium-upsell">
+                  <p>🎨 Generate custom images with AI using /generate-image command</p>
+                  <p>Upgrade to Premium to unlock this feature!</p>
+                </div>
+              )}
+            </div>
+
+            {/* Image Analysis Subsection */}
+            <div className="nested-feature">
+              <div className="feature-header">
+                <h3 className="feature-title">🔍 Image Analysis</h3>
+                {premiumTier === 'free' ? (
+                  <span className="premium-badge">Premium Only</span>
+                ) : (
+                  <span className="premium-badge active">Premium</span>
+                )}
+              </div>
+
+              {premiumTier === 'premium' ? (
+                <>
+                  <div className="ai-usage-stats">
+                    <div className="stat-card">
+                      <div className="stat-label">Monthly Usage</div>
+                      <div className="stat-value">
+                        {aiImageStats?.analysis_monthly_used || 0} / {aiImageStats?.analysis_monthly_limit || 100}
+                      </div>
+                      <div className="stat-progress">
+                        <div
+                          className="stat-progress-bar"
+                          style={{width: `${((aiImageStats?.analysis_monthly_used || 0) / (aiImageStats?.analysis_monthly_limit || 100)) * 100}%`}}
+                        />
+                      </div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-label">Total Analyzed</div>
+                      <div className="stat-value">{aiImageStats?.analysis_total || 0}</div>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Recent Analyses</label>
+                    <div className="analysis-history-list">
+                      {aiImages?.filter(img => img.type === 'analysis').slice(0, 5).map(img => (
+                        <div key={img.id} className="analysis-history-item">
+                          <img src={img.image_url} alt="Analyzed" className="analysis-thumb" />
+                          <div className="analysis-content">
+                            <div className="analysis-text">{img.analysis_result}</div>
+                            <div className="analysis-meta">
+                              <span>{img.username}</span>
+                              <span>{new Date(img.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {(!aiImages || aiImages.filter(img => img.type === 'analysis').length === 0) && (
+                      <p className="form-hint">No images analyzed yet. Use /analyze-image command in Discord.</p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="premium-upsell">
+                  <p>🔍 Analyze images with AI using /analyze-image command</p>
+                  <p>Upgrade to Premium to unlock this feature!</p>
+                </div>
+              )}
+            </div>
           </>
         )}
+        </div>
+      </div>
+
+      {/* Custom Commands */}
+      <div className="feature-card">
+        <div className="feature-header">
+          <span
+            className="collapse-icon"
+            onClick={() => toggleSectionCollapse('custom_commands')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.custom_commands ? 'rotate(0deg)' : 'rotate(90deg)' }}
+          >
+            ▶
+          </span>
+          <h2 className="feature-title">⚙️ Custom Commands</h2>
+          <div className="premium-tier-indicator" style={{ marginLeft: 'auto', marginRight: '1rem', fontSize: '0.9rem' }}>
+            {customCommandsStats && (
+              <span>
+                {customCommandsStats.command_count || 0} / {customCommandsStats.command_limit || 1}
+                {premiumTier === 'free' && ' (Free)'}
+                {premiumTier === 'premium' && ' (Premium)'}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className={`feature-content ${collapsedSections.custom_commands ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.custom_commands ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          <div className="custom-commands-info">
+            <p>Create custom commands that respond with text or rich embeds when triggered.</p>
+            {premiumTier === 'free' && (
+              <div className="premium-upsell" style={{ marginTop: '1rem' }}>
+                <p>⭐ Upgrade to Premium to create up to 25 custom commands!</p>
+              </div>
+            )}
+          </div>
+
+          {/* Command List */}
+          <div className="form-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="form-label">Your Custom Commands</label>
+              <button
+                className="btn-primary btn-sm"
+                onClick={() => {
+                  if (premiumTier === 'free' && customCommands.length >= 1) {
+                    alert('Free tier allows only 1 custom command. Upgrade to Premium for up to 25 commands!');
+                    return;
+                  }
+                  if (premiumTier === 'premium' && customCommands.length >= 25) {
+                    alert('You have reached the maximum of 25 custom commands.');
+                    return;
+                  }
+                  setShowCustomCommandForm(true);
+                  setEditingCommandId(null);
+                }}
+                style={{ background: '#5865F2', color: 'white', border: 'none', borderRadius: '4px', padding: '0.5rem 1rem', cursor: 'pointer' }}
+              >
+                + Add Command
+              </button>
+            </div>
+
+            <div className="custom-commands-list">
+              {customCommands.length === 0 ? (
+                <p className="form-hint">No custom commands yet. Click "Add Command" to create one.</p>
+              ) : (
+                customCommands.map(cmd => (
+                  <div key={cmd.id} className="custom-command-item">
+                    <div className="command-item-header">
+                      <div className="command-info">
+                        <span className="command-name">{cmd.prefix}{cmd.name}</span>
+                        <span className={`command-status ${cmd.enabled ? 'enabled' : 'disabled'}`}>
+                          {cmd.enabled ? '✓ Enabled' : '✗ Disabled'}
+                        </span>
+                        <span className="command-type">{cmd.response_type === 'embed' ? '📋 Embed' : '💬 Text'}</span>
+                        <span className="command-uses">Uses: {cmd.use_count || 0}</span>
+                      </div>
+                      <div className="command-actions">
+                        <button
+                          className="btn-icon"
+                          onClick={async () => {
+                            try {
+                              const token = getAuthToken();
+                              const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/custom-commands/${cmd.id}/toggle`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                              });
+                              if (response.ok) {
+                                await fetchCustomCommands();
+                              }
+                            } catch (err) {
+                              console.error('Error toggling command:', err);
+                            }
+                          }}
+                          title={cmd.enabled ? 'Disable' : 'Enable'}
+                        >
+                          {cmd.enabled ? '🔇' : '🔊'}
+                        </button>
+                        <button
+                          className="btn-icon"
+                          onClick={() => {
+                            setEditingCommandId(cmd.id);
+                            setShowCustomCommandForm(true);
+                          }}
+                          style={{ background: 'rgba(88, 101, 242, 0.1)', border: '1px solid #5865F2', borderRadius: '4px', padding: '0.5rem', cursor: 'pointer', marginRight: '0.5rem' }}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="btn-danger btn-sm"
+                          onClick={async () => {
+                            if (!confirm(`Delete command ${cmd.prefix}${cmd.name}?`)) return;
+                            try {
+                              const token = getAuthToken();
+                              const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/custom-commands/${cmd.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                              });
+                              if (response.ok) {
+                                await fetchCustomCommands();
+                              }
+                            } catch (err) {
+                              console.error('Error deleting command:', err);
+                            }
+                          }}
+                          style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '0.5rem 1rem', cursor: 'pointer' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    <div className="command-preview">
+                      {cmd.response_type === 'text' ? (
+                        <div className="text-preview">{cmd.text_response}</div>
+                      ) : (
+                        <div className="embed-preview">Embed: {cmd.embed_config?.title || 'Untitled'}</div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Command Form (will be added in next section) */}
+          {showCustomCommandForm && (
+            <CustomCommandForm
+              guildId={guildId}
+              commandId={editingCommandId}
+              existingCommand={customCommands.find(c => c.id === editingCommandId)}
+              onClose={() => {
+                setShowCustomCommandForm(false);
+                setEditingCommandId(null);
+              }}
+              onSave={async () => {
+                await fetchCustomCommands();
+                setShowCustomCommandForm(false);
+                setEditingCommandId(null);
+              }}
+              getAuthToken={getAuthToken}
+            />
+          )}
+
+          {/* Top Used Commands */}
+          {customCommandsStats && customCommandsStats.top_commands && customCommandsStats.top_commands.length > 0 && (
+            <div className="form-group">
+              <label className="form-label">Most Used Commands</label>
+              <div className="top-commands-list">
+                {customCommandsStats.top_commands.map((cmd, idx) => (
+                  <div key={idx} className="top-command-item">
+                    <span className="rank">#{idx + 1}</span>
+                    <span className="name">{cmd.prefix}{cmd.name}</span>
+                    <span className="uses">{cmd.use_count} uses</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
