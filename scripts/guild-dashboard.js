@@ -2281,8 +2281,8 @@ const GuildDashboard = () => {
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         if (statsData.success) {
-          setAiImageStats(statsData.data);
-          setPremiumTier(statsData.data.tier || 'free');
+          setAiImageStats(statsData);
+          setPremiumTier(statsData.limits?.tier || 'free');
         }
       }
 
@@ -3136,18 +3136,18 @@ const GuildDashboard = () => {
                     <div className="stat-card">
                       <div className="stat-label">Monthly Usage</div>
                       <div className="stat-value">
-                        {aiImageStats?.generation_monthly_used || 0} / {aiImageStats?.generation_monthly_limit || 50}
+                        {aiImageStats?.stats?.generation?.count || 0} / {aiImageStats?.limits?.monthly_image_limit || 50}
                       </div>
                       <div className="stat-progress">
                         <div
                           className="stat-progress-bar"
-                          style={{width: `${((aiImageStats?.generation_monthly_used || 0) / (aiImageStats?.generation_monthly_limit || 50)) * 100}%`}}
+                          style={{width: `${((aiImageStats?.stats?.generation?.count || 0) / (aiImageStats?.limits?.monthly_image_limit || 50)) * 100}%`}}
                         />
                       </div>
                     </div>
                     <div className="stat-card">
                       <div className="stat-label">Total Generated</div>
-                      <div className="stat-value">{aiImageStats?.generation_total || 0}</div>
+                      <div className="stat-value">{aiImageStats?.stats?.total || 0}</div>
                     </div>
                   </div>
 
@@ -3197,18 +3197,18 @@ const GuildDashboard = () => {
                     <div className="stat-card">
                       <div className="stat-label">Monthly Usage</div>
                       <div className="stat-value">
-                        {aiImageStats?.analysis_monthly_used || 0} / {aiImageStats?.analysis_monthly_limit || 100}
+                        {aiImageStats?.stats?.analysis?.count || 0} / {aiImageStats?.limits?.image_analysis_monthly_limit || 100}
                       </div>
                       <div className="stat-progress">
                         <div
                           className="stat-progress-bar"
-                          style={{width: `${((aiImageStats?.analysis_monthly_used || 0) / (aiImageStats?.analysis_monthly_limit || 100)) * 100}%`}}
+                          style={{width: `${((aiImageStats?.stats?.analysis?.count || 0) / (aiImageStats?.limits?.image_analysis_monthly_limit || 100)) * 100}%`}}
                         />
                       </div>
                     </div>
                     <div className="stat-card">
                       <div className="stat-label">Total Analyzed</div>
-                      <div className="stat-value">{aiImageStats?.analysis_total || 0}</div>
+                      <div className="stat-value">{aiImageStats?.stats?.total || 0}</div>
                     </div>
                   </div>
 
