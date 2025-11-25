@@ -203,17 +203,36 @@ async function upgradeServer(guildId, guildName) {
   try {
     const token = getAuthToken();
 
-    // For testing: directly update the database
-    // In production, this would create a Stripe checkout session
-
-    if (confirm(`Upgrade "${guildName}" to Premium?\n\nNote: This is a test mode that will directly set the guild to premium tier.`)) {
+    if (confirm(`Upgrade "${guildName}" to Premium?\n\nNote: This is test mode.`)) {
       showNotification('Processing upgrade...', 'info');
 
-      // Simulate upgrade by calling a test endpoint
-      // You'll need to create this endpoint or manually update the database
-      showNotification(`Test Mode: Please manually set guild ${guildId} to premium in the database.`, 'info');
+      // Call test upgrade endpoint
+      const response = await fetch(`${API_BASE_URL}/api/subscriptions/test-upgrade`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          guild_id: guildId
+        })
+      });
 
-      // In production, this would be:
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        showNotification('Successfully upgraded to premium!', 'success');
+
+        // Refresh modal after delay
+        setTimeout(() => {
+          closeServerModal();
+          openServerModal();
+        }, 1500);
+      } else {
+        showNotification(data.message || 'Failed to upgrade', 'error');
+      }
+
+      // For production Stripe integration, uncomment below:
       // const response = await fetch(`${API_BASE_URL}/api/subscriptions/create-checkout`, {
       //   method: 'POST',
       //   headers: {
@@ -233,12 +252,6 @@ async function upgradeServer(guildId, guildName) {
       //     window.location.href = data.checkout_url;
       //   }
       // }
-
-      // Refresh the modal after a delay
-      setTimeout(() => {
-        closeServerModal();
-        openServerModal();
-      }, 2000);
     }
   } catch (error) {
     console.error('Error upgrading server:', error);
