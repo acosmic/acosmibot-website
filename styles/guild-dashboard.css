@@ -102,6 +102,115 @@ body > .container,
     color: #28a745;
 }
 
+/* Premium Banners */
+.premium-upgrade-banner {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%);
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
+}
+
+.premium-active-banner {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.05) 0%, rgba(114, 137, 218, 0.05) 100%);
+    border: 2px solid rgba(88, 101, 242, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideIn 0.3s ease;
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.banner-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.banner-text {
+    flex: 1;
+}
+
+.banner-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 4px 0;
+}
+
+.banner-description {
+    font-size: 14px;
+    color: var(--text-body);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.banner-cta {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    white-space: nowrap;
+}
+
+.banner-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.4);
+}
+
+.banner-link {
+    padding: 10px 20px;
+    background: rgba(88, 101, 242, 0.1);
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.banner-link:hover {
+    background: rgba(88, 101, 242, 0.15);
+}
+
+@media (max-width: 768px) {
+    .premium-upgrade-banner,
+    .premium-active-banner {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .banner-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .banner-cta,
+    .banner-link {
+        width: 100%;
+        text-align: center;
+    }
+}
+
 /* Feature Cards */
 .feature-card {
     background: var(--bg-overlay);

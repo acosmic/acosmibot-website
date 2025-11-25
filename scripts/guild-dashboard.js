@@ -2623,6 +2623,42 @@ const GuildDashboard = () => {
         </div>
       )}
 
+      {/* Premium Upgrade Banner */}
+      {premiumTier === 'free' && (
+        <div className="premium-upgrade-banner">
+          <div className="banner-content">
+            <div className="banner-icon">💎</div>
+            <div className="banner-text">
+              <h3 className="banner-title">Unlock Premium Features</h3>
+              <p className="banner-description">
+                Get 5x AI messages, image generation, advanced AI models, unlimited Twitch tracking, and more!
+              </p>
+            </div>
+          </div>
+          <a href="/premium" className="banner-cta">
+            Upgrade to Premium
+          </a>
+        </div>
+      )}
+
+      {/* Premium Active Banner */}
+      {premiumTier === 'premium' && (
+        <div className="premium-active-banner">
+          <div className="banner-content">
+            <div className="banner-icon">✨</div>
+            <div className="banner-text">
+              <h3 className="banner-title">Premium Active</h3>
+              <p className="banner-description">
+                You're enjoying all premium features! Thank you for your support.
+              </p>
+            </div>
+          </div>
+          <a href="/premium" className="banner-link">
+            Manage Subscription
+          </a>
+        </div>
+      )}
+
       {/* Leveling System */}
       <div className="feature-card">
         <div className="feature-header">

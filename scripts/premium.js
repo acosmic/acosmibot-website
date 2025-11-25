@@ -1,0 +1,308 @@
+// Premium page functionality
+const API_BASE_URL = 'https://api.acosmibot.com';
+
+// State
+let userGuilds = [];
+let selectedGuild = null;
+
+// Get auth token
+function getAuthToken() {
+  return localStorage.getItem('discord_token');
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+  const container = document.getElementById('notification-container');
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+
+  container.appendChild(notification);
+
+  // Remove after 5 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease-out';
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
+}
+
+// Initialize page
+async function initPremiumPage() {
+  const token = getAuthToken();
+  const selectServerBtn = document.getElementById('selectServerBtn');
+  const loginHint = document.getElementById('loginHint');
+
+  if (token) {
+    // User is logged in
+    selectServerBtn.disabled = false;
+    loginHint.style.display = 'none';
+
+    // Set up event listeners
+    selectServerBtn.addEventListener('click', openServerModal);
+    document.getElementById('closeModal').addEventListener('click', closeServerModal);
+    document.querySelector('.modal-overlay').addEventListener('click', closeServerModal);
+  } else {
+    // User is not logged in
+    selectServerBtn.disabled = true;
+    loginHint.style.display = 'block';
+  }
+}
+
+// Open server selection modal
+async function openServerModal() {
+  const modal = document.getElementById('serverModal');
+  const loadingState = document.getElementById('loadingServers');
+  const serverList = document.getElementById('serverList');
+  const noServers = document.getElementById('noServers');
+
+  // Show modal
+  modal.style.display = 'flex';
+
+  // Reset states
+  loadingState.style.display = 'flex';
+  serverList.style.display = 'none';
+  noServers.style.display = 'none';
+  serverList.innerHTML = '';
+
+  try {
+    // Fetch user's guilds
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/api/user/guilds`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch servers');
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.guilds && data.guilds.length > 0) {
+      // Filter guilds where user has admin permissions
+      userGuilds = data.guilds.filter(guild =>
+        guild.permissions && guild.permissions.includes('administrator')
+      );
+
+      if (userGuilds.length === 0) {
+        loadingState.style.display = 'none';
+        noServers.style.display = 'block';
+        return;
+      }
+
+      // Fetch subscription status for each guild
+      const guildsWithStatus = await Promise.all(
+        userGuilds.map(async (guild) => {
+          try {
+            const subResponse = await fetch(`${API_BASE_URL}/api/guilds/${guild.id}/subscription`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (subResponse.ok) {
+              const subData = await subResponse.json();
+              guild.subscription = subData.subscription;
+              guild.tier = subData.tier || 'free';
+              guild.status = subData.status || 'active';
+            } else {
+              guild.tier = 'free';
+              guild.status = 'active';
+            }
+          } catch (error) {
+            console.error(`Error fetching subscription for guild ${guild.id}:`, error);
+            guild.tier = 'free';
+            guild.status = 'active';
+          }
+          return guild;
+        })
+      );
+
+      // Display servers
+      loadingState.style.display = 'none';
+      serverList.style.display = 'grid';
+
+      guildsWithStatus.forEach(guild => {
+        const serverCard = createServerCard(guild);
+        serverList.appendChild(serverCard);
+      });
+    } else {
+      loadingState.style.display = 'none';
+      noServers.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error fetching servers:', error);
+    showNotification('Failed to load servers. Please try again.', 'error');
+    loadingState.style.display = 'none';
+  }
+}
+
+// Create server card
+function createServerCard(guild) {
+  const card = document.createElement('div');
+  card.className = 'server-card';
+
+  const isPremium = guild.tier === 'premium';
+  const isOwner = guild.owner === true;
+
+  // Server icon
+  let iconHtml = '';
+  if (guild.icon) {
+    const iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`;
+    iconHtml = `<img src="${iconUrl}" alt="${guild.name}" class="server-icon">`;
+  } else {
+    // Default icon with first letter
+    const firstLetter = guild.name.charAt(0).toUpperCase();
+    iconHtml = `<div class="server-icon-default">${firstLetter}</div>`;
+  }
+
+  // Status badge
+  let statusBadge = '';
+  if (isPremium) {
+    statusBadge = '<span class="status-badge premium">💎 Premium</span>';
+  } else {
+    statusBadge = '<span class="status-badge free">Free</span>';
+  }
+
+  // Action button
+  let actionButton = '';
+  if (isPremium) {
+    actionButton = `
+      <button class="server-action-btn manage" onclick="manageSubscription('${guild.id}', '${guild.name}')">
+        Manage Subscription
+      </button>
+    `;
+  } else {
+    actionButton = `
+      <button class="server-action-btn upgrade" onclick="upgradeServer('${guild.id}', '${guild.name}')">
+        Upgrade to Premium
+      </button>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="server-info">
+      ${iconHtml}
+      <div class="server-details">
+        <h3 class="server-name">${guild.name}</h3>
+        <p class="server-members">${guild.member_count || 0} members</p>
+        ${statusBadge}
+      </div>
+    </div>
+    ${actionButton}
+  `;
+
+  return card;
+}
+
+// Close server modal
+function closeServerModal() {
+  const modal = document.getElementById('serverModal');
+  modal.style.display = 'none';
+}
+
+// Upgrade server to premium
+async function upgradeServer(guildId, guildName) {
+  try {
+    const token = getAuthToken();
+
+    // For testing: directly update the database
+    // In production, this would create a Stripe checkout session
+
+    if (confirm(`Upgrade "${guildName}" to Premium?\n\nNote: This is a test mode that will directly set the guild to premium tier.`)) {
+      showNotification('Processing upgrade...', 'info');
+
+      // Simulate upgrade by calling a test endpoint
+      // You'll need to create this endpoint or manually update the database
+      showNotification(`Test Mode: Please manually set guild ${guildId} to premium in the database.`, 'info');
+
+      // In production, this would be:
+      // const response = await fetch(`${API_BASE_URL}/api/subscriptions/create-checkout`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({
+      //     guild_id: guildId,
+      //     success_url: `${window.location.origin}/premium?success=true&guild=${guildId}`,
+      //     cancel_url: `${window.location.origin}/premium?canceled=true`
+      //   })
+      // });
+      //
+      // if (response.ok) {
+      //   const data = await response.json();
+      //   if (data.success && data.checkout_url) {
+      //     window.location.href = data.checkout_url;
+      //   }
+      // }
+
+      // Refresh the modal after a delay
+      setTimeout(() => {
+        closeServerModal();
+        openServerModal();
+      }, 2000);
+    }
+  } catch (error) {
+    console.error('Error upgrading server:', error);
+    showNotification('Failed to upgrade server. Please try again.', 'error');
+  }
+}
+
+// Manage subscription
+async function manageSubscription(guildId, guildName) {
+  try {
+    const token = getAuthToken();
+
+    if (confirm(`Manage subscription for "${guildName}"?\n\nThis will open the subscription management portal.`)) {
+      showNotification('Opening subscription portal...', 'info');
+
+      // In production, this would open the Stripe customer portal:
+      // const response = await fetch(`${API_BASE_URL}/api/subscriptions/portal`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({
+      //     guild_id: guildId,
+      //     return_url: `${window.location.origin}/premium`
+      //   })
+      // });
+      //
+      // if (response.ok) {
+      //   const data = await response.json();
+      //   if (data.success && data.portal_url) {
+      //     window.location.href = data.portal_url;
+      //   }
+      // }
+
+      // For testing, just redirect to guild dashboard
+      window.location.href = `/guild-dashboard?guild=${guildId}`;
+    }
+  } catch (error) {
+    console.error('Error managing subscription:', error);
+    showNotification('Failed to open subscription portal. Please try again.', 'error');
+  }
+}
+
+// Handle URL parameters (success/cancel from Stripe)
+function handleUrlParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  if (urlParams.get('success') === 'true') {
+    const guildId = urlParams.get('guild');
+    showNotification('Premium upgrade successful! Your server now has access to all premium features.', 'success');
+
+    // Clear URL parameters
+    window.history.replaceState({}, document.title, '/premium');
+  } else if (urlParams.get('canceled') === 'true') {
+    showNotification('Upgrade canceled. You can upgrade anytime!', 'info');
+
+    // Clear URL parameters
+    window.history.replaceState({}, document.title, '/premium');
+  }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  initPremiumPage();
+  handleUrlParams();
+});
