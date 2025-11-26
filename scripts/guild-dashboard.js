@@ -2635,7 +2635,7 @@ const GuildDashboard = () => {
               </p>
             </div>
           </div>
-          <a href="/premium" className="banner-cta">
+          <a href={`/premium?guild=${guildId}`} className="banner-cta">
             Upgrade to Premium
           </a>
         </div>

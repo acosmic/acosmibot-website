@@ -41,10 +41,48 @@ async function initPremiumPage() {
     selectServerBtn.addEventListener('click', openServerModal);
     document.getElementById('closeModal').addEventListener('click', closeServerModal);
     document.querySelector('.modal-overlay').addEventListener('click', closeServerModal);
+
+    // Check for guild parameter in URL for direct upgrade flow
+    handleDirectGuildUpgrade();
   } else {
     // User is not logged in
     selectServerBtn.disabled = true;
     loginHint.style.display = 'block';
+  }
+}
+
+// Handle direct guild upgrade from URL parameter
+async function handleDirectGuildUpgrade() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const guildId = urlParams.get('guild');
+
+  if (guildId) {
+    // Auto-open the server modal with the specified guild
+    // Wait a brief moment for DOM to be ready
+    setTimeout(async () => {
+      await openServerModal();
+
+      // After modal opens and servers load, scroll to/highlight the specified guild
+      // Wait for server list to populate
+      setTimeout(() => {
+        const serverCards = document.querySelectorAll('.server-card');
+        serverCards.forEach(card => {
+          // Check if this card matches the guild ID
+          const upgradeBtn = card.querySelector('.server-action-btn');
+          if (upgradeBtn && upgradeBtn.getAttribute('onclick')?.includes(guildId)) {
+            // Highlight the card
+            card.style.border = '2px solid #ffd700';
+            card.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.5)';
+
+            // Scroll into view
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }, 500); // Wait for server list to render
+    }, 100);
+
+    // Clean up URL parameter
+    window.history.replaceState({}, document.title, '/premium');
   }
 }
 
