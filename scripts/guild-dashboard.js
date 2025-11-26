@@ -2175,10 +2175,17 @@ const GuildDashboard = () => {
   const [customCommandsStats, setCustomCommandsStats] = useState(null);
   const [showCustomCommandForm, setShowCustomCommandForm] = useState(false);
   const [editingCommandId, setEditingCommandId] = useState(null);
+  const [subscriptionData, setSubscriptionData] = useState(null);
 
   const guildId = new URLSearchParams(window.location.search).get('guild');
 
   const getAuthToken = () => localStorage.getItem('discord_token');
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
 
   const standardEmojis = [
     { id: 'cherry', name: 'cherry', url: null, emoji: '🍒' },
@@ -2200,6 +2207,7 @@ const GuildDashboard = () => {
       fetchGuildConfig();
       fetchAIImageData();
       fetchCustomCommands();
+      fetchSubscriptionData();
     }
   }, [guildId]);
 
@@ -2332,6 +2340,54 @@ const GuildDashboard = () => {
       }
     } catch (err) {
       console.error('Error fetching custom commands:', err);
+    }
+  };
+
+  const fetchSubscriptionData = async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/subscription`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSubscriptionData(data.subscription);
+          setPremiumTier(data.tier || 'free');
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching subscription data:', err);
+    }
+  };
+
+  const openStripePortal = async () => {
+    try {
+      const token = getAuthToken();
+      const response = await fetch(`${API_BASE_URL}/api/subscriptions/portal`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          guild_id: guildId,
+          return_url: window.location.href
+        })
+      });
+
+      const data = await response.json();
+      if (data.success && data.portal_url) {
+        window.location.href = data.portal_url;
+      } else {
+        alert('Failed to open billing portal');
+      }
+    } catch (error) {
+      console.error('Error opening portal:', error);
+      alert('Failed to open billing portal');
     }
   };
 
@@ -2623,39 +2679,47 @@ const GuildDashboard = () => {
         </div>
       )}
 
-      {/* Premium Upgrade Banner */}
-      {premiumTier === 'free' && (
-        <div className="premium-upgrade-banner">
-          <div className="banner-content">
-            <div className="banner-icon">💎</div>
-            <div className="banner-text">
-              <h3 className="banner-title">Unlock Premium Features</h3>
-              <p className="banner-description">
-                Get 5x AI messages, image generation, advanced AI models, unlimited Twitch tracking, and more!
-              </p>
+      {/* Subscription & Billing Section */}
+      {premiumTier === 'premium' ? (
+        <div className="feature-card subscription-section">
+          <h2 className="feature-title">💎 Subscription & Billing</h2>
+          <div className="subscription-info">
+            <div className="info-row">
+              <span className="info-label">Current Plan:</span>
+              <span className="plan-badge premium">Premium</span>
             </div>
+            <div className="info-row">
+              <span className="info-label">Status:</span>
+              <span className="status-active">Active</span>
+            </div>
+            {subscriptionData?.current_period_end && (
+              <div className="info-row">
+                <span className="info-label">Next Renewal:</span>
+                <span className="info-value">{formatDate(subscriptionData.current_period_end)}</span>
+              </div>
+            )}
+            <button
+              className="btn btn-primary manage-billing-btn"
+              onClick={openStripePortal}
+            >
+              Manage Billing & Payment
+            </button>
+            <p className="help-text">
+              Manage your subscription, update payment method, view invoices, or cancel anytime.
+            </p>
           </div>
-          <a href={`/premium?guild=${guildId}`} className="banner-cta">
-            Upgrade to Premium
-          </a>
         </div>
-      )}
-
-      {/* Premium Active Banner */}
-      {premiumTier === 'premium' && (
-        <div className="premium-active-banner">
-          <div className="banner-content">
-            <div className="banner-icon">✨</div>
-            <div className="banner-text">
-              <h3 className="banner-title">Premium Active</h3>
-              <p className="banner-description">
-                You're enjoying all premium features! Thank you for your support.
-              </p>
-            </div>
+      ) : (
+        <div className="feature-card subscription-section">
+          <h2 className="feature-title">Upgrade to Premium</h2>
+          <div className="subscription-info">
+            <p className="upgrade-description">
+              Unlock advanced features: 5x AI messages, image generation, advanced AI models, unlimited Twitch tracking, and more!
+            </p>
+            <a href={`/premium?guild=${guildId}`} className="btn btn-primary">
+              View Premium Plans
+            </a>
           </div>
-          <a href="/premium" className="banner-link">
-            Manage Subscription
-          </a>
         </div>
       )}
 

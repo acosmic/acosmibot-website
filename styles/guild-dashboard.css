@@ -211,6 +211,94 @@ body > .container,
     }
 }
 
+/* Subscription Section */
+.subscription-section {
+    margin-bottom: 24px;
+}
+
+.subscription-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 14px;
+}
+
+.info-value {
+    color: var(--text-body);
+    font-size: 14px;
+}
+
+.plan-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.plan-badge.premium {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.status-active {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.manage-billing-btn {
+    margin-top: 8px;
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #5865F2, #7289DA);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+}
+
+.manage-billing-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(88, 101, 242, 0.4);
+}
+
+.help-text {
+    color: var(--text-body);
+    font-size: 13px;
+    text-align: center;
+    margin: 8px 0 0 0;
+    line-height: 1.5;
+}
+
+.upgrade-description {
+    color: var(--text-body);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
 /* Feature Cards */
 .feature-card {
     background: var(--bg-overlay);

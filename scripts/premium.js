@@ -297,28 +297,28 @@ async function manageSubscription(guildId, guildName) {
     if (confirm(`Manage subscription for "${guildName}"?\n\nThis will open the subscription management portal.`)) {
       showNotification('Opening subscription portal...', 'info');
 
-      // In production, this would open the Stripe customer portal:
-      // const response = await fetch(`${API_BASE_URL}/api/subscriptions/portal`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     guild_id: guildId,
-      //     return_url: `${window.location.origin}/premium`
-      //   })
-      // });
-      //
-      // if (response.ok) {
-      //   const data = await response.json();
-      //   if (data.success && data.portal_url) {
-      //     window.location.href = data.portal_url;
-      //   }
-      // }
+      const response = await fetch(`${API_BASE_URL}/api/subscriptions/portal`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          guild_id: guildId,
+          return_url: `${window.location.origin}/premium`
+        })
+      });
 
-      // For testing, just redirect to guild dashboard
-      window.location.href = `/guild-dashboard?guild=${guildId}`;
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.portal_url) {
+          window.location.href = data.portal_url;
+        } else {
+          showNotification('Failed to open billing portal', 'error');
+        }
+      } else {
+        showNotification('Failed to open billing portal', 'error');
+      }
     }
   } catch (error) {
     console.error('Error managing subscription:', error);

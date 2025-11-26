@@ -23,9 +23,12 @@ async function loadUserGuilds() {
         }
 
         const data = await response.json();
+        console.log('API Response:', data);
+        console.log('Guilds data:', data.guilds);
+        console.log('Guilds type:', typeof data.guilds);
 
         if (data.success) {
-            userGuilds = data.guilds;
+            userGuilds = data.guilds || [];  // Fallback to empty array
 
             // Sort guilds: Owner > Admin > Member
             userGuilds.sort((a, b) => {
