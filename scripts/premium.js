@@ -233,55 +233,31 @@ async function upgradeServer(guildId, guildName) {
   try {
     const token = getAuthToken();
 
-    if (confirm(`Upgrade "${guildName}" to Premium?\n\nNote: This is test mode.`)) {
-      showNotification('Processing upgrade...', 'info');
+    if (confirm(`Upgrade "${guildName}" to Premium?\n\nYou will be redirected to Stripe checkout.`)) {
+      showNotification('Creating checkout session...', 'info');
 
-      // Call test upgrade endpoint
-      const response = await fetch(`${API_BASE_URL}/api/subscriptions/test-upgrade`, {
+      // Use real Stripe checkout
+      const response = await fetch(`${API_BASE_URL}/api/subscriptions/create-checkout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          guild_id: guildId
+          guild_id: guildId,
+          success_url: `${window.location.origin}/premium?success=true&guild=${guildId}`,
+          cancel_url: `${window.location.origin}/premium?canceled=true`
         })
       });
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        showNotification('Successfully upgraded to premium!', 'success');
-
-        // Refresh modal after delay
-        setTimeout(() => {
-          closeServerModal();
-          openServerModal();
-        }, 1500);
+      if (response.ok && data.success && data.checkout_url) {
+        // Redirect to Stripe checkout page
+        window.location.href = data.checkout_url;
       } else {
-        showNotification(data.message || 'Failed to upgrade', 'error');
+        showNotification(data.message || 'Failed to create checkout session', 'error');
       }
-
-      // For production Stripe integration, uncomment below:
-      // const response = await fetch(`${API_BASE_URL}/api/subscriptions/create-checkout`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     guild_id: guildId,
-      //     success_url: `${window.location.origin}/premium?success=true&guild=${guildId}`,
-      //     cancel_url: `${window.location.origin}/premium?canceled=true`
-      //   })
-      // });
-      //
-      // if (response.ok) {
-      //   const data = await response.json();
-      //   if (data.success && data.checkout_url) {
-      //     window.location.href = data.checkout_url;
-      //   }
-      // }
     }
   } catch (error) {
     console.error('Error upgrading server:', error);

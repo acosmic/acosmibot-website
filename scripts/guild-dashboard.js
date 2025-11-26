@@ -2382,8 +2382,13 @@ const GuildDashboard = () => {
       const data = await response.json();
       if (data.success && data.portal_url) {
         window.location.href = data.portal_url;
+      } else if (data.redirect_to_premium) {
+        // No Stripe subscription exists, redirect to premium page
+        if (confirm(data.message + '\n\nWould you like to go to the Premium page now?')) {
+          window.location.href = `/premium?guild=${guildId}`;
+        }
       } else {
-        alert('Failed to open billing portal');
+        alert(data.message || 'Failed to open billing portal');
       }
     } catch (error) {
       console.error('Error opening portal:', error);
