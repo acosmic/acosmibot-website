@@ -10,21 +10,7 @@ function getAuthToken() {
   return localStorage.getItem('discord_token');
 }
 
-// Show notification
-function showNotification(message, type = 'info') {
-  const container = document.getElementById('notification-container');
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.textContent = message;
-
-  container.appendChild(notification);
-
-  // Remove after 5 seconds
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease-out';
-    setTimeout(() => notification.remove(), 300);
-  }, 5000);
-}
+// Note: showNotification() is provided by nav.js
 
 // Initialize page
 async function initPremiumPage() {
