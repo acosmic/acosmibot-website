@@ -1,5 +1,4 @@
 // Premium page functionality
-const API_BASE_URL = 'https://api.acosmibot.com';
 
 // State
 let userGuilds = [];
