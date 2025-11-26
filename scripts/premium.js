@@ -32,9 +32,15 @@ async function initPremiumPage() {
   const selectServerBtn = document.getElementById('selectServerBtn');
   const loginHint = document.getElementById('loginHint');
 
+  console.log('Premium page init - Token found:', !!token);
+  console.log('Button element:', selectServerBtn);
+
   if (token) {
     // User is logged in
+    console.log('Enabling select server button');
     selectServerBtn.disabled = false;
+    selectServerBtn.style.cursor = 'pointer';
+    selectServerBtn.style.opacity = '1';
     loginHint.style.display = 'none';
 
     // Set up event listeners
@@ -46,6 +52,7 @@ async function initPremiumPage() {
     handleDirectGuildUpgrade();
   } else {
     // User is not logged in
+    console.log('No token - button stays disabled');
     selectServerBtn.disabled = true;
     loginHint.style.display = 'block';
   }
@@ -354,6 +361,9 @@ function handleUrlParams() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  initPremiumPage();
-  handleUrlParams();
+  // Small delay to ensure nav.js has finished auth check
+  setTimeout(() => {
+    initPremiumPage();
+    handleUrlParams();
+  }, 100);
 });
