@@ -2183,7 +2183,10 @@ const GuildDashboard = () => {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
-    const date = new Date(timestamp * 1000);
+    // Handle both Unix timestamp (number) and ISO string
+    const date = typeof timestamp === 'number'
+      ? new Date(timestamp * 1000)
+      : new Date(timestamp);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
@@ -2695,9 +2698,16 @@ const GuildDashboard = () => {
             </div>
             <div className="info-row">
               <span className="info-label">Status:</span>
-              <span className="status-active">Active</span>
+              <span className={subscriptionData?.cancel_at ? "status-warning" : "status-active"}>
+                {subscriptionData?.cancel_at ? "Active - Cancels at Period End" : "Active"}
+              </span>
             </div>
-            {subscriptionData?.current_period_end && (
+            {subscriptionData?.cancel_at ? (
+              <div className="info-row">
+                <span className="info-label">Cancels On:</span>
+                <span className="info-value status-warning">{formatDate(subscriptionData.cancel_at)}</span>
+              </div>
+            ) : subscriptionData?.current_period_end && (
               <div className="info-row">
                 <span className="info-label">Next Renewal:</span>
                 <span className="info-value">{formatDate(subscriptionData.current_period_end)}</span>
@@ -2707,7 +2717,7 @@ const GuildDashboard = () => {
               className="btn btn-primary manage-billing-btn"
               onClick={openStripePortal}
             >
-              Manage Billing & Payment
+              Manage Subscription
             </button>
             <p className="help-text">
               Manage your subscription, update payment method, view invoices, or cancel anytime.
