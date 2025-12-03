@@ -2714,7 +2714,7 @@ const GuildDashboard = () => {
               </div>
             )}
             <button
-              className="btn btn-primary manage-billing-btn"
+              className="save-btn"
               onClick={openStripePortal}
             >
               Manage Subscription
