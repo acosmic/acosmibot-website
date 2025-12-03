@@ -2982,8 +2982,16 @@ const GuildDashboard = () => {
 
             {/* Tracked Streamers */}
             <div className="form-group">
-              <label className="form-label">Tracked Streamers ({(settings.twitch?.tracked_streamers || []).length}/2)</label>
-              <p className="form-hint">Add up to 2 Twitch usernames to monitor</p>
+              <label className="form-label">
+                Tracked Streamers ({(settings.twitch?.tracked_streamers || []).length}/{premiumTier === 'premium' ? 5 : 1})
+                {premiumTier === 'free' && ' (Free)'}
+                {premiumTier === 'premium' && ' (Premium)'}
+              </label>
+              <p className="form-hint">
+                {premiumTier === 'premium'
+                  ? 'Add up to 5 Twitch usernames to monitor'
+                  : 'Add 1 Twitch username to monitor (Upgrade to Premium for 5)'}
+              </p>
 
               <div className="streamer-list">
                 {(settings.twitch?.tracked_streamers || []).map((streamer, index) => (
@@ -3008,6 +3016,8 @@ const GuildDashboard = () => {
               <button
                 className="btn-secondary"
                 onClick={() => {
+                  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
+                  if ((settings.twitch?.tracked_streamers || []).length >= maxStreamers) return;
                   const newStreamers = [...(settings.twitch?.tracked_streamers || []), {
                     twitch_username: '',
                     mention_role_ids: [],
@@ -3017,14 +3027,19 @@ const GuildDashboard = () => {
                   }];
                   updateSetting('twitch.tracked_streamers', newStreamers);
                 }}
-                disabled={(settings.twitch?.tracked_streamers || []).length >= 2}
-                style={{ marginTop: '1rem', opacity: (settings.twitch?.tracked_streamers || []).length >= 2 ? 0.5 : 1 }}
+                disabled={(settings.twitch?.tracked_streamers || []).length >= (premiumTier === 'premium' ? 5 : 1)}
+                style={{ marginTop: '1rem', opacity: (settings.twitch?.tracked_streamers || []).length >= (premiumTier === 'premium' ? 5 : 1) ? 0.5 : 1 }}
               >
                 + Add Streamer
               </button>
-              {(settings.twitch?.tracked_streamers || []).length >= 2 && (
+              {premiumTier === 'free' && (settings.twitch?.tracked_streamers || []).length >= 1 && (
                 <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
-                  ⚠️ Maximum of 2 streamers reached. Upgrade to premium for unlimited tracking!
+                  ⚠️ Maximum of 1 streamer reached on Free tier. Upgrade to Premium for up to 5 streamers!
+                </p>
+              )}
+              {premiumTier === 'premium' && (settings.twitch?.tracked_streamers || []).length >= 5 && (
+                <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
+                  ⚠️ Maximum of 5 streamers reached on Premium tier.
                 </p>
               )}
             </div>
