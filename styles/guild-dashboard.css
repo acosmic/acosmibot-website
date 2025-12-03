@@ -222,6 +222,10 @@ body > .container,
     gap: 16px;
 }
 
+.subscription-info .save-btn {
+    align-self: flex-end;
+}
+
 .info-row {
     display: flex;
     justify-content: space-between;
