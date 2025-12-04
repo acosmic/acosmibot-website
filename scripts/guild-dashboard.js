@@ -1957,13 +1957,21 @@ const CustomCommandForm = ({ guildId, commandId, existingCommand, onClose, onSav
 
           <div className="form-group">
             <label className="form-label">Prefix</label>
-            <input
-              type="text"
+            <select
               className="form-control"
               value={formData.prefix}
               onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
               style={{ width: '100px' }}
-            />
+            >
+              <option value="!">!</option>
+              <option value="$">$</option>
+              <option value="%">%</option>
+              <option value="?">?</option>
+              <option value="^">^</option>
+              <option value="+">+</option>
+              <option value="-">-</option>
+              <option value="=">=</option>
+            </select>
           </div>
 
           <div className="form-group">
