@@ -3512,25 +3512,6 @@ const GuildDashboard = () => {
             </div>
           </div>
 
-          {/* Command Form (will be added in next section) */}
-          {showCustomCommandForm && (
-            <CustomCommandForm
-              guildId={guildId}
-              commandId={editingCommandId}
-              existingCommand={customCommands.find(c => c.id === editingCommandId)}
-              onClose={() => {
-                setShowCustomCommandForm(false);
-                setEditingCommandId(null);
-              }}
-              onSave={async () => {
-                await fetchCustomCommands();
-                setShowCustomCommandForm(false);
-                setEditingCommandId(null);
-              }}
-              getAuthToken={getAuthToken}
-            />
-          )}
-
           {/* Top Used Commands */}
           {customCommandsStats && customCommandsStats.top_commands && customCommandsStats.top_commands.length > 0 && (
             <div className="form-group">
@@ -3769,6 +3750,24 @@ const GuildDashboard = () => {
         guildName={guildName}
       />
 
+      {/* Custom Command Form Modal - Rendered at root level to avoid z-index issues */}
+      {showCustomCommandForm && (
+        <CustomCommandForm
+          guildId={guildId}
+          commandId={editingCommandId}
+          existingCommand={customCommands.find(c => c.id === editingCommandId)}
+          onClose={() => {
+            setShowCustomCommandForm(false);
+            setEditingCommandId(null);
+          }}
+          onSave={async () => {
+            await fetchCustomCommands();
+            setShowCustomCommandForm(false);
+            setEditingCommandId(null);
+          }}
+          getAuthToken={getAuthToken}
+        />
+      )}
 
       <div className="dashboard-footer">
         <p>All changes are saved to the database and will take effect immediately.</p>
