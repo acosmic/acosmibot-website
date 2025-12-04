@@ -182,9 +182,9 @@ function showUserMenu() {
             <div class="user-name">${currentUser.username}</div>
             <div class="user-stats">Level ${currentUser.level || 1} • ${currentUser.currency || 0} Credits</div>
         </div>
-        <a href="/user-dashboard.html">🏠 Personal Dashboard</a>
-        <a href="/guild-selector.html">🏰 Server Management</a>
-        <a href="#" onclick="showProfile()">👤 Profile</a>
+        <a href="/user-dashboard.html">Personal Dashboard</a>
+        <a href="/guild-selector.html">Server Management</a>
+        <a href="#" onclick="showProfile()">Profile</a>
         <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 5px 0;"></div>
         <a href="#" onclick="logout()" class="logout-btn">🚪 Logout</a>
     `;
@@ -235,12 +235,31 @@ function logout() {
 
 // Highlight active page in navigation
 function highlightActivePage() {
-    const currentPath = window.location.pathname;
+    // Normalize current path: remove .html extension and trailing slash
+    let currentPath = window.location.pathname.replace(/\.html$/, '').replace(/\/$/, '');
+    if (currentPath === '') currentPath = '/';
+
     const navLinks = document.querySelectorAll('.nav-links a');
 
     navLinks.forEach(link => {
-        const linkPath = new URL(link.href).pathname;
-        if (linkPath === currentPath || (currentPath === '/' && linkPath === '/index.html')) {
+        // Get the link's href
+        let linkPath = new URL(link.href).pathname;
+
+        // Handle anchor links (like #features) - check if we're on the base page
+        if (link.hash && linkPath.split('#')[0] === window.location.pathname.split('#')[0]) {
+            // If link has an anchor and we're on the same base page, mark it active
+            if (currentPath === '/' || currentPath === '/index') {
+                link.classList.add('active');
+            }
+            return;
+        }
+
+        // Normalize link path: remove .html extension and trailing slash
+        linkPath = linkPath.replace(/\.html$/, '').replace(/\/$/, '');
+        if (linkPath === '') linkPath = '/';
+
+        // Compare normalized paths
+        if (linkPath === currentPath) {
             link.classList.add('active');
         }
     });
