@@ -1874,13 +1874,22 @@ const CustomCommandForm = ({ guildId, commandId, existingCommand, onClose, onSav
         ? `${API_BASE_URL}/api/guilds/${guildId}/custom-commands/${commandId}`
         : `${API_BASE_URL}/api/guilds/${guildId}/custom-commands`;
 
+      // Map frontend field names to backend field names
+      const payload = {
+        command: formData.name,
+        prefix: formData.prefix,
+        response_type: formData.response_type,
+        response_text: formData.text_response,
+        embed_config: formData.embed_config
+      };
+
       const response = await fetch(url, {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
