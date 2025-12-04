@@ -1879,8 +1879,8 @@ const CustomCommandForm = ({ guildId, commandId, existingCommand, onClose, onSav
         command: formData.name,
         prefix: formData.prefix,
         response_type: formData.response_type,
-        response_text: formData.text_response,
-        embed_config: formData.embed_config
+        response_text: formData.response_type === 'text' ? formData.text_response : null,
+        embed_config: formData.response_type === 'embed' ? formData.embed_config : null
       };
 
       const response = await fetch(url, {
