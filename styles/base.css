@@ -14,8 +14,12 @@
     --text-body: #666666;
     --text-light: #ffffff;
     --text-muted: rgba(0, 0, 0, 0.6);
+    --text-primary: #333333;              /* Alias for text-dark */
+    --text-secondary: #666666;            /* Alias for text-body */
     --bg-white: #ffffff;
     --bg-light-gray: #f8f9fa;
+    --bg-primary: #ffffff;                /* Alias for bg-white */
+    --bg-secondary: #f8f9fa;              /* Alias for bg-light-gray */
     --bg-overlay: rgba(88, 101, 242, 0.05);
     --bg-overlay-hover: rgba(88, 101, 242, 0.1);
     --border-light: rgba(0, 0, 0, 0.1);
