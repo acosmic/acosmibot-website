@@ -3533,7 +3533,7 @@ const GuildDashboard = () => {
                 {customCommandsStats.top_commands.map((cmd, idx) => (
                   <div key={idx} className="top-command-item">
                     <span className="rank">#{idx + 1}</span>
-                    <span className="name">{cmd.prefix}{cmd.name}</span>
+                    <span className="name">{cmd.prefix}{cmd.command}</span>
                     <span className="uses">{cmd.use_count} uses</span>
                   </div>
                 ))}
