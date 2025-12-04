@@ -1822,10 +1822,10 @@ const EmojiRoleMapping = ({ mappings, onChange, availableRoles, availableEmojis,
 // Custom Command Form Component
 const CustomCommandForm = ({ guildId, commandId, existingCommand, onClose, onSave, getAuthToken }) => {
   const [formData, setFormData] = useState({
-    name: existingCommand?.name || '',
+    name: existingCommand?.command || '',
     prefix: existingCommand?.prefix || '!',
     response_type: existingCommand?.response_type || 'text',
-    text_response: existingCommand?.text_response || '',
+    text_response: existingCommand?.response_text || '',
     embed_config: existingCommand?.embed_config || {
       title: '',
       description: '',
@@ -2335,7 +2335,7 @@ const GuildDashboard = () => {
       if (commandsResponse.ok) {
         const commandsData = await commandsResponse.json();
         if (commandsData.success) {
-          setCustomCommands(commandsData.data || []);
+          setCustomCommands(commandsData.commands || []);
         }
       }
 
@@ -2347,7 +2347,11 @@ const GuildDashboard = () => {
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         if (statsData.success) {
-          setCustomCommandsStats(statsData.data);
+          setCustomCommandsStats({
+            command_count: statsData.stats.total_commands,
+            command_limit: statsData.stats.max_commands,
+            top_commands: statsData.stats.top_commands
+          });
         }
       }
     } catch (err) {
@@ -3447,9 +3451,9 @@ const GuildDashboard = () => {
                   <div key={cmd.id} className="custom-command-item">
                     <div className="command-item-header">
                       <div className="command-info">
-                        <span className="command-name">{cmd.prefix}{cmd.name}</span>
-                        <span className={`command-status ${cmd.enabled ? 'enabled' : 'disabled'}`}>
-                          {cmd.enabled ? '✓ Enabled' : '✗ Disabled'}
+                        <span className="command-name">{cmd.prefix}{cmd.command}</span>
+                        <span className={`command-status ${cmd.is_enabled ? 'enabled' : 'disabled'}`}>
+                          {cmd.is_enabled ? '✓ Enabled' : '✗ Disabled'}
                         </span>
                         <span className="command-type">{cmd.response_type === 'embed' ? '📋 Embed' : '💬 Text'}</span>
                         <span className="command-uses">Uses: {cmd.use_count || 0}</span>
@@ -3471,9 +3475,9 @@ const GuildDashboard = () => {
                               console.error('Error toggling command:', err);
                             }
                           }}
-                          title={cmd.enabled ? 'Disable' : 'Enable'}
+                          title={cmd.is_enabled ? 'Disable' : 'Enable'}
                         >
-                          {cmd.enabled ? '🔇' : '🔊'}
+                          {cmd.is_enabled ? '🔇' : '🔊'}
                         </button>
                         <button
                           className="btn-icon"
@@ -3488,7 +3492,7 @@ const GuildDashboard = () => {
                         <button
                           className="btn-danger btn-sm"
                           onClick={async () => {
-                            if (!confirm(`Delete command ${cmd.prefix}${cmd.name}?`)) return;
+                            if (!confirm(`Delete command ${cmd.prefix}${cmd.command}?`)) return;
                             try {
                               const token = getAuthToken();
                               const response = await fetch(`${API_BASE_URL}/api/guilds/${guildId}/custom-commands/${cmd.id}`, {
@@ -3510,7 +3514,7 @@ const GuildDashboard = () => {
                     </div>
                     <div className="command-preview">
                       {cmd.response_type === 'text' ? (
-                        <div className="text-preview">{cmd.text_response}</div>
+                        <div className="text-preview">{cmd.response_text}</div>
                       ) : (
                         <div className="embed-preview">Embed: {cmd.embed_config?.title || 'Untitled'}</div>
                       )}
