@@ -321,7 +321,7 @@ body > .container,
 
 .feature-card:has(.role-dropdown) {
     position: relative;
-    z-index: 100;
+    z-index: 10;
 }
 
 .feature-header {
@@ -652,7 +652,7 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     border-radius: 10px;
     max-height: 300px;
     overflow-y: auto;
-    z-index: 10000;
+    z-index: 1000;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     min-width: 200px;
 }
@@ -1915,8 +1915,9 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 99999;
     animation: fadeIn 0.2s ease;
+    isolation: isolate;
 }
 
 .modal-content {
@@ -1930,6 +1931,8 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     flex-direction: column;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: slideUp 0.3s ease;
+    position: relative;
+    z-index: 100000;
 }
 
 .modal-header {
