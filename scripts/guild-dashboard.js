@@ -305,13 +305,16 @@ const MessageTemplateInput = ({ value, onChange, placeholders, rows = 3, placeho
   );
 };
 
-// StreamerListItem component for Twitch streamers
+// StreamerListItem component for multi-platform streamers (Twitch + YouTube)
 const StreamerListItem = ({ streamer, index, onUpdate, onRemove, availableRoles }) => {
   const [validating, setValidating] = React.useState(false);
   const [isValid, setIsValid] = React.useState(null);
   const [expanded, setExpanded] = React.useState(false);
 
-  const validateUsername = async (username) => {
+  // Default to 'twitch' if no platform specified (backward compatibility)
+  const platform = streamer.platform || 'twitch';
+
+  const validateUsername = async (username, platformType) => {
     if (!username || username.trim() === '') {
       setIsValid(null);
       return;
@@ -320,34 +323,47 @@ const StreamerListItem = ({ streamer, index, onUpdate, onRemove, availableRoles 
     setValidating(true);
     try {
       const token = localStorage.getItem('discord_token');
-      const response = await fetch(`${API_BASE_URL}/api/twitch/validate-username`, {
+      const endpoint = platformType === 'youtube'
+        ? `${API_BASE_URL}/api/youtube/validate-channel`
+        : `${API_BASE_URL}/api/twitch/validate-username`;
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username: username.trim() })
+        body: JSON.stringify(platformType === 'youtube'
+          ? { identifier: username.trim() }
+          : { username: username.trim() })
       });
 
       const data = await response.json();
       setIsValid(data.valid);
     } catch (error) {
-      console.error('Error validating Twitch username:', error);
+      console.error(`Error validating ${platformType} username:`, error);
       setIsValid(false);
     } finally {
       setValidating(false);
     }
   };
 
+  const handlePlatformChange = (e) => {
+    const newPlatform = e.target.value;
+    // Clear username and reset validation when platform changes
+    onUpdate(index, { ...streamer, platform: newPlatform, username: '', streamer_id: null });
+    setIsValid(null);
+  };
+
   const handleUsernameChange = (e) => {
     const newUsername = e.target.value;
-    onUpdate(index, { ...streamer, twitch_username: newUsername });
+    onUpdate(index, { ...streamer, username: newUsername });
     if (isValid !== null) setIsValid(null); // Reset validation on change
   };
 
   const handleUsernameBlur = () => {
-    if (streamer.twitch_username) {
-      validateUsername(streamer.twitch_username);
+    if (streamer.username) {
+      validateUsername(streamer.username, platform);
     }
   };
 
@@ -355,11 +371,20 @@ const StreamerListItem = ({ streamer, index, onUpdate, onRemove, availableRoles 
     <div className="streamer-item">
       <div className="streamer-item-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+          <select
+            className="form-control"
+            value={platform}
+            onChange={handlePlatformChange}
+            style={{ width: '120px' }}
+          >
+            <option value="twitch">📺 Twitch</option>
+            <option value="youtube">▶️ YouTube</option>
+          </select>
           <input
             type="text"
             className="form-control"
-            placeholder="Twitch username"
-            value={streamer.twitch_username || ''}
+            placeholder={platform === 'youtube' ? 'YouTube @handle or channel ID' : 'Twitch username'}
+            value={streamer.username || ''}
             onChange={handleUsernameChange}
             onBlur={handleUsernameBlur}
             style={{ flex: 1 }}
@@ -2478,24 +2503,23 @@ const GuildDashboard = () => {
           display_name: settings.cross_server_portal?.display_name || null,
           portal_cost: settings.cross_server_portal?.portal_cost || 1000
         },
-        twitch: {
-          enabled: settings.twitch?.enabled === true,
-          announcement_channel_id: settings.twitch?.announcement_channel_id || null,
-          tracked_streamers: settings.twitch?.tracked_streamers || [],
+        streaming: {
+          enabled: settings.streaming?.enabled === true,
+          announcement_channel_id: settings.streaming?.announcement_channel_id || null,
+          tracked_streamers: settings.streaming?.tracked_streamers || [],
           announcement_settings: {
-            include_thumbnail: settings.twitch?.announcement_settings?.include_thumbnail !== false,
-            include_game: settings.twitch?.announcement_settings?.include_game !== false,
-            include_viewer_count: settings.twitch?.announcement_settings?.include_viewer_count !== false,
-            include_start_time: settings.twitch?.announcement_settings?.include_start_time !== false,
-            color: settings.twitch?.announcement_settings?.color || '0x6441A4'
+            include_thumbnail: settings.streaming?.announcement_settings?.include_thumbnail !== false,
+            include_game: settings.streaming?.announcement_settings?.include_game !== false,
+            include_viewer_count: settings.streaming?.announcement_settings?.include_viewer_count !== false,
+            include_start_time: settings.streaming?.announcement_settings?.include_start_time !== false,
+            twitch_color: settings.streaming?.announcement_settings?.twitch_color || '0x6441A4',
+            youtube_color: settings.streaming?.announcement_settings?.youtube_color || '0xFF0000'
           },
           vod_settings: {
-            enabled: settings.twitch?.vod_settings?.enabled === true,
-            edit_message_when_vod_available: settings.twitch?.vod_settings?.edit_message_when_vod_available !== false,
-            vod_check_interval_seconds: settings.twitch?.vod_settings?.vod_check_interval_seconds || 300,
-            vod_message_suffix: settings.twitch?.vod_settings?.vod_message_suffix || '📺 VOD Available: {vod_url}'
-          },
-          notification_method: settings.twitch?.notification_method || 'polling'
+            enabled: settings.streaming?.vod_settings?.enabled !== false,
+            edit_message_when_vod_available: settings.streaming?.vod_settings?.edit_message_when_vod_available !== false,
+            vod_message_suffix: settings.streaming?.vod_settings?.vod_message_suffix || '[Watch VOD]({vod_url})'
+          }
         },
         reaction_roles: {
           enabled: settings.reaction_roles?.enabled === true,
@@ -2967,22 +2991,22 @@ const GuildDashboard = () => {
         <div className="feature-header">
           <span
             className="collapse-icon"
-            onClick={() => toggleSectionCollapse('twitch')}
-            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.twitch ? 'rotate(0deg)' : 'rotate(90deg)' }}
+            onClick={() => toggleSectionCollapse('streaming')}
+            style={{ cursor: 'pointer', marginRight: '0.5rem', transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections.streaming ? 'rotate(0deg)' : 'rotate(90deg)' }}
           >
             ▶
           </span>
-          <h2 className="feature-title">📺 Twitch Integration</h2>
+          <h2 className="feature-title">📺 Streaming Integration</h2>
           <div
-            className={`toggle-switch ${settings.twitch?.enabled ? 'active' : ''}`}
-            onClick={() => updateToggleAndCollapse('twitch.enabled', !settings.twitch?.enabled, 'twitch')}
+            className={`toggle-switch ${settings.streaming?.enabled ? 'active' : ''}`}
+            onClick={() => updateToggleAndCollapse('streaming.enabled', !settings.streaming?.enabled, 'streaming')}
           />
         </div>
-        <div className={`feature-content ${collapsedSections.twitch ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.twitch ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
-          {settings.twitch?.enabled && (
+        <div className={`feature-content ${collapsedSections.streaming ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.streaming ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
+          {settings.streaming?.enabled && (
           <>
             <p className="feature-description">
-              Get notified in Discord when your favorite Twitch streamers go live! Supports custom messages, role pings, and automatic VOD detection.
+              Get notified in Discord when your favorite Twitch or YouTube streamers go live! Supports custom messages, role pings, and automatic VOD detection for both platforms.
             </p>
 
             {/* Announcement Channel */}
@@ -2990,8 +3014,8 @@ const GuildDashboard = () => {
               <label className="form-label">Announcement Channel</label>
               <p className="form-hint">Where to post live notifications</p>
               <select
-                value={settings.twitch?.announcement_channel_id || ''}
-                onChange={(e) => updateSetting('twitch.announcement_channel_id', e.target.value)}
+                value={settings.streaming?.announcement_channel_id || ''}
+                onChange={(e) => updateSetting('streaming.announcement_channel_id', e.target.value)}
                 className="form-control"
               >
                 <option value="">Select a channel...</option>
@@ -3003,66 +3027,75 @@ const GuildDashboard = () => {
 
             {/* Tracked Streamers */}
             <div className="form-group">
-              <label className="form-label">
-                Tracked Streamers ({(settings.twitch?.tracked_streamers || []).length}/{premiumTier === 'premium' ? 5 : 1})
-                {premiumTier === 'free' && ' (Free)'}
-                {premiumTier === 'premium' && ' (Premium)'}
-              </label>
-              <p className="form-hint">
-                {premiumTier === 'premium'
-                  ? 'Add up to 5 Twitch usernames to monitor'
-                  : 'Add 1 Twitch username to monitor (Upgrade to Premium for 5)'}
-              </p>
+              {(() => {
+                const streamers = settings.streaming?.tracked_streamers || [];
+                const twitchCount = streamers.filter(s => s.platform === 'twitch').length;
+                const youtubeCount = streamers.filter(s => s.platform === 'youtube').length;
+                const maxPerPlatform = premiumTier === 'premium' ? 5 : 1;
 
-              <div className="streamer-list">
-                {(settings.twitch?.tracked_streamers || []).map((streamer, index) => (
-                  <StreamerListItem
-                    key={index}
-                    streamer={streamer}
-                    index={index}
-                    availableRoles={availableRoles}
-                    onUpdate={(idx, updatedStreamer) => {
-                      const newStreamers = [...(settings.twitch?.tracked_streamers || [])];
-                      newStreamers[idx] = updatedStreamer;
-                      updateSetting('twitch.tracked_streamers', newStreamers);
-                    }}
-                    onRemove={(idx) => {
-                      const newStreamers = (settings.twitch?.tracked_streamers || []).filter((_, i) => i !== idx);
-                      updateSetting('twitch.tracked_streamers', newStreamers);
-                    }}
-                  />
-                ))}
-              </div>
+                return (
+                  <>
+                    <label className="form-label">
+                      Tracked Streamers
+                      {premiumTier === 'free' && ' (Free: 1 per platform)'}
+                      {premiumTier === 'premium' && ' (Premium: 5 per platform)'}
+                    </label>
+                    <p className="form-hint">
+                      📺 Twitch: {twitchCount}/{maxPerPlatform} • ▶️ YouTube: {youtubeCount}/{maxPerPlatform}
+                      <br />
+                      {premiumTier === 'premium'
+                        ? 'Add up to 5 streamers per platform'
+                        : 'Add 1 streamer per platform (Upgrade to Premium for 5 per platform)'}
+                    </p>
 
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
-                  if ((settings.twitch?.tracked_streamers || []).length >= maxStreamers) return;
-                  const newStreamers = [...(settings.twitch?.tracked_streamers || []), {
-                    twitch_username: '',
-                    mention_role_ids: [],
-                    mention_everyone: false,
-                    mention_here: false,
-                    custom_message: null
-                  }];
-                  updateSetting('twitch.tracked_streamers', newStreamers);
-                }}
-                disabled={(settings.twitch?.tracked_streamers || []).length >= (premiumTier === 'premium' ? 5 : 1)}
-                style={{ marginTop: '1rem', opacity: (settings.twitch?.tracked_streamers || []).length >= (premiumTier === 'premium' ? 5 : 1) ? 0.5 : 1 }}
-              >
-                + Add Streamer
-              </button>
-              {premiumTier === 'free' && (settings.twitch?.tracked_streamers || []).length >= 1 && (
-                <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
-                  ⚠️ Maximum of 1 streamer reached on Free tier. Upgrade to Premium for up to 5 streamers!
-                </p>
-              )}
-              {premiumTier === 'premium' && (settings.twitch?.tracked_streamers || []).length >= 5 && (
-                <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
-                  ⚠️ Maximum of 5 streamers reached on Premium tier.
-                </p>
-              )}
+                    <div className="streamer-list">
+                      {streamers.map((streamer, index) => (
+                        <StreamerListItem
+                          key={index}
+                          streamer={streamer}
+                          index={index}
+                          availableRoles={availableRoles}
+                          onUpdate={(idx, updatedStreamer) => {
+                            const newStreamers = [...streamers];
+                            newStreamers[idx] = updatedStreamer;
+                            updateSetting('streaming.tracked_streamers', newStreamers);
+                          }}
+                          onRemove={(idx) => {
+                            const newStreamers = streamers.filter((_, i) => i !== idx);
+                            updateSetting('streaming.tracked_streamers', newStreamers);
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        const newStreamers = [...streamers, {
+                          platform: 'twitch',
+                          username: '',
+                          streamer_id: null,
+                          mention_role_ids: [],
+                          mention_everyone: false,
+                          mention_here: false,
+                          custom_message: null,
+                          skip_vod_check: false
+                        }];
+                        updateSetting('streaming.tracked_streamers', newStreamers);
+                      }}
+                      style={{ marginTop: '1rem' }}
+                    >
+                      + Add Streamer
+                    </button>
+
+                    {premiumTier === 'free' && (twitchCount >= 1 || youtubeCount >= 1) && (
+                      <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
+                        ℹ️ Free tier allows 1 Twitch + 1 YouTube streamer (separate quotas). Upgrade to Premium for 5 per platform!
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* VOD Settings */}
@@ -3072,23 +3105,23 @@ const GuildDashboard = () => {
               <div className="checkbox-wrapper">
                 <input
                   type="checkbox"
-                  id="twitch-vod-enabled"
-                  checked={settings.twitch?.vod_settings?.enabled || false}
-                  onChange={(e) => updateSetting('twitch.vod_settings.enabled', e.target.checked)}
+                  id="streaming-vod-enabled"
+                  checked={settings.streaming?.vod_settings?.enabled !== false}
+                  onChange={(e) => updateSetting('streaming.vod_settings.enabled', e.target.checked)}
                 />
-                <label htmlFor="twitch-vod-enabled">Enable VOD Detection</label>
+                <label htmlFor="streaming-vod-enabled">Enable VOD Detection</label>
               </div>
-              <p className="form-hint">Automatically detect when VODs become available after streams end</p>
+              <p className="form-hint">Automatically detect when VODs/archives become available after streams end (both platforms)</p>
 
-              {settings.twitch?.vod_settings?.enabled && (
+              {settings.streaming?.vod_settings?.enabled !== false && (
                 <div className="checkbox-wrapper" style={{ marginTop: '0.5rem' }}>
                   <input
                     type="checkbox"
-                    id="twitch-vod-edit"
-                    checked={settings.twitch?.vod_settings?.edit_message_when_vod_available !== false}
-                    onChange={(e) => updateSetting('twitch.vod_settings.edit_message_when_vod_available', e.target.checked)}
+                    id="streaming-vod-edit"
+                    checked={settings.streaming?.vod_settings?.edit_message_when_vod_available !== false}
+                    onChange={(e) => updateSetting('streaming.vod_settings.edit_message_when_vod_available', e.target.checked)}
                   />
-                  <label htmlFor="twitch-vod-edit">Auto-edit announcement with VOD link</label>
+                  <label htmlFor="streaming-vod-edit">Auto-edit announcement with VOD link</label>
                 </div>
               )}
             </div>
@@ -3100,48 +3133,48 @@ const GuildDashboard = () => {
               <div className="checkbox-wrapper">
                 <input
                   type="checkbox"
-                  id="twitch-include-thumbnail"
-                  checked={settings.twitch?.announcement_settings?.include_thumbnail !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_thumbnail', e.target.checked)}
+                  id="streaming-include-thumbnail"
+                  checked={settings.streaming?.announcement_settings?.include_thumbnail !== false}
+                  onChange={(e) => updateSetting('streaming.announcement_settings.include_thumbnail', e.target.checked)}
                 />
-                <label htmlFor="twitch-include-thumbnail">Show stream thumbnail</label>
+                <label htmlFor="streaming-include-thumbnail">Show stream thumbnail</label>
               </div>
 
               <div className="checkbox-wrapper">
                 <input
                   type="checkbox"
-                  id="twitch-include-game"
-                  checked={settings.twitch?.announcement_settings?.include_game !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_game', e.target.checked)}
+                  id="streaming-include-game"
+                  checked={settings.streaming?.announcement_settings?.include_game !== false}
+                  onChange={(e) => updateSetting('streaming.announcement_settings.include_game', e.target.checked)}
                 />
-                <label htmlFor="twitch-include-game">Show game/category</label>
+                <label htmlFor="streaming-include-game">Show game/category</label>
               </div>
 
               <div className="checkbox-wrapper">
                 <input
                   type="checkbox"
-                  id="twitch-include-viewers"
-                  checked={settings.twitch?.announcement_settings?.include_viewer_count !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_viewer_count', e.target.checked)}
+                  id="streaming-include-viewers"
+                  checked={settings.streaming?.announcement_settings?.include_viewer_count !== false}
+                  onChange={(e) => updateSetting('streaming.announcement_settings.include_viewer_count', e.target.checked)}
                 />
-                <label htmlFor="twitch-include-viewers">Show viewer count</label>
+                <label htmlFor="streaming-include-viewers">Show viewer count</label>
               </div>
 
               <div className="checkbox-wrapper">
                 <input
                   type="checkbox"
-                  id="twitch-include-start-time"
-                  checked={settings.twitch?.announcement_settings?.include_start_time !== false}
-                  onChange={(e) => updateSetting('twitch.announcement_settings.include_start_time', e.target.checked)}
+                  id="streaming-include-start-time"
+                  checked={settings.streaming?.announcement_settings?.include_start_time !== false}
+                  onChange={(e) => updateSetting('streaming.announcement_settings.include_start_time', e.target.checked)}
                 />
-                <label htmlFor="twitch-include-start-time">Show start time</label>
+                <label htmlFor="streaming-include-start-time">Show start time</label>
               </div>
             </div>
 
             {/* Info Box */}
             <div className="info-box" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(145, 70, 255, 0.1)', borderRadius: '8px', border: '1px solid rgba(145, 70, 255, 0.3)'}}>
               <p style={{margin: 0, fontSize: '0.9rem', color: '#3900a0'}}>
-                <strong>ℹ️ How it works:</strong> The bot checks Twitch every 60 seconds for live streams. When a tracked streamer goes live, a notification is posted to your announcement channel. VODs are checked every 5 minutes after streams end.
+                <strong>ℹ️ How it works:</strong> The bot checks Twitch and YouTube every 60 seconds for live streams. When a tracked streamer goes live, a notification is posted to your announcement channel. VODs are checked every 5 minutes after streams end with smart backoff.
               </p>
             </div>
           </>
