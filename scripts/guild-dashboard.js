@@ -2493,7 +2493,12 @@ const GuildDashboard = () => {
           enabled: settings.games?.enabled === true,
           'slots-config': {
             enabled: settings.games?.['slots-config']?.enabled === true,
-            symbols: settings.games?.['slots-config']?.symbols || ['🍒', '🍋', '🍊', '🍇', '🍎', '🍌', '⭐', '🔔', '💎', '🎰', '🍀', '❤️']
+            tier_emojis: settings.games?.['slots-config']?.tier_emojis || {
+              common: ['🍒', '🍋', '🍊', '🍇', '🍌'],
+              uncommon: ['⭐', '🔔', '❤️'],
+              rare: ['🍀'],
+              legendary: ['💎', '🎰']
+            }
           }
         },
         cross_server_portal: {
@@ -2642,8 +2647,8 @@ const GuildDashboard = () => {
     return null;
   };
 
-  const toggleEmojiSelection = (emoji) => {
-    const currentSymbols = settings?.games?.['slots-config']?.symbols || [];
+  const toggleEmojiForTier = (emoji, tier) => {
+    const currentTierEmojis = settings?.games?.['slots-config']?.tier_emojis?.[tier] || [];
 
     let symbolToStore;
     if (emoji.url && emoji.id) {
@@ -2653,14 +2658,25 @@ const GuildDashboard = () => {
       symbolToStore = emoji.emoji || emoji.name;
     }
 
-    if (currentSymbols.includes(symbolToStore)) {
-      updateSetting('games.slots-config.symbols',
-        currentSymbols.filter(s => s !== symbolToStore)
-      );
-    } else if (currentSymbols.length < 12) {
-      updateSetting('games.slots-config.symbols',
-        [...currentSymbols, symbolToStore]
-      );
+    const tierLimits = {
+      common: 5,
+      uncommon: 3,
+      rare: 1,
+      legendary: 2
+    };
+
+    const maxForTier = tierLimits[tier] || 5;
+
+    if (currentTierEmojis.includes(symbolToStore)) {
+      // Remove emoji from tier
+      const newTierEmojis = {...(settings.games?.['slots-config']?.tier_emojis || {})};
+      newTierEmojis[tier] = currentTierEmojis.filter(s => s !== symbolToStore);
+      updateSetting('games.slots-config.tier_emojis', newTierEmojis);
+    } else if (currentTierEmojis.length < maxForTier) {
+      // Add emoji to tier
+      const newTierEmojis = {...(settings.games?.['slots-config']?.tier_emojis || {})};
+      newTierEmojis[tier] = [...currentTierEmojis, symbolToStore];
+      updateSetting('games.slots-config.tier_emojis', newTierEmojis);
     }
   };
 
@@ -3618,28 +3634,33 @@ const GuildDashboard = () => {
 
               {settings.games?.['slots-config']?.enabled && (
                 <div className="form-group">
-                  <label className="form-label">Slot Symbols (Select 12)</label>
-                  <div className="emoji-selection-box">
-                    <div className="emoji-grid">
-                      {(settings.games?.['slots-config']?.symbols || []).length === 0 ? (
-                        <span style={{ opacity: 0.6 }}>Click emojis below to select them</span>
-                      ) : (
-                        (settings.games?.['slots-config']?.symbols || []).map((symbol, idx) => {
+                  <label className="form-label">Slot Symbol Tiers</label>
+                  <p style={{fontSize: '0.9rem', opacity: 0.8, marginBottom: '1rem'}}>
+                    Select emojis for each tier. Higher tiers appear less frequently but provide better payouts.
+                  </p>
+
+                  {/* Common Tier */}
+                  <div className="tier-section">
+                    <div className="tier-header">
+                      <span className="tier-badge common">🟢 Common (5 symbols)</span>
+                      <span className="tier-description">Weight: 30/28/26/24/22 | Multiplier: 3x (3-match)</span>
+                    </div>
+                    <div className="emoji-selection-box">
+                      <div className="emoji-grid">
+                        {(settings.games?.['slots-config']?.tier_emojis?.common || []).map((symbol, idx) => {
                           const customEmoji = parseCustomEmoji(symbol);
                           const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
-
                           return (
                             <button
                               key={idx}
                               onClick={() => {
                                 if (customEmoji) {
-                                  toggleEmojiSelection({ ...customEmoji, emoji: null });
+                                  toggleEmojiForTier({ ...customEmoji, emoji: null }, 'common');
                                 } else if (emojiData) {
-                                  toggleEmojiSelection(emojiData);
+                                  toggleEmojiForTier(emojiData, 'common');
                                 }
                               }}
                               className="emoji-btn selected"
-                              title="Click to deselect"
                             >
                               {(customEmoji?.url || emojiData?.url) ? (
                                 <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} />
@@ -3648,20 +3669,130 @@ const GuildDashboard = () => {
                               )}
                             </button>
                           );
-                        })
-                      )}
-                    </div>
-                    <div className="emoji-counter">
-                      {(settings.games?.['slots-config']?.symbols?.length || 0)} / 12 selected
-                      {(settings.games?.['slots-config']?.symbols?.length || 0) < 12 && (
-                        <span className="needed">
-                          {' '}({12 - (settings.games?.['slots-config']?.symbols?.length || 0)} more needed)
-                        </span>
-                      )}
+                        })}
+                      </div>
+                      <div className="emoji-counter">
+                        {(settings.games?.['slots-config']?.tier_emojis?.common?.length || 0)} / 5 selected
+                      </div>
                     </div>
                   </div>
 
-                  <label className="form-label">Available Emojis (Click to select)</label>
+                  {/* Uncommon Tier */}
+                  <div className="tier-section">
+                    <div className="tier-header">
+                      <span className="tier-badge uncommon">🔵 Uncommon (3 symbols)</span>
+                      <span className="tier-description">Weight: 12/10/8 | Multiplier: 3x (3-match)</span>
+                    </div>
+                    <div className="emoji-selection-box">
+                      <div className="emoji-grid">
+                        {(settings.games?.['slots-config']?.tier_emojis?.uncommon || []).map((symbol, idx) => {
+                          const customEmoji = parseCustomEmoji(symbol);
+                          const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                if (customEmoji) {
+                                  toggleEmojiForTier({ ...customEmoji, emoji: null }, 'uncommon');
+                                } else if (emojiData) {
+                                  toggleEmojiForTier(emojiData, 'uncommon');
+                                }
+                              }}
+                              className="emoji-btn selected"
+                            >
+                              {(customEmoji?.url || emojiData?.url) ? (
+                                <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} />
+                              ) : (
+                                <span>{symbol}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="emoji-counter">
+                        {(settings.games?.['slots-config']?.tier_emojis?.uncommon?.length || 0)} / 3 selected
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rare Tier */}
+                  <div className="tier-section">
+                    <div className="tier-header">
+                      <span className="tier-badge rare">🟣 Rare (1 symbol)</span>
+                      <span className="tier-description">Weight: 5 | Multiplier: 3x (3-match)</span>
+                    </div>
+                    <div className="emoji-selection-box">
+                      <div className="emoji-grid">
+                        {(settings.games?.['slots-config']?.tier_emojis?.rare || []).map((symbol, idx) => {
+                          const customEmoji = parseCustomEmoji(symbol);
+                          const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                if (customEmoji) {
+                                  toggleEmojiForTier({ ...customEmoji, emoji: null }, 'rare');
+                                } else if (emojiData) {
+                                  toggleEmojiForTier(emojiData, 'rare');
+                                }
+                              }}
+                              className="emoji-btn selected"
+                            >
+                              {(customEmoji?.url || emojiData?.url) ? (
+                                <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} />
+                              ) : (
+                                <span>{symbol}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="emoji-counter">
+                        {(settings.games?.['slots-config']?.tier_emojis?.rare?.length || 0)} / 1 selected
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Legendary Tier */}
+                  <div className="tier-section">
+                    <div className="tier-header">
+                      <span className="tier-badge legendary">🟠 Legendary (2 symbols)</span>
+                      <span className="tier-description">Weight: 3/1 | Multiplier: 1000x (5-match bonus!)</span>
+                    </div>
+                    <div className="emoji-selection-box">
+                      <div className="emoji-grid">
+                        {(settings.games?.['slots-config']?.tier_emojis?.legendary || []).map((symbol, idx) => {
+                          const customEmoji = parseCustomEmoji(symbol);
+                          const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                if (customEmoji) {
+                                  toggleEmojiForTier({ ...customEmoji, emoji: null }, 'legendary');
+                                } else if (emojiData) {
+                                  toggleEmojiForTier(emojiData, 'legendary');
+                                }
+                              }}
+                              className="emoji-btn selected"
+                            >
+                              {(customEmoji?.url || emojiData?.url) ? (
+                                <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} />
+                              ) : (
+                                <span>{symbol}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="emoji-counter">
+                        {(settings.games?.['slots-config']?.tier_emojis?.legendary?.length || 0)} / 2 selected
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Available Emojis Picker */}
+                  <label className="form-label" style={{marginTop: '1.5rem'}}>Available Emojis (Click to add to a tier)</label>
                   <div className="emoji-picker-grid">
                     {availableEmojis.map((emoji) => {
                       let storedFormat;
@@ -3672,15 +3803,22 @@ const GuildDashboard = () => {
                         storedFormat = emoji.emoji || emoji.name;
                       }
 
-                      const isSelected = settings.games?.['slots-config']?.symbols?.includes(storedFormat);
+                      const allSelected = [
+                        ...(settings.games?.['slots-config']?.tier_emojis?.common || []),
+                        ...(settings.games?.['slots-config']?.tier_emojis?.uncommon || []),
+                        ...(settings.games?.['slots-config']?.tier_emojis?.rare || []),
+                        ...(settings.games?.['slots-config']?.tier_emojis?.legendary || [])
+                      ];
+
+                      const isSelected = allSelected.includes(storedFormat);
 
                       return (
                         <button
                           key={emoji.id}
-                          onClick={() => toggleEmojiSelection(emoji)}
-                          disabled={(settings.games?.['slots-config']?.symbols?.length || 0) >= 12 && !isSelected}
-                          className={`emoji-btn ${isSelected ? 'selected' : ''}`}
-                          title={isSelected ? 'Already selected' : 'Click to select'}
+                          className={`emoji-btn ${isSelected ? 'selected disabled' : ''}`}
+                          disabled={isSelected}
+                          title={isSelected ? 'Already selected in a tier' : 'Click to add (will prompt for tier)'}
+                          style={{opacity: isSelected ? 0.3 : 1, cursor: isSelected ? 'not-allowed' : 'pointer'}}
                         >
                           {emoji.url ? (
                             <img src={emoji.url} alt={emoji.name} />

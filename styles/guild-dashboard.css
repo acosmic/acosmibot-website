@@ -2098,3 +2098,67 @@ input[type="number"].form-control::-webkit-outer-spin-button {
     border-radius: 12px;
     font-weight: 600;
 }
+/* Tier-based Emoji Selection */
+.tier-section {
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(88, 101, 242, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(88, 101, 242, 0.05);
+}
+
+.tier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tier-badge {
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tier-badge.common {
+  background: linear-gradient(45deg, #22c55e, #10b981);
+  color: white;
+}
+
+.tier-badge.uncommon {
+  background: linear-gradient(45deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.tier-badge.rare {
+  background: linear-gradient(45deg, #a855f7, #9333ea);
+  color: white;
+}
+
+.tier-badge.legendary {
+  background: linear-gradient(45deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.tier-description {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  font-family: monospace;
+}
+
+@media (max-width: 768px) {
+  .tier-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tier-description {
+    font-size: 0.75rem;
+  }
+}
