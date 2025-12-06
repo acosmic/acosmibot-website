@@ -31,6 +31,7 @@
 /* Body & Background */
 html {
     background: var(--bg-white);
+    height: 100%;
 }
 
 body {
@@ -42,6 +43,8 @@ body {
     padding-top: 100px;
     padding-bottom: 0;
     margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Container */
