@@ -459,7 +459,13 @@
 
         /* Collapsible Leaderboard */
         .leaderboard-section {
-            margin-bottom: 30px;
+            margin-bottom: 0px;
+            padding-bottom: 20px;
+            transition: padding 0.3s ease;
+        }
+
+        .leaderboard-section:has(.leaderboard-content:not(.collapsed)) {
+            padding-bottom: 30px;
         }
 
         .leaderboard-header {
