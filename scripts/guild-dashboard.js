@@ -2715,9 +2715,12 @@ const GuildDashboard = () => {
             <p>Configure your server bot behavior</p>
           </div>
         </div>
-        <button onClick={handleSave} disabled={saving} className="save-btn">
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
+        <div className="header-actions">
+          <a href="/dashboard.html" className="back-btn-header">← Back to Dashboard</a>
+          <button onClick={handleSave} disabled={saving} className="save-btn">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
       {error && (

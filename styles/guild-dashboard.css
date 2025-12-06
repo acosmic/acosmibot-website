@@ -81,6 +81,34 @@ body > .container,
     cursor: not-allowed;
 }
 
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.back-btn-header {
+    background: rgba(88, 101, 242, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(88, 101, 242, 0.2);
+    color: #333333;
+    padding: 14px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.back-btn-header:hover {
+    background: rgba(88, 101, 242, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.2);
+}
+
 /* Alert Messages */
 .alert {
     padding: 16px 20px;
@@ -1050,6 +1078,17 @@ input[type="number"].form-control::-webkit-outer-spin-button {
         flex-direction: column;
         gap: 20px;
         text-align: center;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .back-btn-header,
+    .save-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .form-grid {
