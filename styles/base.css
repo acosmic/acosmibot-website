@@ -40,6 +40,8 @@ body {
     overflow-x: hidden;
     min-height: 100vh;
     padding-top: 100px;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 /* Container */
