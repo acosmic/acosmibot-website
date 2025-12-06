@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Your Server - Acosmibot</title>
+    <title>Acosmibot Dashboard</title>
     <link rel="icon" type="image/png" href="/images/acosmibot-logo3.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/base.css">
-    <link rel="stylesheet" href="styles/guild-selector.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
     <link rel="stylesheet" href="styles/footer.css">
 </head>
 <!-- Google tag (gtag.js) -->
@@ -31,8 +31,7 @@
                     <li><a href="/">Home</a></li>
                     <li><a href="/premium">Premium</a></li>
                     <li><a href="/docs">Documentation</a></li>
-                    <li><a href="/user-dashboard" id="userDashboardLink">Dashboard</a></li>
-                    <li><a href="/guild-selector" id="guildManagementLink">Server Management</a></li>
+                    <li><a href="/dashboard" id="userDashboardLink">Dashboard</a></li>
                     <li><a href="/admin-dashboard" id="adminPanelLink" style="display:none;" class="admin-link">Admin Panel</a></li>
                     <li><a href="https://github.com/acosmic/acosmibot">GitHub</a></li>
                 </ul>
@@ -48,15 +47,64 @@
     </nav>
 
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <h1>Select Your Server</h1>
-            <p>Choose a Discord server to view stats or configure Acosmibot</p>
+            <div class="user-info">
+                <img id="userAvatar" class="user-avatar" src="" alt="User Avatar">
+                <div class="user-details">
+                    <h1 id="userName">Loading...</h1>
+                    <div class="user-stats-inline">
+                        <span>Level <span id="userLevel">-</span></span>
+                        <span class="stat-separator">•</span>
+                        <span><span id="userCredits">-</span> Credits</span>
+                        <span class="stat-separator">•</span>
+                        <span>Rank #<span id="userRank">-</span></span>
+                        <span class="stat-separator">•</span>
+                        <span><span id="userMessages">-</span> Messages</span>
+                        <span class="stat-separator">•</span>
+                        <span><span id="userReactions">-</span> Reactions</span>
+                        <span class="stat-separator">•</span>
+                        <span><span id="userGames">-</span> Games (<span id="userWinRate">-</span>% WR)</span>
+                        <span class="stat-separator">•</span>
+                        <span>Member Since <span id="memberSince">-</span></span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="content">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading your servers...</p>
+        <!-- Guild List Section -->
+        <div class="content-section guild-list-section">
+            <h2 class="section-title">📂 Your Servers</h2>
+            <div id="guildsContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading your servers...
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Leaderboards - Collapsible -->
+        <div class="content-section leaderboard-section">
+            <div class="leaderboard-header" onclick="toggleLeaderboard()">
+                <h2 class="section-title">🏆 Global Leaderboards</h2>
+                <span class="collapse-icon" id="leaderboardIcon">▼</span>
+            </div>
+            <div id="leaderboardContent" class="leaderboard-content collapsed">
+                <div class="leaderboard-filter">
+                    <label for="leaderboardType">Show:</label>
+                    <select id="leaderboardType" onchange="switchLeaderboard(this.value)">
+                        <option value="level">Top by Level</option>
+                        <option value="exp">Top by XP</option>
+                        <option value="currency">Top by Credits</option>
+                        <option value="messages">Top by Messages</option>
+                    </select>
+                </div>
+                <div id="leaderboardDisplay">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading leaderboard...
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -76,7 +124,8 @@
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="scripts/nav.js"></script>
-    <script src="scripts/guild-selector.js"></script>
+    <script src="scripts/dashboard.js"></script>
 </body>
 </html>

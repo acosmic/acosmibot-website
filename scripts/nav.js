@@ -69,10 +69,8 @@ async function updateNavForLoggedIn() {
 
     // Show navigation links
     const dashboardLink = document.getElementById('userDashboardLink');
-    const guildLink = document.getElementById('guildManagementLink');
 
     if (dashboardLink) dashboardLink.style.display = 'block';
-    if (guildLink) guildLink.style.display = 'block';
 
     // Check if user is an admin and show admin panel link
     await checkAndShowAdminLink();
@@ -117,11 +115,9 @@ function updateNavForLoggedOut() {
 
     // Hide navigation links
     const dashboardLink = document.getElementById('userDashboardLink');
-    const guildLink = document.getElementById('guildManagementLink');
     const adminLink = document.getElementById('adminPanelLink');
 
     if (dashboardLink) dashboardLink.style.display = 'none';
-    if (guildLink) guildLink.style.display = 'none';
     if (adminLink) adminLink.style.display = 'none';
 }
 
@@ -182,8 +178,7 @@ function showUserMenu() {
             <div class="user-name">${currentUser.username}</div>
             <div class="user-stats">Level ${currentUser.level || 1} • ${currentUser.currency || 0} Credits</div>
         </div>
-        <a href="/user-dashboard.html">Personal Dashboard</a>
-        <a href="/guild-selector.html">Server Management</a>
+        <a href="/dashboard.html">Dashboard</a>
         <a href="#" onclick="showProfile()">Profile</a>
         <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 5px 0;"></div>
         <a href="#" onclick="logout()" class="logout-btn">🚪 Logout</a>
