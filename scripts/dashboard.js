@@ -230,11 +230,11 @@ function createGuildCard(guild, isOwner, canManage) {
             </div>
 
             <div class="action-buttons">
-                <a href="/guild-stats.html?guild=${guild.id}" class="btn btn-primary">
+                <a href="/guild-stats.html?guild=${guild.id}" class="btn btn-secondary">
                     📊 View Stats
                 </a>
                 ${canManage ? `
-                    <a href="/guild-dashboard.html?guild=${guild.id}" class="btn btn-secondary">
+                    <a href="/guild-dashboard.html?guild=${guild.id}" class="btn btn-primary">
                         ⚙️ Settings
                     </a>
                 ` : ''}
