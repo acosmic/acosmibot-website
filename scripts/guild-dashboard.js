@@ -2664,7 +2664,8 @@ const GuildDashboard = () => {
       common: 5,
       uncommon: 3,
       rare: 1,
-      legendary: 2
+      legendary: 2,
+      scatter: 1
     };
 
     const maxForTier = tierLimits[tier] || 5;
@@ -3793,6 +3794,44 @@ const GuildDashboard = () => {
                     </div>
                   </div>
 
+                  {/* Scatter Tier */}
+                  <div className="tier-section">
+                    <div className="tier-header">
+                      <span className="tier-badge scatter">⚡ Scatter (1 symbol)</span>
+                      <span className="tier-description">Weight: 17 | Triggers free spins bonus round</span>
+                    </div>
+                    <div className="emoji-selection-box">
+                      <div className="emoji-grid">
+                        {(settings.games?.['slots-config']?.tier_emojis?.scatter || []).map((symbol, idx) => {
+                          const customEmoji = parseCustomEmoji(symbol);
+                          const emojiData = customEmoji || availableEmojis.find(e => (e.emoji || e.name) === symbol);
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                if (customEmoji) {
+                                  toggleEmojiForTier({ ...customEmoji, emoji: null }, 'scatter');
+                                } else if (emojiData) {
+                                  toggleEmojiForTier(emojiData, 'scatter');
+                                }
+                              }}
+                              className="emoji-btn selected"
+                            >
+                              {(customEmoji?.url || emojiData?.url) ? (
+                                <img src={customEmoji?.url || emojiData.url} alt={customEmoji?.name || emojiData.name} />
+                              ) : (
+                                <span>{symbol}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="emoji-counter">
+                        {(settings.games?.['slots-config']?.tier_emojis?.scatter?.length || 0)} / 1 selected
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Available Emojis Picker */}
                   <label className="form-label" style={{marginTop: '1.5rem'}}>Available Emojis (Click to select tier)</label>
                   <div className="emoji-picker-grid">
@@ -3809,7 +3848,8 @@ const GuildDashboard = () => {
                         ...(settings.games?.['slots-config']?.tier_emojis?.common || []),
                         ...(settings.games?.['slots-config']?.tier_emojis?.uncommon || []),
                         ...(settings.games?.['slots-config']?.tier_emojis?.rare || []),
-                        ...(settings.games?.['slots-config']?.tier_emojis?.legendary || [])
+                        ...(settings.games?.['slots-config']?.tier_emojis?.legendary || []),
+                        ...(settings.games?.['slots-config']?.tier_emojis?.scatter || [])
                       ];
 
                       const isSelected = allSelected.includes(storedFormat);
@@ -4048,6 +4088,19 @@ const GuildDashboard = () => {
                 🟠 Legendary
                 <span className="tier-count">
                   {(settings.games?.['slots-config']?.tier_emojis?.legendary?.length || 0)}/2
+                </span>
+              </button>
+              <button
+                className="tier-selector-btn scatter"
+                onClick={() => {
+                  toggleEmojiForTier(tierSelectorEmoji, 'scatter');
+                  setTierSelectorEmoji(null);
+                }}
+                disabled={(settings.games?.['slots-config']?.tier_emojis?.scatter?.length || 0) >= 1}
+              >
+                ⚡ Scatter
+                <span className="tier-count">
+                  {(settings.games?.['slots-config']?.tier_emojis?.scatter?.length || 0)}/1
                 </span>
               </button>
             </div>
