@@ -2961,13 +2961,18 @@ const GuildDashboard = () => {
             <div className="form-group">
               <label className="form-label">Assignment Mode</label>
               <select
-                value={settings.roles?.mode || 'progressive'}
+                value={(() => {
+                  const mode = settings.roles?.mode || 'progressive';
+                  // Map old values to new ones for display
+                  if (mode === 'cumulative' || mode === 'stack') return 'additive';
+                  if (mode === 'single') return 'progressive';
+                  return mode;
+                })()}
                 onChange={(e) => updateSetting('roles.mode', e.target.value)}
                 className="form-control"
               >
-                <option value="progressive">Progressive</option>
-                <option value="single">Single</option>
-                <option value="cumulative">Cumulative</option>
+                <option value="progressive">Progressive - Remove old roles, add new ones</option>
+                <option value="additive">Additive - Keep all roles</option>
               </select>
             </div>
 
