@@ -2460,6 +2460,52 @@ const GuildDashboard = () => {
       }
 
       // Ensure all required sections exist with proper defaults
+      // Normalize role_mappings to new format (array → object with role_ids and announcement_message)
+      const normalizeRoleMappings = (mappings) => {
+        if (!mappings) return {};
+        const normalized = {};
+        for (const [level, data] of Object.entries(mappings)) {
+          if (Array.isArray(data)) {
+            // Old format - convert to new format
+            normalized[level] = {
+              role_ids: data,
+              announcement_message: `🎉 {mention} reached level ${level} and earned the {role} role!`
+            };
+          } else if (data && typeof data === 'object') {
+            // Already new format - ensure required fields
+            normalized[level] = {
+              role_ids: data.role_ids || [],
+              announcement_message: data.announcement_message || `🎉 {mention} reached level ${level} and earned the {role} role!`
+            };
+          }
+        }
+        return normalized;
+      };
+
+      // Normalize role mode (cumulative → additive, single → progressive)
+      const normalizeRoleMode = (mode) => {
+        const modeMap = {
+          'cumulative': 'additive',
+          'stack': 'additive',
+          'single': 'progressive'
+        };
+        return modeMap[mode] || mode || 'progressive';
+      };
+
+      // Fix AI channel mode based on channel lists
+      const normalizeAIChannelMode = (mode, excludedChannels, allowedChannels) => {
+        if (mode === 'all' && excludedChannels && excludedChannels.length > 0) {
+          return 'exclude';
+        }
+        if (mode === 'all' && allowedChannels && allowedChannels.length > 0) {
+          return 'specific';
+        }
+        // Normalize frontend terminology to backend
+        if (mode === 'whitelist') return 'specific';
+        if (mode === 'blacklist') return 'exclude';
+        return mode || 'all';
+      };
+
       const sanitizedSettings = {
         leveling: {
           enabled: settings.leveling?.enabled === true,
@@ -2474,20 +2520,19 @@ const GuildDashboard = () => {
         },
         roles: {
           enabled: settings.roles?.enabled !== false,
-          mode: settings.roles?.mode || 'progressive',
-          role_mappings: settings.roles?.role_mappings || {},
+          mode: normalizeRoleMode(settings.roles?.mode),
+          role_mappings: normalizeRoleMappings(settings.roles?.role_mappings),
           role_cache: settings.roles?.role_cache || {},
           role_announcement: settings.roles?.role_announcement !== false,
           announcement_channel_id: settings.roles?.announcement_channel_id || null,
           remove_previous_roles: settings.roles?.remove_previous_roles !== false,
-          max_level_tracked: settings.roles?.max_level_tracked || 100,
-          role_announcement_message: settings.roles?.role_announcement_message || 'Congratulations {user}! You reached level {level} and earned the {role} role!'
+          max_level_tracked: settings.roles?.max_level_tracked || 100
         },
         ai: {
           enabled: settings.ai?.enabled === true,
           instructions: settings.ai?.instructions || '',
           model: settings.ai?.model || 'gpt-4o-mini',
-          channel_mode: settings.ai?.channel_mode || 'all',
+          channel_mode: normalizeAIChannelMode(settings.ai?.channel_mode, settings.ai?.excluded_channels, settings.ai?.allowed_channels),
           allowed_channels: settings.ai?.allowed_channels || [],
           excluded_channels: settings.ai?.excluded_channels || []
         },
