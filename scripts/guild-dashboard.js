@@ -2555,40 +2555,38 @@ const GuildDashboard = () => {
           display_name: settings.cross_server_portal?.display_name || null,
           portal_cost: settings.cross_server_portal?.portal_cost || 1000
         },
-        streaming: {
-          twitch: {
-            enabled: settings.streaming?.twitch?.enabled === true,
-            announcement_channel_id: settings.streaming?.twitch?.announcement_channel_id || null,
-            tracked_streamers: settings.streaming?.twitch?.tracked_streamers || [],
-            announcement_settings: {
-              include_thumbnail: settings.streaming?.twitch?.announcement_settings?.include_thumbnail !== false,
-              include_game: settings.streaming?.twitch?.announcement_settings?.include_game !== false,
-              include_viewer_count: settings.streaming?.twitch?.announcement_settings?.include_viewer_count !== false,
-              include_start_time: settings.streaming?.twitch?.announcement_settings?.include_start_time !== false,
-              color: settings.streaming?.twitch?.announcement_settings?.color || '0x6441A4'
-            },
-            vod_settings: {
-              enabled: settings.streaming?.twitch?.vod_settings?.enabled !== false,
-              edit_message_when_vod_available: settings.streaming?.twitch?.vod_settings?.edit_message_when_vod_available !== false,
-              vod_message_suffix: settings.streaming?.twitch?.vod_settings?.vod_message_suffix || '[Watch VOD]({vod_url})'
-            }
+        twitch: {
+          enabled: settings.twitch?.enabled === true,
+          announcement_channel_id: settings.twitch?.announcement_channel_id || null,
+          tracked_streamers: settings.twitch?.tracked_streamers || [],
+          announcement_settings: {
+            include_thumbnail: settings.twitch?.announcement_settings?.include_thumbnail !== false,
+            include_game: settings.twitch?.announcement_settings?.include_game !== false,
+            include_viewer_count: settings.twitch?.announcement_settings?.include_viewer_count !== false,
+            include_start_time: settings.twitch?.announcement_settings?.include_start_time !== false,
+            color: settings.twitch?.announcement_settings?.color || '0x6441A4'
           },
-          youtube: {
-            enabled: settings.streaming?.youtube?.enabled === true,
-            announcement_channel_id: settings.streaming?.youtube?.announcement_channel_id || null,
-            tracked_channels: settings.streaming?.youtube?.tracked_channels || [],
-            announcement_settings: {
-              include_thumbnail: settings.streaming?.youtube?.announcement_settings?.include_thumbnail !== false,
-              include_game: settings.streaming?.youtube?.announcement_settings?.include_game !== false,
-              include_viewer_count: settings.streaming?.youtube?.announcement_settings?.include_viewer_count !== false,
-              include_start_time: settings.streaming?.youtube?.announcement_settings?.include_start_time !== false,
-              color: settings.streaming?.youtube?.announcement_settings?.color || '0xFF0000'
-            },
-            vod_settings: {
-              enabled: settings.streaming?.youtube?.vod_settings?.enabled !== false,
-              edit_message_when_vod_available: settings.streaming?.youtube?.vod_settings?.edit_message_when_vod_available !== false,
-              vod_message_suffix: settings.streaming?.youtube?.vod_settings?.vod_message_suffix || '[Watch VOD]({vod_url})'
-            }
+          vod_settings: {
+            enabled: settings.twitch?.vod_settings?.enabled !== false,
+            edit_message_when_vod_available: settings.twitch?.vod_settings?.edit_message_when_vod_available !== false,
+            vod_message_suffix: settings.twitch?.vod_settings?.vod_message_suffix || '[Watch VOD]({vod_url})'
+          }
+        },
+        youtube: {
+          enabled: settings.youtube?.enabled === true,
+          announcement_channel_id: settings.youtube?.announcement_channel_id || null,
+          tracked_streamers: settings.youtube?.tracked_streamers || [],
+          announcement_settings: {
+            include_thumbnail: settings.youtube?.announcement_settings?.include_thumbnail !== false,
+            include_game: settings.youtube?.announcement_settings?.include_game !== false,
+            include_viewer_count: settings.youtube?.announcement_settings?.include_viewer_count !== false,
+            include_start_time: settings.youtube?.announcement_settings?.include_start_time !== false,
+            color: settings.youtube?.announcement_settings?.color || '0xFF0000'
+          },
+          vod_settings: {
+            enabled: settings.youtube?.vod_settings?.enabled !== false,
+            edit_message_when_vod_available: settings.youtube?.vod_settings?.edit_message_when_vod_available !== false,
+            vod_message_suffix: settings.youtube?.vod_settings?.vod_message_suffix || '[Watch VOD]({vod_url})'
           }
         },
         reaction_roles: {
@@ -3088,12 +3086,12 @@ const GuildDashboard = () => {
           </span>
           <h2 className="feature-title">📺 Twitch Integration</h2>
           <div
-            className={`toggle-switch ${settings.streaming?.twitch?.enabled ? 'active' : ''}`}
-            onClick={() => updateToggleAndCollapse('streaming.twitch.enabled', !settings.streaming?.twitch?.enabled, 'twitch')}
+            className={`toggle-switch ${settings.twitch?.enabled ? 'active' : ''}`}
+            onClick={() => updateToggleAndCollapse('twitch.enabled', !settings.twitch?.enabled, 'twitch')}
           />
         </div>
         <div className={`feature-content ${collapsedSections.twitch ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.twitch ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
-          {settings.streaming?.twitch?.enabled && (
+          {settings.twitch?.enabled && (
           <>
             <p className="feature-description">
               Get notified in Discord when your favorite Twitch streamers go live! Supports custom messages, role pings, and automatic VOD detection.
@@ -3104,8 +3102,8 @@ const GuildDashboard = () => {
               <label className="form-label">Announcement Channel</label>
               <p className="form-hint">Where to post Twitch live notifications</p>
               <select
-                value={settings.streaming?.twitch?.announcement_channel_id || ''}
-                onChange={(e) => updateSetting('streaming.twitch.announcement_channel_id', e.target.value)}
+                value={settings.twitch?.announcement_channel_id || ''}
+                onChange={(e) => updateSetting('twitch.announcement_channel_id', e.target.value)}
                 className="form-control"
               >
                 <option value="">Select a channel...</option>
@@ -3118,7 +3116,7 @@ const GuildDashboard = () => {
             {/* Tracked Streamers */}
             <div className="form-group">
               {(() => {
-                const streamers = settings.streaming?.twitch?.tracked_streamers || [];
+                const streamers = settings.twitch?.tracked_streamers || [];
                 const maxStreamers = premiumTier === 'premium' ? 5 : 1;
 
                 return (
@@ -3146,11 +3144,11 @@ const GuildDashboard = () => {
                           onUpdate={(idx, updatedStreamer) => {
                             const newStreamers = [...streamers];
                             newStreamers[idx] = updatedStreamer;
-                            updateSetting('streaming.twitch.tracked_streamers', newStreamers);
+                            updateSetting('twitch.tracked_streamers', newStreamers);
                           }}
                           onRemove={(idx) => {
                             const newStreamers = streamers.filter((_, i) => i !== idx);
-                            updateSetting('streaming.twitch.tracked_streamers', newStreamers);
+                            updateSetting('twitch.tracked_streamers', newStreamers);
                           }}
                         />
                       ))}
@@ -3168,7 +3166,7 @@ const GuildDashboard = () => {
                           custom_message: null,
                           skip_vod_check: false
                         }];
-                        updateSetting('streaming.twitch.tracked_streamers', newStreamers);
+                        updateSetting('twitch.tracked_streamers', newStreamers);
                       }}
                       style={{ marginTop: '1rem' }}
                       disabled={streamers.length >= maxStreamers}
@@ -3194,20 +3192,20 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="twitch-vod-enabled"
-                  checked={settings.streaming?.twitch?.vod_settings?.enabled !== false}
-                  onChange={(e) => updateSetting('streaming.twitch.vod_settings.enabled', e.target.checked)}
+                  checked={settings.twitch?.vod_settings?.enabled !== false}
+                  onChange={(e) => updateSetting('twitch.vod_settings.enabled', e.target.checked)}
                 />
                 <label htmlFor="twitch-vod-enabled">Enable VOD Detection</label>
               </div>
               <p className="form-hint">Automatically detect when VODs become available after Twitch streams end</p>
 
-              {settings.streaming?.twitch?.vod_settings?.enabled !== false && (
+              {settings.twitch?.vod_settings?.enabled !== false && (
                 <div className="checkbox-wrapper" style={{ marginTop: '0.5rem' }}>
                   <input
                     type="checkbox"
                     id="twitch-vod-edit"
-                    checked={settings.streaming?.twitch?.vod_settings?.edit_message_when_vod_available !== false}
-                    onChange={(e) => updateSetting('streaming.twitch.vod_settings.edit_message_when_vod_available', e.target.checked)}
+                    checked={settings.twitch?.vod_settings?.edit_message_when_vod_available !== false}
+                    onChange={(e) => updateSetting('twitch.vod_settings.edit_message_when_vod_available', e.target.checked)}
                   />
                   <label htmlFor="twitch-vod-edit">Auto-edit announcement with VOD link</label>
                 </div>
@@ -3222,8 +3220,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="twitch-include-thumbnail"
-                  checked={settings.streaming?.twitch?.announcement_settings?.include_thumbnail !== false}
-                  onChange={(e) => updateSetting('streaming.twitch.announcement_settings.include_thumbnail', e.target.checked)}
+                  checked={settings.twitch?.announcement_settings?.include_thumbnail !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_thumbnail', e.target.checked)}
                 />
                 <label htmlFor="twitch-include-thumbnail">Show stream thumbnail</label>
               </div>
@@ -3232,8 +3230,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="twitch-include-game"
-                  checked={settings.streaming?.twitch?.announcement_settings?.include_game !== false}
-                  onChange={(e) => updateSetting('streaming.twitch.announcement_settings.include_game', e.target.checked)}
+                  checked={settings.twitch?.announcement_settings?.include_game !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_game', e.target.checked)}
                 />
                 <label htmlFor="twitch-include-game">Show game/category</label>
               </div>
@@ -3242,8 +3240,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="twitch-include-viewers"
-                  checked={settings.streaming?.twitch?.announcement_settings?.include_viewer_count !== false}
-                  onChange={(e) => updateSetting('streaming.twitch.announcement_settings.include_viewer_count', e.target.checked)}
+                  checked={settings.twitch?.announcement_settings?.include_viewer_count !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_viewer_count', e.target.checked)}
                 />
                 <label htmlFor="twitch-include-viewers">Show viewer count</label>
               </div>
@@ -3252,8 +3250,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="twitch-include-start-time"
-                  checked={settings.streaming?.twitch?.announcement_settings?.include_start_time !== false}
-                  onChange={(e) => updateSetting('streaming.twitch.announcement_settings.include_start_time', e.target.checked)}
+                  checked={settings.twitch?.announcement_settings?.include_start_time !== false}
+                  onChange={(e) => updateSetting('twitch.announcement_settings.include_start_time', e.target.checked)}
                 />
                 <label htmlFor="twitch-include-start-time">Show start time</label>
               </div>
@@ -3282,12 +3280,12 @@ const GuildDashboard = () => {
           </span>
           <h2 className="feature-title">▶️ YouTube Integration</h2>
           <div
-            className={`toggle-switch ${settings.streaming?.youtube?.enabled ? 'active' : ''}`}
-            onClick={() => updateToggleAndCollapse('streaming.youtube.enabled', !settings.streaming?.youtube?.enabled, 'youtube')}
+            className={`toggle-switch ${settings.youtube?.enabled ? 'active' : ''}`}
+            onClick={() => updateToggleAndCollapse('youtube.enabled', !settings.youtube?.enabled, 'youtube')}
           />
         </div>
         <div className={`feature-content ${collapsedSections.youtube ? 'collapsed' : ''}`} style={{ maxHeight: collapsedSections.youtube ? '0' : '5000px', overflow: 'hidden', transition: 'max-height 0.3s ease-in-out' }}>
-          {settings.streaming?.youtube?.enabled && (
+          {settings.youtube?.enabled && (
           <>
             <p className="feature-description">
               Get notified in Discord when your favorite YouTube channels go live or upload new videos! Supports custom messages, role pings, and automatic VOD detection.
@@ -3298,8 +3296,8 @@ const GuildDashboard = () => {
               <label className="form-label">Announcement Channel</label>
               <p className="form-hint">Where to post YouTube live/video notifications</p>
               <select
-                value={settings.streaming?.youtube?.announcement_channel_id || ''}
-                onChange={(e) => updateSetting('streaming.youtube.announcement_channel_id', e.target.value)}
+                value={settings.youtube?.announcement_channel_id || ''}
+                onChange={(e) => updateSetting('youtube.announcement_channel_id', e.target.value)}
                 className="form-control"
               >
                 <option value="">Select a channel...</option>
@@ -3312,8 +3310,8 @@ const GuildDashboard = () => {
             {/* Tracked Channels */}
             <div className="form-group">
               {(() => {
-                const channels = settings.streaming?.youtube?.tracked_channels || [];
-                const maxChannels = premiumTier === 'premium' ? 5 : 1;
+                const streamers = settings.youtube?.tracked_streamers || [];
+                const maxStreamers = premiumTier === 'premium' ? 5 : 1;
 
                 return (
                   <>
@@ -3323,7 +3321,7 @@ const GuildDashboard = () => {
                       {premiumTier === 'premium' && ' (Premium: 5 channels)'}
                     </label>
                     <p className="form-hint">
-                      ▶️ YouTube: {channels.length}/{maxChannels}
+                      ▶️ YouTube: {streamers.length}/{maxStreamers}
                       <br />
                       {premiumTier === 'premium'
                         ? 'Add up to 5 YouTube channels'
@@ -3331,20 +3329,20 @@ const GuildDashboard = () => {
                     </p>
 
                     <div className="streamer-list">
-                      {channels.map((channel, index) => (
+                      {streamers.map((streamer, index) => (
                         <StreamerListItem
                           key={index}
-                          streamer={{...channel, platform: 'youtube'}}
+                          streamer={{...streamer, platform: 'youtube'}}
                           index={index}
                           availableRoles={availableRoles}
-                          onUpdate={(idx, updatedChannel) => {
-                            const newChannels = [...channels];
-                            newChannels[idx] = updatedChannel;
-                            updateSetting('streaming.youtube.tracked_channels', newChannels);
+                          onUpdate={(idx, updatedStreamer) => {
+                            const newStreamers = [...streamers];
+                            newStreamers[idx] = updatedStreamer;
+                            updateSetting('youtube.tracked_streamers', newStreamers);
                           }}
                           onRemove={(idx) => {
-                            const newChannels = channels.filter((_, i) => i !== idx);
-                            updateSetting('streaming.youtube.tracked_channels', newChannels);
+                            const newStreamers = streamers.filter((_, i) => i !== idx);
+                            updateSetting('youtube.tracked_streamers', newStreamers);
                           }}
                         />
                       ))}
@@ -3353,7 +3351,7 @@ const GuildDashboard = () => {
                     <button
                       className="btn-secondary"
                       onClick={() => {
-                        const newChannels = [...channels, {
+                        const newStreamers = [...streamers, {
                           username: '',
                           channel_id: null,
                           mention_role_ids: [],
@@ -3362,15 +3360,15 @@ const GuildDashboard = () => {
                           custom_message: null,
                           skip_vod_check: false
                         }];
-                        updateSetting('streaming.youtube.tracked_channels', newChannels);
+                        updateSetting('youtube.tracked_streamers', newStreamers);
                       }}
                       style={{ marginTop: '1rem' }}
-                      disabled={channels.length >= maxChannels}
+                      disabled={streamers.length >= maxStreamers}
                     >
                       + Add YouTube Channel
                     </button>
 
-                    {premiumTier === 'free' && channels.length >= 1 && (
+                    {premiumTier === 'free' && streamers.length >= 1 && (
                       <p style={{ marginTop: '0.5rem', color: '#ffa500', fontSize: '0.9rem' }}>
                         ℹ️ Free tier allows 1 YouTube channel. Upgrade to Premium for 5!
                       </p>
@@ -3388,20 +3386,20 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="youtube-vod-enabled"
-                  checked={settings.streaming?.youtube?.vod_settings?.enabled !== false}
-                  onChange={(e) => updateSetting('streaming.youtube.vod_settings.enabled', e.target.checked)}
+                  checked={settings.youtube?.vod_settings?.enabled !== false}
+                  onChange={(e) => updateSetting('youtube.vod_settings.enabled', e.target.checked)}
                 />
                 <label htmlFor="youtube-vod-enabled">Enable VOD Detection</label>
               </div>
               <p className="form-hint">Automatically detect when archives become available after YouTube livestreams end</p>
 
-              {settings.streaming?.youtube?.vod_settings?.enabled !== false && (
+              {settings.youtube?.vod_settings?.enabled !== false && (
                 <div className="checkbox-wrapper" style={{ marginTop: '0.5rem' }}>
                   <input
                     type="checkbox"
                     id="youtube-vod-edit"
-                    checked={settings.streaming?.youtube?.vod_settings?.edit_message_when_vod_available !== false}
-                    onChange={(e) => updateSetting('streaming.youtube.vod_settings.edit_message_when_vod_available', e.target.checked)}
+                    checked={settings.youtube?.vod_settings?.edit_message_when_vod_available !== false}
+                    onChange={(e) => updateSetting('youtube.vod_settings.edit_message_when_vod_available', e.target.checked)}
                   />
                   <label htmlFor="youtube-vod-edit">Auto-edit announcement with VOD link</label>
                 </div>
@@ -3416,8 +3414,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="youtube-include-thumbnail"
-                  checked={settings.streaming?.youtube?.announcement_settings?.include_thumbnail !== false}
-                  onChange={(e) => updateSetting('streaming.youtube.announcement_settings.include_thumbnail', e.target.checked)}
+                  checked={settings.youtube?.announcement_settings?.include_thumbnail !== false}
+                  onChange={(e) => updateSetting('youtube.announcement_settings.include_thumbnail', e.target.checked)}
                 />
                 <label htmlFor="youtube-include-thumbnail">Show stream thumbnail</label>
               </div>
@@ -3426,8 +3424,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="youtube-include-game"
-                  checked={settings.streaming?.youtube?.announcement_settings?.include_game !== false}
-                  onChange={(e) => updateSetting('streaming.youtube.announcement_settings.include_game', e.target.checked)}
+                  checked={settings.youtube?.announcement_settings?.include_game !== false}
+                  onChange={(e) => updateSetting('youtube.announcement_settings.include_game', e.target.checked)}
                 />
                 <label htmlFor="youtube-include-game">Show game/category</label>
               </div>
@@ -3436,8 +3434,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="youtube-include-viewers"
-                  checked={settings.streaming?.youtube?.announcement_settings?.include_viewer_count !== false}
-                  onChange={(e) => updateSetting('streaming.youtube.announcement_settings.include_viewer_count', e.target.checked)}
+                  checked={settings.youtube?.announcement_settings?.include_viewer_count !== false}
+                  onChange={(e) => updateSetting('youtube.announcement_settings.include_viewer_count', e.target.checked)}
                 />
                 <label htmlFor="youtube-include-viewers">Show viewer count</label>
               </div>
@@ -3446,8 +3444,8 @@ const GuildDashboard = () => {
                 <input
                   type="checkbox"
                   id="youtube-include-start-time"
-                  checked={settings.streaming?.youtube?.announcement_settings?.include_start_time !== false}
-                  onChange={(e) => updateSetting('streaming.youtube.announcement_settings.include_start_time', e.target.checked)}
+                  checked={settings.youtube?.announcement_settings?.include_start_time !== false}
+                  onChange={(e) => updateSetting('youtube.announcement_settings.include_start_time', e.target.checked)}
                 />
                 <label htmlFor="youtube-include-start-time">Show start time</label>
               </div>
