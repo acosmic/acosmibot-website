@@ -10,15 +10,17 @@ body {
     font-family: 'Poppins', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
-    overflow-x: hidden;
+    overflow: hidden;
     padding: 0;
     margin: 0;
+    height: 100vh;
 }
 
 .dashboard-container {
     display: flex;
     height: 100vh;
-    width: 100%;
+    width: 100vw;
+    overflow: hidden;
 }
 
 /* ============================================
@@ -27,16 +29,16 @@ body {
 
 .sidebar {
     width: 280px;
+    min-width: 280px;
+    max-width: 280px;
     background: var(--bg-primary);
     border-right: 1px solid var(--border-light);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 100;
+    overflow-x: hidden;
+    flex-shrink: 0;
+    height: 100vh;
 }
 
 /* Guild Selector - 3 Cyan Squares */
@@ -175,10 +177,12 @@ body {
 
 .main-content {
     flex: 1;
-    margin-left: 280px;
     padding: 40px;
     overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
+    background: #252525;
+    height: 100vh;
 }
 
 /* Top Right Indicators */
@@ -296,6 +300,9 @@ body {
 /* Feature Sections */
 .feature-section {
     margin-bottom: 32px;
+    background: #2D2D2D;
+    padding: 24px;
+    border-radius: 12px;
 }
 
 .feature-section h3 {
@@ -315,7 +322,7 @@ body {
 
 .stream-input {
     flex: 1;
-    background: var(--bg-tertiary);
+    background: #1F1F1F;
     border: 1px solid var(--border-light);
     border-radius: 8px;
     padding: 14px 16px;
@@ -375,7 +382,7 @@ body {
 /* Select Dropdowns */
 .feature-select {
     width: 48%;
-    background: var(--bg-tertiary);
+    background: #1F1F1F;
     border: 1px solid var(--border-light);
     border-radius: 8px;
     padding: 14px 16px;
@@ -404,11 +411,18 @@ body {
 /* Inline Sections */
 .feature-section-inline {
     margin-bottom: 32px;
+    background: #2D2D2D;
+    padding: 24px;
+    border-radius: 12px;
 }
 
 .inline-field {
     display: inline-block;
     width: 48%;
+}
+
+.inline-field h3 {
+    margin: 0 0 12px 0;
 }
 
 .section-header-inline {
@@ -432,7 +446,7 @@ body {
 /* Message Textarea */
 .message-textarea {
     width: 100%;
-    background: var(--bg-tertiary);
+    background: #1F1F1F;
     border: 1px solid var(--border-light);
     border-radius: 8px;
     padding: 16px;
@@ -499,10 +513,11 @@ body {
 @media (max-width: 1200px) {
     .sidebar {
         width: 240px;
+        min-width: 240px;
+        max-width: 240px;
     }
 
     .main-content {
-        margin-left: 240px;
         padding: 30px;
     }
 
@@ -513,6 +528,11 @@ body {
 
 @media (max-width: 768px) {
     .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
     }
@@ -522,7 +542,6 @@ body {
     }
 
     .main-content {
-        margin-left: 0;
         padding: 20px;
     }
 
