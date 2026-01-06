@@ -47,14 +47,19 @@ async function loadCurrentUser() {
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/user`, {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    const data = await response.json();
-    if (data.success && data.user) {
-      state.currentUser = data.user;
-      renderUserAvatar(data.user);
+    if (!response.ok) {
+      console.error('Failed to load user:', response.status);
+      return;
+    }
+
+    const user = await response.json();
+    if (user && !user.error) {
+      state.currentUser = user;
+      renderUserAvatar(user);
     }
   } catch (error) {
     console.error('User loading error:', error);
