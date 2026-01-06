@@ -12,15 +12,15 @@
 <body>
     <!-- Guild Dashboard Layout -->
     <div class="dashboard-container">
-        <!-- Left Sidebar -->
-        <aside class="sidebar">
-            <!-- Guild Selector -->
-            <div class="guild-selector">
-                <div class="guild-icon active"></div>
-                <div class="guild-icon"></div>
-                <div class="guild-icon"></div>
+        <!-- Far-Left Guild Selector Sidebar -->
+        <aside class="guild-selector-sidebar">
+            <div class="guild-icon-list" id="guildIconList">
+                <!-- Populated by JavaScript -->
             </div>
+        </aside>
 
+        <!-- Navigation Sidebar -->
+        <aside class="navigation-sidebar">
             <!-- Navigation Menu -->
             <nav class="sidebar-nav">
                 <div class="nav-item">
@@ -140,23 +140,38 @@
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <!-- Top Right Indicators -->
-            <div class="top-indicators">
-                <div class="notification-indicator"></div>
-                <div class="user-avatar"></div>
-            </div>
+            <!-- Sticky Header with Save Button -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1>Twitch Alerts</h1>
+                    <p class="feature-description">Choose what streamers you want to get alerts for</p>
+                </div>
+                <div class="header-right">
+                    <!-- Top Right Indicators -->
+                    <div class="top-indicators">
+                        <div class="notification-indicator"></div>
+                        <div class="user-avatar"></div>
+                    </div>
+                    <button id="saveButton" class="save-btn" onclick="saveAllChanges()" disabled>
+                        <span class="save-icon">💾</span>
+                        Save Changes
+                        <span class="unsaved-indicator" style="display: none;">●</span>
+                    </button>
+                </div>
+            </header>
 
             <!-- Feature Content -->
             <div class="feature-container">
-                <!-- Feature Header -->
-                <div class="feature-header">
-                    <h1>Twitch Alerts</h1>
-                    <label class="toggle-switch">
-                        <input type="checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
+                <!-- Feature Toggle -->
+                <div class="feature-section">
+                    <div class="feature-header">
+                        <h3>Enable Twitch Alerts</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
-                <p class="feature-description">Choose what streamers you want to get alerts for</p>
 
                 <!-- New Stream Section -->
                 <div class="feature-section">
@@ -208,18 +223,27 @@
                 </div>
 
                 <!-- Followed Streams Section -->
-                <div class="feature-section">
+                <div class="feature-section" id="followedStreamsSection">
                     <div class="section-header-inline">
                         <h3>Followed Streams</h3>
-                        <span class="count">0 / 10</span>
+                        <span class="count" id="streamerCount">0 / 10</span>
                     </div>
-                    <div class="empty-state">
-                        <div class="empty-circle"></div>
-                        <p>You're not following anyone yet</p>
+                    <div id="streamersList">
+                        <!-- Populated by JavaScript -->
+                        <div class="empty-state">
+                            <div class="empty-circle"></div>
+                            <p>You're not following anyone yet</p>
+                        </div>
                     </div>
+                    <button class="btn-add-streamer" onclick="addStreamer()">
+                        + Add Streamer
+                    </button>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- JavaScript -->
+    <script src="scripts/guild-dashboard-new.js"></script>
 </body>
 </html>

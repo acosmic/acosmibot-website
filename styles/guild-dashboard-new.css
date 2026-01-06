@@ -24,40 +24,38 @@ body {
 }
 
 /* ============================================
-   LEFT SIDEBAR
+   GUILD SELECTOR SIDEBAR (Far Left)
    ============================================ */
 
-.sidebar {
-    width: 280px;
-    min-width: 280px;
-    max-width: 280px;
-    background: var(--bg-primary);
+.guild-selector-sidebar {
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+    background: #1A1A1A;
     border-right: 1px solid var(--border-light);
-    display: flex;
-    flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
     height: 100vh;
+    padding: 24px 0;
 }
 
-/* Guild Selector - 3 Cyan Squares */
-.guild-selector {
+.guild-icon-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 24px 20px;
-    border-bottom: 1px solid var(--border-light);
+    align-items: center;
 }
 
 .guild-icon {
     width: 48px;
     height: 48px;
-    background: var(--primary-color);
+    background: var(--bg-card);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    flex-shrink: 0;
 }
 
 .guild-icon:hover {
@@ -69,16 +67,35 @@ body {
     opacity: 0.6;
 }
 
-.guild-icon.active::after {
+/* Active indicator - LEFT side */
+.guild-icon.active::before {
     content: '';
     position: absolute;
-    right: -8px;
+    left: -12px;
     top: 50%;
     transform: translateY(-50%);
     width: 4px;
-    height: 24px;
+    height: 32px;
     background: var(--primary-color);
-    border-radius: 2px;
+    border-radius: 0 2px 2px 0;
+}
+
+/* ============================================
+   NAVIGATION SIDEBAR
+   ============================================ */
+
+.navigation-sidebar {
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+    height: 100vh;
 }
 
 /* Sidebar Navigation */
@@ -223,6 +240,83 @@ body {
 .user-avatar:hover {
     background: var(--primary-hover);
     transform: scale(1.05);
+}
+
+/* ============================================
+   STICKY DASHBOARD HEADER
+   ============================================ */
+
+.dashboard-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #252525;
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: -40px -40px 40px -40px;
+}
+
+.header-left h1 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.header-left .feature-description {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.save-btn {
+    position: relative;
+    background: var(--primary-color);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.save-btn.has-changes {
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.save-btn:not(:disabled):hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.unsaved-indicator {
+    color: #FFD700;
+    font-size: 16px;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0, 217, 255, 0.5); }
+    50% { box-shadow: 0 0 30px rgba(0, 217, 255, 0.8); }
 }
 
 /* ============================================
@@ -508,11 +602,130 @@ body {
 }
 
 /* ============================================
+   STREAMER CARDS & LIST
+   ============================================ */
+
+.streamers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.streamer-card {
+    background: #1F1F1F;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.3s ease;
+}
+
+.streamer-card:hover {
+    border-color: var(--primary-color);
+    background: #252525;
+}
+
+.streamer-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.streamer-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.platform-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #9146FF;
+    color: white;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.streamer-details {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.streamer-details div {
+    margin-bottom: 4px;
+}
+
+.streamer-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.streamer-actions button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary-color);
+}
+
+.btn-danger {
+    background: rgba(255, 68, 68, 0.2);
+    color: #FF4444;
+    border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: rgba(255, 68, 68, 0.3);
+}
+
+.btn-add-streamer {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px dashed var(--border-light);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.btn-add-streamer:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    background: var(--bg-overlay);
+    color: var(--primary-color);
+}
+
+.btn-add-streamer:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 
 @media (max-width: 1200px) {
-    .sidebar {
+    .navigation-sidebar {
         width: 240px;
         min-width: 240px;
         max-width: 240px;
@@ -528,9 +741,23 @@ body {
 }
 
 @media (max-width: 768px) {
-    .sidebar {
+    .guild-selector-sidebar {
         position: fixed;
         left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1001;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .guild-selector-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .navigation-sidebar {
+        position: fixed;
+        left: 72px;
         top: 0;
         bottom: 0;
         z-index: 1000;
@@ -538,7 +765,7 @@ body {
         transition: transform 0.3s ease;
     }
 
-    .sidebar.open {
+    .navigation-sidebar.open {
         transform: translateX(0);
     }
 
@@ -550,9 +777,21 @@ body {
         padding-right: 0;
     }
 
+    .dashboard-header {
+        padding: 20px;
+        margin: -20px -20px 20px -20px;
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
     .top-indicators {
-        top: 20px;
-        right: 20px;
+        position: static;
     }
 
     .stream-input-group {
