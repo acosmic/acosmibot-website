@@ -6,6 +6,7 @@ let state = {
   userGuilds: [],
   currentGuildId: null,
   guildConfig: null,
+  currentUser: null,
   hasUnsavedChanges: false,
   isSaving: false,
   isLoading: false
@@ -26,12 +27,62 @@ async function initDashboard() {
     return;
   }
 
-  // 3. Load user's guilds and current config
+  // 3. Load user data and avatar
+  await loadCurrentUser();
+
+  // 4. Load user's guilds and current config
   await loadUserGuilds();
   await loadGuildConfig(state.currentGuildId);
 
-  // 4. Setup event listeners
+  // 5. Setup event listeners
   setupEventListeners();
+}
+
+// ===== USER DATA LOADING =====
+async function loadCurrentUser() {
+  try {
+    const token = localStorage.getItem('discord_token');
+    if (!token) {
+      window.location.href = '/auth/login';
+      return;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/user`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await response.json();
+    if (data.success && data.user) {
+      state.currentUser = data.user;
+      renderUserAvatar(data.user);
+    }
+  } catch (error) {
+    console.error('User loading error:', error);
+    // Non-critical error, continue anyway
+  }
+}
+
+function renderUserAvatar(user) {
+  const avatarElement = document.querySelector('.user-avatar');
+  if (!avatarElement) return;
+
+  if (user.avatar) {
+    const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+    avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
+    avatarElement.style.backgroundSize = 'cover';
+    avatarElement.style.backgroundPosition = 'center';
+  } else {
+    // Fallback: first letter of username
+    avatarElement.textContent = (user.username || user.global_name || 'U').charAt(0).toUpperCase();
+    avatarElement.style.display = 'flex';
+    avatarElement.style.alignItems = 'center';
+    avatarElement.style.justifyContent = 'center';
+    avatarElement.style.fontSize = '20px';
+    avatarElement.style.fontWeight = 'bold';
+    avatarElement.style.color = 'white';
+  }
+
+  avatarElement.title = user.global_name || user.username || 'User';
 }
 
 // ===== GUILD LOADING & RENDERING =====
@@ -150,12 +201,21 @@ async function loadGuildConfig(guildId) {
 }
 
 function populateUI(config) {
+  // Ensure settings exists
+  if (!config.settings) {
+    config.settings = {};
+  }
+
+  // Ensure twitch settings exists
+  if (!config.settings.twitch) {
+    config.settings.twitch = {};
+  }
+
   // 1. Feature toggle
   const featureToggle = document.querySelector('.toggle-switch input');
   if (featureToggle) {
-    featureToggle.checked = config.settings.twitch?.enabled !== false;
+    featureToggle.checked = config.settings.twitch.enabled !== false;
     featureToggle.addEventListener('change', (e) => {
-      if (!config.settings.twitch) config.settings.twitch = {};
       config.settings.twitch.enabled = e.target.checked;
       markUnsavedChanges();
     });
@@ -169,12 +229,11 @@ function populateUI(config) {
       const option = document.createElement('option');
       option.value = channel.id;
       option.textContent = `#${channel.name}`;
-      option.selected = channel.id === config.settings.twitch?.announcement_channel_id;
+      option.selected = channel.id === config.settings.twitch.announcement_channel_id;
       channelSelect.appendChild(option);
     });
 
     channelSelect.addEventListener('change', (e) => {
-      if (!config.settings.twitch) config.settings.twitch = {};
       config.settings.twitch.announcement_channel_id = e.target.value || null;
       markUnsavedChanges();
     });
@@ -183,16 +242,15 @@ function populateUI(config) {
   // 3. Message textarea
   const messageTextarea = document.querySelector('.message-textarea');
   if (messageTextarea) {
-    messageTextarea.value = config.settings.twitch?.announcement_message || '{username} is live!';
+    messageTextarea.value = config.settings.twitch.announcement_message || '{username} is live!';
     messageTextarea.addEventListener('input', (e) => {
-      if (!config.settings.twitch) config.settings.twitch = {};
       config.settings.twitch.announcement_message = e.target.value;
       markUnsavedChanges();
     });
   }
 
   // 4. Streamers list
-  const streamers = config.settings.twitch?.tracked_streamers || [];
+  const streamers = config.settings.twitch.tracked_streamers || [];
   renderStreamerList(streamers);
 }
 
@@ -260,6 +318,17 @@ function createStreamerCard(streamer, index) {
 }
 
 function addStreamer() {
+  // Ensure settings structure exists
+  if (!state.guildConfig.settings) {
+    state.guildConfig.settings = {};
+  }
+  if (!state.guildConfig.settings.twitch) {
+    state.guildConfig.settings.twitch = {};
+  }
+  if (!state.guildConfig.settings.twitch.tracked_streamers) {
+    state.guildConfig.settings.twitch.tracked_streamers = [];
+  }
+
   const newStreamer = {
     username: '',
     streamer_id: null,
@@ -278,19 +347,17 @@ function addStreamer() {
 
   newStreamer.username = username.trim();
 
-  if (!state.guildConfig.settings.twitch) {
-    state.guildConfig.settings.twitch = {};
-  }
-  if (!state.guildConfig.settings.twitch.tracked_streamers) {
-    state.guildConfig.settings.twitch.tracked_streamers = [];
-  }
-
   state.guildConfig.settings.twitch.tracked_streamers.push(newStreamer);
   renderStreamerList(state.guildConfig.settings.twitch.tracked_streamers);
   markUnsavedChanges();
 }
 
 function editStreamer(index) {
+  if (!state.guildConfig.settings?.twitch?.tracked_streamers) {
+    console.error('No streamers to edit');
+    return;
+  }
+
   const streamers = state.guildConfig.settings.twitch.tracked_streamers;
   const streamer = streamers[index];
 
@@ -304,6 +371,11 @@ function editStreamer(index) {
 }
 
 function removeStreamer(index) {
+  if (!state.guildConfig.settings?.twitch?.tracked_streamers) {
+    console.error('No streamers to remove');
+    return;
+  }
+
   if (!confirm('Are you sure you want to remove this streamer?')) {
     return;
   }
@@ -336,6 +408,11 @@ async function saveAllChanges() {
     const originalText = saveBtn.innerHTML;
     saveBtn.innerHTML = '💾 Saving...';
     saveBtn.disabled = true;
+
+    // Ensure settings structure exists before saving
+    if (!state.guildConfig.settings) {
+      state.guildConfig.settings = {};
+    }
 
     const token = localStorage.getItem('discord_token');
     const response = await fetch(`${API_BASE_URL}/api/guilds/${state.currentGuildId}/config-hybrid`, {
