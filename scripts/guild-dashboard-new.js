@@ -72,7 +72,10 @@ function renderUserAvatar(user) {
   if (!avatarElement) return;
 
   if (user.avatar) {
-    const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+    // Check if avatar is already a full URL or just a hash
+    const avatarUrl = user.avatar.startsWith('http')
+      ? user.avatar
+      : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
     avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
     avatarElement.style.backgroundSize = 'cover';
     avatarElement.style.backgroundPosition = 'center';
