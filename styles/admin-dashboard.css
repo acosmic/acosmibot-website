@@ -65,8 +65,8 @@
 }
 
 .dashboard-tabs .tab.active {
-    color: #5865F2;
-    border-bottom-color: #5865F2;
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
 }
 
 /* Dashboard Content */
@@ -197,7 +197,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-    background-color: #5865F2;
+    background-color: var(--primary-color);
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -219,7 +219,7 @@
 .number-input:focus,
 .text-input:focus {
     outline: none;
-    border-color: #5865F2;
+    border-color: var(--primary-color);
 }
 
 /* Guilds Tab */
@@ -247,12 +247,12 @@
 
 .search-input:focus {
     outline: none;
-    border-color: #5865F2;
+    border-color: var(--primary-color);
 }
 
 .refresh-btn {
     padding: 0.75rem 1.5rem;
-    background: #5865F2;
+    background: var(--primary-color);
     color: white;
     border: none;
     border-radius: 8px;
@@ -313,7 +313,7 @@ td code {
 
 .badge {
     padding: 0.25rem 0.5rem;
-    background: #5865F2;
+    background: var(--primary-color);
     border-radius: 4px;
     font-size: 0.75rem;
 }
@@ -360,7 +360,7 @@ td code {
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px var(--shadow-medium);
     transition: transform 0.3s;
 }
 
@@ -399,7 +399,7 @@ details {
 }
 
 summary {
-    color: #5865F2;
+    color: var(--primary-color);
     font-size: 0.875rem;
     user-select: none;
 }
@@ -424,7 +424,7 @@ details pre {
 
 .pagination button {
     padding: 0.5rem 1rem;
-    background: #5865F2;
+    background: var(--primary-color);
     color: white;
     border: none;
     border-radius: 6px;
@@ -472,13 +472,13 @@ details pre {
     border-radius: 8px;
     color: white;
     font-weight: 500;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px var(--shadow-medium);
     z-index: 1000;
     animation: slideIn 0.3s ease-out;
 }
 
 .notification-info {
-    background: #5865F2;
+    background: var(--primary-color);
 }
 
 .notification-success {
@@ -647,7 +647,7 @@ details pre {
     align-items: flex-start;
     gap: 1rem;
     padding: 0.75rem;
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--shadow-medium);
     border-radius: 4px;
 }
 
@@ -691,7 +691,7 @@ details pre {
 .config-input:focus {
     outline: none;
     border-color: #5865f2;
-    box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
+    box-shadow: 0 0 0 2px var(--border-cyan);
 }
 
 .config-input:disabled {
@@ -753,7 +753,7 @@ details pre {
 }
 
 .multiselect-option:hover {
-    background: rgba(88, 101, 242, 0.1);
+    background: var(--bg-overlay-hover);
 }
 
 .multiselect-option input[type="checkbox"] {
@@ -782,7 +782,7 @@ details pre {
     background: linear-gradient(135deg, #5865f2, #4752c4);
     border-radius: 8px;
     margin-bottom: 1.5rem;
-    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+    box-shadow: 0 4px 12px var(--border-cyan);
     animation: slideDown 0.3s ease;
 }
 
@@ -860,7 +860,7 @@ details pre {
 .btn-save:hover:not(:disabled) {
     background: #f6f6f7;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px var(--shadow-medium);
 }
 
 .btn-discard:disabled,

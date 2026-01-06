@@ -7,25 +7,50 @@
 
 /* Typography & Colors */
 :root {
-    --primary-color: #5865F2;
-    --secondary-color: #7289DA;
-    --accent-color: #5865F2;
-    --text-dark: #333333;
-    --text-body: #666666;
-    --text-light: #ffffff;
-    --text-muted: rgba(0, 0, 0, 0.6);
-    --text-primary: #333333;              /* Alias for text-dark */
-    --text-secondary: #666666;            /* Alias for text-body */
-    --bg-white: #ffffff;
-    --bg-light-gray: #f8f9fa;
-    --bg-primary: #ffffff;                /* Alias for bg-white */
-    --bg-secondary: #f8f9fa;              /* Alias for bg-light-gray */
-    --bg-overlay: rgba(88, 101, 242, 0.05);
-    --bg-overlay-hover: rgba(88, 101, 242, 0.1);
-    --border-light: rgba(0, 0, 0, 0.1);
-    --shadow-light: rgba(0, 0, 0, 0.1);
-    --shadow-medium: rgba(0, 0, 0, 0.15);
-    --gradient-card: linear-gradient(45deg, #5865F2, #7289DA);
+    /* Primary - Bright Cyan */
+    --primary-color: #00D9FF;
+    --primary-hover: #00F0FF;
+    --primary-dim: rgba(0, 217, 255, 0.3);
+    --accent-color: #00D9FF;
+    --secondary-color: #00A0CC;
+
+    /* Backgrounds - Dark Theme */
+    --bg-primary: #1A1A1A;
+    --bg-secondary: #2A2A2A;
+    --bg-tertiary: #333333;
+    --bg-white: #1A1A1A;                  /* Alias for dark primary */
+    --bg-light-gray: #2A2A2A;             /* Alias for dark secondary */
+    --bg-card: #2D2D2D;
+    --bg-card-hover: #3A3A3A;
+    --bg-overlay: rgba(0, 217, 255, 0.08);
+    --bg-overlay-hover: rgba(0, 217, 255, 0.15);
+
+    /* Text - Light on Dark */
+    --text-primary: #FFFFFF;
+    --text-secondary: #B0B0B0;
+    --text-dark: #FFFFFF;                 /* Alias for light text */
+    --text-body: #B0B0B0;                 /* Alias for secondary text */
+    --text-light: #FFFFFF;
+    --text-muted: #808080;
+
+    /* Borders & Dividers */
+    --border-light: rgba(255, 255, 255, 0.1);
+    --border-medium: rgba(255, 255, 255, 0.2);
+    --border-cyan: rgba(0, 217, 255, 0.4);
+
+    /* Shadows */
+    --shadow-light: rgba(0, 0, 0, 0.3);
+    --shadow-medium: rgba(0, 0, 0, 0.5);
+    --shadow-cyan: rgba(0, 217, 255, 0.3);
+
+    /* Gradients */
+    --gradient-card: linear-gradient(135deg, #00D9FF, #00A0CC);
+    --gradient-premium: linear-gradient(135deg, #FFD700, #FFA500);
+
+    /* Status Colors */
+    --success-color: #00FF88;
+    --error-color: #FF4444;
+    --warning-color: #FFB800;
 }
 
 /* Body & Background */
@@ -35,9 +60,9 @@ html {
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-white);
-    color: var(--text-body);
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
     overflow-x: hidden;
     min-height: 100vh;
     padding-top: 100px;
@@ -61,7 +86,7 @@ nav {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(88, 101, 242, 0.3);
+    background: rgba(26, 26, 26, 0.95);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-light);
     padding: 15px 0;
@@ -122,7 +147,7 @@ nav.compact-nav .login-btn {
 }
 
 .nav-links a {
-    color: var(--text-dark);
+    color: var(--text-primary);
     text-decoration: none;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -144,7 +169,7 @@ nav.compact-nav .login-btn {
 
 /* Login Button */
 .login-btn {
-    background: linear-gradient(45deg, #5865F2, #7289DA);
+    background: var(--gradient-card);
     color: white;
     padding: 12px 24px;
     border-radius: 50px;
@@ -154,7 +179,7 @@ nav.compact-nav .login-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4);
+    box-shadow: 0 4px 20px var(--shadow-cyan);
     cursor: pointer;
     border: none;
     position: relative;
@@ -162,7 +187,7 @@ nav.compact-nav .login-btn {
 
 .login-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(88, 101, 242, 0.6);
+    box-shadow: 0 8px 30px var(--shadow-cyan);
 }
 
 .discord-icon {
@@ -181,24 +206,25 @@ nav.compact-nav .login-btn {
     align-items: center;
     gap: 8px;
     transition: all 0.3s ease;
-    background: var(--bg-overlay);
+    background: var(--bg-tertiary);
     color: var(--text-light);
     border: 1px solid var(--border-light);
 }
 
 .btn:hover {
-    background: var(--bg-overlay-hover);
+    background: var(--bg-card-hover);
+    border-color: var(--border-cyan);
     transform: translateY(-2px);
 }
 
 .btn.primary {
     background: var(--gradient-card);
     border: none;
-    box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4);
+    box-shadow: 0 4px 20px var(--shadow-cyan);
 }
 
 .btn.primary:hover {
-    box-shadow: 0 8px 30px rgba(88, 101, 242, 0.6);
+    box-shadow: 0 8px 30px var(--shadow-cyan);
 }
 
 /* Loading Animations */
@@ -211,7 +237,7 @@ nav.compact-nav .login-btn {
     width: 40px;
     height: 40px;
     border: 3px solid var(--border-light);
-    border-top: 3px solid var(--text-light);
+    border-top: 3px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 15px;
@@ -224,7 +250,7 @@ nav.compact-nav .login-btn {
 
 /* Cards */
 .card {
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--bg-card);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-light);
     border-radius: 15px;
@@ -234,9 +260,10 @@ nav.compact-nav .login-btn {
 }
 
 .card:hover {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card-hover);
+    border-color: var(--border-cyan);
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px var(--shadow-medium);
+    box-shadow: 0 10px 30px var(--shadow-cyan);
 }
 
 /* Headers */
@@ -263,10 +290,10 @@ nav.compact-nav .login-btn {
     position: absolute;
     top: 20px;
     left: 20px;
-    background: var(--bg-overlay);
+    background: var(--bg-tertiary);
     backdrop-filter: blur(10px);
     border: 1px solid var(--border-light);
-    color: var(--text-light);
+    color: var(--text-primary);
     padding: 10px 20px;
     border-radius: 12px;
     text-decoration: none;
@@ -279,6 +306,7 @@ nav.compact-nav .login-btn {
 
 .back-btn:hover {
     background: var(--bg-overlay-hover);
+    border-color: var(--border-cyan);
     transform: translateY(-2px);
 }
 
@@ -317,13 +345,20 @@ nav.compact-nav .login-btn {
     padding: 10px;
     border: 1px solid var(--border-light);
     border-radius: 5px;
-    background: var(--bg-overlay);
-    color: var(--text-light);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
     font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-dim);
 }
 
 .form-control::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
 }
 
 /* Grid Layouts */
@@ -350,13 +385,13 @@ nav.compact-nav .login-btn {
     top: 100%;
     right: 0;
     margin-top: 10px;
-    background: rgba(88, 101, 242, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-light);
     border-radius: 12px;
     padding: 10px;
     min-width: 200px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px var(--shadow-medium);
     z-index: 1001;
 }
 
@@ -418,17 +453,17 @@ nav.compact-nav .login-btn {
 }
 
 .notification.info {
-    background: linear-gradient(45deg, #5865F2, #7289DA);
+    background: var(--gradient-card);
     color: white;
 }
 
 .notification.success {
-    background: linear-gradient(45deg, #28a745, #20c997);
+    background: linear-gradient(135deg, var(--success-color), #00CC70);
     color: white;
 }
 
 .notification.error {
-    background: linear-gradient(45deg, #dc3545, #e74c3c);
+    background: linear-gradient(135deg, var(--error-color), #CC0000);
     color: white;
 }
 

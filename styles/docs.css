@@ -4,7 +4,7 @@
     display: block;
     margin-top: 80px; /* Account for fixed nav */
     min-height: calc(100vh - 80px);
-    background: #ffffff;
+    background: var(--bg-primary);
 }
 
 /* Main Content Area */
@@ -17,7 +17,7 @@
 .docs-header {
     text-align: center;
     margin-bottom: 50px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .docs-header h1 {
@@ -39,10 +39,10 @@
 .section-title {
     font-size: 2rem;
     font-weight: 700;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 3px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 3px solid var(--border-light);
 }
 
 .section-title.collapsible {
@@ -85,16 +85,16 @@
 .overview-card {
     background: rgba(0, 0, 0, 0.02);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-light);
     border-radius: 16px;
     padding: 30px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 40px var(--shadow-light);
 }
 
 .overview-card h3 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 15px;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .overview-card code {
-    background: rgba(88, 101, 242, 0.1);
+    background: var(--bg-overlay-hover);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
@@ -141,17 +141,17 @@
 .command-card {
     background: rgba(0, 0, 0, 0.02);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-light);
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 30px var(--shadow-light);
     transition: all 0.3s ease;
 }
 
 .command-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 40px var(--shadow-medium);
 }
 
 .command-header {
@@ -164,12 +164,12 @@
 .command-header h3 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #333;
+    color: var(--text-primary);
     margin: 0;
 }
 
 .command-header h3 code {
-    background: rgba(88, 101, 242, 0.15);
+    background: var(--bg-overlay-hover);
     padding: 6px 12px;
     border-radius: 8px;
     font-family: 'Courier New', monospace;
@@ -182,9 +182,9 @@
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 600;
-    background: rgba(88, 101, 242, 0.2);
+    background: var(--border-cyan);
     color: var(--primary-color);
-    border: 1px solid rgba(88, 101, 242, 0.3);
+    border: 1px solid var(--border-cyan);
     white-space: nowrap;
 }
 
@@ -216,7 +216,7 @@
 .command-params h4 {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 10px;
 }
 
@@ -233,7 +233,7 @@
 }
 
 .command-params ul li code {
-    background: rgba(88, 101, 242, 0.1);
+    background: var(--bg-overlay-hover);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
@@ -255,7 +255,7 @@
 
 /* Command Examples */
 .command-example {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--shadow-light);
     border-left: 4px solid var(--primary-color);
     padding: 12px 16px;
     border-radius: 8px;
@@ -263,18 +263,18 @@
 }
 
 .command-example strong {
-    color: #333;
+    color: var(--text-primary);
     font-weight: 600;
     margin-right: 8px;
 }
 
 .command-example code {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--shadow-light);
     padding: 4px 8px;
     border-radius: 5px;
     font-family: 'Courier New', monospace;
     font-size: 0.95em;
-    color: #333;
+    color: var(--text-primary);
     font-weight: 500;
 }
 
@@ -282,7 +282,7 @@
 .command-note {
     margin-top: 12px;
     padding: 10px 14px;
-    background: rgba(88, 101, 242, 0.08);
+    background: var(--bg-overlay);
     border-radius: 8px;
     color: #555;
     font-size: 0.9rem;
@@ -325,7 +325,7 @@
     text-align: center;
     padding: 40px 20px;
     margin-top: 60px;
-    border-top: 2px solid rgba(0, 0, 0, 0.1);
+    border-top: 2px solid var(--border-light);
     color: #555;
 }
 
@@ -373,7 +373,7 @@
         height: auto;
         position: static;
         border-right: none;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid var(--border-light);
         padding: 20px 0;
     }
 
@@ -422,14 +422,14 @@ html {
 }
 
 .docs-sidebar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--shadow-light);
 }
 
 .docs-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(88, 101, 242, 0.3);
+    background: var(--border-cyan);
     border-radius: 4px;
 }
 
 .docs-sidebar::-webkit-scrollbar-thumb:hover {
-    background: rgba(88, 101, 242, 0.5);
+    background: var(--primary-dim);
 }
