@@ -1,5 +1,5 @@
 // ===== CONSTANTS =====
-
+const API_BASE_URL = 'https://api.acosmibot.com';
 
 // ===== STATE MANAGEMENT =====
 let state = {
