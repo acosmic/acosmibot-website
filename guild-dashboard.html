@@ -7,66 +7,219 @@
     <link rel="icon" type="image/png" href="images/acosmibot-logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/base.css">
-    <link rel="stylesheet" href="styles/guild-dashboard.css">
-    <link rel="stylesheet" href="styles/footer.css">
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="styles/guild-dashboard-new.css">
 </head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-7PFS5W20SN"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-7PFS5W20SN');
-</script>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="container">
-            <div class="nav-content">
-                <a href="/" class="logo">
-                    <img src="images/acosmibot_website-logo.png" alt="Acosmibot">
-                </a>
-                <ul class="nav-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/premium">Premium</a></li>
-                    <li><a href="/docs">Documentation</a></li>
-                    <li><a href="/dashboard" id="userDashboardLink">Dashboard</a></li>
-                    <li><a href="/admin-dashboard" id="adminPanelLink" style="display:none;" class="admin-link">Admin Panel</a></li>
-                    <li><a href="https://github.com/acosmic/acosmibot">GitHub</a></li>
-                </ul>
-                <button class="login-btn" id="loginBtn">
-                    <svg class="discord-icon" viewBox="0 0 24 24">
-                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-                        <path d="M8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                    </svg>
-                    Login with Discord
-                </button>
+    <!-- Guild Dashboard Layout -->
+    <div class="dashboard-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <!-- Guild Selector -->
+            <div class="guild-selector">
+                <div class="guild-icon active"></div>
+                <div class="guild-icon"></div>
+                <div class="guild-icon"></div>
             </div>
-        </div>
-    </nav>
 
-    <div id="root"></div>
+            <!-- Navigation Menu -->
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <span class="nav-dot"></span>
+                    <span class="nav-text">Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-dot"></span>
+                    <span class="nav-text">Membership</span>
+                </div>
 
-    <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-brand">Acosmibot</div>
-            <div class="footer-links">
-                <a href="/terms-of-service">Terms</a>
-                <span class="divider">•</span>
-                <a href="/privacy-policy">Privacy</a>
+                <!-- Community Engagement Section -->
+                <div class="nav-section">
+                    <div class="nav-section-header">
+                        <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        </svg>
+                        <span>COMMUNITY ENGAGEMENT</span>
+                    </div>
+
+                    <div class="nav-subsection">
+                        <div class="nav-subsection-label">SYSTEMS</div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Leveling</span>
+                            <span class="nav-indicator"></span>
+                        </div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Welcomes and Goodbyes</span>
+                        </div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Reputation</span>
+                        </div>
+                    </div>
+
+                    <div class="nav-subsection">
+                        <div class="nav-subsection-label">SOCIAL ALERTS</div>
+                        <div class="nav-item active">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Twitch</span>
+                            <span class="nav-indicator"></span>
+                        </div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">YouTube</span>
+                        </div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Kick</span>
+                        </div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Reddit</span>
+                        </div>
+                    </div>
+
+                    <div class="nav-subsection">
+                        <div class="nav-subsection-label">CHAOS</div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Polymorph</span>
+                        </div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Portals</span>
+                        </div>
+                        <div class="nav-item">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">Jail</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Games and Gambling Section -->
+                <div class="nav-section">
+                    <div class="nav-section-header">
+                        <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        </svg>
+                        <span>GAMES AND GAMBLING</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="nav-dot"></span>
+                        <span class="nav-text">Slots</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="nav-dot"></span>
+                        <span class="nav-text">Lottery</span>
+                    </div>
+                </div>
+
+                <!-- Utilities Section -->
+                <div class="nav-section">
+                    <div class="nav-section-header">
+                        <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        </svg>
+                        <span>UTILITIES</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="nav-dot"></span>
+                        <span class="nav-text">Embeds</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="nav-dot"></span>
+                        <span class="nav-text">Reaction Roles</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="nav-dot"></span>
+                        <span class="nav-text">Custom Commands</span>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Right Indicators -->
+            <div class="top-indicators">
+                <div class="notification-indicator"></div>
+                <div class="user-avatar"></div>
             </div>
-            <div class="footer-copyright">
-                © 2025 Acosmibot. All rights reserved.
-            </div>
-        </div>
-    </footer>
 
-    <script src="scripts/nav.js"></script>
-    <script type="text/babel" src="scripts/guild-dashboard.js"></script>
+            <!-- Feature Content -->
+            <div class="feature-container">
+                <!-- Feature Header -->
+                <div class="feature-header">
+                    <h1>Twitch Alerts</h1>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p class="feature-description">Choose what streamers you want to get alerts for</p>
+
+                <!-- New Stream Section -->
+                <div class="feature-section">
+                    <h3>New Stream</h3>
+                    <div class="stream-input-group">
+                        <input type="text" class="stream-input" placeholder="Twitch Username">
+                        <button class="add-btn">+</button>
+                        <button class="add-btn">+</button>
+                    </div>
+                    <button class="add-btn-single">+</button>
+                </div>
+
+                <!-- Channel Section -->
+                <div class="feature-section">
+                    <h3>Channel</h3>
+                    <select class="feature-select">
+                        <option>Disabled</option>
+                    </select>
+                </div>
+
+                <!-- Mentions Section -->
+                <div class="feature-section-inline">
+                    <div class="inline-field">
+                        <h3>Mentions</h3>
+                        <select class="feature-select">
+                            <option>Disabled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Ping Roles Section -->
+                <div class="feature-section">
+                    <h3>Ping Roles</h3>
+                    <select class="feature-select">
+                        <option>Disabled</option>
+                    </select>
+                </div>
+
+                <!-- Announcement Message Section -->
+                <div class="feature-section">
+                    <h3>Announcement Message</h3>
+                    <textarea class="message-textarea" rows="8">{username} is live!</textarea>
+                    <div class="variable-tags">
+                        <span class="var-tag">{username}</span>
+                        <span class="var-tag">{game}</span>
+                        <span class="var-tag">{title}</span>
+                        <span class="var-tag">{viewer_count}</span>
+                    </div>
+                </div>
+
+                <!-- Followed Streams Section -->
+                <div class="feature-section">
+                    <div class="section-header-inline">
+                        <h3>Followed Streams</h3>
+                        <span class="count">0 / 10</span>
+                    </div>
+                    <div class="empty-state">
+                        <div class="empty-circle"></div>
+                        <p>You're not following anyone yet</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>
