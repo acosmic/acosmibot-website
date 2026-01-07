@@ -247,16 +247,7 @@ body {
    ============================================ */
 
 .dashboard-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: #252525;
-    padding: 24px 40px;
-    border-bottom: 1px solid var(--border-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: -40px -40px 40px -40px;
+    margin-bottom: 40px;
 }
 
 .header-left h1 {
@@ -270,12 +261,6 @@ body {
     margin: 0;
     font-size: 16px;
     color: var(--text-secondary);
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
 }
 
 .save-btn {
@@ -333,6 +318,16 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+}
+
+.feature-header h3 {
+    flex: 1;
+}
+
+.feature-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .feature-header h1 {
@@ -778,20 +773,22 @@ body {
     }
 
     .dashboard-header {
-        padding: 20px;
-        margin: -20px -20px 20px -20px;
-        flex-direction: column;
-        gap: 16px;
-        align-items: flex-start;
-    }
-
-    .header-right {
-        width: 100%;
-        justify-content: space-between;
+        margin-bottom: 20px;
     }
 
     .top-indicators {
         position: static;
+        margin-bottom: 20px;
+    }
+
+    .feature-header-controls {
+        flex-direction: column-reverse;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .save-btn {
+        width: 100%;
     }
 
     .stream-input-group {
