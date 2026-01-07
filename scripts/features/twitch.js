@@ -11,8 +11,11 @@ const TwitchFeature = {
 
   // ===== INITIALIZATION =====
   async init() {
+    console.log('Twitch feature initialized');
+    const { DashboardCore, Router } = window;
+
     // Initialize shared core for SPA
-    if (window.Router) {
+    if (Router) {
       // SPA mode - use lighter init
       await DashboardCore.initForSPA('twitch');
     } else {
@@ -40,9 +43,14 @@ const TwitchFeature = {
   },
 };
 
+// Helper to get DashboardCore instance
+function getDashboardCore() {
+  return window.DashboardCore;
+}
+
 // ===== UI POPULATION =====
 function populateTwitchUI() {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
 
   // Ensure settings exists
   if (!config.settings) {
@@ -60,7 +68,7 @@ function populateTwitchUI() {
     featureToggle.checked = config.settings.twitch.enabled !== false;
     featureToggle.addEventListener('change', (e) => {
       config.settings.twitch.enabled = e.target.checked;
-      DashboardCore.markUnsavedChanges();
+      getDashboardCore().markUnsavedChanges();
     });
   }
 
@@ -217,7 +225,7 @@ function createStreamerInputRow(streamer, index) {
 }
 
 function addStreamer() {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
 
   // Ensure settings structure exists
   if (!config.settings) {
@@ -244,7 +252,7 @@ function addStreamer() {
   streamers.push(newStreamer);
 
   renderStreamerList(streamers);
-  DashboardCore.markUnsavedChanges();
+  getDashboardCore().markUnsavedChanges();
 
   // Focus the username input for the new streamer (but don't auto-select)
   const newIndex = streamers.length - 1;
@@ -257,7 +265,7 @@ function addStreamer() {
 }
 
 function handleStreamerInput(index, value) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.twitch?.tracked_streamers) return;
 
   const streamers = config.settings.twitch.tracked_streamers;
@@ -283,11 +291,11 @@ function handleStreamerInput(index, value) {
     }
   }
 
-  DashboardCore.markUnsavedChanges();
+  getDashboardCore().markUnsavedChanges();
 }
 
 async function validateStreamer(index, username) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.twitch?.tracked_streamers) return;
   if (!username || username.trim() === '') return;
 
@@ -307,7 +315,7 @@ async function validateStreamer(index, username) {
 
   try {
     const token = localStorage.getItem('discord_token');
-    const response = await fetch(`${DashboardCore.API_BASE_URL}/api/twitch/validate-username`, {
+    const response = await fetch(`${getDashboardCore().API_BASE_URL}/api/twitch/validate-username`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -347,7 +355,7 @@ async function validateStreamer(index, username) {
 }
 
 function removeStreamer(index) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.twitch?.tracked_streamers) {
     console.error('No streamers to remove');
     return;
@@ -365,12 +373,12 @@ function removeStreamer(index) {
   }
 
   renderStreamerList(streamers);
-  DashboardCore.markUnsavedChanges();
+  getDashboardCore().markUnsavedChanges();
 }
 
 // ===== PER-STREAMER SETTINGS =====
 function selectStreamer(index) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.twitch?.tracked_streamers) return;
 
   const streamers = config.settings.twitch.tracked_streamers;
@@ -396,7 +404,7 @@ function selectStreamer(index) {
 }
 
 function populateFormFieldsForStreamer(streamer) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   const pingRolesSelect = document.getElementById('pingRolesSelect');
   const messageTextarea = document.getElementById('announcementMessageTextarea');
 
@@ -441,7 +449,7 @@ function populateFormFieldsForStreamer(streamer) {
 }
 
 function clearStreamerSelection() {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   TwitchFeature.state.selectedStreamerIndex = null;
 
   // Hide selected streamer indicator
@@ -460,7 +468,7 @@ function clearStreamerSelection() {
 }
 
 function populateFormFieldsWithGlobalDefaults() {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   const pingRolesSelect = document.getElementById('pingRolesSelect');
   const messageTextarea = document.getElementById('announcementMessageTextarea');
 
@@ -481,18 +489,18 @@ function populateFormFieldsWithGlobalDefaults() {
 
 // ===== FORM FIELD CHANGE HANDLERS =====
 function handleChannelChange(e) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   const channelId = e.target.value || null;
 
   // Channel is ALWAYS global - applies to all streamers
   if (!config.settings.twitch) config.settings.twitch = {};
   config.settings.twitch.announcement_channel_id = channelId;
 
-  DashboardCore.markUnsavedChanges();
+  getDashboardCore().markUnsavedChanges();
 }
 
 function handlePingRolesChange(e) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
 
   // Ping Roles are PER-STREAMER only - must have a streamer selected
   if (TwitchFeature.state.selectedStreamerIndex === null) return;
@@ -511,11 +519,11 @@ function handlePingRolesChange(e) {
   streamers[TwitchFeature.state.selectedStreamerIndex].mention_here = mentionHere;
   streamers[TwitchFeature.state.selectedStreamerIndex].mention_role_ids = roleIds;
 
-  DashboardCore.markUnsavedChanges();
+  getDashboardCore().markUnsavedChanges();
 }
 
 function handleAnnouncementMessageChange(e) {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
   const message = e.target.value;
 
   if (TwitchFeature.state.selectedStreamerIndex !== null) {
@@ -528,19 +536,19 @@ function handleAnnouncementMessageChange(e) {
     config.settings.twitch.announcement_message = message;
   }
 
-  DashboardCore.markUnsavedChanges();
+  getDashboardCore().markUnsavedChanges();
 }
 
 // ===== SAVE FUNCTIONALITY =====
 async function saveAllChanges() {
-  const config = DashboardCore.state.guildConfig;
+  const config = getDashboardCore().state.guildConfig;
 
   if (!config.settings) {
     config.settings = {};
   }
 
   // Save via DashboardCore
-  const success = await DashboardCore.saveGuildConfig({
+  const success = await getDashboardCore().saveGuildConfig({
     twitch: config.settings.twitch
   });
 
@@ -549,7 +557,7 @@ async function saveAllChanges() {
     const saveBtn = document.getElementById('saveButton');
     if (saveBtn) {
       saveBtn.disabled = true;
-      DashboardCore.clearUnsavedChanges();
+      getDashboardCore().clearUnsavedChanges();
     }
   }
 }
