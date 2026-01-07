@@ -2,7 +2,8 @@
 // Feature-specific logic for YouTube streaming/video alerts
 
 // Feature module pattern for SPA compatibility
-const YouTubeFeature = {
+// Note: Module name must match FeatureLoader convention: 'youtube' -> 'YoutubeFeature'
+const YoutubeFeature = {
   // ===== FEATURE STATE =====
   state: {
     selectedStreamerIndex: null,
@@ -217,7 +218,7 @@ function createStreamerInputRow(streamer, index) {
   }
 
   // Determine if this row is selected
-  const isSelected = YouTubeFeature.state.selectedStreamerIndex === index;
+  const isSelected = YoutubeFeature.state.selectedStreamerIndex === index;
   const selectedClass = isSelected ? 'selected' : '';
 
   return `
@@ -294,13 +295,13 @@ function handleStreamerInput(index, value) {
   }
 
   // Clear validation timeout if it exists
-  if (YouTubeFeature.state.validationTimeouts[index]) {
-    clearTimeout(YouTubeFeature.state.validationTimeouts[index]);
-    delete YouTubeFeature.state.validationTimeouts[index];
+  if (YoutubeFeature.state.validationTimeouts[index]) {
+    clearTimeout(YoutubeFeature.state.validationTimeouts[index]);
+    delete YoutubeFeature.state.validationTimeouts[index];
   }
 
   // Update selected streamer name indicator if this streamer is selected
-  if (YouTubeFeature.state.selectedStreamerIndex === index) {
+  if (YoutubeFeature.state.selectedStreamerIndex === index) {
     const nameSpan = document.getElementById('selectedStreamerNameIndicator');
     if (nameSpan) {
       nameSpan.textContent = value || 'New Channel';
@@ -319,9 +320,9 @@ async function validateStreamer(index, username) {
   const streamer = streamers[index];
 
   // Clear any existing timeout for this streamer
-  if (YouTubeFeature.state.validationTimeouts[index]) {
-    clearTimeout(YouTubeFeature.state.validationTimeouts[index]);
-    delete YouTubeFeature.state.validationTimeouts[index];
+  if (YoutubeFeature.state.validationTimeouts[index]) {
+    clearTimeout(YoutubeFeature.state.validationTimeouts[index]);
+    delete YoutubeFeature.state.validationTimeouts[index];
   }
 
   // Set validating state
@@ -351,10 +352,10 @@ async function validateStreamer(index, username) {
       streamer.hideValidation = false; // Show valid checkmark initially
 
       // Set timeout to hide validation after 3 seconds
-      YouTubeFeature.state.validationTimeouts[index] = setTimeout(() => {
+      YoutubeFeature.state.validationTimeouts[index] = setTimeout(() => {
         streamer.hideValidation = true;
         renderStreamerList(streamers);
-        delete YouTubeFeature.state.validationTimeouts[index];
+        delete YoutubeFeature.state.validationTimeouts[index];
       }, 3000);
     } else {
       streamer.isValid = false;
@@ -382,11 +383,11 @@ function removeStreamer(index) {
   streamers.splice(index, 1);
 
   // Clear selection if the deleted streamer was selected
-  if (YouTubeFeature.state.selectedStreamerIndex === index) {
+  if (YoutubeFeature.state.selectedStreamerIndex === index) {
     clearStreamerSelection();
-  } else if (YouTubeFeature.state.selectedStreamerIndex !== null && YouTubeFeature.state.selectedStreamerIndex > index) {
+  } else if (YoutubeFeature.state.selectedStreamerIndex !== null && YoutubeFeature.state.selectedStreamerIndex > index) {
     // Adjust selected index if it was after the deleted streamer
-    YouTubeFeature.state.selectedStreamerIndex--;
+    YoutubeFeature.state.selectedStreamerIndex--;
   }
 
   renderStreamerList(streamers);
@@ -403,7 +404,7 @@ function selectStreamer(index) {
   if (!streamer) return;
 
   // Update selected index
-  YouTubeFeature.state.selectedStreamerIndex = index;
+  YoutubeFeature.state.selectedStreamerIndex = index;
 
   // Update UI to show selection
   renderStreamerList(streamers);
@@ -467,7 +468,7 @@ function populateFormFieldsForStreamer(streamer) {
 
 function clearStreamerSelection() {
   const config = getDashboardCore().state.guildConfig;
-  YouTubeFeature.state.selectedStreamerIndex = null;
+  YoutubeFeature.state.selectedStreamerIndex = null;
 
   // Hide selected streamer indicator
   const indicator = document.getElementById('selectedStreamerIndicator');
@@ -520,7 +521,7 @@ function handlePingRolesChange(e) {
   const config = getDashboardCore().state.guildConfig;
 
   // Ping Roles are PER-STREAMER only - must have a streamer selected
-  if (YouTubeFeature.state.selectedStreamerIndex === null) return;
+  if (YoutubeFeature.state.selectedStreamerIndex === null) return;
 
   const selectedOptions = Array.from(e.target.selectedOptions);
 
@@ -532,9 +533,9 @@ function handlePingRolesChange(e) {
 
   // Update selected streamer's mentions
   const streamers = config.settings.youtube.tracked_streamers;
-  streamers[YouTubeFeature.state.selectedStreamerIndex].mention_everyone = mentionEveryone;
-  streamers[YouTubeFeature.state.selectedStreamerIndex].mention_here = mentionHere;
-  streamers[YouTubeFeature.state.selectedStreamerIndex].mention_role_ids = roleIds;
+  streamers[YoutubeFeature.state.selectedStreamerIndex].mention_everyone = mentionEveryone;
+  streamers[YoutubeFeature.state.selectedStreamerIndex].mention_here = mentionHere;
+  streamers[YoutubeFeature.state.selectedStreamerIndex].mention_role_ids = roleIds;
 
   getDashboardCore().markUnsavedChanges();
 }
@@ -543,10 +544,10 @@ function handleAnnouncementMessageChange(e) {
   const config = getDashboardCore().state.guildConfig;
   const message = e.target.value;
 
-  if (YouTubeFeature.state.selectedStreamerIndex !== null) {
+  if (YoutubeFeature.state.selectedStreamerIndex !== null) {
     // Update selected streamer's custom message
     const streamers = config.settings.youtube.tracked_streamers;
-    streamers[YouTubeFeature.state.selectedStreamerIndex].custom_message = message;
+    streamers[YoutubeFeature.state.selectedStreamerIndex].custom_message = message;
   } else {
     // Update global message
     if (!config.settings.youtube) config.settings.youtube = {};
@@ -594,11 +595,11 @@ window.selectStreamer = selectStreamer;
 window.clearStreamerSelection = clearStreamerSelection;
 
 // Export feature module for SPA
-window.YouTubeFeature = YouTubeFeature;
+window.YoutubeFeature = YoutubeFeature;
 
 // MPA backwards compatibility - auto-init if not in SPA mode
 if (!window.Router) {
   document.addEventListener('DOMContentLoaded', async () => {
-    await YouTubeFeature.init();
+    await YoutubeFeature.init();
   });
 }
