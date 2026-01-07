@@ -347,13 +347,13 @@ function createStreamerInputRow(streamer, index) {
   let validationClass = '';
   let validationIcon = '';
 
-  if (streamer.streamer_id) {
+  if (streamer.isValid) {
     validationClass = 'valid';
     validationIcon = '✓';
   } else if (streamer.username && streamer.validating) {
     validationClass = 'validating';
     validationIcon = '...';
-  } else if (streamer.username && !streamer.streamer_id) {
+  } else if (streamer.username && !streamer.isValid) {
     validationClass = 'invalid';
     validationIcon = '✗';
   }
@@ -393,8 +393,7 @@ function addStreamer() {
 
   const newStreamer = {
     username: '',
-    streamer_id: null,
-    platform: 'twitch',
+    isValid: false,
     mention_role_ids: [],
     mention_everyone: false,
     mention_here: false,
@@ -424,9 +423,9 @@ function handleStreamerInput(index, value) {
   const streamers = state.guildConfig.settings.twitch.tracked_streamers;
   streamers[index].username = value;
 
-  // Clear previous streamer_id when username changes
-  if (streamers[index].streamer_id) {
-    streamers[index].streamer_id = null;
+  // Clear previous validation when username changes
+  if (streamers[index].isValid) {
+    streamers[index].isValid = false;
     renderStreamerList(streamers);
   }
 
@@ -467,18 +466,18 @@ async function validateStreamer(index, username) {
 
     streamer.validating = false;
 
-    if (data.valid && data.streamer_id) {
-      streamer.streamer_id = data.streamer_id;
-      streamer.username = data.username || username.trim(); // Use normalized username from API
+    if (data.success && data.valid) {
+      streamer.isValid = true;
+      streamer.username = username.trim();
     } else {
-      streamer.streamer_id = null;
+      streamer.isValid = false;
     }
 
     renderStreamerList(streamers);
   } catch (error) {
     console.error('Validation error:', error);
     streamer.validating = false;
-    streamer.streamer_id = null;
+    streamer.isValid = false;
     renderStreamerList(streamers);
   }
 }
