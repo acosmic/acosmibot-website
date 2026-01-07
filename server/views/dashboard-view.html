@@ -1,0 +1,308 @@
+<!-- Page Header -->
+<header class="dashboard-header">
+    <div class="header-left">
+        <h1>Dashboard</h1>
+        <p class="feature-description">Your stats and server overview</p>
+    </div>
+</header>
+
+<!-- Feature Content -->
+<div class="feature-container">
+    <!-- User Stats Section -->
+    <div class="form-section">
+        <h3>Your Stats</h3>
+        <div class="user-stats-card">
+            <div class="user-avatar-large" id="userAvatar"></div>
+            <div class="user-info-container">
+                <h2 id="userName">Loading...</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-value" id="userLevel">-</span>
+                        <span class="stat-label">Level</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="userCredits">-</span>
+                        <span class="stat-label">Credits</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="userRank">-</span>
+                        <span class="stat-label">Rank</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="userMessages">-</span>
+                        <span class="stat-label">Messages</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="userReactions">-</span>
+                        <span class="stat-label">Reactions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="userGames">-</span>
+                        <span class="stat-label">Games</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="userWinRate">-</span>
+                        <span class="stat-label">Win Rate</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="memberSince">-</span>
+                        <span class="stat-label">Member Since</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Server Info Section -->
+    <div class="form-section">
+        <h3>Server Overview</h3>
+        <div class="server-info-card">
+            <div class="server-header">
+                <div class="server-icon-large" id="serverIcon"></div>
+                <div class="server-details">
+                    <h2 id="serverName">Loading...</h2>
+                    <p id="serverMemberCount">- members</p>
+                </div>
+            </div>
+            <div class="server-features">
+                <h4>Enabled Features</h4>
+                <div class="features-grid" id="enabledFeatures">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="form-section">
+        <h3>Quick Actions</h3>
+        <div class="quick-actions-grid">
+            <button class="quick-action-btn" onclick="DashboardFeature.navigateTo('leveling')">
+                <span class="action-icon">📈</span>
+                <span class="action-label">Leveling</span>
+            </button>
+            <button class="quick-action-btn" onclick="DashboardFeature.navigateTo('twitch')">
+                <span class="action-icon">📺</span>
+                <span class="action-label">Twitch</span>
+            </button>
+            <button class="quick-action-btn" onclick="DashboardFeature.navigateTo('youtube')">
+                <span class="action-icon">🎬</span>
+                <span class="action-label">YouTube</span>
+            </button>
+            <button class="quick-action-btn" onclick="DashboardFeature.navigateTo('slots')">
+                <span class="action-icon">🎰</span>
+                <span class="action-label">Slots</span>
+            </button>
+            <button class="quick-action-btn" onclick="DashboardFeature.navigateTo('reaction-roles')">
+                <span class="action-icon">🎭</span>
+                <span class="action-label">Reaction Roles</span>
+            </button>
+            <button class="quick-action-btn" onclick="DashboardFeature.navigateTo('custom-commands')">
+                <span class="action-icon">⌨️</span>
+                <span class="action-label">Commands</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* User Stats Card */
+.user-stats-card {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 24px;
+    background: var(--bg-overlay);
+    border-radius: 12px;
+}
+
+.user-avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: bold;
+    color: white;
+}
+
+.user-info-container {
+    flex: 1;
+}
+
+.user-info-container h2 {
+    margin: 0 0 16px 0;
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .user-stats-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+/* Server Info Card */
+.server-info-card {
+    padding: 24px;
+    background: var(--bg-overlay);
+    border-radius: 12px;
+}
+
+.server-header {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.server-icon-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    background: var(--bg-primary);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+}
+
+.server-details h2 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    color: var(--text-primary);
+}
+
+.server-details p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.server-features h4 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.features-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.feature-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid rgba(0, 217, 255, 0.3);
+    border-radius: 16px;
+    font-size: 13px;
+    color: var(--primary-color);
+}
+
+.feature-badge.disabled {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+/* Quick Actions */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 1024px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 16px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-action-btn:hover {
+    background: rgba(0, 217, 255, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    font-size: 28px;
+}
+
+.action-label {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+</style>

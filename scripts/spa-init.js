@@ -42,8 +42,8 @@ async function initSPA() {
     return;
   }
 
-  // Default to 'home' if no feature specified
-  const feature = initialRoute.feature || 'home';
+  // Default to 'dashboard' if no feature specified
+  const feature = initialRoute.feature || 'dashboard';
   console.log('Initial route:', initialRoute, '-> feature:', feature);
 
   try {
@@ -91,8 +91,8 @@ async function handleRouteChange(newRoute, oldRoute, { ViewManager, Router, Dash
     // Unload current view
     await ViewManager.unloadView();
 
-    // Default to 'home' if no feature specified
-    const feature = newRoute.feature || 'home';
+    // Default to 'dashboard' if no feature specified
+    const feature = newRoute.feature || 'dashboard';
 
     // Update DashboardCore state with new route
     // Use lighter SPA init since we're already initialized

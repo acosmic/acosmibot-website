@@ -220,7 +220,7 @@ class DashboardCore {
 
     // Get current feature from URL
     const pathParts = window.location.pathname.split('/');
-    const currentFeature = pathParts[3] || 'twitch'; // Default to twitch if not specified
+    const currentFeature = pathParts[3] || 'dashboard'; // Default to dashboard if not specified
 
     // Navigate to same feature in new guild
     if (window.Router) {
@@ -356,7 +356,7 @@ class DashboardCore {
 
   getNavigationHTML() {
     return `
-      <div class="nav-item" data-feature="dashboard" data-coming-soon="true">
+      <div class="nav-item" data-feature="dashboard">
         <span class="nav-dot"></span>
         <span class="nav-text">Dashboard</span>
       </div>
