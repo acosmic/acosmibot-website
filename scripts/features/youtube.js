@@ -52,12 +52,15 @@ function getDashboardCore() {
 function populateYouTubeUI() {
   const config = getDashboardCore().state.guildConfig;
 
+  console.log('populateYouTubeUI - config:', config);
+  console.log('populateYouTubeUI - settings.youtube:', config?.settings?.youtube);
+
   // Ensure settings exists
   if (!config.settings) {
     config.settings = {};
   }
 
-  // Ensure youtube settings exists
+  // Ensure youtube settings exists (but don't overwrite if it has data)
   if (!config.settings.youtube) {
     config.settings.youtube = {};
   }
@@ -74,6 +77,9 @@ function populateYouTubeUI() {
 
   // 2. Channel dropdown (GLOBAL)
   const channelSelect = document.getElementById('channelSelect');
+  console.log('populateYouTubeUI - channelSelect element:', channelSelect);
+  console.log('populateYouTubeUI - available_channels:', config.available_channels?.length);
+
   if (channelSelect && config.available_channels) {
     channelSelect.innerHTML = '<option value="">Select a channel...</option>';
     config.available_channels.forEach(channel => {
@@ -87,7 +93,9 @@ function populateYouTubeUI() {
     });
 
     // Populate with global default
-    channelSelect.value = config.settings.youtube?.announcement_channel_id || '';
+    const announcementChannelId = config.settings.youtube?.announcement_channel_id || '';
+    console.log('populateYouTubeUI - setting channel to:', announcementChannelId);
+    channelSelect.value = announcementChannelId;
 
     channelSelect.addEventListener('change', handleChannelChange);
   }
@@ -140,6 +148,7 @@ function populateYouTubeUI() {
 
   // 5. Streamers list
   const streamers = config.settings.youtube?.tracked_streamers || [];
+  console.log('populateYouTubeUI - tracked_streamers:', streamers);
   renderStreamerList(streamers);
 }
 
@@ -147,6 +156,8 @@ function populateYouTubeUI() {
 function renderStreamerList(streamers) {
   const container = document.getElementById('streamersList');
   const maxStreamers = 10;
+
+  console.log('renderStreamerList - container:', container, 'streamers count:', streamers?.length);
 
   if (!container) return;
 
@@ -326,7 +337,7 @@ async function validateStreamer(index, username) {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ username: username.trim() })
+      body: JSON.stringify({ identifier: username.trim() })
     });
 
     const data = await response.json();
