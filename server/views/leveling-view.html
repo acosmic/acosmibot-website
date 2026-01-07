@@ -1,0 +1,324 @@
+<!-- Page Header -->
+<header class="dashboard-header">
+    <div class="header-left">
+        <h1>Leveling System</h1>
+        <p class="feature-description">Make your discord unique with a customizable leveling system</p>
+    </div>
+</header>
+
+<!-- Feature Content -->
+<div class="feature-container">
+    <!-- Feature Toggle -->
+    <div class="form-section">
+        <div class="feature-header">
+            <h3>Enable Leveling System</h3>
+            <div class="feature-header-controls">
+                <button id="saveButton" class="save-btn" onclick="saveAllChanges()" disabled>
+                    <span class="save-icon">💾</span>
+                    Save Changes
+                    <span class="unsaved-indicator" style="display: none;">●</span>
+                </button>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="featureToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Announcement Section -->
+    <div class="form-section collapsible-section" id="levelAnnouncementSection">
+        <div class="section-header" onclick="toggleSection('levelAnnouncementSection')">
+            <h3>Level Announcement</h3>
+            <div class="section-header-right">
+                <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="levelAnnouncementToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <div class="form-group">
+                <label>Channel</label>
+                <select id="levelAnnouncementChannel" class="feature-select">
+                    <option value="">Select a channel...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Announcement Message</label>
+                <textarea id="levelAnnouncementMessage" class="message-textarea" rows="4"></textarea>
+                <div class="variable-tags">
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{mention}')">{mention}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{username}')">{username}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{level}')">{level}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{credits}')">{credits}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{xp}')">{xp}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{streak}')">{streak}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{base_credits}')">{base_credits}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{streak_bonus}')">{streak_bonus}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Assignment Section -->
+    <div class="form-section collapsible-section" id="roleAssignmentSection">
+        <div class="section-header" onclick="toggleSection('roleAssignmentSection')">
+            <h3>Role Assignment</h3>
+            <div class="section-header-right">
+                <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="roleAssignmentToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <div class="form-group">
+                <label>Mode</label>
+                <select id="roleAssignmentMode" class="feature-select">
+                    <option value="additive">Additive (keep previous roles)</option>
+                    <option value="replace">Replace (remove previous level roles)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Level Mapping</label>
+                <div class="level-mapping-header">
+                    <span class="mapping-col-level">Level</span>
+                    <span class="mapping-col-roles">Roles</span>
+                </div>
+                <div id="levelMappingsList" class="level-mappings-list">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <button class="btn-add-mapping" onclick="addLevelMapping()">+</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Announcement Section -->
+    <div class="form-section collapsible-section" id="roleAnnouncementSection">
+        <div class="section-header" onclick="toggleSection('roleAnnouncementSection')">
+            <h3>Role Announcement</h3>
+            <div class="section-header-right">
+                <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="roleAnnouncementToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <div class="form-group">
+                <label>Channel</label>
+                <select id="roleAnnouncementChannel" class="feature-select">
+                    <option value="">Select a channel...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Rewards Section -->
+    <div class="form-section collapsible-section" id="dailyRewardsSection">
+        <div class="section-header" onclick="toggleSection('dailyRewardsSection')">
+            <h3>Daily Rewards</h3>
+            <div class="section-header-right">
+                <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="dailyRewardsToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <div class="form-group">
+                <label>Channel</label>
+                <select id="dailyRewardsChannel" class="feature-select">
+                    <option value="">Select a channel...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Announcement Message</label>
+                <textarea id="dailyRewardsMessage" class="message-textarea" rows="4"></textarea>
+                <div class="variable-tags">
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{mention}')">{mention}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{username}')">{username}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{credits}')">{credits}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{streak}')">{streak}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{base_credits}')">{base_credits}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{streak_bonus}')">{streak_bonus}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Collapsible Sections */
+.collapsible-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.collapsible-section .section-header h3 {
+    margin: 0;
+}
+
+.section-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.collapse-icon {
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+    font-size: 12px;
+}
+
+.collapsible-section.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
+
+.collapsible-section .section-content {
+    padding-top: 16px;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    overflow: hidden;
+}
+
+.collapsible-section.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Level Mappings */
+.level-mapping-header {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.mapping-col-level {
+    width: 100px;
+}
+
+.mapping-col-roles {
+    flex: 1;
+}
+
+.level-mappings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.level-mapping-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.level-mapping-row .level-input {
+    width: 100px;
+    padding: 10px 12px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.level-mapping-row .role-select {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.level-mapping-row .delete-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: rgba(255, 100, 100, 0.2);
+    border: none;
+    border-radius: 8px;
+    color: #ff6464;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.level-mapping-row .delete-btn:hover {
+    background: rgba(255, 100, 100, 0.3);
+}
+
+.btn-add-mapping {
+    width: 48px;
+    height: 36px;
+    padding: 0;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.btn-add-mapping:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+}
+
+.btn-add-mapping:disabled {
+    background: var(--bg-overlay);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Disabled state for form fields */
+.form-group.disabled label {
+    color: var(--text-muted);
+}
+
+.form-group.disabled .feature-select,
+.form-group.disabled .message-textarea,
+.form-group.disabled .level-input,
+.form-group.disabled .role-select {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-group.disabled .var-tag {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+</style>
