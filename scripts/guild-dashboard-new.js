@@ -10,7 +10,8 @@ let state = {
   hasUnsavedChanges: false,
   isSaving: false,
   isLoading: false,
-  selectedStreamerIndex: null
+  selectedStreamerIndex: null,
+  validationTimeouts: {} // Track timeouts by streamer index for auto-hiding validation
 };
 
 // ===== INITIALIZATION =====
@@ -292,6 +293,7 @@ function populateUI(config) {
   const messageTextarea = document.getElementById('announcementMessageTextarea');
   if (messageTextarea) {
     messageTextarea.value = config.settings.twitch?.announcement_message || '{username} is live!';
+    messageTextarea.disabled = true; // Start disabled until a streamer is selected
     messageTextarea.addEventListener('input', handleAnnouncementMessageChange);
   }
 
@@ -324,10 +326,11 @@ function renderStreamerList(streamers) {
 
     if (row) {
       row.addEventListener('click', (e) => {
-        // Don't select if clicking on input, validation indicator, or delete button
+        // Don't select if clicking on input, validation indicator, edit button, or delete button
         if (e.target.tagName === 'INPUT' ||
             e.target.tagName === 'BUTTON' ||
-            e.target.classList.contains('validation-indicator')) {
+            e.target.classList.contains('validation-indicator') ||
+            e.target.classList.contains('edit-btn')) {
           return;
         }
         selectStreamer(index);
@@ -347,13 +350,16 @@ function createStreamerInputRow(streamer, index) {
   let validationClass = '';
   let validationIcon = '';
 
-  if (streamer.isValid) {
+  // Check if validation should be hidden (auto-hide after 3 seconds for valid state)
+  const hideValidation = streamer.isValid && streamer.hideValidation;
+
+  if (streamer.isValid && !hideValidation) {
     validationClass = 'valid';
     validationIcon = '✓';
   } else if (streamer.username && streamer.validating) {
     validationClass = 'validating';
     validationIcon = '...';
-  } else if (streamer.username && !streamer.isValid) {
+  } else if (streamer.username && !streamer.isValid && !hideValidation) {
     validationClass = 'invalid';
     validationIcon = '✗';
   }
@@ -374,6 +380,7 @@ function createStreamerInputRow(streamer, index) {
       <div class="validation-indicator ${validationClass}">
         ${validationIcon}
       </div>
+      <button class="edit-btn" onclick="selectStreamer(${index})">✎</button>
       <button class="delete-btn" onclick="removeStreamer(${index})">×</button>
     </div>
   `;
@@ -429,6 +436,12 @@ function handleStreamerInput(index, value) {
     renderStreamerList(streamers);
   }
 
+  // Clear validation timeout if it exists
+  if (state.validationTimeouts[index]) {
+    clearTimeout(state.validationTimeouts[index]);
+    delete state.validationTimeouts[index];
+  }
+
   // Update selected streamer name indicator if this streamer is selected
   if (state.selectedStreamerIndex === index) {
     const nameSpan = document.getElementById('selectedStreamerNameIndicator');
@@ -447,8 +460,15 @@ async function validateStreamer(index, username) {
   const streamers = state.guildConfig.settings.twitch.tracked_streamers;
   const streamer = streamers[index];
 
+  // Clear any existing timeout for this streamer
+  if (state.validationTimeouts[index]) {
+    clearTimeout(state.validationTimeouts[index]);
+    delete state.validationTimeouts[index];
+  }
+
   // Set validating state
   streamer.validating = true;
+  streamer.hideValidation = false; // Show validation during process
   renderStreamerList(streamers);
 
   try {
@@ -469,8 +489,17 @@ async function validateStreamer(index, username) {
     if (data.success && data.valid) {
       streamer.isValid = true;
       streamer.username = username.trim();
+      streamer.hideValidation = false; // Show valid checkmark initially
+
+      // Set timeout to hide validation after 3 seconds
+      state.validationTimeouts[index] = setTimeout(() => {
+        streamer.hideValidation = true;
+        renderStreamerList(streamers);
+        delete state.validationTimeouts[index];
+      }, 3000);
     } else {
       streamer.isValid = false;
+      streamer.hideValidation = false; // Keep showing invalid state
     }
 
     renderStreamerList(streamers);
@@ -478,6 +507,7 @@ async function validateStreamer(index, username) {
     console.error('Validation error:', error);
     streamer.validating = false;
     streamer.isValid = false;
+    streamer.hideValidation = false;
     renderStreamerList(streamers);
   }
 }
@@ -626,6 +656,7 @@ function populateFormFieldsForStreamer(streamer) {
 
   // Announcement Message: Use streamer's custom message or fall back to global
   if (messageTextarea) {
+    messageTextarea.disabled = false; // Enable for streamer editing
     const message = streamer.custom_message ||
                    state.guildConfig.settings.twitch?.announcement_message ||
                    '{username} is live!';
@@ -664,6 +695,7 @@ function populateFormFieldsWithGlobalDefaults() {
   }
 
   if (messageTextarea) {
+    messageTextarea.disabled = true; // Disable when no selection
     // Reset to global default message
     messageTextarea.value = state.guildConfig.settings.twitch?.announcement_message || '{username} is live!';
   }
