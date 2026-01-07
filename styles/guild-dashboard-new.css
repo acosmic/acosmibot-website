@@ -148,6 +148,12 @@ body {
     background: var(--primary-color);
     border-radius: 50%;
     margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.nav-indicator.active {
+    opacity: 1;
 }
 
 /* Section Headers */

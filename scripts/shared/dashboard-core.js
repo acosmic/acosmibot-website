@@ -352,6 +352,9 @@ class DashboardCore {
         section.classList.toggle('collapsed');
       });
     });
+
+    // Update nav indicators based on enabled features
+    this.updateNavIndicators();
   }
 
   getNavigationHTML() {
@@ -400,6 +403,7 @@ class DashboardCore {
           <div class="nav-item" data-feature="youtube">
             <span class="nav-dot"></span>
             <span class="nav-text">YouTube</span>
+            <span class="nav-indicator"></span>
           </div>
           <div class="nav-item" data-feature="kick" data-coming-soon="true">
             <span class="nav-dot"></span>
@@ -416,14 +420,17 @@ class DashboardCore {
           <div class="nav-item" data-feature="polymorph">
             <span class="nav-dot"></span>
             <span class="nav-text">Polymorph</span>
+            <span class="nav-indicator"></span>
           </div>
           <div class="nav-item" data-feature="portals">
             <span class="nav-dot"></span>
             <span class="nav-text">Portals</span>
+            <span class="nav-indicator"></span>
           </div>
           <div class="nav-item" data-feature="jail">
             <span class="nav-dot"></span>
             <span class="nav-text">Jail</span>
+            <span class="nav-indicator"></span>
           </div>
         </div>
       </div>
@@ -438,10 +445,12 @@ class DashboardCore {
         <div class="nav-item" data-feature="slots">
           <span class="nav-dot"></span>
           <span class="nav-text">Slots</span>
+          <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="lottery">
           <span class="nav-dot"></span>
           <span class="nav-text">Lottery</span>
+          <span class="nav-indicator"></span>
         </div>
       </div>
 
@@ -455,17 +464,75 @@ class DashboardCore {
         <div class="nav-item" data-feature="embeds">
           <span class="nav-dot"></span>
           <span class="nav-text">Embeds</span>
+          <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="reaction-roles">
           <span class="nav-dot"></span>
           <span class="nav-text">Reaction Roles</span>
+          <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="custom-commands">
           <span class="nav-dot"></span>
           <span class="nav-text">Custom Commands</span>
+          <span class="nav-indicator"></span>
         </div>
       </div>
     `;
+  }
+
+  // Feature to config path mapping
+  getFeatureConfigPath(feature) {
+    const configPaths = {
+      'leveling': 'leveling.enabled',
+      'twitch': 'twitch.enabled',
+      'youtube': 'youtube.enabled',
+      'polymorph': 'polymorph.enabled',
+      'portals': 'cross_server_portal.enabled',
+      'jail': 'jail.enabled',
+      'slots': 'games.slots-config.enabled',
+      'lottery': 'lottery.enabled',
+      'embeds': 'embeds.enabled',
+      'reaction-roles': 'reaction_roles.enabled',
+      'custom-commands': 'custom_commands.enabled'
+    };
+    return configPaths[feature] || null;
+  }
+
+  // Check if a feature is enabled in config
+  isFeatureEnabled(feature) {
+    const configPath = this.getFeatureConfigPath(feature);
+    if (!configPath || !this.state.guildConfig?.settings) {
+      return false;
+    }
+
+    // Navigate the config path (e.g., 'games.slots-config.enabled')
+    const parts = configPath.split('.');
+    let value = this.state.guildConfig.settings;
+
+    for (const part of parts) {
+      if (value && typeof value === 'object' && part in value) {
+        value = value[part];
+      } else {
+        return false;
+      }
+    }
+
+    return value === true;
+  }
+
+  // Update all nav indicators based on config
+  updateNavIndicators() {
+    const navItems = document.querySelectorAll('.nav-item[data-feature]');
+
+    navItems.forEach(item => {
+      const feature = item.dataset.feature;
+      const indicator = item.querySelector('.nav-indicator');
+
+      if (indicator) {
+        const isEnabled = this.isFeatureEnabled(feature);
+        indicator.classList.toggle('active', isEnabled);
+      }
+    });
   }
 
   navigateToFeature(feature) {
