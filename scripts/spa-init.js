@@ -44,8 +44,17 @@ async function initSPA() {
   console.log('Initial route:', initialRoute, '-> feature:', feature);
 
   try {
+    // Debug: Check DashboardCore right before calling init
+    console.log('About to call DashboardCore.init');
+    console.log('DashboardCore:', DashboardCore);
+    console.log('DashboardCore type:', typeof DashboardCore);
+    console.log('DashboardCore.init:', DashboardCore.init);
+    console.log('DashboardCore.init type:', typeof DashboardCore.init);
+    console.log('window.DashboardCore:', window.DashboardCore);
+    console.log('window.DashboardCore.init type:', typeof window.DashboardCore?.init);
+
     // Initialize DashboardCore with full init for first load
-    await DashboardCore.init(feature);
+    await window.DashboardCore.init(feature);
 
     // Load initial view
     const viewLoaded = await ViewManager.loadView(feature);
