@@ -7,11 +7,14 @@ document.addEventListener('DOMContentLoaded', initSPA);
 async function initSPA() {
   console.log('Initializing SPA...');
 
+  // Get module references from window (avoids class vs instance confusion)
+  const { ViewManager, Router, FeatureLoader, DashboardCore } = window;
+
   // Verify required modules are loaded
-  if (!window.ViewManager || !window.Router || !window.FeatureLoader || !window.DashboardCore) {
-    console.error('Required modules not loaded. ViewManager:', !!window.ViewManager,
-                  'Router:', !!window.Router, 'FeatureLoader:', !!window.FeatureLoader,
-                  'DashboardCore:', !!window.DashboardCore);
+  if (!ViewManager || !Router || !FeatureLoader || !DashboardCore) {
+    console.error('Required modules not loaded. ViewManager:', !!ViewManager,
+                  'Router:', !!Router, 'FeatureLoader:', !!FeatureLoader,
+                  'DashboardCore:', !!DashboardCore);
     return;
   }
 
@@ -44,17 +47,8 @@ async function initSPA() {
   console.log('Initial route:', initialRoute, '-> feature:', feature);
 
   try {
-    // Debug: Check DashboardCore right before calling init
-    console.log('About to call DashboardCore.init');
-    console.log('DashboardCore:', DashboardCore);
-    console.log('DashboardCore type:', typeof DashboardCore);
-    console.log('DashboardCore.init:', DashboardCore.init);
-    console.log('DashboardCore.init type:', typeof DashboardCore.init);
-    console.log('window.DashboardCore:', window.DashboardCore);
-    console.log('window.DashboardCore.init type:', typeof window.DashboardCore?.init);
-
     // Initialize DashboardCore with full init for first load
-    await window.DashboardCore.init(feature);
+    await DashboardCore.init(feature);
 
     // Load initial view
     const viewLoaded = await ViewManager.loadView(feature);
@@ -72,15 +66,15 @@ async function initSPA() {
     return;
   }
 
-  // Setup route change handler
+  // Setup route change handler (pass module references)
   Router.onRouteChange(async (newRoute, oldRoute) => {
     console.log('Route change:', oldRoute, '->', newRoute);
-    await handleRouteChange(newRoute, oldRoute);
+    await handleRouteChange(newRoute, oldRoute, { ViewManager, Router, DashboardCore });
   });
 }
 
 // ===== ROUTE CHANGE HANDLER =====
-async function handleRouteChange(newRoute, oldRoute) {
+async function handleRouteChange(newRoute, oldRoute, { ViewManager, Router, DashboardCore }) {
   try {
     // Check for unsaved changes
     if (DashboardCore.state.hasUnsavedChanges) {
@@ -97,16 +91,19 @@ async function handleRouteChange(newRoute, oldRoute) {
     // Unload current view
     await ViewManager.unloadView();
 
+    // Default to 'home' if no feature specified
+    const feature = newRoute.feature || 'home';
+
     // Update DashboardCore state with new route
     // Use lighter SPA init since we're already initialized
-    await DashboardCore.initForSPA(newRoute.feature);
+    await DashboardCore.initForSPA(feature);
 
     // Load new view
-    const viewLoaded = await ViewManager.loadView(newRoute.feature);
+    const viewLoaded = await ViewManager.loadView(feature);
 
     if (!viewLoaded) {
-      console.error('Failed to load view for:', newRoute.feature);
-      ViewManager.showError(`Failed to load ${newRoute.feature} view. Please try again.`);
+      console.error('Failed to load view for:', feature);
+      ViewManager.showError(`Failed to load ${feature} view. Please try again.`);
     }
 
   } catch (error) {

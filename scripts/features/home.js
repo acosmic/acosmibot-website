@@ -4,8 +4,10 @@
 const HomeFeature = {
   async init() {
     console.log('Home feature initialized');
+    const { DashboardCore, Router } = window;
+
     // Initialize shared core for SPA
-    if (window.Router) {
+    if (Router) {
       await DashboardCore.initForSPA('home');
     } else {
       await DashboardCore.init('home');
