@@ -199,10 +199,10 @@ async function loadGuildConfig(guildId) {
     }
 
     const data = await response.json();
-    state.guildConfig = data;
+    state.guildConfig = data.data; // Access the nested 'data' property
 
     // Populate all UI elements
-    populateUI(data);
+    populateUI(state.guildConfig);
 
   } catch (error) {
     console.error('Config loading error:', error);
