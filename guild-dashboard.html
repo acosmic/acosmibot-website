@@ -183,6 +183,56 @@
                     <button class="btn-add-streamer" onclick="addStreamer()">+</button>
                 </div>
 
+                <!-- Per-Streamer Settings (Hidden by default) -->
+                <div class="form-section streamer-settings-section" id="streamerSettingsSection" style="display: none;">
+                    <div class="section-header-with-action">
+                        <h3>Settings for <span id="selectedStreamerName">Streamer</span></h3>
+                        <button class="btn-clear-selection" onclick="clearStreamerSelection()">✕</button>
+                    </div>
+
+                    <!-- Custom Message Override -->
+                    <div class="form-field">
+                        <label>Custom Message (Optional)</label>
+                        <textarea id="customMessageInput" class="message-textarea" rows="3" placeholder="Leave empty to use default announcement message"></textarea>
+                        <p class="field-hint">Override the default announcement message for this streamer</p>
+                    </div>
+
+                    <!-- Mention Settings -->
+                    <div class="form-field">
+                        <label>Mention Settings</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="mentionEveryoneCheckbox">
+                                <span>Mention @everyone</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="mentionHereCheckbox">
+                                <span>Mention @here</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Ping Roles -->
+                    <div class="form-field">
+                        <label>Ping Roles</label>
+                        <select id="pingRolesSelect" class="feature-select" multiple size="5">
+                            <!-- Populated by JavaScript -->
+                        </select>
+                        <p class="field-hint">Hold Ctrl/Cmd to select multiple roles</p>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="form-field">
+                        <label>Advanced</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="skipVodCheckbox">
+                                <span>Skip VOD check (always post even if it's a rerun)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Channel & Mentions (Inline) -->
                 <div class="form-section form-section-inline">
                     <div class="inline-field">

@@ -9,7 +9,8 @@ let state = {
   currentUser: null,
   hasUnsavedChanges: false,
   isSaving: false,
-  isLoading: false
+  isLoading: false,
+  selectedStreamerIndex: null
 };
 
 // ===== INITIALIZATION =====
@@ -159,6 +160,9 @@ async function switchGuild(guildId) {
     }
   }
 
+  // Clear streamer selection when switching guilds
+  clearStreamerSelection();
+
   // Update URL without page reload
   window.history.pushState({}, '', `?guild=${guildId}`);
   state.currentGuildId = guildId;
@@ -260,6 +264,24 @@ function populateUI(config) {
   // 4. Streamers list
   const streamers = config.settings.twitch.tracked_streamers || [];
   renderStreamerList(streamers);
+
+  // 5. Populate role select for per-streamer settings
+  const pingRolesSelect = document.getElementById('pingRolesSelect');
+  if (pingRolesSelect && config.available_roles) {
+    pingRolesSelect.innerHTML = '';
+    config.available_roles.forEach(role => {
+      // Skip @everyone and managed roles
+      if (role.id === config.guild_id || role.managed) return;
+
+      const option = document.createElement('option');
+      option.value = role.id;
+      option.textContent = role.name;
+      pingRolesSelect.appendChild(option);
+    });
+  }
+
+  // 6. Setup per-streamer settings event listeners
+  setupPerStreamerSettingsListeners();
 }
 
 // ===== STREAMER CRUD OPERATIONS =====
@@ -274,12 +296,26 @@ function renderStreamerList(streamers) {
     createStreamerInputRow(streamer, index)
   ).join('');
 
-  // Add event listeners for all inputs
+  // Add event listeners for all inputs and rows
   streamers.forEach((streamer, index) => {
     const input = document.getElementById(`streamer-input-${index}`);
+    const row = document.getElementById(`streamer-row-${index}`);
+
     if (input) {
       input.addEventListener('input', (e) => handleStreamerInput(index, e.target.value));
       input.addEventListener('blur', (e) => validateStreamer(index, e.target.value));
+    }
+
+    if (row) {
+      row.addEventListener('click', (e) => {
+        // Don't select if clicking on input, validation indicator, or delete button
+        if (e.target.tagName === 'INPUT' ||
+            e.target.tagName === 'BUTTON' ||
+            e.target.classList.contains('validation-indicator')) {
+          return;
+        }
+        selectStreamer(index);
+      });
     }
   });
 
@@ -306,8 +342,12 @@ function createStreamerInputRow(streamer, index) {
     validationIcon = '✗';
   }
 
+  // Determine if this row is selected
+  const isSelected = state.selectedStreamerIndex === index;
+  const selectedClass = isSelected ? 'selected' : '';
+
   return `
-    <div class="stream-input-group">
+    <div class="stream-input-group ${selectedClass}" id="streamer-row-${index}">
       <input
         type="text"
         class="stream-input"
@@ -346,9 +386,23 @@ function addStreamer() {
     skip_vod_check: false
   };
 
-  state.guildConfig.settings.twitch.tracked_streamers.push(newStreamer);
-  renderStreamerList(state.guildConfig.settings.twitch.tracked_streamers);
+  const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+  streamers.push(newStreamer);
+
+  renderStreamerList(streamers);
   markUnsavedChanges();
+
+  // Automatically select the newly added streamer
+  const newIndex = streamers.length - 1;
+  selectStreamer(newIndex);
+
+  // Focus the username input for the new streamer
+  setTimeout(() => {
+    const input = document.getElementById(`streamer-input-${newIndex}`);
+    if (input) {
+      input.focus();
+    }
+  }, 100);
 }
 
 function handleStreamerInput(index, value) {
@@ -361,6 +415,14 @@ function handleStreamerInput(index, value) {
   if (streamers[index].streamer_id) {
     streamers[index].streamer_id = null;
     renderStreamerList(streamers);
+  }
+
+  // Update selected streamer name if this streamer is selected
+  if (state.selectedStreamerIndex === index) {
+    const streamerNameSpan = document.getElementById('selectedStreamerName');
+    if (streamerNameSpan) {
+      streamerNameSpan.textContent = value || 'New Streamer';
+    }
   }
 
   markUnsavedChanges();
@@ -416,6 +478,14 @@ function removeStreamer(index) {
 
   const streamers = state.guildConfig.settings.twitch.tracked_streamers;
   streamers.splice(index, 1);
+
+  // Clear selection if the deleted streamer was selected
+  if (state.selectedStreamerIndex === index) {
+    clearStreamerSelection();
+  } else if (state.selectedStreamerIndex !== null && state.selectedStreamerIndex > index) {
+    // Adjust selected index if it was after the deleted streamer
+    state.selectedStreamerIndex--;
+  }
 
   renderStreamerList(streamers);
   markUnsavedChanges();
@@ -482,6 +552,140 @@ async function saveAllChanges() {
   }
 }
 
+// ===== PER-STREAMER SETTINGS =====
+function selectStreamer(index) {
+  if (!state.guildConfig.settings?.twitch?.tracked_streamers) return;
+
+  const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+  const streamer = streamers[index];
+
+  if (!streamer) return;
+
+  // Update selected index
+  state.selectedStreamerIndex = index;
+
+  // Update UI to show selection
+  renderStreamerList(streamers);
+
+  // Populate per-streamer settings form
+  const settingsSection = document.getElementById('streamerSettingsSection');
+  const streamerNameSpan = document.getElementById('selectedStreamerName');
+  const customMessageInput = document.getElementById('customMessageInput');
+  const mentionEveryoneCheckbox = document.getElementById('mentionEveryoneCheckbox');
+  const mentionHereCheckbox = document.getElementById('mentionHereCheckbox');
+  const pingRolesSelect = document.getElementById('pingRolesSelect');
+  const skipVodCheckbox = document.getElementById('skipVodCheckbox');
+
+  if (settingsSection) {
+    settingsSection.style.display = 'block';
+  }
+
+  if (streamerNameSpan) {
+    streamerNameSpan.textContent = streamer.username || 'New Streamer';
+  }
+
+  if (customMessageInput) {
+    customMessageInput.value = streamer.custom_message || '';
+  }
+
+  if (mentionEveryoneCheckbox) {
+    mentionEveryoneCheckbox.checked = streamer.mention_everyone || false;
+  }
+
+  if (mentionHereCheckbox) {
+    mentionHereCheckbox.checked = streamer.mention_here || false;
+  }
+
+  if (pingRolesSelect) {
+    // Clear all selections
+    Array.from(pingRolesSelect.options).forEach(option => {
+      option.selected = false;
+    });
+
+    // Select roles that are in the streamer's mention_role_ids
+    const mentionRoleIds = streamer.mention_role_ids || [];
+    Array.from(pingRolesSelect.options).forEach(option => {
+      if (mentionRoleIds.includes(option.value)) {
+        option.selected = true;
+      }
+    });
+  }
+
+  if (skipVodCheckbox) {
+    skipVodCheckbox.checked = streamer.skip_vod_check || false;
+  }
+}
+
+function clearStreamerSelection() {
+  state.selectedStreamerIndex = null;
+
+  const settingsSection = document.getElementById('streamerSettingsSection');
+  if (settingsSection) {
+    settingsSection.style.display = 'none';
+  }
+
+  // Re-render to remove selected class
+  if (state.guildConfig.settings?.twitch?.tracked_streamers) {
+    renderStreamerList(state.guildConfig.settings.twitch.tracked_streamers);
+  }
+}
+
+function setupPerStreamerSettingsListeners() {
+  const customMessageInput = document.getElementById('customMessageInput');
+  const mentionEveryoneCheckbox = document.getElementById('mentionEveryoneCheckbox');
+  const mentionHereCheckbox = document.getElementById('mentionHereCheckbox');
+  const pingRolesSelect = document.getElementById('pingRolesSelect');
+  const skipVodCheckbox = document.getElementById('skipVodCheckbox');
+
+  if (customMessageInput) {
+    customMessageInput.addEventListener('input', () => {
+      if (state.selectedStreamerIndex === null) return;
+      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+      streamers[state.selectedStreamerIndex].custom_message = customMessageInput.value || null;
+      markUnsavedChanges();
+    });
+  }
+
+  if (mentionEveryoneCheckbox) {
+    mentionEveryoneCheckbox.addEventListener('change', () => {
+      if (state.selectedStreamerIndex === null) return;
+      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+      streamers[state.selectedStreamerIndex].mention_everyone = mentionEveryoneCheckbox.checked;
+      markUnsavedChanges();
+    });
+  }
+
+  if (mentionHereCheckbox) {
+    mentionHereCheckbox.addEventListener('change', () => {
+      if (state.selectedStreamerIndex === null) return;
+      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+      streamers[state.selectedStreamerIndex].mention_here = mentionHereCheckbox.checked;
+      markUnsavedChanges();
+    });
+  }
+
+  if (pingRolesSelect) {
+    pingRolesSelect.addEventListener('change', () => {
+      if (state.selectedStreamerIndex === null) return;
+      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+
+      // Get all selected role IDs
+      const selectedRoleIds = Array.from(pingRolesSelect.selectedOptions).map(opt => opt.value);
+      streamers[state.selectedStreamerIndex].mention_role_ids = selectedRoleIds;
+      markUnsavedChanges();
+    });
+  }
+
+  if (skipVodCheckbox) {
+    skipVodCheckbox.addEventListener('change', () => {
+      if (state.selectedStreamerIndex === null) return;
+      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+      streamers[state.selectedStreamerIndex].skip_vod_check = skipVodCheckbox.checked;
+      markUnsavedChanges();
+    });
+  }
+}
+
 // ===== EVENT LISTENERS =====
 function setupEventListeners() {
   // Warn before page unload with unsaved changes
@@ -519,3 +723,4 @@ function showSuccess(message) {
 window.addStreamer = addStreamer;
 window.removeStreamer = removeStreamer;
 window.saveAllChanges = saveAllChanges;
+window.clearStreamerSelection = clearStreamerSelection;
