@@ -234,7 +234,7 @@ function createGuildCard(guild, isOwner, canManage) {
                     📊 View Stats
                 </a>
                 ${canManage ? `
-                    <a href="/guild-dashboard.html?guild=${guild.id}" class="btn btn-primary">
+                    <a href="/server/${guild.id}/twitch" class="btn btn-primary">
                         ⚙️ Settings
                     </a>
                 ` : ''}

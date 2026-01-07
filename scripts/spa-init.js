@@ -1,8 +1,19 @@
 // ===== SPA INITIALIZATION =====
 // Initializes the Single-Page Application on page load
 
-(async function initSPA() {
+// Wait for DOM to be ready before initializing
+document.addEventListener('DOMContentLoaded', initSPA);
+
+async function initSPA() {
   console.log('Initializing SPA...');
+
+  // Verify required modules are loaded
+  if (!window.ViewManager || !window.Router || !window.FeatureLoader || !window.DashboardCore) {
+    console.error('Required modules not loaded. ViewManager:', !!window.ViewManager,
+                  'Router:', !!window.Router, 'FeatureLoader:', !!window.FeatureLoader,
+                  'DashboardCore:', !!window.DashboardCore);
+    return;
+  }
 
   // Check for redirect from 404.html
   const redirectPath = sessionStorage.getItem('spa_redirect');
@@ -55,7 +66,7 @@
     console.log('Route change:', oldRoute, '->', newRoute);
     await handleRouteChange(newRoute, oldRoute);
   });
-})();
+}
 
 // ===== ROUTE CHANGE HANDLER =====
 async function handleRouteChange(newRoute, oldRoute) {
