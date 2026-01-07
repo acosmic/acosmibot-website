@@ -2,6 +2,8 @@
 // Shared functionality across all guild dashboard pages
 // Handles: Authentication, Guild Loading, Navigation, Config Management
 
+console.log('dashboard-core.js loading...');
+
 class DashboardCore {
   constructor() {
     this.API_BASE_URL = 'https://api.acosmibot.com';
@@ -522,3 +524,5 @@ class DashboardCore {
 
 // Export as singleton
 window.DashboardCore = new DashboardCore();
+console.log('DashboardCore exported:', window.DashboardCore);
+console.log('DashboardCore.init type:', typeof window.DashboardCore.init);
