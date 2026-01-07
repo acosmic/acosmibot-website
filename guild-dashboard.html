@@ -183,84 +183,33 @@
                     <button class="btn-add-streamer" onclick="addStreamer()">+</button>
                 </div>
 
-                <!-- Per-Streamer Settings (Hidden by default) -->
-                <div class="form-section streamer-settings-section" id="streamerSettingsSection" style="display: none;">
-                    <div class="section-header-with-action">
-                        <h3>Settings for <span id="selectedStreamerName">Streamer</span></h3>
-                        <button class="btn-clear-selection" onclick="clearStreamerSelection()">✕</button>
-                    </div>
-
-                    <!-- Custom Message Override -->
-                    <div class="form-field">
-                        <label>Custom Message (Optional)</label>
-                        <textarea id="customMessageInput" class="message-textarea" rows="3" placeholder="Leave empty to use default announcement message"></textarea>
-                        <p class="field-hint">Override the default announcement message for this streamer</p>
-                    </div>
-
-                    <!-- Mention Settings -->
-                    <div class="form-field">
-                        <label>Mention Settings</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="mentionEveryoneCheckbox">
-                                <span>Mention @everyone</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="mentionHereCheckbox">
-                                <span>Mention @here</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Ping Roles -->
-                    <div class="form-field">
-                        <label>Ping Roles</label>
-                        <select id="pingRolesSelect" class="feature-select" multiple size="5">
-                            <!-- Populated by JavaScript -->
-                        </select>
-                        <p class="field-hint">Hold Ctrl/Cmd to select multiple roles</p>
-                    </div>
-
-                    <!-- Advanced Settings -->
-                    <div class="form-field">
-                        <label>Advanced</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="skipVodCheckbox">
-                                <span>Skip VOD check (always post even if it's a rerun)</span>
-                            </label>
-                        </div>
-                    </div>
+                <!-- Selected Streamer Indicator -->
+                <div id="selectedStreamerIndicator" class="selected-streamer-indicator" style="display: none;">
+                    <span>Editing settings for: <strong id="selectedStreamerNameIndicator"></strong></span>
+                    <button class="btn-clear-indicator" onclick="clearStreamerSelection()">✕ Clear Selection</button>
                 </div>
 
-                <!-- Channel & Mentions (Inline) -->
-                <div class="form-section form-section-inline">
-                    <div class="inline-field">
-                        <h3>Channel</h3>
-                        <select class="feature-select">
-                            <option>Disabled</option>
-                        </select>
-                    </div>
-                    <div class="inline-field">
-                        <h3>Mentions</h3>
-                        <select class="feature-select">
-                            <option>Disabled</option>
-                        </select>
-                    </div>
+                <!-- Channel Dropdown -->
+                <div class="form-section">
+                    <h3>Channel</h3>
+                    <select id="channelSelect" class="feature-select">
+                        <option value="">Select a channel...</option>
+                    </select>
                 </div>
 
-                <!-- Ping Roles Section -->
+                <!-- Ping Roles Dropdown (Multi-select) -->
                 <div class="form-section">
                     <h3>Ping Roles</h3>
-                    <select class="feature-select">
-                        <option>Disabled</option>
+                    <select id="pingRolesSelect" class="feature-select" multiple size="6">
+                        <!-- Populated by JavaScript -->
                     </select>
+                    <p class="field-hint">Hold Ctrl/Cmd to select multiple roles</p>
                 </div>
 
                 <!-- Announcement Message Section -->
                 <div class="form-section">
                     <h3>Announcement Message</h3>
-                    <textarea class="message-textarea" rows="8">{username} is live!</textarea>
+                    <textarea id="announcementMessageTextarea" class="message-textarea" rows="8">{username} is live!</textarea>
                     <div class="variable-tags">
                         <span class="var-tag">{username}</span>
                         <span class="var-tag">{game}</span>

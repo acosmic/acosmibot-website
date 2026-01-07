@@ -544,67 +544,37 @@ body {
 
 /* Old inline styles removed - using form-section-inline instead */
 
-/* Per-Streamer Settings Section */
-.streamer-settings-section {
-    background: rgba(0, 217, 255, 0.03);
-    border: 1px solid var(--border-cyan);
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 24px;
-}
-
-.section-header-with-action {
+/* Selected Streamer Indicator */
+.selected-streamer-indicator {
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
 }
 
-.section-header-with-action h3 {
-    margin: 0;
-    font-size: 18px;
-    color: var(--text-primary);
-}
-
-#selectedStreamerName {
+.selected-streamer-indicator strong {
     color: var(--primary-color);
     font-weight: 600;
 }
 
-.btn-clear-selection {
-    width: 32px;
-    height: 32px;
-    background: rgba(255, 68, 68, 0.2);
-    border: 1px solid rgba(255, 68, 68, 0.3);
+.btn-clear-indicator {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 4px 12px;
     border-radius: 6px;
-    color: #FF4444;
-    font-size: 18px;
     cursor: pointer;
+    font-size: 12px;
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.btn-clear-selection:hover {
-    background: rgba(255, 68, 68, 0.3);
-    transform: scale(1.05);
-}
-
-.form-field {
-    margin-bottom: 20px;
-}
-
-.form-field:last-child {
-    margin-bottom: 0;
-}
-
-.form-field label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 8px;
+.btn-clear-indicator:hover {
+    background: var(--primary-color);
+    color: white;
 }
 
 .field-hint {
@@ -612,33 +582,6 @@ body {
     color: var(--text-muted);
     margin-top: 6px;
     margin-bottom: 0;
-}
-
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    font-size: 14px;
-    color: var(--text-secondary);
-    transition: color 0.2s ease;
-}
-
-.checkbox-label:hover {
-    color: var(--text-primary);
-}
-
-.checkbox-label input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: var(--primary-color);
 }
 
 /* Message Textarea */

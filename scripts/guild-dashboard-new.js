@@ -233,44 +233,47 @@ function populateUI(config) {
     });
   }
 
-  // 2. Channel select
-  const channelSelect = document.querySelector('.feature-select');
+  // 2. Channel dropdown (GLOBAL)
+  const channelSelect = document.getElementById('channelSelect');
   if (channelSelect && config.available_channels) {
     channelSelect.innerHTML = '<option value="">Select a channel...</option>';
     config.available_channels.forEach(channel => {
       const option = document.createElement('option');
       option.value = channel.id;
       option.textContent = `#${channel.name}`;
-      option.selected = channel.id === config.settings.twitch.announcement_channel_id;
       channelSelect.appendChild(option);
     });
 
-    channelSelect.addEventListener('change', (e) => {
-      config.settings.twitch.announcement_channel_id = e.target.value || null;
-      markUnsavedChanges();
-    });
+    // Populate with global default
+    channelSelect.value = config.settings.twitch?.announcement_channel_id || '';
+
+    channelSelect.addEventListener('change', handleChannelChange);
   }
 
-  // 3. Message textarea
-  const messageTextarea = document.querySelector('.message-textarea');
-  if (messageTextarea) {
-    messageTextarea.value = config.settings.twitch.announcement_message || '{username} is live!';
-    messageTextarea.addEventListener('input', (e) => {
-      config.settings.twitch.announcement_message = e.target.value;
-      markUnsavedChanges();
-    });
-  }
-
-  // 4. Streamers list
-  const streamers = config.settings.twitch.tracked_streamers || [];
-  renderStreamerList(streamers);
-
-  // 5. Populate role select for per-streamer settings
+  // 3. Ping Roles dropdown (multi-select - PER-STREAMER ONLY)
   const pingRolesSelect = document.getElementById('pingRolesSelect');
   if (pingRolesSelect && config.available_roles) {
     pingRolesSelect.innerHTML = '';
+
+    // Add @everyone and @here options
+    const everyoneOption = document.createElement('option');
+    everyoneOption.value = 'everyone';
+    everyoneOption.textContent = '@everyone';
+    pingRolesSelect.appendChild(everyoneOption);
+
+    const hereOption = document.createElement('option');
+    hereOption.value = 'here';
+    hereOption.textContent = '@here';
+    pingRolesSelect.appendChild(hereOption);
+
+    // Add separator
+    const separator = document.createElement('option');
+    separator.disabled = true;
+    separator.textContent = '───────────';
+    pingRolesSelect.appendChild(separator);
+
+    // Add all roles (excluding @everyone and managed roles)
     config.available_roles.forEach(role => {
-      // Skip @everyone and managed roles
       if (role.id === config.guild_id || role.managed) return;
 
       const option = document.createElement('option');
@@ -278,10 +281,23 @@ function populateUI(config) {
       option.textContent = role.name;
       pingRolesSelect.appendChild(option);
     });
+
+    // Initially disable until a streamer is selected
+    pingRolesSelect.disabled = true;
+
+    pingRolesSelect.addEventListener('change', handlePingRolesChange);
   }
 
-  // 6. Setup per-streamer settings event listeners
-  setupPerStreamerSettingsListeners();
+  // 4. Announcement Message
+  const messageTextarea = document.getElementById('announcementMessageTextarea');
+  if (messageTextarea) {
+    messageTextarea.value = config.settings.twitch?.announcement_message || '{username} is live!';
+    messageTextarea.addEventListener('input', handleAnnouncementMessageChange);
+  }
+
+  // 5. Streamers list
+  const streamers = config.settings.twitch?.tracked_streamers || [];
+  renderStreamerList(streamers);
 }
 
 // ===== STREAMER CRUD OPERATIONS =====
@@ -392,11 +408,8 @@ function addStreamer() {
   renderStreamerList(streamers);
   markUnsavedChanges();
 
-  // Automatically select the newly added streamer
+  // Focus the username input for the new streamer (but don't auto-select)
   const newIndex = streamers.length - 1;
-  selectStreamer(newIndex);
-
-  // Focus the username input for the new streamer
   setTimeout(() => {
     const input = document.getElementById(`streamer-input-${newIndex}`);
     if (input) {
@@ -417,11 +430,11 @@ function handleStreamerInput(index, value) {
     renderStreamerList(streamers);
   }
 
-  // Update selected streamer name if this streamer is selected
+  // Update selected streamer name indicator if this streamer is selected
   if (state.selectedStreamerIndex === index) {
-    const streamerNameSpan = document.getElementById('selectedStreamerName');
-    if (streamerNameSpan) {
-      streamerNameSpan.textContent = value || 'New Streamer';
+    const nameSpan = document.getElementById('selectedStreamerNameIndicator');
+    if (nameSpan) {
+      nameSpan.textContent = value || 'New Streamer';
     }
   }
 
@@ -558,7 +571,6 @@ function selectStreamer(index) {
 
   const streamers = state.guildConfig.settings.twitch.tracked_streamers;
   const streamer = streamers[index];
-
   if (!streamer) return;
 
   // Update selected index
@@ -567,123 +579,143 @@ function selectStreamer(index) {
   // Update UI to show selection
   renderStreamerList(streamers);
 
-  // Populate per-streamer settings form
-  const settingsSection = document.getElementById('streamerSettingsSection');
-  const streamerNameSpan = document.getElementById('selectedStreamerName');
-  const customMessageInput = document.getElementById('customMessageInput');
-  const mentionEveryoneCheckbox = document.getElementById('mentionEveryoneCheckbox');
-  const mentionHereCheckbox = document.getElementById('mentionHereCheckbox');
+  // Populate form fields with this streamer's data
+  populateFormFieldsForStreamer(streamer);
+
+  // Show selected streamer indicator
+  const indicator = document.getElementById('selectedStreamerIndicator');
+  const nameSpan = document.getElementById('selectedStreamerNameIndicator');
+  if (indicator && nameSpan) {
+    nameSpan.textContent = streamer.username || 'New Streamer';
+    indicator.style.display = 'flex';
+  }
+}
+
+function populateFormFieldsForStreamer(streamer) {
   const pingRolesSelect = document.getElementById('pingRolesSelect');
-  const skipVodCheckbox = document.getElementById('skipVodCheckbox');
+  const messageTextarea = document.getElementById('announcementMessageTextarea');
 
-  if (settingsSection) {
-    settingsSection.style.display = 'block';
-  }
+  // Channel dropdown DOES NOT change - it's always global
+  // No need to update it when selecting a streamer
 
-  if (streamerNameSpan) {
-    streamerNameSpan.textContent = streamer.username || 'New Streamer';
-  }
-
-  if (customMessageInput) {
-    customMessageInput.value = streamer.custom_message || '';
-  }
-
-  if (mentionEveryoneCheckbox) {
-    mentionEveryoneCheckbox.checked = streamer.mention_everyone || false;
-  }
-
-  if (mentionHereCheckbox) {
-    mentionHereCheckbox.checked = streamer.mention_here || false;
-  }
-
+  // Enable and populate Ping Roles for this streamer
   if (pingRolesSelect) {
-    // Clear all selections
-    Array.from(pingRolesSelect.options).forEach(option => {
-      option.selected = false;
-    });
+    pingRolesSelect.disabled = false;
 
-    // Select roles that are in the streamer's mention_role_ids
-    const mentionRoleIds = streamer.mention_role_ids || [];
-    Array.from(pingRolesSelect.options).forEach(option => {
-      if (mentionRoleIds.includes(option.value)) {
-        option.selected = true;
-      }
+    // Clear all selections
+    Array.from(pingRolesSelect.options).forEach(opt => opt.selected = false);
+
+    // Select @everyone if enabled
+    if (streamer.mention_everyone) {
+      const everyoneOpt = pingRolesSelect.querySelector('option[value="everyone"]');
+      if (everyoneOpt) everyoneOpt.selected = true;
+    }
+
+    // Select @here if enabled
+    if (streamer.mention_here) {
+      const hereOpt = pingRolesSelect.querySelector('option[value="here"]');
+      if (hereOpt) hereOpt.selected = true;
+    }
+
+    // Select roles
+    const roleIds = streamer.mention_role_ids || [];
+    roleIds.forEach(roleId => {
+      const roleOpt = pingRolesSelect.querySelector(`option[value="${roleId}"]`);
+      if (roleOpt) roleOpt.selected = true;
     });
   }
 
-  if (skipVodCheckbox) {
-    skipVodCheckbox.checked = streamer.skip_vod_check || false;
+  // Announcement Message: Use streamer's custom message or fall back to global
+  if (messageTextarea) {
+    const message = streamer.custom_message ||
+                   state.guildConfig.settings.twitch?.announcement_message ||
+                   '{username} is live!';
+    messageTextarea.value = message;
   }
 }
 
 function clearStreamerSelection() {
   state.selectedStreamerIndex = null;
 
-  const settingsSection = document.getElementById('streamerSettingsSection');
-  if (settingsSection) {
-    settingsSection.style.display = 'none';
+  // Hide selected streamer indicator
+  const indicator = document.getElementById('selectedStreamerIndicator');
+  if (indicator) {
+    indicator.style.display = 'none';
   }
 
   // Re-render to remove selected class
   if (state.guildConfig.settings?.twitch?.tracked_streamers) {
     renderStreamerList(state.guildConfig.settings.twitch.tracked_streamers);
   }
+
+  // Reset form fields to global defaults
+  populateFormFieldsWithGlobalDefaults();
 }
 
-function setupPerStreamerSettingsListeners() {
-  const customMessageInput = document.getElementById('customMessageInput');
-  const mentionEveryoneCheckbox = document.getElementById('mentionEveryoneCheckbox');
-  const mentionHereCheckbox = document.getElementById('mentionHereCheckbox');
+function populateFormFieldsWithGlobalDefaults() {
   const pingRolesSelect = document.getElementById('pingRolesSelect');
-  const skipVodCheckbox = document.getElementById('skipVodCheckbox');
+  const messageTextarea = document.getElementById('announcementMessageTextarea');
 
-  if (customMessageInput) {
-    customMessageInput.addEventListener('input', () => {
-      if (state.selectedStreamerIndex === null) return;
-      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
-      streamers[state.selectedStreamerIndex].custom_message = customMessageInput.value || null;
-      markUnsavedChanges();
-    });
-  }
-
-  if (mentionEveryoneCheckbox) {
-    mentionEveryoneCheckbox.addEventListener('change', () => {
-      if (state.selectedStreamerIndex === null) return;
-      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
-      streamers[state.selectedStreamerIndex].mention_everyone = mentionEveryoneCheckbox.checked;
-      markUnsavedChanges();
-    });
-  }
-
-  if (mentionHereCheckbox) {
-    mentionHereCheckbox.addEventListener('change', () => {
-      if (state.selectedStreamerIndex === null) return;
-      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
-      streamers[state.selectedStreamerIndex].mention_here = mentionHereCheckbox.checked;
-      markUnsavedChanges();
-    });
-  }
+  // Channel doesn't need to be reset - it's always global and doesn't change with selection
 
   if (pingRolesSelect) {
-    pingRolesSelect.addEventListener('change', () => {
-      if (state.selectedStreamerIndex === null) return;
-      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
-
-      // Get all selected role IDs
-      const selectedRoleIds = Array.from(pingRolesSelect.selectedOptions).map(opt => opt.value);
-      streamers[state.selectedStreamerIndex].mention_role_ids = selectedRoleIds;
-      markUnsavedChanges();
-    });
+    // Disable ping roles when no streamer is selected (it's per-streamer only)
+    pingRolesSelect.disabled = true;
+    Array.from(pingRolesSelect.options).forEach(opt => opt.selected = false);
   }
 
-  if (skipVodCheckbox) {
-    skipVodCheckbox.addEventListener('change', () => {
-      if (state.selectedStreamerIndex === null) return;
-      const streamers = state.guildConfig.settings.twitch.tracked_streamers;
-      streamers[state.selectedStreamerIndex].skip_vod_check = skipVodCheckbox.checked;
-      markUnsavedChanges();
-    });
+  if (messageTextarea) {
+    // Reset to global default message
+    messageTextarea.value = state.guildConfig.settings.twitch?.announcement_message || '{username} is live!';
   }
+}
+
+// ===== FORM FIELD CHANGE HANDLERS =====
+function handleChannelChange(e) {
+  const channelId = e.target.value || null;
+
+  // Channel is ALWAYS global - applies to all streamers
+  if (!state.guildConfig.settings.twitch) state.guildConfig.settings.twitch = {};
+  state.guildConfig.settings.twitch.announcement_channel_id = channelId;
+
+  markUnsavedChanges();
+}
+
+function handlePingRolesChange(e) {
+  // Ping Roles are PER-STREAMER only - must have a streamer selected
+  if (state.selectedStreamerIndex === null) return;
+
+  const selectedOptions = Array.from(e.target.selectedOptions);
+
+  const mentionEveryone = selectedOptions.some(opt => opt.value === 'everyone');
+  const mentionHere = selectedOptions.some(opt => opt.value === 'here');
+  const roleIds = selectedOptions
+    .filter(opt => opt.value !== 'everyone' && opt.value !== 'here' && !opt.disabled)
+    .map(opt => opt.value);
+
+  // Update selected streamer's mentions
+  const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+  streamers[state.selectedStreamerIndex].mention_everyone = mentionEveryone;
+  streamers[state.selectedStreamerIndex].mention_here = mentionHere;
+  streamers[state.selectedStreamerIndex].mention_role_ids = roleIds;
+
+  markUnsavedChanges();
+}
+
+function handleAnnouncementMessageChange(e) {
+  const message = e.target.value;
+
+  if (state.selectedStreamerIndex !== null) {
+    // Update selected streamer's custom message
+    const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+    streamers[state.selectedStreamerIndex].custom_message = message;
+  } else {
+    // Update global message
+    if (!state.guildConfig.settings.twitch) state.guildConfig.settings.twitch = {};
+    state.guildConfig.settings.twitch.announcement_message = message;
+  }
+
+  markUnsavedChanges();
 }
 
 // ===== EVENT LISTENERS =====
