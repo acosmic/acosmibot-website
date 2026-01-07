@@ -265,32 +265,23 @@ function populateUI(config) {
 // ===== STREAMER CRUD OPERATIONS =====
 function renderStreamerList(streamers) {
   const container = document.getElementById('streamersList');
-  const countElement = document.getElementById('streamerCount');
   const maxStreamers = 10;
 
   if (!container) return;
 
-  // Update count
-  if (countElement) {
-    countElement.textContent = `${streamers.length} / ${maxStreamers}`;
-  }
+  // Render all streamers as input rows
+  container.innerHTML = streamers.map((streamer, index) =>
+    createStreamerInputRow(streamer, index)
+  ).join('');
 
-  if (streamers.length === 0) {
-    // Empty state
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-circle"></div>
-        <p>You're not following anyone yet</p>
-      </div>
-    `;
-  } else {
-    // Streamer cards
-    container.innerHTML = `
-      <div class="streamers-list">
-        ${streamers.map((streamer, index) => createStreamerCard(streamer, index)).join('')}
-      </div>
-    `;
-  }
+  // Add event listeners for all inputs
+  streamers.forEach((streamer, index) => {
+    const input = document.getElementById(`streamer-input-${index}`);
+    if (input) {
+      input.addEventListener('input', (e) => handleStreamerInput(index, e.target.value));
+      input.addEventListener('blur', (e) => validateStreamer(index, e.target.value));
+    }
+  });
 
   // Update add button state
   const addBtn = document.querySelector('.btn-add-streamer');
@@ -299,28 +290,35 @@ function renderStreamerList(streamers) {
   }
 }
 
-function createStreamerCard(streamer, index) {
-  const roleCount = streamer.mention_role_ids?.length || 0;
-  const hasCustomMessage = !!streamer.custom_message;
+function createStreamerInputRow(streamer, index) {
+  // Determine validation status
+  let validationClass = '';
+  let validationIcon = '';
+
+  if (streamer.streamer_id) {
+    validationClass = 'valid';
+    validationIcon = '✓';
+  } else if (streamer.username && streamer.validating) {
+    validationClass = 'validating';
+    validationIcon = '...';
+  } else if (streamer.username && !streamer.streamer_id) {
+    validationClass = 'invalid';
+    validationIcon = '✗';
+  }
 
   return `
-    <div class="streamer-card">
-      <div class="streamer-header">
-        <div class="streamer-info">
-          <h4>${escapeHtml(streamer.username)}</h4>
-          <span class="platform-badge">Twitch</span>
-        </div>
+    <div class="stream-input-group">
+      <input
+        type="text"
+        class="stream-input"
+        id="streamer-input-${index}"
+        placeholder="Twitch Username"
+        value="${escapeHtml(streamer.username || '')}"
+      />
+      <div class="validation-indicator ${validationClass}">
+        ${validationIcon}
       </div>
-      ${roleCount > 0 || hasCustomMessage ? `
-      <div class="streamer-details">
-        ${roleCount > 0 ? `<div>📢 Pings ${roleCount} role(s)</div>` : ''}
-        ${hasCustomMessage ? `<div>✉️ Custom message set</div>` : ''}
-      </div>
-      ` : ''}
-      <div class="streamer-actions">
-        <button class="btn-secondary" onclick="editStreamer(${index})">Edit</button>
-        <button class="btn-danger" onclick="removeStreamer(${index})">Remove</button>
-      </div>
+      <button class="delete-btn" onclick="removeStreamer(${index})">×</button>
     </div>
   `;
 }
@@ -348,43 +346,71 @@ function addStreamer() {
     skip_vod_check: false
   };
 
-  // Show modal/form to edit streamer
-  // For MVP: use prompt (later replace with modal)
-  const username = prompt('Enter Twitch username:');
-  if (!username) return;
-
-  newStreamer.username = username.trim();
-
   state.guildConfig.settings.twitch.tracked_streamers.push(newStreamer);
   renderStreamerList(state.guildConfig.settings.twitch.tracked_streamers);
   markUnsavedChanges();
 }
 
-function editStreamer(index) {
-  if (!state.guildConfig.settings?.twitch?.tracked_streamers) {
-    console.error('No streamers to edit');
-    return;
+function handleStreamerInput(index, value) {
+  if (!state.guildConfig.settings?.twitch?.tracked_streamers) return;
+
+  const streamers = state.guildConfig.settings.twitch.tracked_streamers;
+  streamers[index].username = value;
+
+  // Clear previous streamer_id when username changes
+  if (streamers[index].streamer_id) {
+    streamers[index].streamer_id = null;
+    renderStreamerList(streamers);
   }
+
+  markUnsavedChanges();
+}
+
+async function validateStreamer(index, username) {
+  if (!state.guildConfig.settings?.twitch?.tracked_streamers) return;
+  if (!username || username.trim() === '') return;
 
   const streamers = state.guildConfig.settings.twitch.tracked_streamers;
   const streamer = streamers[index];
 
-  // For MVP: use prompt (later replace with modal)
-  const newUsername = prompt('Edit Twitch username:', streamer.username);
-  if (newUsername === null) return;
-
-  streamer.username = newUsername.trim();
+  // Set validating state
+  streamer.validating = true;
   renderStreamerList(streamers);
-  markUnsavedChanges();
+
+  try {
+    const token = localStorage.getItem('discord_token');
+    const response = await fetch(`${API_BASE_URL}/api/twitch/validate-username`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username: username.trim() })
+    });
+
+    const data = await response.json();
+
+    streamer.validating = false;
+
+    if (data.valid && data.streamer_id) {
+      streamer.streamer_id = data.streamer_id;
+      streamer.username = data.username || username.trim(); // Use normalized username from API
+    } else {
+      streamer.streamer_id = null;
+    }
+
+    renderStreamerList(streamers);
+  } catch (error) {
+    console.error('Validation error:', error);
+    streamer.validating = false;
+    streamer.streamer_id = null;
+    renderStreamerList(streamers);
+  }
 }
 
 function removeStreamer(index) {
   if (!state.guildConfig.settings?.twitch?.tracked_streamers) {
     console.error('No streamers to remove');
-    return;
-  }
-
-  if (!confirm('Are you sure you want to remove this streamer?')) {
     return;
   }
 
@@ -491,6 +517,5 @@ function showSuccess(message) {
 
 // Make functions globally accessible for onclick handlers
 window.addStreamer = addStreamer;
-window.editStreamer = editStreamer;
 window.removeStreamer = removeStreamer;
 window.saveAllChanges = saveAllChanges;
