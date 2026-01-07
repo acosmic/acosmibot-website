@@ -53,9 +53,10 @@ class DashboardCore {
     const previousGuildId = this.state.currentGuildId;
     this.loadGuildFromURL();
 
-    // If guild changed, reload guild config
+    // If guild changed, reload guild config and update indicator
     if (this.state.currentGuildId !== previousGuildId) {
       await this.loadGuildConfig(this.state.currentGuildId);
+      this.updateActiveGuildIndicator();
     }
 
     // Always re-setup navigation to update active feature
@@ -196,6 +197,17 @@ class DashboardCore {
 
       iconDiv.addEventListener('click', () => this.switchGuild(guild.id));
       container.appendChild(iconDiv);
+    });
+  }
+
+  updateActiveGuildIndicator() {
+    // Update the active class on guild icons without re-rendering
+    const container = document.getElementById('guildIconList');
+    if (!container) return;
+
+    container.querySelectorAll('.guild-icon').forEach(icon => {
+      const isActive = icon.dataset.guildId === this.state.currentGuildId;
+      icon.classList.toggle('active', isActive);
     });
   }
 
