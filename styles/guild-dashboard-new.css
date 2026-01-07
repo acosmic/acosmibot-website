@@ -931,3 +931,263 @@ body {
 .main-content::-webkit-scrollbar-thumb:hover {
     background: var(--bg-card);
 }
+/* ============================================
+   COMING SOON MODAL
+   ============================================ */
+
+.coming-soon-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay {
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    border: 2px solid var(--primary-color);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    animation: modalFadeIn 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    line-height: 1;
+}
+
+.modal-content h2 {
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    font-size: 1.8rem;
+}
+
+.modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.modal-close-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 16px 24px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 300px;
+    max-width: 500px;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-success {
+    border-left-color: #4CAF50;
+}
+
+.toast-error {
+    border-left-color: #dc3545;
+}
+
+.toast-info {
+    border-left-color: var(--primary-color);
+}
+
+/* ============================================
+   LOADING OVERLAY
+   ============================================ */
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-top: 24px;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   CONFIRM DIALOG
+   ============================================ */
+
+.confirm-dialog-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10001;
+}
+
+.confirm-dialog-modal .modal-content {
+    max-width: 450px;
+}
+
+.confirm-dialog-modal h2 {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+
+.confirm-dialog-modal p {
+    font-size: 1rem;
+    margin-bottom: 24px;
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.dialog-buttons button {
+    flex: 1;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-card);
+    border-color: var(--primary-color);
+}
+
+/* ============================================
+   NAVIGATION SECTION COLLAPSE
+   ============================================ */
+
+.nav-section.collapsed .nav-subsection {
+    display: none;
+}
+
+.nav-section.collapsed .nav-item:not(.nav-section-header) {
+    display: none;
+}
+
+.nav-section.collapsed .collapse-arrow {
+    transform: rotate(-90deg);
+}
+
+.collapse-arrow {
+    transition: transform 0.2s ease;
+}

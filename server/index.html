@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guild Dashboard - Acosmibot</title>
+    <link rel="icon" type="image/png" href="/images/acosmibot-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/guild-dashboard-new.css">
+</head>
+<body>
+    <!-- Guild Dashboard Layout -->
+    <div class="dashboard-container">
+        <!-- Far-Left Guild Selector Sidebar -->
+        <aside class="guild-selector-sidebar">
+            <div class="guild-icon-list" id="guildIconList">
+                <!-- Populated by JavaScript -->
+            </div>
+        </aside>
+
+        <!-- Navigation Sidebar -->
+        <aside class="navigation-sidebar">
+            <!-- Navigation Menu (populated by dashboard-core.js) -->
+            <nav class="sidebar-nav" id="dashboardNavigation">
+                <!-- Populated by JavaScript -->
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Right Indicators -->
+            <div class="top-indicators">
+                <div class="notification-indicator"></div>
+                <div class="user-avatar"></div>
+            </div>
+
+            <!-- Dynamic View Container -->
+            <div id="view-container">
+                <!-- Feature views will be dynamically loaded here -->
+                <div class="view-loading">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Shared Scripts -->
+    <script src="/scripts/shared/dashboard-core.js"></script>
+    <script src="/scripts/shared/dashboard-state.js"></script>
+    <script src="/scripts/shared/dashboard-ui.js"></script>
+    <script src="/scripts/shared/dashboard-router.js"></script>
+    <script src="/scripts/shared/dashboard-views.js"></script>
+    <script src="/scripts/shared/feature-loader.js"></script>
+
+    <!-- SPA Initialization -->
+    <script src="/scripts/spa-init.js"></script>
+</body>
+</html>
