@@ -165,7 +165,14 @@ class DashboardCore {
 
     container.innerHTML = '';
 
-    this.state.userGuilds.forEach(guild => {
+    // Filter to only show guilds where user is owner or has admin permissions
+    const manageableGuilds = this.state.userGuilds.filter(guild => {
+      const isOwner = guild.owner === true;
+      const isAdmin = guild.permissions && guild.permissions.includes('administrator');
+      return isOwner || isAdmin;
+    });
+
+    manageableGuilds.forEach(guild => {
       const iconDiv = document.createElement('div');
       iconDiv.className = `guild-icon ${guild.id === this.state.currentGuildId ? 'active' : ''}`;
       iconDiv.dataset.guildId = guild.id;

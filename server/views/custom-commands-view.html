@@ -1,0 +1,431 @@
+<!-- Page Header -->
+<header class="dashboard-header">
+    <div class="header-left">
+        <h1>Custom Commands</h1>
+        <p class="feature-description">Create custom text and embed commands for your server</p>
+    </div>
+</header>
+
+<!-- Feature Content -->
+<div class="feature-container">
+    <!-- Feature Toggle & Stats -->
+    <div class="form-section">
+        <div class="feature-header">
+            <h3>Custom Commands</h3>
+            <div class="feature-header-controls">
+                <span id="commandCount" class="command-count">0 / 25 commands</span>
+                <button id="createNewBtn" class="save-btn" onclick="CustomCommandsFeature.showCreateForm()">
+                    + Create Command
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commands List -->
+    <div class="form-section">
+        <h3>Your Commands</h3>
+        <div id="commandsList" class="commands-list">
+            <!-- Populated by JavaScript -->
+        </div>
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <p>No custom commands created yet.</p>
+            <p>Click "Create Command" to get started!</p>
+        </div>
+    </div>
+
+    <!-- Create/Edit Form (Hidden by default) -->
+    <div id="commandForm" class="form-section command-form" style="display: none;">
+        <div class="form-header">
+            <h3 id="formTitle">Create Command</h3>
+            <button class="btn-close" onclick="CustomCommandsFeature.hideForm()">&times;</button>
+        </div>
+
+        <!-- Command Trigger -->
+        <div class="form-row">
+            <div class="form-group" style="width: 100px;">
+                <label>Prefix</label>
+                <select id="commandPrefix" class="feature-select">
+                    <option value="!">!</option>
+                    <option value="?">?</option>
+                    <option value="/">/ (slash)</option>
+                    <option value="."">.</option>
+                    <option value="-">-</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Command Name</label>
+                <input type="text" id="commandName" class="feature-input" placeholder="e.g., rules, info, welcome">
+                <p class="field-hint">No spaces allowed. Users will type: <code id="commandPreview">!command</code></p>
+            </div>
+        </div>
+
+        <!-- Response Type -->
+        <div class="form-group">
+            <label>Response Type</label>
+            <div class="response-type-selector">
+                <button type="button" class="type-btn active" data-type="text" onclick="CustomCommandsFeature.setResponseType('text')">
+                    Text Message
+                </button>
+                <button type="button" class="type-btn" data-type="embed" onclick="CustomCommandsFeature.setResponseType('embed')">
+                    Rich Embed
+                </button>
+            </div>
+        </div>
+
+        <!-- Text Response -->
+        <div id="textResponseSection" class="form-group">
+            <label>Response Message</label>
+            <textarea id="responseText" class="message-textarea" rows="4" placeholder="The message to send when the command is used..."></textarea>
+            <div class="variable-tags">
+                <span class="var-tag" onclick="CustomCommandsFeature.insertVariable('{user}')">{user}</span>
+                <span class="var-tag" onclick="CustomCommandsFeature.insertVariable('{username}')">{username}</span>
+                <span class="var-tag" onclick="CustomCommandsFeature.insertVariable('{server}')">{server}</span>
+                <span class="var-tag" onclick="CustomCommandsFeature.insertVariable('{channel}')">{channel}</span>
+            </div>
+        </div>
+
+        <!-- Embed Response -->
+        <div id="embedResponseSection" class="embed-config" style="display: none;">
+            <div class="form-group">
+                <label>Embed Title</label>
+                <input type="text" id="embedTitle" class="feature-input" placeholder="Title of the embed">
+            </div>
+
+            <div class="form-group">
+                <label>Embed Description</label>
+                <textarea id="embedDescription" class="message-textarea" rows="4" placeholder="Main content of the embed..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Embed Color</label>
+                    <input type="color" id="embedColor" class="color-input" value="#5865F2">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Thumbnail URL (optional)</label>
+                    <input type="text" id="embedThumbnail" class="feature-input" placeholder="https://example.com/image.png">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Image URL (optional)</label>
+                <input type="text" id="embedImage" class="feature-input" placeholder="https://example.com/image.png">
+            </div>
+
+            <div class="form-group">
+                <label>Footer Text (optional)</label>
+                <input type="text" id="embedFooter" class="feature-input" placeholder="Footer text...">
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="CustomCommandsFeature.hideForm()">Cancel</button>
+            <button type="button" class="btn-primary" onclick="CustomCommandsFeature.saveCommand()">
+                <span id="saveButtonText">Create Command</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Commands List */
+.commands-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.command-item {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.command-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.command-trigger {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(88, 101, 242, 0.2);
+    border: 1px solid rgba(88, 101, 242, 0.4);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.command-response {
+    font-size: 14px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 400px;
+}
+
+.command-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+.command-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.command-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.command-actions button {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-edit {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+}
+
+.btn-edit:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-delete {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #e74c3c;
+}
+
+.btn-delete:hover {
+    background: rgba(231, 76, 60, 0.3);
+}
+
+/* Command Count */
+.command-count {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-right: 16px;
+}
+
+/* Form Styling */
+.command-form {
+    border: 2px solid var(--primary-color);
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.form-header h3 {
+    margin: 0;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.btn-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+/* Form Row */
+.form-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+/* Response Type Selector */
+.response-type-selector {
+    display: flex;
+    gap: 8px;
+}
+
+.type-btn {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--bg-overlay);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.type-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.type-btn.active {
+    background: rgba(0, 217, 255, 0.1);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Embed Config */
+.embed-config {
+    background: var(--bg-overlay);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+}
+
+/* Color Input */
+.color-input {
+    width: 60px;
+    height: 40px;
+    padding: 4px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--bg-overlay);
+}
+
+/* Command Preview */
+#commandPreview {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Variable Tags */
+.variable-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.var-tag {
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid rgba(0, 217, 255, 0.3);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.var-tag:hover {
+    background: rgba(0, 217, 255, 0.2);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-light);
+}
+
+.btn-secondary {
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state p {
+    margin: 8px 0;
+}
+
+/* Field Hint */
+.field-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Response Type Badge */
+.response-type-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.response-type-badge.text {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.response-type-badge.embed {
+    background: rgba(155, 89, 182, 0.2);
+    color: #9b59b6;
+}
+</style>
