@@ -1,0 +1,72 @@
+<!-- Page Header -->
+<header class="dashboard-header">
+    <div class="header-left">
+        <h1 id="comingSoonTitle">Coming Soon</h1>
+        <p class="feature-description" id="comingSoonDescription">This feature is currently under development</p>
+    </div>
+</header>
+
+<!-- Feature Content -->
+<div class="feature-container">
+    <div class="coming-soon-content">
+        <div class="coming-soon-icon">
+            <span id="comingSoonIcon">🚧</span>
+        </div>
+        <h2>Under Construction</h2>
+        <p>We're working hard to bring you this feature. Check back soon!</p>
+        <div class="coming-soon-features">
+            <p id="comingSoonDetails">This feature will be available in a future update.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.coming-soon-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+    min-height: 400px;
+}
+
+.coming-soon-icon {
+    font-size: 80px;
+    margin-bottom: 24px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.coming-soon-content h2 {
+    font-size: 28px;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.coming-soon-content > p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    max-width: 400px;
+}
+
+.coming-soon-features {
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid rgba(0, 217, 255, 0.3);
+    border-radius: 12px;
+    padding: 20px 30px;
+    max-width: 500px;
+}
+
+.coming-soon-features p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+</style>

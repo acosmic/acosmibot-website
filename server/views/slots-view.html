@@ -1,0 +1,423 @@
+<!-- Page Header -->
+<header class="dashboard-header">
+    <div class="header-left">
+        <h1>Slots Machine</h1>
+        <p class="feature-description">Configure the slot machine game for your server</p>
+    </div>
+</header>
+
+<!-- Feature Content -->
+<div class="feature-container">
+    <!-- Feature Toggle -->
+    <div class="form-section">
+        <div class="feature-header">
+            <h3>Enable Slots</h3>
+            <div class="feature-header-controls">
+                <button id="saveButton" class="save-btn" onclick="SlotsFeature.saveAllChanges()" disabled>
+                    <span class="save-icon"></span>
+                    Save Changes
+                    <span class="unsaved-indicator" style="display: none;">●</span>
+                </button>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="featureToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier Configuration Sections -->
+    <div id="tierSections">
+        <!-- Common Tier -->
+        <div class="form-section tier-section" data-tier="common">
+            <div class="tier-header">
+                <h3>Common Tier</h3>
+                <span class="tier-badge common">Most Frequent</span>
+            </div>
+            <p class="tier-description">These symbols appear most often on the reels.</p>
+            <div class="emoji-tier-container" id="commonEmojis">
+                <!-- Populated by JavaScript -->
+            </div>
+            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('common')">+ Add Emoji</button>
+        </div>
+
+        <!-- Uncommon Tier -->
+        <div class="form-section tier-section" data-tier="uncommon">
+            <div class="tier-header">
+                <h3>Uncommon Tier</h3>
+                <span class="tier-badge uncommon">Medium Frequency</span>
+            </div>
+            <p class="tier-description">These symbols appear moderately often.</p>
+            <div class="emoji-tier-container" id="uncommonEmojis">
+                <!-- Populated by JavaScript -->
+            </div>
+            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('uncommon')">+ Add Emoji</button>
+        </div>
+
+        <!-- Rare Tier -->
+        <div class="form-section tier-section" data-tier="rare">
+            <div class="tier-header">
+                <h3>Rare Tier</h3>
+                <span class="tier-badge rare">Less Frequent</span>
+            </div>
+            <p class="tier-description">These symbols are harder to land.</p>
+            <div class="emoji-tier-container" id="rareEmojis">
+                <!-- Populated by JavaScript -->
+            </div>
+            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('rare')">+ Add Emoji</button>
+        </div>
+
+        <!-- Legendary Tier -->
+        <div class="form-section tier-section" data-tier="legendary">
+            <div class="tier-header">
+                <h3>Legendary Tier</h3>
+                <span class="tier-badge legendary">Very Rare</span>
+            </div>
+            <p class="tier-description">These symbols rarely appear but give the biggest payouts.</p>
+            <div class="emoji-tier-container" id="legendaryEmojis">
+                <!-- Populated by JavaScript -->
+            </div>
+            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('legendary')">+ Add Emoji</button>
+        </div>
+
+        <!-- Scatter Tier -->
+        <div class="form-section tier-section" data-tier="scatter">
+            <div class="tier-header">
+                <h3>Scatter Tier</h3>
+                <span class="tier-badge scatter">Special Symbol</span>
+            </div>
+            <p class="tier-description">Scatter symbols can trigger bonus features.</p>
+            <div class="emoji-tier-container" id="scatterEmojis">
+                <!-- Populated by JavaScript -->
+            </div>
+            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('scatter')">+ Add Emoji</button>
+        </div>
+    </div>
+</div>
+
+<!-- Emoji Picker Modal -->
+<div id="emojiPickerModal" class="emoji-picker-modal" style="display: none;">
+    <div class="emoji-picker-content">
+        <div class="emoji-picker-header">
+            <h3>Select Emoji</h3>
+            <button class="emoji-picker-close" onclick="SlotsFeature.closeEmojiPicker()">&times;</button>
+        </div>
+        <div class="emoji-picker-tabs">
+            <button class="emoji-tab active" data-tab="standard" onclick="SlotsFeature.switchEmojiTab('standard')">Standard</button>
+            <button class="emoji-tab" data-tab="custom" onclick="SlotsFeature.switchEmojiTab('custom')">Server Emojis</button>
+        </div>
+        <div class="emoji-search-container">
+            <input type="text" id="emojiSearchInput" placeholder="Search emojis..." oninput="SlotsFeature.filterEmojis(this.value)">
+        </div>
+        <div class="emoji-picker-grid" id="emojiPickerGrid">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<style>
+/* Tier Section Styling */
+.tier-section {
+    border-left: 4px solid var(--border-light);
+    transition: border-color 0.3s;
+}
+
+.tier-section[data-tier="common"] {
+    border-left-color: #9e9e9e;
+}
+
+.tier-section[data-tier="uncommon"] {
+    border-left-color: #4caf50;
+}
+
+.tier-section[data-tier="rare"] {
+    border-left-color: #2196f3;
+}
+
+.tier-section[data-tier="legendary"] {
+    border-left-color: #ff9800;
+}
+
+.tier-section[data-tier="scatter"] {
+    border-left-color: #9c27b0;
+}
+
+.tier-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.tier-header h3 {
+    margin: 0;
+}
+
+.tier-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tier-badge.common {
+    background: rgba(158, 158, 158, 0.2);
+    color: #bdbdbd;
+}
+
+.tier-badge.uncommon {
+    background: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+}
+
+.tier-badge.rare {
+    background: rgba(33, 150, 243, 0.2);
+    color: #64b5f6;
+}
+
+.tier-badge.legendary {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ffb74d;
+}
+
+.tier-badge.scatter {
+    background: rgba(156, 39, 176, 0.2);
+    color: #ba68c8;
+}
+
+.tier-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 0 16px 0;
+}
+
+/* Emoji Container */
+.emoji-tier-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-height: 60px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.emoji-slot-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: var(--bg-overlay);
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.emoji-slot-item:hover {
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+.emoji-slot-item img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.emoji-slot-item .remove-emoji {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji-slot-item:hover .remove-emoji {
+    opacity: 1;
+}
+
+.btn-add-emoji {
+    padding: 10px 20px;
+    background: rgba(0, 217, 255, 0.1);
+    border: 2px dashed rgba(0, 217, 255, 0.4);
+    border-radius: 8px;
+    color: var(--primary-color);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-emoji:hover {
+    background: rgba(0, 217, 255, 0.2);
+    border-color: var(--primary-color);
+}
+
+/* Emoji Picker Modal */
+.emoji-picker-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji-picker-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    width: 400px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.emoji-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.emoji-picker-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.emoji-picker-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.emoji-picker-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.emoji-picker-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.emoji-tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.emoji-tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.emoji-tab.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--bg-primary);
+}
+
+.emoji-search-container {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.emoji-search-container input {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.emoji-search-container input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.emoji-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    padding: 12px;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.emoji-picker-item {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.emoji-picker-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.emoji-picker-item img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.emoji-picker-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+</style>
