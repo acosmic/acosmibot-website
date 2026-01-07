@@ -158,7 +158,7 @@ const GuildStats = () => {
             Back to Guilds
           </a>
           {permissions && permissions.has_admin && (
-            <a href={`/server/${guildId}/twitch`} className="btn btn-primary">
+            <a href={`/server/${guildId}`} className="btn btn-primary">
               Server Settings
             </a>
           )}

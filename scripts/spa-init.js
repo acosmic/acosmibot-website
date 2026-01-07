@@ -39,14 +39,16 @@ async function initSPA() {
     return;
   }
 
-  console.log('Initial route:', initialRoute);
+  // Default to 'home' if no feature specified
+  const feature = initialRoute.feature || 'home';
+  console.log('Initial route:', initialRoute, '-> feature:', feature);
 
   try {
     // Initialize DashboardCore with full init for first load
-    await DashboardCore.init(initialRoute.feature);
+    await DashboardCore.init(feature);
 
     // Load initial view
-    const viewLoaded = await ViewManager.loadView(initialRoute.feature);
+    const viewLoaded = await ViewManager.loadView(feature);
 
     if (!viewLoaded) {
       console.error('Failed to load initial view');

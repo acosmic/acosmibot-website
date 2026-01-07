@@ -13,8 +13,10 @@
 
         console.log('404 handler - path:', path);
 
-        // Only redirect /server/ paths to the SPA
-        if (path.startsWith('/server/') && path !== '/server/index.html') {
+        // Match /server/{guild_id} or /server/{guild_id}/{feature}
+        const serverPathMatch = path.match(/^\/server\/(\d+)(\/([a-z-]+))?$/);
+
+        if (serverPathMatch && path !== '/server/index.html') {
           // Store the original path in sessionStorage
           const fullPath = path + search;
           sessionStorage.setItem('spa_redirect', fullPath);

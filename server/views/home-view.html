@@ -1,0 +1,130 @@
+<!-- Dashboard Home View -->
+<header class="dashboard-header">
+    <div class="header-left">
+        <h1>Server Dashboard</h1>
+        <p class="feature-description">Select a feature from the navigation menu to get started</p>
+    </div>
+</header>
+
+<!-- Dashboard Home Content -->
+<div class="feature-container">
+    <div class="dashboard-home-grid">
+        <!-- Quick Links Section -->
+        <div class="form-section">
+            <h3>Quick Links</h3>
+            <div class="quick-links">
+                <div class="quick-link-card" onclick="DashboardCore.navigateToFeature('twitch')">
+                    <div class="quick-link-icon">📺</div>
+                    <div class="quick-link-info">
+                        <h4>Twitch Alerts</h4>
+                        <p>Set up stream notifications</p>
+                    </div>
+                </div>
+                <div class="quick-link-card" onclick="DashboardCore.navigateToFeature('youtube')">
+                    <div class="quick-link-icon">▶️</div>
+                    <div class="quick-link-info">
+                        <h4>YouTube Alerts</h4>
+                        <p>Get notified of new videos</p>
+                    </div>
+                </div>
+                <div class="quick-link-card" onclick="DashboardCore.navigateToFeature('leveling')">
+                    <div class="quick-link-icon">📈</div>
+                    <div class="quick-link-info">
+                        <h4>Leveling System</h4>
+                        <p>Configure XP and levels</p>
+                    </div>
+                </div>
+                <div class="quick-link-card" onclick="DashboardCore.navigateToFeature('reaction-roles')">
+                    <div class="quick-link-icon">🎭</div>
+                    <div class="quick-link-info">
+                        <h4>Reaction Roles</h4>
+                        <p>Self-assignable roles</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Getting Started Section -->
+        <div class="form-section">
+            <h3>Getting Started</h3>
+            <p class="home-description">
+                Welcome to the Acosmibot dashboard! Use the navigation menu on the left to configure
+                different features for your server. Each feature can be enabled or disabled independently.
+            </p>
+            <ul class="home-tips">
+                <li>Click on a feature in the sidebar to configure it</li>
+                <li>Don't forget to save your changes before navigating away</li>
+                <li>Features marked as "Coming Soon" are still in development</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-home-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.quick-link-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.quick-link-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.quick-link-icon {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.quick-link-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    color: white;
+}
+
+.quick-link-info p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.home-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+}
+
+.home-tips {
+    margin-top: 12px;
+    padding-left: 20px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.home-tips li {
+    margin-bottom: 8px;
+}
+</style>

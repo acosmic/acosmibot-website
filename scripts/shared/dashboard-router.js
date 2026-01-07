@@ -39,17 +39,18 @@ class DashboardRouter {
 
   // ===== URL PARSING =====
   parseURL(url = window.location.pathname) {
-    // Parse /server/{guild_id}/{feature} pattern
+    // Parse /server/{guild_id}/{feature} or /server/{guild_id} pattern
     const pathParts = url.split('/').filter(p => p);
 
     if (pathParts[0] === 'server' && pathParts[1]) {
       const guildId = pathParts[1];
-      const feature = pathParts[2] || 'twitch'; // Default to twitch
+      // Feature is optional - null means show dashboard home/landing
+      const feature = pathParts[2] || null;
 
       return {
         guildId,
         feature,
-        path: `/server/${guildId}/${feature}`
+        path: feature ? `/server/${guildId}/${feature}` : `/server/${guildId}`
       };
     }
 

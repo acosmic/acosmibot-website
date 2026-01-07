@@ -1,7 +1,9 @@
 // ===== DASHBOARD VIEW MANAGER MODULE =====
 // Dynamically loads and renders feature view templates
 
-class ViewManager {
+console.log('dashboard-views.js loading...');
+
+class DashboardViewManager {
   constructor() {
     this.viewContainer = null;
     this.templateCache = {};
@@ -142,4 +144,6 @@ class ViewManager {
 }
 
 // Export as singleton
-window.ViewManager = new ViewManager();
+window.ViewManager = new DashboardViewManager();
+console.log('ViewManager exported:', window.ViewManager);
+console.log('ViewManager.init type:', typeof window.ViewManager.init);
