@@ -357,6 +357,10 @@ class DashboardCore {
 
   getNavigationHTML() {
     return `
+      <a href="/overview" class="nav-item nav-link-external">
+        <span class="nav-dot"></span>
+        <span class="nav-text">Overview</span>
+      </a>
       <div class="nav-item" data-feature="dashboard">
         <span class="nav-dot"></span>
         <span class="nav-text">Dashboard</span>

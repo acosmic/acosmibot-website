@@ -14,11 +14,13 @@ body {
     padding: 0;
     margin: 0;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .dashboard-container {
     display: flex;
-    height: 100vh;
+    flex: 1;
     width: 100vw;
     overflow: hidden;
 }
@@ -36,7 +38,7 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
-    height: 100vh;
+    height: 100%;
     padding: 24px 0;
 }
 
@@ -95,7 +97,7 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
-    height: 100vh;
+    height: 100%;
 }
 
 /* Sidebar Navigation */
@@ -113,6 +115,11 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
+}
+
+.nav-item.nav-link-external {
+    text-decoration: none;
+    color: inherit;
 }
 
 .nav-item:hover {
@@ -206,7 +213,7 @@ body {
     overflow-x: hidden;
     position: relative;
     background: #252525;
-    height: 100vh;
+    height: 100%;
 }
 
 /* ============================================
@@ -219,17 +226,27 @@ body {
     align-items: center;
     padding: 0 24px;
     height: 56px;
-    background: #252525;
+    background: #1A1A1A;
     border-bottom: 1px solid var(--border-light);
     flex-shrink: 0;
-    margin: -40px -40px 24px -40px;
-    width: calc(100% + 80px);
+    width: 100%;
+    position: relative;
+}
+
+.top-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100px;
 }
 
 .top-nav-logo {
     display: flex;
     align-items: center;
     text-decoration: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .top-nav-logo img {
@@ -241,6 +258,8 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
+    width: 100px;
+    justify-content: flex-end;
 }
 
 .notification-btn {
@@ -911,10 +930,13 @@ body {
     }
 
     .top-nav {
-        margin: -20px -20px 16px -20px;
-        width: calc(100% + 40px);
         padding: 0 16px;
         height: 48px;
+    }
+
+    .top-nav-left,
+    .top-nav-right {
+        width: 60px;
     }
 
     .feature-container {
