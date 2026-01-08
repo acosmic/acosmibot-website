@@ -5,7 +5,6 @@
         <p class="feature-description">Create custom text and embed commands for your server</p>
     </div>
     <div class="header-right">
-        <span id="commandCount" class="command-count">0 / 25 commands</span>
         <button id="createNewBtn" class="save-btn" onclick="CustomCommandsFeature.showCreateForm()">
             + Create Command
         </button>
@@ -18,7 +17,10 @@
 
     <!-- Commands List -->
     <div class="form-section">
-        <h3>Your Commands</h3>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h3 style="margin: 0;">Your Commands</h3>
+            <span id="commandCount" class="limit-display">0 / 25 commands</span>
+        </div>
         <div id="commandsList" class="commands-list">
             <!-- Populated by JavaScript -->
         </div>
@@ -218,12 +220,6 @@
     background: rgba(231, 76, 60, 0.3);
 }
 
-/* Command Count */
-.command-count {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-right: 16px;
-}
 
 /* Form Styling */
 .command-form {
