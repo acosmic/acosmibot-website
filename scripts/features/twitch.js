@@ -25,6 +25,13 @@ const TwitchFeature = {
 
     // Populate Twitch-specific UI
     populateTwitchUI();
+
+    // Clear streamer selection on Escape key press
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.state.selectedStreamerIndex !== null) {
+        this.clearStreamerSelection();
+      }
+    });
   },
 
   // ===== CLEANUP =====

@@ -758,6 +758,13 @@ function setupEventListeners() {
       e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
     }
   });
+
+  // Clear streamer selection on Escape key press
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.selectedStreamerIndex !== null) {
+      clearStreamerSelection();
+    }
+  });
 }
 
 // ===== UTILITY FUNCTIONS =====
