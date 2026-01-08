@@ -36,6 +36,9 @@ class DashboardCore {
     // Load guild config
     await this.loadGuildConfig(this.state.currentGuildId);
 
+    // Render server branding
+    this.renderServerBranding();
+
     // Setup navigation
     this.setupNavigation(featureName);
 
@@ -57,6 +60,10 @@ class DashboardCore {
     if (this.state.currentGuildId !== previousGuildId) {
       await this.loadGuildConfig(this.state.currentGuildId);
       this.updateActiveGuildIndicator();
+      this.renderServerBranding();
+    } else {
+      // Even if guild didn't change, render branding for the current feature page
+      this.renderServerBranding();
     }
 
     // Always re-setup navigation to update active feature
@@ -130,6 +137,47 @@ class DashboardCore {
     }
 
     avatarElement.title = user.global_name || user.username || 'User';
+  }
+
+  renderServerBranding() {
+    const config = this.state.guildConfig;
+    if (!config) return;
+
+    // Check if server branding element exists
+    let brandingElement = document.getElementById('serverBranding');
+
+    // If it doesn't exist, create it and insert it before the dashboard-header
+    if (!brandingElement) {
+      const header = document.querySelector('.dashboard-header');
+      if (!header) return;
+
+      brandingElement = document.createElement('div');
+      brandingElement.id = 'serverBranding';
+      brandingElement.className = 'server-branding';
+      header.parentNode.insertBefore(brandingElement, header);
+    }
+
+    // Build server icon
+    let iconHtml = '';
+    if (config.guild_icon) {
+      const iconUrl = `https://cdn.discordapp.com/icons/${config.guild_id}/${config.guild_icon}.png?size=128`;
+      iconHtml = `<div class="server-branding-icon" style="background-image: url('${iconUrl}')"></div>`;
+    } else {
+      const initial = (config.guild_name || 'S').charAt(0).toUpperCase();
+      iconHtml = `<div class="server-branding-icon">${initial}</div>`;
+    }
+
+    // Render branding
+    brandingElement.innerHTML = `
+      ${iconHtml}
+      <div class="server-branding-name">${this.escapeHtml(config.guild_name || 'Server')}</div>
+    `;
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   // ===== GUILD LOADING & RENDERING =====

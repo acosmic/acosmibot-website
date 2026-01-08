@@ -234,6 +234,12 @@ function populateServers() {
             badgeHtml = '<span class="server-badge admin">Admin</span>';
         }
 
+        // Build premium icon
+        let premiumIconHtml = '';
+        if (guild.premium_tier === 'premium') {
+            premiumIconHtml = '<span class="premium-icon" title="Premium Server">💎</span>';
+        }
+
         // Link destination
         const href = hasAccess ? `/server/${guild.id}/dashboard` : '#';
         const clickHandler = hasAccess ? '' : 'onclick="return false;"';
@@ -246,6 +252,7 @@ function populateServers() {
                     <div class="server-members">${guild.member_count || 0} members</div>
                 </div>
                 ${badgeHtml}
+                ${premiumIconHtml}
             </a>
         `;
     }).join('');

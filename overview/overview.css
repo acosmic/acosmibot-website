@@ -302,6 +302,11 @@ body {
     color: var(--primary-color);
 }
 
+.premium-icon {
+    font-size: 16px;
+    margin-left: auto;
+}
+
 /* ============================================
    QUICK LINKS GRID
    ============================================ */

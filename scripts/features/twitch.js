@@ -138,12 +138,29 @@ function populateTwitchUI() {
   // 5. Streamers list
   const streamers = config.settings.twitch?.tracked_streamers || [];
   renderStreamerList(streamers);
+
+  // 6. Update streamer limit display
+  updateStreamerLimitDisplay();
 }
 
 // ===== STREAMER CRUD OPERATIONS =====
+function updateStreamerLimitDisplay() {
+  const config = getDashboardCore().state.guildConfig;
+  const streamers = config.settings.twitch?.tracked_streamers || [];
+  const premiumTier = config.premium_tier || 'free';
+  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
+
+  const limitDisplay = document.getElementById('streamerLimitDisplay');
+  if (limitDisplay) {
+    limitDisplay.textContent = `${streamers.length} of ${maxStreamers}`;
+  }
+}
+
 function renderStreamerList(streamers) {
   const container = document.getElementById('streamersList');
-  const maxStreamers = 10;
+  const config = getDashboardCore().state.guildConfig;
+  const premiumTier = config.premium_tier || 'free';
+  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
 
   if (!container) return;
 
@@ -252,6 +269,7 @@ function addStreamer() {
   streamers.push(newStreamer);
 
   renderStreamerList(streamers);
+  updateStreamerLimitDisplay();
   getDashboardCore().markUnsavedChanges();
 
   // Focus the username input for the new streamer (but don't auto-select)
@@ -373,6 +391,7 @@ function removeStreamer(index) {
   }
 
   renderStreamerList(streamers);
+  updateStreamerLimitDisplay();
   getDashboardCore().markUnsavedChanges();
 }
 
