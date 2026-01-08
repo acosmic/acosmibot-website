@@ -152,27 +152,22 @@
                     <h1>Twitch Alerts</h1>
                     <p class="feature-description">Choose what streamers you want to get alerts for</p>
                 </div>
+                <div class="header-right">
+                    <button id="saveButton" class="save-btn" onclick="saveAllChanges()" disabled>
+                        <span class="save-icon">💾</span>
+                        Save Changes
+                        <span class="unsaved-indicator" style="display: none;">●</span>
+                    </button>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </header>
 
             <!-- Feature Content -->
             <div class="feature-container">
-                <!-- Feature Toggle -->
-                <div class="form-section">
-                    <div class="feature-header">
-                        <h3>Enable Twitch Alerts</h3>
-                        <div class="feature-header-controls">
-                            <button id="saveButton" class="save-btn" onclick="saveAllChanges()" disabled>
-                                <span class="save-icon">💾</span>
-                                Save Changes
-                                <span class="unsaved-indicator" style="display: none;">●</span>
-                            </button>
-                            <label class="toggle-switch">
-                                <input type="checkbox" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Followed Streams Section -->
                 <div class="form-section">
