@@ -11,8 +11,7 @@ const DashboardFeature = {
     state: {
         initialized: false,
         userStats: null,
-        gameStats: null,
-        rankData: null
+        guildStats: null
     },
 
     async init() {
@@ -40,16 +39,21 @@ const DashboardFeature = {
         console.log('DashboardFeature.cleanup() called');
         this.state.initialized = false;
         this.state.userStats = null;
-        this.state.gameStats = null;
-        this.state.rankData = null;
+        this.state.guildStats = null;
     },
 
     async loadUserStats() {
         const dashboardCore = getDashboardCore();
         const currentUser = dashboardCore?.state?.currentUser;
+        const guildId = dashboardCore?.state?.currentGuildId;
 
         if (!currentUser || !currentUser.id) {
             console.warn('No current user available');
+            return;
+        }
+
+        if (!guildId) {
+            console.warn('No guild ID available');
             return;
         }
 
@@ -57,35 +61,30 @@ const DashboardFeature = {
         const userId = currentUser.id;
 
         try {
-            // Fetch all user data in parallel
-            const [userResponse, gamesResponse, rankResponse] = await Promise.all([
-                fetch(`${dashboardCore.API_BASE_URL}/api/user/${userId}`, {
+            // Fetch server-specific user stats and guild stats in parallel
+            const [userStatsResponse, guildStatsResponse] = await Promise.all([
+                fetch(`${dashboardCore.API_BASE_URL}/api/guilds/${guildId}/user/${userId}/stats`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
-                fetch(`${dashboardCore.API_BASE_URL}/api/user/${userId}/games`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }),
-                fetch(`${dashboardCore.API_BASE_URL}/api/user/${userId}/rank/exp`, {
+                fetch(`${dashboardCore.API_BASE_URL}/api/guilds/${guildId}/stats-db`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
 
-            if (userResponse.ok) {
-                this.state.userStats = await userResponse.json();
+            if (userStatsResponse.ok) {
+                const userData = await userStatsResponse.json();
+                this.state.userStats = userData.success ? userData.data : userData;
             }
 
-            if (gamesResponse.ok) {
-                this.state.gameStats = await gamesResponse.json();
+            if (guildStatsResponse.ok) {
+                const guildData = await guildStatsResponse.json();
+                this.state.guildStats = guildData.success ? guildData.data : guildData;
             }
 
-            if (rankResponse.ok) {
-                this.state.rankData = await rankResponse.json();
-            }
-
-            console.log('User stats loaded:', this.state.userStats, this.state.gameStats, this.state.rankData);
+            console.log('Server stats loaded:', this.state.userStats, this.state.guildStats);
 
         } catch (error) {
-            console.error('Error loading user stats:', error);
+            console.error('Error loading stats:', error);
         }
     },
 
@@ -104,9 +103,8 @@ const DashboardFeature = {
     populateUserStats(currentUser) {
         if (!currentUser) return;
 
+        // Server-specific stats from /api/guilds/{guildId}/user/{userId}/stats
         const userStats = this.state.userStats || {};
-        const gameStats = this.state.gameStats || {};
-        const rankData = this.state.rankData || {};
 
         // Avatar
         const avatarEl = document.getElementById('userAvatar');
@@ -127,54 +125,74 @@ const DashboardFeature = {
             nameEl.textContent = currentUser.global_name || currentUser.username || 'Unknown User';
         }
 
-        // Stats
-        this.setStatValue('userLevel', userStats.level || currentUser.level || 1);
-        this.setStatValue('userCredits', this.formatNumber(userStats.currency || currentUser.currency || 0));
-        this.setStatValue('userRank', rankData.rank ? `#${rankData.rank}` : '-');
-        this.setStatValue('userMessages', this.formatNumber(userStats.total_messages || 0));
-        this.setStatValue('userReactions', this.formatNumber(userStats.total_reactions || 0));
-        this.setStatValue('userGames', gameStats.total_games || 0);
-        this.setStatValue('userWinRate', `${gameStats.win_rate || 0}%`);
+        // Server-specific stats (field names from guild-stats.js userStats structure)
+        this.setStatValue('userLevel', userStats.level || 1);
+        this.setStatValue('userCredits', this.formatNumber(userStats.currency || 0));
+        this.setStatValue('userRank', userStats.rank ? `#${userStats.rank}` : '-');
+        this.setStatValue('userMessages', this.formatNumber(userStats.messages || 0));
+        this.setStatValue('userReactions', this.formatNumber(userStats.reactions || 0));
+        this.setStatValue('userExp', this.formatNumber(userStats.exp || 0));
 
-        // Member since
-        const memberSince = userStats.first_seen || currentUser.first_seen;
+        // Member since (joined_at from server-specific stats)
+        const memberSince = userStats.joined_at;
         if (memberSince) {
             const date = new Date(memberSince);
             this.setStatValue('memberSince', date.toLocaleDateString('en-US', {
                 month: 'short',
                 year: 'numeric'
             }));
+        } else {
+            this.setStatValue('memberSince', '-');
         }
     },
 
     populateServerInfo(guildConfig) {
-        if (!guildConfig) return;
+        const dashboardCore = getDashboardCore();
+        const guildId = dashboardCore?.state?.currentGuildId;
+        const guildStats = this.state.guildStats || {};
 
-        // Server icon
+        // Try to get guild info from currentGuilds list (has icon hash)
+        const currentGuild = dashboardCore?.state?.currentGuilds?.find(g => g.id === guildId);
+
+        // Server icon - construct proper Discord CDN URL
         const iconEl = document.getElementById('serverIcon');
         if (iconEl) {
-            if (guildConfig.guild_icon) {
-                iconEl.style.backgroundImage = `url('${guildConfig.guild_icon}')`;
-            } else if (guildConfig.guild_name) {
-                iconEl.textContent = guildConfig.guild_name.charAt(0).toUpperCase();
+            // Check for icon hash in order of preference
+            const iconHash = currentGuild?.icon || guildConfig?.guild_icon;
+            if (iconHash && guildId) {
+                const iconUrl = `https://cdn.discordapp.com/icons/${guildId}/${iconHash}.png?size=128`;
+                iconEl.style.backgroundImage = `url('${iconUrl}')`;
+                iconEl.textContent = '';
+            } else {
+                // Fallback to first letter
+                const guildName = guildStats.guild_name || guildConfig?.guild_name || currentGuild?.name || 'S';
+                iconEl.textContent = guildName.charAt(0).toUpperCase();
+                iconEl.style.backgroundImage = '';
             }
         }
 
-        // Server name
+        // Server name (prefer guildStats as it's from the DB)
         const nameEl = document.getElementById('serverName');
         if (nameEl) {
-            nameEl.textContent = guildConfig.guild_name || 'Unknown Server';
+            nameEl.textContent = guildStats.guild_name || guildConfig?.guild_name || currentGuild?.name || 'Unknown Server';
         }
 
-        // Member count
+        // Member count from guild stats API (more accurate)
         const memberEl = document.getElementById('serverMemberCount');
         if (memberEl) {
-            const count = guildConfig.member_count || guildConfig.approximate_member_count || 0;
-            memberEl.textContent = `${this.formatNumber(count)} members`;
+            const count = guildStats.member_count || currentGuild?.member_count || guildConfig?.member_count || 0;
+            const activeCount = guildStats.total_active_members;
+            if (activeCount) {
+                memberEl.textContent = `${this.formatNumber(count)} members (${this.formatNumber(activeCount)} active)`;
+            } else {
+                memberEl.textContent = `${this.formatNumber(count)} members`;
+            }
         }
 
         // Enabled features
-        this.populateEnabledFeatures(guildConfig.settings);
+        if (guildConfig?.settings) {
+            this.populateEnabledFeatures(guildConfig.settings);
+        }
     },
 
     populateEnabledFeatures(settings) {
