@@ -235,8 +235,8 @@ function createStreamerInputRow(streamer, index) {
       <div class="validation-indicator ${validationClass}">
         ${validationIcon}
       </div>
-      <button class="edit-btn" onclick="selectStreamer(${index})">✎</button>
-      <button class="delete-btn" onclick="removeStreamer(${index})">×</button>
+      <button class="edit-btn" onclick="selectTwitchStreamer(${index})">✎</button>
+      <button class="delete-btn" onclick="removeTwitchStreamer(${index})">×</button>
     </div>
   `;
 }
@@ -588,12 +588,12 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Make functions globally accessible for onclick handlers
-window.addStreamer = addStreamer;
-window.removeStreamer = removeStreamer;
-window.saveAllChanges = saveAllChanges;
-window.selectStreamer = selectStreamer;
-window.clearStreamerSelection = clearStreamerSelection;
+// Make functions globally accessible for onclick handlers (Twitch-specific namespace to avoid collision)
+window.addTwitchStreamer = addStreamer;
+window.removeTwitchStreamer = removeStreamer;
+window.saveTwitchChanges = saveAllChanges;
+window.selectTwitchStreamer = selectStreamer;
+window.clearTwitchStreamerSelection = clearStreamerSelection;
 
 // Export feature module for SPA
 window.TwitchFeature = TwitchFeature;

@@ -250,8 +250,8 @@ function createStreamerInputRow(streamer, index) {
       <div class="validation-indicator ${validationClass}">
         ${validationIcon}
       </div>
-      <button class="edit-btn" onclick="selectStreamer(${index})">✎</button>
-      <button class="delete-btn" onclick="removeStreamer(${index})">×</button>
+      <button class="edit-btn" onclick="selectYoutubeStreamer(${index})">✎</button>
+      <button class="delete-btn" onclick="removeYoutubeStreamer(${index})">×</button>
     </div>
   `;
 }
@@ -606,12 +606,12 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Make functions globally accessible for onclick handlers
-window.addStreamer = addStreamer;
-window.removeStreamer = removeStreamer;
-window.saveAllChanges = saveAllChanges;
-window.selectStreamer = selectStreamer;
-window.clearStreamerSelection = clearStreamerSelection;
+// Make functions globally accessible for onclick handlers (YouTube-specific namespace to avoid collision)
+window.addYoutubeStreamer = addStreamer;
+window.removeYoutubeStreamer = removeStreamer;
+window.saveYoutubeChanges = saveAllChanges;
+window.selectYoutubeStreamer = selectStreamer;
+window.clearYoutubeStreamerSelection = clearStreamerSelection;
 
 // Export feature module for SPA
 window.YoutubeFeature = YoutubeFeature;

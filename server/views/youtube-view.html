@@ -13,7 +13,7 @@
         <div class="feature-header">
             <h3>Enable YouTube Alerts</h3>
             <div class="feature-header-controls">
-                <button id="saveButton" class="save-btn" onclick="saveAllChanges()" disabled>
+                <button id="saveButton" class="save-btn" onclick="saveYoutubeChanges()" disabled>
                     <span class="save-icon"></span>
                     Save Changes
                     <span class="unsaved-indicator" style="display: none;">●</span>
@@ -35,13 +35,13 @@
         <div id="streamersList">
             <!-- Populated by JavaScript -->
         </div>
-        <button class="btn-add-streamer" onclick="addStreamer()">+</button>
+        <button class="btn-add-streamer" onclick="addYoutubeStreamer()">+</button>
     </div>
 
     <!-- Selected Channel Indicator -->
     <div id="selectedStreamerIndicator" class="selected-streamer-indicator" style="display: none;">
         <span>Editing settings for: <strong id="selectedStreamerNameIndicator"></strong></span>
-        <button class="btn-clear-indicator" onclick="clearStreamerSelection()">✕ Clear Selection</button>
+        <button class="btn-clear-indicator" onclick="clearYoutubeStreamerSelection()">✕ Clear Selection</button>
     </div>
 
     <!-- Channel Dropdown -->
