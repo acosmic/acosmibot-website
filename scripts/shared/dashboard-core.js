@@ -11,10 +11,12 @@ class DashboardCore {
       userGuilds: [],
       currentGuildId: null,
       guildConfig: null,
+      originalSettings: null, // Store original settings to detect real changes
       currentUser: null,
       hasUnsavedChanges: false,
       isSaving: false,
-      isLoading: false
+      isLoading: false,
+      isNavigating: false // Flag to prevent double unsaved changes popup
     };
   }
 
@@ -258,11 +260,17 @@ class DashboardCore {
   }
 
   switchGuild(guildId) {
+    // Prevent double popup during navigation
+    if (this.state.isNavigating) return;
+
     if (this.state.hasUnsavedChanges) {
       if (!confirm('You have unsaved changes. Continue without saving?')) {
         return;
       }
     }
+
+    this.state.isNavigating = true;
+    this.state.hasUnsavedChanges = false; // Clear flag after user confirmed
 
     // Get current feature from URL
     const pathParts = window.location.pathname.split('/');
@@ -276,6 +284,11 @@ class DashboardCore {
       // Fallback to full page load for MPA
       window.location.href = `/server/${guildId}/${currentFeature}`;
     }
+
+    // Reset navigation flag after a short delay
+    setTimeout(() => {
+      this.state.isNavigating = false;
+    }, 100);
   }
 
   // ===== CONFIG LOADING =====
@@ -307,6 +320,9 @@ class DashboardCore {
       if (!this.state.guildConfig.settings) {
         this.state.guildConfig.settings = {};
       }
+
+      // Store original settings for change detection
+      this.state.originalSettings = JSON.parse(JSON.stringify(this.state.guildConfig.settings));
 
     } catch (error) {
       console.error('Config loading error:', error);
@@ -349,7 +365,8 @@ class DashboardCore {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      // Success
+      // Success - update original settings to match current
+      this.state.originalSettings = JSON.parse(JSON.stringify(this.state.guildConfig.settings));
       this.state.hasUnsavedChanges = false;
       this.showSuccess('Changes saved successfully!');
 
@@ -586,11 +603,17 @@ class DashboardCore {
   }
 
   navigateToFeature(feature) {
+    // Prevent double popup during navigation
+    if (this.state.isNavigating) return;
+
     if (this.state.hasUnsavedChanges) {
       if (!confirm('You have unsaved changes. Continue without saving?')) {
         return;
       }
     }
+
+    this.state.isNavigating = true;
+    this.state.hasUnsavedChanges = false; // Clear flag after user confirmed
 
     if (window.Router) {
       // SPA navigation
@@ -599,6 +622,11 @@ class DashboardCore {
       // Fallback to full page load for MPA
       window.location.href = `/server/${this.state.currentGuildId}/${feature}`;
     }
+
+    // Reset navigation flag after a short delay
+    setTimeout(() => {
+      this.state.isNavigating = false;
+    }, 100);
   }
 
   // ===== EVENT LISTENERS =====
@@ -614,6 +642,16 @@ class DashboardCore {
 
   // ===== STATE MANAGEMENT HELPERS =====
   markUnsavedChanges() {
+    // Check if current settings actually differ from original
+    const currentSettings = JSON.stringify(this.state.guildConfig.settings);
+    const originalSettings = JSON.stringify(this.state.originalSettings);
+
+    if (currentSettings === originalSettings) {
+      // Settings match original, clear unsaved changes
+      this.clearUnsavedChanges();
+      return;
+    }
+
     this.state.hasUnsavedChanges = true;
     const saveBtn = document.getElementById('saveButton');
     if (saveBtn) {

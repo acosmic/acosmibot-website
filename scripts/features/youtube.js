@@ -157,14 +157,14 @@ function populateYouTubeUI() {
   // 5. Streamers list
   const streamers = config.settings.youtube?.tracked_streamers || [];
   console.log('populateYouTubeUI - tracked_streamers:', streamers);
-  renderStreamerList(streamers);
+  renderYoutubeStreamerList(streamers);
 
   // 6. Update streamer limit display
-  updateStreamerLimitDisplay();
+  updateYoutubeStreamerLimitDisplay();
 }
 
 // ===== STREAMER CRUD OPERATIONS =====
-function updateStreamerLimitDisplay() {
+function updateYoutubeStreamerLimitDisplay() {
   const config = getDashboardCore().state.guildConfig;
   const streamers = config.settings.youtube?.tracked_streamers || [];
   const premiumTier = config.premium_tier || 'free';
@@ -176,7 +176,7 @@ function updateStreamerLimitDisplay() {
   }
 }
 
-function renderStreamerList(streamers) {
+function renderYoutubeStreamerList(streamers) {
   const container = document.getElementById('streamersList');
   const config = getDashboardCore().state.guildConfig;
   const premiumTier = config.premium_tier || 'free';
@@ -188,7 +188,7 @@ function renderStreamerList(streamers) {
 
   // Render all streamers as input rows
   container.innerHTML = streamers.map((streamer, index) =>
-    createStreamerInputRow(streamer, index)
+    createYoutubeStreamerInputRow(streamer, index)
   ).join('');
 
   // Add event listeners for all inputs and rows
@@ -197,8 +197,8 @@ function renderStreamerList(streamers) {
     const row = document.getElementById(`streamer-row-${index}`);
 
     if (input) {
-      input.addEventListener('input', (e) => handleStreamerInput(index, e.target.value));
-      input.addEventListener('blur', (e) => validateStreamer(index, e.target.value));
+      input.addEventListener('input', (e) => handleYoutubeStreamerInput(index, e.target.value));
+      input.addEventListener('blur', (e) => validateYoutubeStreamer(index, e.target.value));
     }
 
     if (row) {
@@ -222,7 +222,7 @@ function renderStreamerList(streamers) {
   }
 }
 
-function createStreamerInputRow(streamer, index) {
+function createYoutubeStreamerInputRow(streamer, index) {
   // Determine validation status
   let validationClass = '';
   let validationIcon = '';
@@ -292,8 +292,8 @@ function addYoutubeStreamerInternal() {
   const streamers = config.settings.youtube.tracked_streamers;
   streamers.push(newStreamer);
 
-  renderStreamerList(streamers);
-  updateStreamerLimitDisplay();
+  renderYoutubeStreamerList(streamers);
+  updateYoutubeStreamerLimitDisplay();
   getDashboardCore().markUnsavedChanges();
 
   // Focus the username input for the new streamer (but don't auto-select)
@@ -306,7 +306,7 @@ function addYoutubeStreamerInternal() {
   }, 100);
 }
 
-function handleStreamerInput(index, value) {
+function handleYoutubeStreamerInput(index, value) {
   const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.youtube?.tracked_streamers) return;
 
@@ -316,7 +316,7 @@ function handleStreamerInput(index, value) {
   // Clear previous validation when username changes
   if (streamers[index].isValid) {
     streamers[index].isValid = false;
-    renderStreamerList(streamers);
+    renderYoutubeStreamerList(streamers);
   }
 
   // Clear validation timeout if it exists
@@ -336,7 +336,7 @@ function handleStreamerInput(index, value) {
   getDashboardCore().markUnsavedChanges();
 }
 
-async function validateStreamer(index, username) {
+async function validateYoutubeStreamer(index, username) {
   const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.youtube?.tracked_streamers) return;
   if (!username || username.trim() === '') return;
@@ -353,7 +353,7 @@ async function validateStreamer(index, username) {
   // Set validating state
   streamer.validating = true;
   streamer.hideValidation = false; // Show validation during process
-  renderStreamerList(streamers);
+  renderYoutubeStreamerList(streamers);
 
   try {
     const token = localStorage.getItem('discord_token');
@@ -379,7 +379,7 @@ async function validateStreamer(index, username) {
       // Set timeout to hide validation after 3 seconds
       YoutubeFeature.state.validationTimeouts[index] = setTimeout(() => {
         streamer.hideValidation = true;
-        renderStreamerList(streamers);
+        renderYoutubeStreamerList(streamers);
         delete YoutubeFeature.state.validationTimeouts[index];
       }, 3000);
     } else {
@@ -387,13 +387,13 @@ async function validateStreamer(index, username) {
       streamer.hideValidation = false; // Keep showing invalid state
     }
 
-    renderStreamerList(streamers);
+    renderYoutubeStreamerList(streamers);
   } catch (error) {
     console.error('Validation error:', error);
     streamer.validating = false;
     streamer.isValid = false;
     streamer.hideValidation = false;
-    renderStreamerList(streamers);
+    renderYoutubeStreamerList(streamers);
   }
 }
 
@@ -415,8 +415,8 @@ function removeYoutubeStreamerInternal(index) {
     YoutubeFeature.state.selectedStreamerIndex--;
   }
 
-  renderStreamerList(streamers);
-  updateStreamerLimitDisplay();
+  renderYoutubeStreamerList(streamers);
+  updateYoutubeStreamerLimitDisplay();
   getDashboardCore().markUnsavedChanges();
 }
 
@@ -433,10 +433,10 @@ function selectYoutubeStreamerInternal(index) {
   YoutubeFeature.state.selectedStreamerIndex = index;
 
   // Update UI to show selection
-  renderStreamerList(streamers);
+  renderYoutubeStreamerList(streamers);
 
   // Populate form fields with this streamer's data
-  populateFormFieldsForStreamer(streamer);
+  populateYoutubeFormFieldsForStreamer(streamer);
 
   // Show selected streamer indicator
   const indicator = document.getElementById('selectedStreamerIndicator');
@@ -447,7 +447,7 @@ function selectYoutubeStreamerInternal(index) {
   }
 }
 
-function populateFormFieldsForStreamer(streamer) {
+function populateYoutubeFormFieldsForStreamer(streamer) {
   const config = getDashboardCore().state.guildConfig;
   const pingRolesSelect = document.getElementById('pingRolesSelect');
   const messageTextarea = document.getElementById('announcementMessageTextarea');
@@ -508,10 +508,10 @@ function clearYoutubeStreamerSelectionInternal() {
   }
 
   // Reset form fields to global defaults
-  populateFormFieldsWithGlobalDefaults();
+  populateYoutubeFormFieldsWithGlobalDefaults();
 }
 
-function populateFormFieldsWithGlobalDefaults() {
+function populateYoutubeFormFieldsWithGlobalDefaults() {
   const config = getDashboardCore().state.guildConfig;
   const pingRolesSelect = document.getElementById('pingRolesSelect');
   const messageTextarea = document.getElementById('announcementMessageTextarea');
