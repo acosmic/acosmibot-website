@@ -25,7 +25,7 @@ class DashboardCore {
     // Validate guild ID exists
     if (!this.state.currentGuildId) {
       this.showError('No guild specified');
-      window.location.href = '/dashboard.html';
+      window.location.href = '/overview';
       return;
     }
 

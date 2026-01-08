@@ -25,7 +25,7 @@ async function initDashboard() {
   // 2. Validate guild ID exists
   if (!state.currentGuildId) {
     showError('No guild specified');
-    window.location.href = '/dashboard.html';
+    window.location.href = '/overview';
     return;
   }
 
