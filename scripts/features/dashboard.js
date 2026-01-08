@@ -60,32 +60,35 @@ const DashboardFeature = {
         const token = localStorage.getItem('discord_token');
         const userId = currentUser.id;
 
+        // Try to fetch server-specific stats (may fail if API not available)
         try {
-            // Fetch server-specific user stats and guild stats in parallel
-            const [userStatsResponse, guildStatsResponse] = await Promise.all([
-                fetch(`${dashboardCore.API_BASE_URL}/api/guilds/${guildId}/user/${userId}/stats`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }),
-                fetch(`${dashboardCore.API_BASE_URL}/api/guilds/${guildId}/stats-db`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-            ]);
-
+            const userStatsResponse = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${guildId}/user/${userId}/stats`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
             if (userStatsResponse.ok) {
                 const userData = await userStatsResponse.json();
                 this.state.userStats = userData.success ? userData.data : userData;
             }
+        } catch (error) {
+            console.warn('Could not load user stats:', error.message);
+        }
 
+        // Try to fetch guild stats (may fail due to CORS/API issues)
+        try {
+            const guildStatsResponse = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${guildId}/stats-db`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
             if (guildStatsResponse.ok) {
                 const guildData = await guildStatsResponse.json();
                 this.state.guildStats = guildData.success ? guildData.data : guildData;
             }
-
-            console.log('Server stats loaded:', this.state.userStats, this.state.guildStats);
-
         } catch (error) {
-            console.error('Error loading stats:', error);
+            console.warn('Could not load guild stats:', error.message);
         }
+
+        console.log('Stats loaded:', this.state.userStats, this.state.guildStats);
     },
 
     populateDashboardUI() {
@@ -151,8 +154,8 @@ const DashboardFeature = {
         const guildId = dashboardCore?.state?.currentGuildId;
         const guildStats = this.state.guildStats || {};
 
-        // Try to get guild info from currentGuilds list (has icon hash)
-        const currentGuild = dashboardCore?.state?.currentGuilds?.find(g => g.id === guildId);
+        // Try to get guild info from userGuilds list (has icon hash and member_count)
+        const currentGuild = dashboardCore?.state?.userGuilds?.find(g => g.id === guildId);
 
         // Server icon - construct proper Discord CDN URL
         const iconEl = document.getElementById('serverIcon');
