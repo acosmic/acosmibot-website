@@ -493,7 +493,7 @@ function clearTwitchStreamerSelectionInternal() {
 
   // Re-render to remove selected class
   if (config.settings?.twitch?.tracked_streamers) {
-    renderStreamerList(config.settings.twitch.tracked_streamers);
+    renderTwitchStreamerList(config.settings.twitch.tracked_streamers);
   }
 
   // Reset form fields to global defaults

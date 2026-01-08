@@ -511,7 +511,7 @@ function clearYoutubeStreamerSelectionInternal() {
 
   // Re-render to remove selected class
   if (config.settings?.youtube?.tracked_streamers) {
-    renderStreamerList(config.settings.youtube.tracked_streamers);
+    renderYoutubeStreamerList(config.settings.youtube.tracked_streamers);
   }
 
   // Reset form fields to global defaults
