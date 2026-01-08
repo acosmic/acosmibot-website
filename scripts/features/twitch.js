@@ -1,6 +1,9 @@
 // ===== TWITCH ALERTS FEATURE =====
 // Feature-specific logic for Twitch streaming alerts
 
+(function() {
+  'use strict';
+
 // Feature module pattern for SPA compatibility
 const TwitchFeature = {
   // ===== FEATURE STATE =====
@@ -41,6 +44,13 @@ const TwitchFeature = {
     // Note: Event listeners attached via onclick in HTML don't need cleanup
     // They're removed automatically when the DOM element is removed
   },
+
+  // ===== EXPOSE FUNCTIONS =====
+  addStreamer() { addStreamer(); },
+  removeStreamer(index) { removeStreamer(index); },
+  saveAllChanges() { saveAllChanges(); },
+  selectStreamer(index) { selectStreamer(index); },
+  clearStreamerSelection() { clearStreamerSelection(); },
 };
 
 // Helper to get DashboardCore instance
@@ -589,11 +599,11 @@ function escapeHtml(text) {
 }
 
 // Make functions globally accessible for onclick handlers (Twitch-specific namespace to avoid collision)
-window.addTwitchStreamer = addStreamer;
-window.removeTwitchStreamer = removeStreamer;
-window.saveTwitchChanges = saveAllChanges;
-window.selectTwitchStreamer = selectStreamer;
-window.clearTwitchStreamerSelection = clearStreamerSelection;
+window.addTwitchStreamer = function() { TwitchFeature.addStreamer(); };
+window.removeTwitchStreamer = function(index) { TwitchFeature.removeStreamer(index); };
+window.saveTwitchChanges = function() { TwitchFeature.saveAllChanges(); };
+window.selectTwitchStreamer = function(index) { TwitchFeature.selectStreamer(index); };
+window.clearTwitchStreamerSelection = function() { TwitchFeature.clearStreamerSelection(); };
 
 // Export feature module for SPA
 window.TwitchFeature = TwitchFeature;
@@ -604,3 +614,5 @@ if (!window.Router) {
     await TwitchFeature.init();
   });
 }
+
+})(); // End of IIFE

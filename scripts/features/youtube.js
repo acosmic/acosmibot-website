@@ -1,6 +1,9 @@
 // ===== YOUTUBE ALERTS FEATURE =====
 // Feature-specific logic for YouTube streaming/video alerts
 
+(function() {
+  'use strict';
+
 // Feature module pattern for SPA compatibility
 // Note: Module name must match FeatureLoader convention: 'youtube' -> 'YoutubeFeature'
 const YoutubeFeature = {
@@ -42,6 +45,13 @@ const YoutubeFeature = {
     // Note: Event listeners attached via onclick in HTML don't need cleanup
     // They're removed automatically when the DOM element is removed
   },
+
+  // ===== EXPOSE FUNCTIONS =====
+  addStreamer() { addStreamer(); },
+  removeStreamer(index) { removeStreamer(index); },
+  saveAllChanges() { saveAllChanges(); },
+  selectStreamer(index) { selectStreamer(index); },
+  clearStreamerSelection() { clearStreamerSelection(); },
 };
 
 // Helper to get DashboardCore instance
@@ -607,11 +617,11 @@ function escapeHtml(text) {
 }
 
 // Make functions globally accessible for onclick handlers (YouTube-specific namespace to avoid collision)
-window.addYoutubeStreamer = addStreamer;
-window.removeYoutubeStreamer = removeStreamer;
-window.saveYoutubeChanges = saveAllChanges;
-window.selectYoutubeStreamer = selectStreamer;
-window.clearYoutubeStreamerSelection = clearStreamerSelection;
+window.addYoutubeStreamer = function() { YoutubeFeature.addStreamer(); };
+window.removeYoutubeStreamer = function(index) { YoutubeFeature.removeStreamer(index); };
+window.saveYoutubeChanges = function() { YoutubeFeature.saveAllChanges(); };
+window.selectYoutubeStreamer = function(index) { YoutubeFeature.selectStreamer(index); };
+window.clearYoutubeStreamerSelection = function() { YoutubeFeature.clearStreamerSelection(); };
 
 // Export feature module for SPA
 window.YoutubeFeature = YoutubeFeature;
@@ -622,3 +632,5 @@ if (!window.Router) {
     await YoutubeFeature.init();
   });
 }
+
+})(); // End of IIFE
