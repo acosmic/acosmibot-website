@@ -13,7 +13,7 @@
         <div class="feature-header">
             <h3>Enable Twitch Alerts</h3>
             <div class="feature-header-controls">
-                <button id="saveButton" class="save-btn" onclick="saveAllChanges()" disabled>
+                <button id="saveButton" class="save-btn" onclick="saveTwitchChanges()" disabled>
                     <span class="save-icon"></span>
                     Save Changes
                     <span class="unsaved-indicator" style="display: none;">●</span>
@@ -28,17 +28,20 @@
 
     <!-- Followed Streams Section -->
     <div class="form-section">
-        <h3>Followed Streams</h3>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h3 style="margin: 0;">Followed Streams</h3>
+            <span id="streamerLimitDisplay" class="limit-display">0 of 1</span>
+        </div>
         <div id="streamersList">
             <!-- Populated by JavaScript -->
         </div>
-        <button class="btn-add-streamer" onclick="addStreamer()">+</button>
+        <button class="btn-add-streamer" onclick="addTwitchStreamer()">+</button>
     </div>
 
     <!-- Selected Streamer Indicator -->
     <div id="selectedStreamerIndicator" class="selected-streamer-indicator" style="display: none;">
         <span>Editing settings for: <strong id="selectedStreamerNameIndicator"></strong></span>
-        <button class="btn-clear-indicator" onclick="clearStreamerSelection()">✕ Clear Selection</button>
+        <button class="btn-clear-indicator" onclick="clearTwitchStreamerSelection()">✕ Clear Selection</button>
     </div>
 
     <!-- Channel Dropdown -->
