@@ -22,14 +22,15 @@ async function checkAuthState() {
         
         // Check for error in URL parameters
         const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
         if (error) {
+            console.error('OAuth Error:', error, errorDescription);
             showNotification('Login failed. Please try again.', 'error');
-            // Clean up URL and redirect to home
-            window.history.replaceState({}, document.title, window.location.pathname);
-            // Optional: Redirect to home if not already there
-            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-                window.location.href = '/';
-            }
+            
+            // Clean up URL
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+
             return; // Stop further execution
         }
 
