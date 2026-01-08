@@ -109,7 +109,7 @@ class DashboardCore {
   }
 
   renderUserAvatar(user) {
-    const avatarElement = document.querySelector('.user-avatar');
+    const avatarElement = document.getElementById('userAvatarNav');
     if (!avatarElement) return;
 
     if (user.avatar) {
@@ -118,15 +118,13 @@ class DashboardCore {
         ? user.avatar
         : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
       avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
-      avatarElement.style.backgroundSize = 'cover';
-      avatarElement.style.backgroundPosition = 'center';
     } else {
       // Fallback: first letter of username
       avatarElement.textContent = (user.username || user.global_name || 'U').charAt(0).toUpperCase();
       avatarElement.style.display = 'flex';
       avatarElement.style.alignItems = 'center';
       avatarElement.style.justifyContent = 'center';
-      avatarElement.style.fontSize = '20px';
+      avatarElement.style.fontSize = '14px';
       avatarElement.style.fontWeight = 'bold';
       avatarElement.style.color = 'white';
     }

@@ -209,43 +209,73 @@ body {
     height: 100vh;
 }
 
-/* Top Right Indicators */
-.top-indicators {
-    position: absolute;
-    top: 30px;
-    right: 40px;
+/* ============================================
+   TOP NAVIGATION BAR
+   ============================================ */
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    height: 56px;
+    background: #252525;
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+    margin: -40px -40px 24px -40px;
+    width: calc(100% + 80px);
+}
+
+.top-nav-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.top-nav-logo img {
+    height: 28px;
+    width: auto;
+}
+
+.top-nav-right {
     display: flex;
     align-items: center;
     gap: 16px;
-    z-index: 50;
 }
 
-.notification-indicator {
-    width: 32px;
-    height: 32px;
-    background: var(--primary-color);
+.notification-btn {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+.user-avatar-nav {
+    width: 36px;
+    height: 36px;
+    background: var(--bg-card);
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    background-size: cover;
+    background-position: center;
 }
 
-.notification-indicator:hover {
-    background: var(--primary-hover);
-    transform: scale(1.1);
-}
-
-.user-avatar {
-    width: 48px;
-    height: 48px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.user-avatar:hover {
-    background: var(--primary-hover);
+.user-avatar-nav:hover {
     transform: scale(1.05);
+    box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 /* ============================================
@@ -880,16 +910,18 @@ body {
         padding: 20px;
     }
 
+    .top-nav {
+        margin: -20px -20px 16px -20px;
+        width: calc(100% + 40px);
+        padding: 0 16px;
+        height: 48px;
+    }
+
     .feature-container {
         padding-right: 0;
     }
 
     .dashboard-header {
-        margin-bottom: 20px;
-    }
-
-    .top-indicators {
-        position: static;
         margin-bottom: 20px;
     }
 
