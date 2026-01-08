@@ -180,7 +180,7 @@ function populateUserStats() {
     setStatValue('userRank', stats.rank ? `#${stats.rank}` : '-');
     setStatValue('userMessages', formatNumber(stats.total_messages || 0));
     setStatValue('userReactions', formatNumber(stats.total_reactions || 0));
-    setStatValue('userExp', formatNumber(stats.exp || 0));
+    setStatValue('userExp', formatNumber(stats.global_exp || 0));
 
     // Member since
     const memberSince = stats.first_seen || user?.first_seen;
