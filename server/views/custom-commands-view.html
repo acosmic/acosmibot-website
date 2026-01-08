@@ -4,22 +4,17 @@
         <h1>Custom Commands</h1>
         <p class="feature-description">Create custom text and embed commands for your server</p>
     </div>
+    <div class="header-right">
+        <span id="commandCount" class="command-count">0 / 25 commands</span>
+        <button id="createNewBtn" class="save-btn" onclick="CustomCommandsFeature.showCreateForm()">
+            + Create Command
+        </button>
+    </div>
 </header>
 
 <!-- Feature Content -->
 <div class="feature-container">
-    <!-- Feature Toggle & Stats -->
-    <div class="form-section">
-        <div class="feature-header">
-            <h3>Custom Commands</h3>
-            <div class="feature-header-controls">
-                <span id="commandCount" class="command-count">0 / 25 commands</span>
-                <button id="createNewBtn" class="save-btn" onclick="CustomCommandsFeature.showCreateForm()">
-                    + Create Command
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Commands List -->
     <div class="form-section">
