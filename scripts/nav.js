@@ -18,8 +18,22 @@ async function initializeNavigation() {
 // Check authentication state
 async function checkAuthState() {
     try {
-        // Check for token in URL parameters first (from OAuth redirect)
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // Check for error in URL parameters
+        const error = urlParams.get('error');
+        if (error) {
+            showNotification('Login failed. Please try again.', 'error');
+            // Clean up URL and redirect to home
+            window.history.replaceState({}, document.title, window.location.pathname);
+            // Optional: Redirect to home if not already there
+            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+                window.location.href = '/';
+            }
+            return; // Stop further execution
+        }
+
+        // Check for token in URL parameters first (from OAuth redirect)
         let token = urlParams.get('token');
 
         if (token) {
