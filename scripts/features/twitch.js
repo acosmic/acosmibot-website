@@ -1,9 +1,6 @@
 // ===== TWITCH ALERTS FEATURE =====
 // Feature-specific logic for Twitch streaming alerts
 
-(function() {
-  'use strict';
-
 // Feature module pattern for SPA compatibility
 const TwitchFeature = {
   // ===== FEATURE STATE =====
@@ -46,11 +43,11 @@ const TwitchFeature = {
   },
 
   // ===== EXPOSE FUNCTIONS =====
-  addStreamer() { addStreamer(); },
-  removeStreamer(index) { removeStreamer(index); },
-  saveAllChanges() { saveAllChanges(); },
-  selectStreamer(index) { selectStreamer(index); },
-  clearStreamerSelection() { clearStreamerSelection(); },
+  addStreamer() { addTwitchStreamerInternal(); },
+  removeStreamer(index) { removeTwitchStreamerInternal(index); },
+  saveAllChanges() { saveTwitchChangesInternal(); },
+  selectStreamer(index) { selectTwitchStreamerInternal(index); },
+  clearStreamerSelection() { clearTwitchStreamerSelectionInternal(); },
 };
 
 // Helper to get DashboardCore instance
@@ -198,7 +195,7 @@ function renderStreamerList(streamers) {
             e.target.classList.contains('edit-btn')) {
           return;
         }
-        selectStreamer(index);
+        selectTwitchStreamerInternal(index);
       });
     }
   });
@@ -251,7 +248,7 @@ function createStreamerInputRow(streamer, index) {
   `;
 }
 
-function addStreamer() {
+function addTwitchStreamerInternal() {
   const config = getDashboardCore().state.guildConfig;
 
   // Ensure settings structure exists
@@ -382,7 +379,7 @@ async function validateStreamer(index, username) {
   }
 }
 
-function removeStreamer(index) {
+function removeTwitchStreamerInternal(index) {
   const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.twitch?.tracked_streamers) {
     console.error('No streamers to remove');
@@ -394,7 +391,7 @@ function removeStreamer(index) {
 
   // Clear selection if the deleted streamer was selected
   if (TwitchFeature.state.selectedStreamerIndex === index) {
-    clearStreamerSelection();
+    clearTwitchStreamerSelectionInternal();
   } else if (TwitchFeature.state.selectedStreamerIndex !== null && TwitchFeature.state.selectedStreamerIndex > index) {
     // Adjust selected index if it was after the deleted streamer
     TwitchFeature.state.selectedStreamerIndex--;
@@ -406,7 +403,7 @@ function removeStreamer(index) {
 }
 
 // ===== PER-STREAMER SETTINGS =====
-function selectStreamer(index) {
+function selectTwitchStreamerInternal(index) {
   const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.twitch?.tracked_streamers) return;
 
@@ -477,7 +474,7 @@ function populateFormFieldsForStreamer(streamer) {
   }
 }
 
-function clearStreamerSelection() {
+function clearTwitchStreamerSelectionInternal() {
   const config = getDashboardCore().state.guildConfig;
   TwitchFeature.state.selectedStreamerIndex = null;
 
@@ -569,7 +566,7 @@ function handleAnnouncementMessageChange(e) {
 }
 
 // ===== SAVE FUNCTIONALITY =====
-async function saveAllChanges() {
+async function saveTwitchChangesInternal() {
   const config = getDashboardCore().state.guildConfig;
 
   if (!config.settings) {
@@ -614,5 +611,3 @@ if (!window.Router) {
     await TwitchFeature.init();
   });
 }
-
-})(); // End of IIFE

@@ -1,9 +1,6 @@
 // ===== YOUTUBE ALERTS FEATURE =====
 // Feature-specific logic for YouTube streaming/video alerts
 
-(function() {
-  'use strict';
-
 // Feature module pattern for SPA compatibility
 // Note: Module name must match FeatureLoader convention: 'youtube' -> 'YoutubeFeature'
 const YoutubeFeature = {
@@ -47,11 +44,11 @@ const YoutubeFeature = {
   },
 
   // ===== EXPOSE FUNCTIONS =====
-  addStreamer() { addStreamer(); },
-  removeStreamer(index) { removeStreamer(index); },
-  saveAllChanges() { saveAllChanges(); },
-  selectStreamer(index) { selectStreamer(index); },
-  clearStreamerSelection() { clearStreamerSelection(); },
+  addStreamer() { addYoutubeStreamerInternal(); },
+  removeStreamer(index) { removeYoutubeStreamerInternal(index); },
+  saveAllChanges() { saveYoutubeChangesInternal(); },
+  selectStreamer(index) { selectYoutubeStreamerInternal(index); },
+  clearStreamerSelection() { clearYoutubeStreamerSelectionInternal(); },
 };
 
 // Helper to get DashboardCore instance
@@ -213,7 +210,7 @@ function renderStreamerList(streamers) {
             e.target.classList.contains('edit-btn')) {
           return;
         }
-        selectStreamer(index);
+        selectYoutubeStreamerInternal(index);
       });
     }
   });
@@ -266,7 +263,7 @@ function createStreamerInputRow(streamer, index) {
   `;
 }
 
-function addStreamer() {
+function addYoutubeStreamerInternal() {
   const config = getDashboardCore().state.guildConfig;
 
   // Ensure settings structure exists
@@ -400,7 +397,7 @@ async function validateStreamer(index, username) {
   }
 }
 
-function removeStreamer(index) {
+function removeYoutubeStreamerInternal(index) {
   const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.youtube?.tracked_streamers) {
     console.error('No streamers to remove');
@@ -412,7 +409,7 @@ function removeStreamer(index) {
 
   // Clear selection if the deleted streamer was selected
   if (YoutubeFeature.state.selectedStreamerIndex === index) {
-    clearStreamerSelection();
+    clearYoutubeStreamerSelectionInternal();
   } else if (YoutubeFeature.state.selectedStreamerIndex !== null && YoutubeFeature.state.selectedStreamerIndex > index) {
     // Adjust selected index if it was after the deleted streamer
     YoutubeFeature.state.selectedStreamerIndex--;
@@ -424,7 +421,7 @@ function removeStreamer(index) {
 }
 
 // ===== PER-STREAMER SETTINGS =====
-function selectStreamer(index) {
+function selectYoutubeStreamerInternal(index) {
   const config = getDashboardCore().state.guildConfig;
   if (!config.settings?.youtube?.tracked_streamers) return;
 
@@ -495,7 +492,7 @@ function populateFormFieldsForStreamer(streamer) {
   }
 }
 
-function clearStreamerSelection() {
+function clearYoutubeStreamerSelectionInternal() {
   const config = getDashboardCore().state.guildConfig;
   YoutubeFeature.state.selectedStreamerIndex = null;
 
@@ -587,7 +584,7 @@ function handleAnnouncementMessageChange(e) {
 }
 
 // ===== SAVE FUNCTIONALITY =====
-async function saveAllChanges() {
+async function saveYoutubeChangesInternal() {
   const config = getDashboardCore().state.guildConfig;
 
   if (!config.settings) {
@@ -632,5 +629,3 @@ if (!window.Router) {
     await YoutubeFeature.init();
   });
 }
-
-})(); // End of IIFE
