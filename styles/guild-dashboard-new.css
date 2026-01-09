@@ -150,16 +150,19 @@ body {
 }
 
 .nav-indicator {
-    width: 8px;
-    height: 8px;
-    background: var(--primary-color);
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     margin-left: auto;
-    opacity: 0;
-    transition: opacity 0.2s;
+    border: 1.5px solid var(--primary-color);
+    background: transparent;
+    opacity: 0.4;
+    transition: all 0.2s ease;
 }
 
 .nav-indicator.active {
+    background: var(--primary-color);
+    border: none;
     opacity: 1;
 }
 
