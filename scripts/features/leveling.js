@@ -44,27 +44,20 @@ function getDashboardCore() {
 // ===== UI POPULATION =====
 function populateLevelingUI() {
   const config = getDashboardCore().state.guildConfig;
-  console.log('populateLevelingUI - Full config:', config);
-  console.log('populateLevelingUI - config.settings:', config.settings);
 
   // Ensure settings structures exist
   if (!config.settings) {
-    console.warn('No settings object found in config, creating empty one');
     config.settings = {};
   }
   if (!config.settings.leveling) {
-    console.warn('No leveling settings found, creating empty one');
     config.settings.leveling = {};
   }
   if (!config.settings.roles) {
-    console.warn('No roles settings found, creating empty one');
     config.settings.roles = {};
   }
 
   const levelingSettings = config.settings.leveling;
   const rolesSettings = config.settings.roles;
-  console.log('populateLevelingUI - levelingSettings:', levelingSettings);
-  console.log('populateLevelingUI - rolesSettings:', rolesSettings);
 
   // 1. Master feature toggle
   const featureToggle = document.getElementById('featureToggle');
@@ -96,10 +89,6 @@ function populateLevelingUI() {
 // ===== SECTION SETUP FUNCTIONS =====
 
 function setupLevelAnnouncementSection(config, levelingSettings) {
-  console.log('Level announcement section - levelingSettings:', levelingSettings);
-  console.log('level_up_message:', levelingSettings.level_up_message);
-  console.log('level_up_message_with_streak:', levelingSettings.level_up_message_with_streak);
-
   // Toggle
   const toggle = document.getElementById('levelAnnouncementToggle');
   if (toggle) {
@@ -121,17 +110,23 @@ function setupLevelAnnouncementSection(config, levelingSettings) {
     });
   }
 
-  // Message textarea
+  // Message textarea (no streak)
   const messageTextarea = document.getElementById('levelAnnouncementMessage');
   if (messageTextarea) {
-    const messageValue = levelingSettings.level_up_message_with_streak ||
-                        levelingSettings.level_up_message ||
-                        '{username}, you have reached level {level}!';
-    console.log('Setting message textarea to:', messageValue);
-    messageTextarea.value = messageValue;
+    messageTextarea.value = levelingSettings.level_up_message || '{username}, you have reached level {level}!';
     messageTextarea.addEventListener('input', (e) => {
-      levelingSettings.level_up_message_with_streak = e.target.value;
       levelingSettings.level_up_message = e.target.value;
+      getDashboardCore().markUnsavedChanges();
+    });
+  }
+
+  // Message textarea (with streak)
+  const messageTextareaStreak = document.getElementById('levelAnnouncementMessageStreak');
+  if (messageTextareaStreak) {
+    messageTextareaStreak.value = levelingSettings.level_up_message_with_streak ||
+                                  '{mention} reached level {level}! +{credits} Credits! ({base_credits} + {streak_bonus} from {streak}x streak!)';
+    messageTextareaStreak.addEventListener('input', (e) => {
+      levelingSettings.level_up_message_with_streak = e.target.value;
       getDashboardCore().markUnsavedChanges();
     });
   }
@@ -217,15 +212,23 @@ function setupDailyRewardsSection(config, levelingSettings) {
     });
   }
 
-  // Message textarea
+  // Message textarea (no streak)
   const messageTextarea = document.getElementById('dailyRewardsMessage');
   if (messageTextarea) {
-    messageTextarea.value = levelingSettings.daily_announcement_message_with_streak ||
-                           levelingSettings.daily_announcement_message ||
-                           '{username} claimed their daily reward!';
+    messageTextarea.value = levelingSettings.daily_announcement_message || '{username} claimed their daily reward!';
     messageTextarea.addEventListener('input', (e) => {
-      levelingSettings.daily_announcement_message_with_streak = e.target.value;
       levelingSettings.daily_announcement_message = e.target.value;
+      getDashboardCore().markUnsavedChanges();
+    });
+  }
+
+  // Message textarea (with streak)
+  const messageTextareaStreak = document.getElementById('dailyRewardsMessageStreak');
+  if (messageTextareaStreak) {
+    messageTextareaStreak.value = levelingSettings.daily_announcement_message_with_streak ||
+                                  '{mention} claimed their daily reward! +{credits} Credits! ({base_credits} + {streak_bonus} from {streak}x streak!)';
+    messageTextareaStreak.addEventListener('input', (e) => {
+      levelingSettings.daily_announcement_message_with_streak = e.target.value;
       getDashboardCore().markUnsavedChanges();
     });
   }

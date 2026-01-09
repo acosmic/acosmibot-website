@@ -43,17 +43,28 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Announcement Message</label>
-                <textarea id="levelAnnouncementMessage" class="message-textarea" rows="4"></textarea>
+                <label>Level Up Message (No Streak)</label>
+                <textarea id="levelAnnouncementMessage" class="message-textarea" rows="3"></textarea>
                 <div class="variable-tags">
                     <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{mention}')">{mention}</span>
                     <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{username}')">{username}</span>
                     <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{level}')">{level}</span>
                     <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{credits}')">{credits}</span>
                     <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{xp}')">{xp}</span>
-                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{streak}')">{streak}</span>
-                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{base_credits}')">{base_credits}</span>
-                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessage', '{streak_bonus}')">{streak_bonus}</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Level Up Message (With Streak)</label>
+                <textarea id="levelAnnouncementMessageStreak" class="message-textarea" rows="3"></textarea>
+                <div class="variable-tags">
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{mention}')">{mention}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{username}')">{username}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{level}')">{level}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{credits}')">{credits}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{xp}')">{xp}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{streak}')">{streak}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{base_credits}')">{base_credits}</span>
+                    <span class="var-tag" onclick="insertVariable('levelAnnouncementMessageStreak', '{streak_bonus}')">{streak_bonus}</span>
                 </div>
             </div>
         </div>
@@ -135,15 +146,24 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Announcement Message</label>
-                <textarea id="dailyRewardsMessage" class="message-textarea" rows="4"></textarea>
+                <label>Daily Reward Message (No Streak)</label>
+                <textarea id="dailyRewardsMessage" class="message-textarea" rows="3"></textarea>
                 <div class="variable-tags">
                     <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{mention}')">{mention}</span>
                     <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{username}')">{username}</span>
                     <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{credits}')">{credits}</span>
-                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{streak}')">{streak}</span>
-                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{base_credits}')">{base_credits}</span>
-                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessage', '{streak_bonus}')">{streak_bonus}</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Daily Reward Message (With Streak)</label>
+                <textarea id="dailyRewardsMessageStreak" class="message-textarea" rows="3"></textarea>
+                <div class="variable-tags">
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessageStreak', '{mention}')">{mention}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessageStreak', '{username}')">{username}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessageStreak', '{credits}')">{credits}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessageStreak', '{streak}')">{streak}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessageStreak', '{base_credits}')">{base_credits}</span>
+                    <span class="var-tag" onclick="insertVariable('dailyRewardsMessageStreak', '{streak_bonus}')">{streak_bonus}</span>
                 </div>
             </div>
         </div>
