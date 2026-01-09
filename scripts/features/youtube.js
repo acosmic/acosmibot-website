@@ -391,7 +391,14 @@ async function validateYoutubeStreamer(index, username) {
       }, 3000);
     } else {
       streamer.isValid = false;
-      streamer.hideValidation = false; // Keep showing invalid state
+      streamer.hideValidation = false; // Show invalid state initially
+
+      // Set timeout to hide validation after 3 seconds
+      YoutubeFeature.state.validationTimeouts[index] = setTimeout(() => {
+        streamer.hideValidation = true;
+        renderYoutubeStreamerList(streamers);
+        delete YoutubeFeature.state.validationTimeouts[index];
+      }, 3000);
     }
 
     renderYoutubeStreamerList(streamers);
@@ -400,6 +407,14 @@ async function validateYoutubeStreamer(index, username) {
     streamer.validating = false;
     streamer.isValid = false;
     streamer.hideValidation = false;
+
+    // Set timeout to hide validation after 3 seconds
+    YoutubeFeature.state.validationTimeouts[index] = setTimeout(() => {
+      streamer.hideValidation = true;
+      renderYoutubeStreamerList(streamers);
+      delete YoutubeFeature.state.validationTimeouts[index];
+    }, 3000);
+
     renderYoutubeStreamerList(streamers);
   }
 }

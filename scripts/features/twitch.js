@@ -373,7 +373,14 @@ async function validateTwitchStreamer(index, username) {
       }, 3000);
     } else {
       streamer.isValid = false;
-      streamer.hideValidation = false; // Keep showing invalid state
+      streamer.hideValidation = false; // Show invalid state initially
+
+      // Set timeout to hide validation after 3 seconds
+      TwitchFeature.state.validationTimeouts[index] = setTimeout(() => {
+        streamer.hideValidation = true;
+        renderTwitchStreamerList(streamers);
+        delete TwitchFeature.state.validationTimeouts[index];
+      }, 3000);
     }
 
     renderTwitchStreamerList(streamers);
@@ -382,6 +389,14 @@ async function validateTwitchStreamer(index, username) {
     streamer.validating = false;
     streamer.isValid = false;
     streamer.hideValidation = false;
+
+    // Set timeout to hide validation after 3 seconds
+    TwitchFeature.state.validationTimeouts[index] = setTimeout(() => {
+      streamer.hideValidation = true;
+      renderTwitchStreamerList(streamers);
+      delete TwitchFeature.state.validationTimeouts[index];
+    }, 3000);
+
     renderTwitchStreamerList(streamers);
   }
 }
