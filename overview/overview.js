@@ -57,6 +57,9 @@ async function init() {
         // Render user avatar in nav
         renderNavAvatar(state.currentUser);
 
+        // Initialize navigation sidebars
+        await initializeSidebars();
+
         // Fetch all data in parallel
         await Promise.all([
             loadUserStats(),
@@ -73,6 +76,38 @@ async function init() {
         console.error('Initialization error:', error);
         showError('Failed to load data. Please try refreshing the page.');
     }
+}
+
+async function initializeSidebars() {
+    try {
+        // Load user guilds for the guild selector
+        await window.DashboardCore.loadUserGuilds();
+
+        // Setup navigation (without a specific guild selected for overview)
+        const sidebarNav = document.getElementById('sidebarNav');
+        if (sidebarNav) {
+            sidebarNav.innerHTML = window.DashboardCore.getNavigationHTML();
+
+            // Setup collapse functionality for sections
+            setupNavCollapse();
+        }
+
+        console.log('Sidebars initialized');
+    } catch (error) {
+        console.error('Failed to initialize sidebars:', error);
+    }
+}
+
+function setupNavCollapse() {
+    const sections = document.querySelectorAll('.nav-section');
+    sections.forEach(section => {
+        const header = section.querySelector('.nav-section-header');
+        if (header) {
+            header.addEventListener('click', () => {
+                section.classList.toggle('collapsed');
+            });
+        }
+    });
 }
 
 async function loadUserStats() {

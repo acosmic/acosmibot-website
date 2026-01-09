@@ -11,106 +11,24 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     margin: 0;
     padding: 0;
-}
-
-.overview-container {
-    flex: 1;
-    background: #252525;
-}
-
-/* ============================================
-   TOP NAVIGATION BAR
-   ============================================ */
-
-.top-nav {
+    overflow: hidden;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 32px;
-    height: 56px;
-    background: #1A1A1A;
-    border-bottom: 1px solid var(--border-light);
-    position: relative;
-    z-index: 100;
-    flex-shrink: 0;
+    flex-direction: column;
 }
 
-.top-nav-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    width: 100px;
-}
-
-.top-nav-logo {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.top-nav-logo img {
-    height: 28px;
-    width: auto;
-}
-
-.top-nav-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    width: 100px;
-    justify-content: flex-end;
-}
-
-.notification-btn {
-    width: 36px;
-    height: 36px;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-}
-
-.notification-btn:hover {
-    background: var(--bg-overlay);
-    color: var(--text-primary);
-}
-
-.user-avatar-nav {
-    width: 36px;
-    height: 36px;
-    background: var(--bg-card);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background-size: cover;
-    background-position: center;
-}
-
-.user-avatar-nav:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 2px var(--primary-color);
-}
+/* Top nav styles inherited from guild-dashboard-new.css */
 
 /* ============================================
    MAIN CONTENT
    ============================================ */
 
 .overview-content {
+    padding: 40px;
+    overflow-y: auto;
+    overflow-x: hidden;
     max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 32px;
 }
 
 .overview-header {
@@ -367,15 +285,6 @@ body {
 @media (max-width: 768px) {
     .overview-content {
         padding: 24px 16px;
-    }
-
-    .top-nav {
-        padding: 0 16px;
-    }
-
-    .top-nav-left,
-    .top-nav-right {
-        width: 60px;
     }
 
     .stats-grid {
