@@ -7,7 +7,6 @@
     <link rel="icon" type="image/png" href="/images/acosmibot-logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/base.css">
-    <link rel="stylesheet" href="/styles/guild-dashboard-new.css">
     <link rel="stylesheet" href="/overview/overview.css">
 </head>
 <body>
@@ -30,24 +29,9 @@
         </div>
     </nav>
 
-    <!-- Dashboard Container -->
-    <div class="dashboard-container">
-        <!-- Guild Selector Sidebar (Far Left) -->
-        <aside class="guild-selector-sidebar">
-            <div class="guild-icon-list" id="guildIconList">
-                <!-- Populated by JavaScript -->
-            </div>
-        </aside>
-
-        <!-- Navigation Sidebar -->
-        <aside class="navigation-sidebar">
-            <nav class="sidebar-nav" id="sidebarNav">
-                <!-- Populated by JavaScript -->
-            </nav>
-        </aside>
-
+    <div class="overview-container">
         <!-- Main Content -->
-        <main class="main-content overview-content">
+        <main class="overview-content">
             <!-- Page Header -->
             <header class="overview-header">
                 <h1>Overview</h1>
@@ -144,7 +128,6 @@
         </main>
     </div>
 
-    <script src="/scripts/shared/dashboard-core.js"></script>
     <script src="/overview/overview.js"></script>
 </body>
 </html>
