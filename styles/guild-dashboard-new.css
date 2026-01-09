@@ -306,7 +306,6 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
 }
 
 /* Server Branding */
@@ -407,6 +406,11 @@ body {
    FEATURE CONTENT
    ============================================ */
 
+.feature-header-container {
+    max-width: 1000px;
+    margin-bottom: 40px;
+}
+
 .feature-container {
     max-width: 1000px;
     padding-right: 120px;
@@ -421,7 +425,7 @@ body {
 .feature-description {
     font-size: 16px;
     color: var(--text-secondary);
-    margin-bottom: 40px;
+    margin-top: 8px;
 }
 
 /* Toggle Switch */
