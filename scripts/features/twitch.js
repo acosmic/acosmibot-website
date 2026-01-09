@@ -228,7 +228,7 @@ function createTwitchStreamerInputRow(streamer, index) {
   } else if (streamer.username && streamer.validating) {
     validationClass = 'validating';
     validationIcon = '...';
-  } else if (streamer.username && !streamer.isValid && !hideValidation) {
+  } else if (streamer.username && streamer.isValid === false && !hideValidation) {
     validationClass = 'invalid';
     validationIcon = '✗';
   }
