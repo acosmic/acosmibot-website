@@ -10,10 +10,12 @@ body {
     font-family: 'Poppins', sans-serif;
     background: #1A1A1A;
     color: var(--text-primary);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 0;
     margin: 0;
-    height: 100vh;
+    height: auto;
+    min-height: 100vh;
     width: 100vw;
     display: flex;
     flex-direction: column;
@@ -23,10 +25,12 @@ body {
 .dashboard-container {
     display: flex;
     flex: 1;
-    max-width: 1800px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
+    margin-top: 56px;
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
+    min-height: calc(100vh - 56px);
 }
 
 /* ============================================
@@ -42,8 +46,12 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
-    height: 100%;
+    height: calc(100vh - 56px);
     padding: 24px 0;
+    position: fixed;
+    left: 0;
+    top: 56px;
+    z-index: 90;
 }
 
 .guild-icon-list {
@@ -101,7 +109,11 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
-    height: 100%;
+    height: calc(100vh - 56px);
+    position: fixed;
+    left: 72px;
+    top: 56px;
+    z-index: 90;
 }
 
 /* Sidebar Navigation */
@@ -216,14 +228,16 @@ body {
 .main-content {
     flex: 1;
     padding: 40px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: visible;
+    overflow-x: visible;
     position: relative;
     background: #252525;
-    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-left: 352px;
+    width: calc(100% - 352px);
+    min-height: calc(100vh - 56px);
 }
 
 #view-container {
@@ -245,7 +259,10 @@ body {
     border-bottom: 1px solid var(--border-light);
     flex-shrink: 0;
     width: 100%;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 100;
 }
 
@@ -940,6 +957,8 @@ body {
 
     .main-content {
         padding: 30px;
+        margin-left: 312px;
+        width: calc(100% - 312px);
     }
 
     .feature-container {
@@ -955,7 +974,7 @@ body {
     .guild-selector-sidebar {
         position: fixed;
         left: 0;
-        top: 0;
+        top: 56px;
         bottom: 0;
         z-index: 1001;
         transform: translateX(-100%);
@@ -969,7 +988,7 @@ body {
     .navigation-sidebar {
         position: fixed;
         left: 72px;
-        top: 0;
+        top: 56px;
         bottom: 0;
         z-index: 1000;
         transform: translateX(-100%);
@@ -991,6 +1010,8 @@ body {
 
     .main-content {
         padding: 20px;
+        margin-left: 0;
+        width: 100%;
     }
 
     .top-nav {
@@ -1040,23 +1061,23 @@ body {
 
 /* Scrollbar Styling */
 .sidebar::-webkit-scrollbar,
-.main-content::-webkit-scrollbar {
+body::-webkit-scrollbar {
     width: 8px;
 }
 
 .sidebar::-webkit-scrollbar-track,
-.main-content::-webkit-scrollbar-track {
+body::-webkit-scrollbar-track {
     background: var(--bg-primary);
 }
 
 .sidebar::-webkit-scrollbar-thumb,
-.main-content::-webkit-scrollbar-thumb {
+body::-webkit-scrollbar-thumb {
     background: var(--bg-tertiary);
     border-radius: 4px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover,
-.main-content::-webkit-scrollbar-thumb:hover {
+body::-webkit-scrollbar-thumb:hover {
     background: var(--bg-card);
 }
 /* ============================================
