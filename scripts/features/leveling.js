@@ -44,20 +44,27 @@ function getDashboardCore() {
 // ===== UI POPULATION =====
 function populateLevelingUI() {
   const config = getDashboardCore().state.guildConfig;
+  console.log('populateLevelingUI - Full config:', config);
+  console.log('populateLevelingUI - config.settings:', config.settings);
 
   // Ensure settings structures exist
   if (!config.settings) {
+    console.warn('No settings object found in config, creating empty one');
     config.settings = {};
   }
   if (!config.settings.leveling) {
+    console.warn('No leveling settings found, creating empty one');
     config.settings.leveling = {};
   }
   if (!config.settings.roles) {
+    console.warn('No roles settings found, creating empty one');
     config.settings.roles = {};
   }
 
   const levelingSettings = config.settings.leveling;
   const rolesSettings = config.settings.roles;
+  console.log('populateLevelingUI - levelingSettings:', levelingSettings);
+  console.log('populateLevelingUI - rolesSettings:', rolesSettings);
 
   // 1. Master feature toggle
   const featureToggle = document.getElementById('featureToggle');
@@ -89,6 +96,10 @@ function populateLevelingUI() {
 // ===== SECTION SETUP FUNCTIONS =====
 
 function setupLevelAnnouncementSection(config, levelingSettings) {
+  console.log('Level announcement section - levelingSettings:', levelingSettings);
+  console.log('level_up_message:', levelingSettings.level_up_message);
+  console.log('level_up_message_with_streak:', levelingSettings.level_up_message_with_streak);
+
   // Toggle
   const toggle = document.getElementById('levelAnnouncementToggle');
   if (toggle) {
@@ -113,9 +124,11 @@ function setupLevelAnnouncementSection(config, levelingSettings) {
   // Message textarea
   const messageTextarea = document.getElementById('levelAnnouncementMessage');
   if (messageTextarea) {
-    messageTextarea.value = levelingSettings.level_up_message_with_streak ||
-                           levelingSettings.level_up_message ||
-                           '{username}, you have reached level {level}!';
+    const messageValue = levelingSettings.level_up_message_with_streak ||
+                        levelingSettings.level_up_message ||
+                        '{username}, you have reached level {level}!';
+    console.log('Setting message textarea to:', messageValue);
+    messageTextarea.value = messageValue;
     messageTextarea.addEventListener('input', (e) => {
       levelingSettings.level_up_message_with_streak = e.target.value;
       levelingSettings.level_up_message = e.target.value;
