@@ -143,17 +143,7 @@ function setupNavigationListeners() {
         loginBtn.addEventListener('click', handleLoginClick);
     }
 
-    // Dynamic navbar background on scroll
-    window.addEventListener('scroll', () => {
-        const nav = document.querySelector('nav');
-        if (nav) {
-            if (window.scrollY > 100) {
-                nav.style.background = 'rgba(88, 101, 242, 0.5)';
-            } else {
-                nav.style.background = 'rgba(88, 101, 242, 0.3)';
-            }
-        }
-    });
+
 }
 
 // Handle login button click
