@@ -422,17 +422,25 @@ class DashboardCore {
 
   getNavigationHTML() {
     return `
-      <a href="/overview" class="nav-item nav-link-external">
-        <span class="nav-dot"></span>
-        <span class="nav-text">Overview</span>
-      </a>
-      <div class="nav-item" data-feature="dashboard">
-        <span class="nav-dot"></span>
-        <span class="nav-text">Dashboard</span>
-      </div>
-      <div class="nav-item" data-feature="membership" data-coming-soon="true">
-        <span class="nav-dot"></span>
-        <span class="nav-text">Membership</span>
+      <div class="nav-section">
+        <div class="nav-section-header">
+          <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
+          <span>GENERAL</span>
+        </div>
+        <a href="/overview" class="nav-item nav-link-external">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Overview</span>
+        </a>
+        <div class="nav-item" data-feature="dashboard">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Dashboard</span>
+        </div>
+        <div class="nav-item" data-feature="membership" data-coming-soon="true">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Membership</span>
+        </div>
       </div>
 
       <div class="nav-section">
@@ -440,65 +448,71 @@ class DashboardCore {
           <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
             <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
           </svg>
-          <span>COMMUNITY ENGAGEMENT</span>
+          <span>SYSTEMS</span>
         </div>
-
-        <div class="nav-subsection">
-          <div class="nav-subsection-label">SYSTEMS</div>
-          <div class="nav-item" data-feature="leveling">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Leveling</span>
-            <span class="nav-indicator"></span>
-          </div>
-          <div class="nav-item" data-feature="welcomes" data-coming-soon="true">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Welcomes and Goodbyes</span>
-          </div>
-          <div class="nav-item" data-feature="reputation" data-coming-soon="true">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Reputation</span>
-          </div>
+        <div class="nav-item" data-feature="leveling">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Leveling</span>
+          <span class="nav-indicator"></span>
         </div>
-
-        <div class="nav-subsection">
-          <div class="nav-subsection-label">SOCIAL ALERTS</div>
-          <div class="nav-item" data-feature="twitch">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Twitch</span>
-            <span class="nav-indicator"></span>
-          </div>
-          <div class="nav-item" data-feature="youtube">
-            <span class="nav-dot"></span>
-            <span class="nav-text">YouTube</span>
-            <span class="nav-indicator"></span>
-          </div>
-          <div class="nav-item" data-feature="kick" data-coming-soon="true">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Kick</span>
-          </div>
-          <div class="nav-item" data-feature="reddit" data-coming-soon="true">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Reddit</span>
-          </div>
+        <div class="nav-item" data-feature="welcomes" data-coming-soon="true">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Welcomes and Goodbyes</span>
         </div>
+        <div class="nav-item" data-feature="reputation" data-coming-soon="true">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Reputation</span>
+        </div>
+      </div>
 
-        <div class="nav-subsection">
-          <div class="nav-subsection-label">CHAOS</div>
-          <div class="nav-item" data-feature="polymorph">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Polymorph</span>
-            <span class="nav-indicator"></span>
-          </div>
-          <div class="nav-item" data-feature="portals">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Portals</span>
-            <span class="nav-indicator"></span>
-          </div>
-          <div class="nav-item" data-feature="jail">
-            <span class="nav-dot"></span>
-            <span class="nav-text">Jail</span>
-            <span class="nav-indicator"></span>
-          </div>
+      <div class="nav-section">
+        <div class="nav-section-header">
+          <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
+          <span>SOCIAL ALERTS</span>
+        </div>
+        <div class="nav-item" data-feature="twitch">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Twitch</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="youtube">
+          <span class="nav-dot"></span>
+          <span class="nav-text">YouTube</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="kick" data-coming-soon="true">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Kick</span>
+        </div>
+        <div class="nav-item" data-feature="reddit" data-coming-soon="true">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Reddit</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-header">
+          <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
+          <span>CHAOS</span>
+        </div>
+        <div class="nav-item" data-feature="polymorph">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Polymorph</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="portals">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Portals</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="jail">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Jail</span>
+          <span class="nav-indicator"></span>
         </div>
       </div>
 
