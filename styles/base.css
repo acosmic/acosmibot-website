@@ -179,20 +179,37 @@ nav.compact-nav .login-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 20px var(--shadow-cyan);
+    box-shadow: 0 2px 8px rgba(0, 217, 255, 0.2);
     cursor: pointer;
     border: none;
     position: relative;
 }
 
 .login-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px var(--shadow-cyan);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
 }
 
 .discord-icon {
     width: 20px;
     height: 20px;
+}
+
+/* User Avatar in Navigation */
+.user-avatar-nav {
+    width: 36px;
+    height: 36px;
+    background: var(--bg-card);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-size: cover;
+    background-position: center;
+}
+
+.user-avatar-nav:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 /* Buttons */
