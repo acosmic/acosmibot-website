@@ -24,7 +24,7 @@ const GuildStats = () => {
       setLoading(true);
       const token = getAuthToken();
       if (!token) {
-        window.location.href = `${API_BASE_URL}/auth/login`;
+        window.location.href = '/';
         return;
       }
 
@@ -46,7 +46,7 @@ const GuildStats = () => {
 
       if (statsRes.status === 401 || levelRes.status === 401 || messagesRes.status === 401) {
         localStorage.removeItem('discord_token');
-        window.location.href = `${API_BASE_URL}/auth/login`;
+        window.location.href = '/';
         return;
       }
 

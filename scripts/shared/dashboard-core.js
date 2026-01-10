@@ -93,7 +93,7 @@ class DashboardCore {
     try {
       const token = localStorage.getItem('discord_token');
       if (!token) {
-        window.location.href = '/auth/login';
+        window.location.href = '/';
         return;
       }
 
@@ -191,7 +191,7 @@ class DashboardCore {
     try {
       const token = localStorage.getItem('discord_token');
       if (!token) {
-        window.location.href = '/auth/login';
+        window.location.href = '/';
         return;
       }
 

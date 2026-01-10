@@ -45,7 +45,7 @@ async function loadCurrentUser() {
   try {
     const token = localStorage.getItem('discord_token');
     if (!token) {
-      window.location.href = '/auth/login';
+      window.location.href = '/';
       return;
     }
 
@@ -100,7 +100,7 @@ async function loadUserGuilds() {
   try {
     const token = localStorage.getItem('discord_token');
     if (!token) {
-      window.location.href = '/auth/login';
+      window.location.href = '/';
       return;
     }
 
