@@ -29,6 +29,79 @@ function copyBTCAddress() {
     });
 }
 
+// Donation Modal Functions
+function showDonationModal(event) {
+    event.preventDefault();
+    document.getElementById('donationModal').style.display = 'flex';
+}
+
+function closeDonationModal() {
+    document.getElementById('donationModal').style.display = 'none';
+    closeBitcoinAddress();
+}
+
+function showBitcoinAddress() {
+    document.getElementById('bitcoinAddressPopup').style.display = 'block';
+}
+
+function closeBitcoinAddress() {
+    document.getElementById('bitcoinAddressPopup').style.display = 'none';
+}
+
+function copyDonationBTCAddress() {
+    const addressInput = document.getElementById('donationBtcAddress');
+    addressInput.select();
+    addressInput.setSelectionRange(0, 99999);
+
+    navigator.clipboard.writeText(addressInput.value).then(function() {
+        showNotification('Bitcoin address copied to clipboard!', 'success');
+    }, function(err) {
+        console.error('Failed to copy: ', err);
+        showNotification('Failed to copy address', 'error');
+    });
+}
+
+// Premium Coming Soon Modal
+function showPremiumComingSoon(event) {
+    event.preventDefault();
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.8); display: flex; align-items: center;
+        justify-content: center; z-index: 1000;
+    `;
+
+    modal.innerHTML = `
+        <div style="background: linear-gradient(135deg, #5865F2, #7289DA); padding: 30px; border-radius: 15px; max-width: 400px; text-align: center; color: white; border: 1px solid rgba(255,255,255,0.2);">
+            <h2 style="margin-bottom: 15px;">✨ Premium Coming Soon!</h2>
+            <p style="margin-bottom: 15px;">Premium features are currently under development and will be available soon.</p>
+            <p style="margin-bottom: 20px;">Stay tuned for exclusive perks, advanced features, and enhanced functionality!</p>
+            <button onclick="this.closest('div').parentElement.remove()"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                Got it!
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    const donationModal = document.getElementById('donationModal');
+    const bitcoinPopup = document.getElementById('bitcoinAddressPopup');
+
+    if (event.target === donationModal) {
+        closeDonationModal();
+    }
+    if (event.target === bitcoinPopup) {
+        closeBitcoinAddress();
+    }
+});
+
 // Setup home page specific event listeners
 function setupHomePageListeners() {
     const inviteBtn = document.getElementById('inviteBtn');

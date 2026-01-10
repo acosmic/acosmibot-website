@@ -61,11 +61,10 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="#features">Features</a></li>
-                    <li><a href="/premium" class="premium-nav-link">Premium</a></li>
+                    <li><a href="#" onclick="showPremiumComingSoon(event)" class="premium-nav-link">Premium</a></li>
                     <li><a href="/docs">Documentation</a></li>
                     <li><a href="/overview" id="userDashboardLink" style="display: none;">Overview</a></li>
                     <li><a href="/guild-selector" id="guildManagementLink" style="display: none;">Server Management</a></li>
-                    <li><a href="https://github.com/acosmic/acosmibot">GitHub</a></li>
                 </ul>
                 <button class="login-btn" id="loginBtn">
                     <svg class="discord-icon" viewBox="0 0 24 24">
@@ -228,7 +227,8 @@
         </div>
     </section>
 
-    <!-- Support Section -->
+    <!-- Support Section - COMMENTED OUT -->
+<!--
     <section class="support-section">
         <div class="container">
             <div class="support-content">
@@ -254,15 +254,15 @@
                         </div>
                     </div>
 
-<!--                    <div class="supporter-perks">-->
-<!--                        <h4>🎁 Supporter Perks (Coming Soon):</h4>-->
-<!--                        <div class="perks-list">-->
-<!--                            <span class="perk">Special Discord role</span>-->
-<!--                            <span class="perk">Early feature access</span>-->
-<!--                            <span class="perk">Priority support</span>-->
-<!--                            <span class="perk">Development updates</span>-->
-<!--                        </div>-->
-<!--                    </div>-->
+                    <div class="supporter-perks">
+                        <h4>🎁 Supporter Perks (Coming Soon):</h4>
+                        <div class="perks-list">
+                            <span class="perk">Special Discord role</span>
+                            <span class="perk">Early feature access</span>
+                            <span class="perk">Priority support</span>
+                            <span class="perk">Development updates</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="tip-methods">
@@ -295,6 +295,7 @@
             </div>
         </div>
     </section>
+-->
 
     <!-- Bitcoin Modal -->
     <div id="cryptoModal" class="modal" style="display: none;">
@@ -313,6 +314,61 @@
         </div>
     </div>
 
+    <!-- Donation Modal -->
+    <div id="donationModal" class="modal donation-modal" style="display: none;">
+        <div class="modal-content donation-modal-content">
+            <span class="close" onclick="closeDonationModal()">&times;</span>
+            <div class="donation-header">
+                <h3>Support Development</h3>
+                <p>Help keep Acosmibot growing and improving</p>
+            </div>
+
+            <div class="donation-methods">
+                <!-- PayPal -->
+                <div class="donation-option paypal-option">
+                    <div class="method-header">
+                        <span class="method-icon">💳</span>
+                        <span class="method-name">PayPal</span>
+                    </div>
+                    <p class="method-description">Quick and secure donation</p>
+                    <a href="https://www.paypal.com/ncp/payment/BTN7ZAB3B632G" target="_blank" class="donation-btn paypal-btn">
+                        Donate via PayPal
+                    </a>
+                </div>
+
+                <!-- Bitcoin -->
+                <div class="donation-option crypto-option">
+                    <div class="method-header">
+                        <span class="method-icon">₿</span>
+                        <span class="method-name">Bitcoin</span>
+                    </div>
+                    <p class="method-description">Cryptocurrency donation</p>
+                    <button class="donation-btn crypto-btn" onclick="showBitcoinAddress()">
+                        View Bitcoin Address
+                    </button>
+                </div>
+            </div>
+
+            <div class="donation-footer">
+                <p>Thank you for supporting Acosmibot!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bitcoin Address Popup (nested within donation modal) -->
+    <div id="bitcoinAddressPopup" class="bitcoin-popup" style="display: none;">
+        <div class="bitcoin-popup-content">
+            <span class="close" onclick="closeBitcoinAddress()">&times;</span>
+            <h4>₿ Bitcoin Address</h4>
+            <p>Send Bitcoin to:</p>
+            <div class="crypto-address">
+                <input type="text" id="donationBtcAddress" value="3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS" readonly>
+                <button onclick="copyDonationBTCAddress()" class="copy-btn">📋 Copy</button>
+            </div>
+            <p class="popup-note">Thank you for supporting development!</p>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <div class="footer-content">
@@ -321,6 +377,8 @@
                 <a href="/terms-of-service">Terms</a>
                 <span class="divider">•</span>
                 <a href="/privacy-policy">Privacy</a>
+                <span class="divider">•</span>
+                <a href="#" onclick="showDonationModal(event)" class="support-link">Support Development ☕</a>
             </div>
             <div class="footer-copyright">
                 © 2025 Acosmibot. All rights reserved.

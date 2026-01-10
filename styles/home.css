@@ -610,6 +610,194 @@ body {
 .stagger-2 { animation-delay: 0.2s; }
 .stagger-3 { animation-delay: 0.3s; }
 
+/* Donation Modal Styles */
+.donation-modal-content {
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-card-hover));
+    border: 1px solid var(--border-cyan);
+    max-width: 450px;
+    width: 90%;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.donation-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.donation-header h3 {
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    font-size: 1.5rem;
+}
+
+.donation-header p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.donation-methods {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.donation-option {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.donation-option:hover {
+    background: var(--bg-overlay-hover);
+    border-color: var(--border-cyan);
+    transform: translateY(-3px);
+}
+
+.method-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.method-icon {
+    font-size: 1.5rem;
+}
+
+.method-name {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.method-description {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+.donation-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #000;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    width: 100%;
+}
+
+.donation-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px var(--shadow-cyan);
+}
+
+.paypal-btn {
+    background: linear-gradient(135deg, #00D9FF, #00A0CC);
+}
+
+.crypto-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+}
+
+.donation-footer {
+    text-align: center;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-light);
+}
+
+.donation-footer p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Bitcoin Address Popup */
+.bitcoin-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-card);
+    border: 1px solid var(--border-cyan);
+    border-radius: 15px;
+    padding: 25px;
+    z-index: 1001;
+    box-shadow: 0 10px 40px var(--shadow-medium);
+    max-width: 350px;
+    width: 90%;
+    animation: slideIn 0.3s ease;
+}
+
+.bitcoin-popup-content {
+    position: relative;
+}
+
+.bitcoin-popup .close {
+    position: absolute;
+    top: -5px;
+    right: 0;
+}
+
+.bitcoin-popup h4 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.bitcoin-popup p {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.bitcoin-popup .crypto-address {
+    margin-bottom: 20px;
+}
+
+.popup-note {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-align: center;
+    margin: 0;
+}
+
+/* Footer Support Link */
+.footer-links .support-link {
+    color: rgba(0, 217, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.footer-links .support-link:hover {
+    color: var(--primary-color);
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .nav-links {
@@ -655,5 +843,17 @@ body {
 
     .tip-btn {
         padding: 15px;
+    }
+
+    .donation-methods {
+        grid-template-columns: 1fr;
+    }
+
+    .donation-modal-content {
+        max-width: 300px;
+    }
+
+    .bitcoin-popup {
+        max-width: 280px;
     }
 }

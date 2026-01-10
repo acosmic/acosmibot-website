@@ -40,7 +40,7 @@
 
     /* Shadows */
     --shadow-light: rgba(0, 0, 0, 0.3);
-    --shadow-medium: rgba(0, 0, 0, 0.5);
+    --shadow-medium: rgb(138, 138, 138);
     --shadow-cyan: rgba(0, 217, 255, 0.3);
 
     /* Gradients */
