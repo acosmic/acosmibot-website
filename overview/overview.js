@@ -149,6 +149,10 @@ function renderNavAvatar(user) {
         avatarEl.style.color = 'white';
     }
     avatarEl.title = user.global_name || user.username || 'User';
+
+    // Add click handler for menu
+    avatarEl.addEventListener('click', showUserMenu);
+    avatarEl.style.position = 'relative';
 }
 
 function populateUserStats() {
@@ -293,4 +297,69 @@ function showError(message) {
             </div>
         `;
     }
+}
+
+// Show user dropdown menu
+function showUserMenu() {
+    // Remove existing menu if it exists
+    const existingMenu = document.querySelector('.user-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+        return;
+    }
+
+    const menu = document.createElement('div');
+    menu.className = 'user-menu';
+
+    const user = state.currentUser;
+    const stats = state.userStats || {};
+
+    menu.innerHTML = `
+        <div class="user-info">
+            <div class="user-name">${user.global_name || user.username || 'User'}</div>
+            <div class="user-stats">Level ${stats.level || 1} • ${formatNumber(stats.currency || 0)} Credits</div>
+        </div>
+        <a href="/overview">Overview</a>
+        <a href="#" onclick="showProfile(); return false;">Profile</a>
+        <div style="border-top: 1px solid var(--border-light); margin: 5px 0;"></div>
+        <a href="#" onclick="logout(); return false;" class="logout-btn">🚪 Logout</a>
+    `;
+
+    // Position menu
+    const avatarEl = document.getElementById('userAvatarNav');
+    if (avatarEl) {
+        avatarEl.appendChild(menu);
+
+        // Close menu when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target) && !avatarEl.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 100);
+    }
+}
+
+// Profile placeholder
+function showProfile() {
+    alert('Profile page coming soon!');
+}
+
+// Logout
+function logout() {
+    localStorage.removeItem('discord_token');
+    state.currentUser = null;
+
+    // Remove any existing menu
+    const menu = document.querySelector('.user-menu');
+    if (menu) menu.remove();
+
+    alert('Successfully logged out!');
+
+    // Redirect to home
+    setTimeout(() => {
+        window.location.href = '/';
+    }, 500);
 }

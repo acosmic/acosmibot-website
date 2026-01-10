@@ -21,50 +21,49 @@ body {
     position: absolute;
     top: 100%;
     right: 0;
-    background: var(--bg-card);
-    backdrop-filter: blur(20px);
-    border-radius: 15px;
-    box-shadow: 0 10px 40px var(--shadow-medium);
+    background: var(--bg-overlay);
+    border-radius: 12px;
     border: 1px solid var(--border-light);
     min-width: 200px;
     z-index: 1001;
-    padding: 10px 0;
+    padding: 10px;
     margin-top: 10px;
 }
 
 .user-menu .user-info {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.3);
+    padding: 10px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 8px;
 }
 
 .user-menu .user-name {
-    color: white;
+    color: var(--text-primary);
     font-weight: 600;
+    font-size: 14px;
 }
 
 .user-menu .user-stats {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: 4px;
 }
 
 .user-menu a {
     display: block;
-    padding: 12px 20px;
-    color: white;
+    padding: 10px 12px;
+    color: var(--text-primary);
     text-decoration: none;
-    transition: background 0.2s;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
 }
 
 .user-menu a:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .user-menu .logout-btn {
-    color: #e74c3c;
-}
-
-.user-menu .logout-btn:hover {
-    background: rgba(231,76,60,0.2);
+    color: #ff6b6b;
 }
 
 /* Hero Section */

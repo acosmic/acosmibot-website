@@ -330,6 +330,56 @@ body {
     box-shadow: 0 0 0 2px var(--primary-color);
 }
 
+/* User Menu Dropdown */
+.user-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 10px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 10px;
+    min-width: 200px;
+    z-index: 1001;
+}
+
+.user-menu .user-info {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 8px;
+}
+
+.user-menu .user-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.user-menu .user-stats {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.user-menu a {
+    display: block;
+    padding: 10px 12px;
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.user-menu a:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.user-menu .logout-btn {
+    color: #ff6b6b;
+}
+
 /* ============================================
    STICKY DASHBOARD HEADER
    ============================================ */
