@@ -3,14 +3,13 @@
 window.ModerationFeature = {
     init: function() {
         console.log('Initializing Moderation Feature...');
-        this.populateUI(window.state.guildConfig);
+        this.populateUI(window.DashboardCore.state.guildConfig);
         this.addEventListeners();
     },
 
     cleanup: function() {
         console.log('Cleaning up Moderation Feature...');
         // In a more complex app, you'd remove listeners here.
-        // For now, since the view is destroyed, it's not strictly necessary.
     },
 
     populateUI: function(config) {
@@ -89,31 +88,30 @@ window.ModerationFeature = {
     },
 
     handleEnableChange: function(e) {
-        if (!window.state.guildConfig.settings.moderation) window.state.guildConfig.settings.moderation = { events: {} };
-        window.state.guildConfig.settings.moderation.enabled = e.target.checked;
-        window.markUnsavedChanges();
+        if (!window.DashboardCore.state.guildConfig.settings.moderation) window.DashboardCore.state.guildConfig.settings.moderation = { events: {} };
+        window.DashboardCore.state.guildConfig.settings.moderation.enabled = e.target.checked;
+        window.DashboardCore.markUnsavedChanges();
     },
 
     handleModLogChannelChange: function(e) {
-        if (!window.state.guildConfig.settings.moderation) window.state.guildConfig.settings.moderation = { events: {} };
-        window.state.guildConfig.settings.moderation.mod_log_channel_id = e.target.value || null;
-        window.markUnsavedChanges();
+        if (!window.DashboardCore.state.guildConfig.settings.moderation) window.DashboardCore.state.guildConfig.settings.moderation = { events: {} };
+        window.DashboardCore.state.guildConfig.settings.moderation.mod_log_channel_id = e.target.value || null;
+        window.DashboardCore.markUnsavedChanges();
     },
 
     handleMemberActivityChannelChange: function(e) {
-        if (!window.state.guildConfig.settings.moderation) window.state.guildConfig.settings.moderation = { events: {} };
-        window.state.guildConfig.settings.moderation.member_activity_channel_id = e.target.value || null;
-        window.markUnsavedChanges();
+        if (!window.DashboardCore.state.guildConfig.settings.moderation) window.DashboardCore.state.guildConfig.settings.moderation = { events: {} };
+        window.DashboardCore.state.guildConfig.settings.moderation.member_activity_channel_id = e.target.value || null;
+        window.DashboardCore.markUnsavedChanges();
     },
 
     handleEventToggleChange: function(e) {
         const eventName = e.target.dataset.event;
         const isEnabled = e.target.checked;
-        const modSettings = window.state.guildConfig.settings.moderation;
+        const modSettings = window.DashboardCore.state.guildConfig.settings.moderation;
 
         if (!modSettings.events) modSettings.events = {};
 
-        // This needs to match the nested structure of the API
         const auditEvents = ['ban', 'unban', 'kick', 'mute', 'role_change'];
         const memberUpdateEvents = ['nickname_change'];
 
@@ -130,6 +128,6 @@ window.ModerationFeature = {
             modSettings.events[eventName].enabled = isEnabled;
         }
         
-        window.markUnsavedChanges();
+        window.DashboardCore.markUnsavedChanges();
     }
 };
