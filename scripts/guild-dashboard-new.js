@@ -10,6 +10,7 @@ let state = {
   hasUnsavedChanges: false,
   isSaving: false,
   isLoading: false,
+  activeFeature: 'twitch', // Default feature
   selectedStreamerIndex: null,
   validationTimeouts: {} // Track timeouts by streamer index for auto-hiding validation
 };
@@ -31,13 +32,70 @@ async function initDashboard() {
 
   // 3. Load user data and avatar
   await loadCurrentUser();
+  
+  // 4. Setup navigation before loading config
+  setupNavigation();
 
-  // 4. Load user's guilds and current config
+  // 5. Load user's guilds and current config
   await loadUserGuilds();
   await loadGuildConfig(state.currentGuildId);
 
-  // 5. Setup event listeners
+  // 6. Setup general event listeners
   setupEventListeners();
+  
+  // 7. Render the initial feature
+  renderCurrentFeature();
+}
+
+// ===== NAVIGATION =====
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const feature = item.dataset.feature;
+            if (feature) {
+                switchFeature(feature);
+            }
+        });
+    });
+}
+
+function switchFeature(feature) {
+    if (state.activeFeature === feature) return;
+
+    state.activeFeature = feature;
+    
+    // Update active class on nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.feature === feature);
+    });
+
+    renderCurrentFeature();
+}
+
+function renderCurrentFeature() {
+    // Hide all feature containers
+    document.querySelectorAll('.feature-content-container').forEach(container => {
+        container.style.display = 'none';
+    });
+
+    // Show the active one
+    const activeContainer = document.getElementById(`feature-${state.activeFeature}`);
+    if (activeContainer) {
+        activeContainer.style.display = 'block';
+    }
+
+    // Call the specific UI population function for the active feature
+    // This ensures dynamic elements are correctly handled each time the view is shown
+    switch (state.activeFeature) {
+        case 'twitch':
+            populateTwitchUI(state.guildConfig);
+            break;
+        case 'moderation':
+            populateModerationUI(state.guildConfig);
+            break;
+        // Add cases for other features here
+    }
 }
 
 // ===== USER DATA LOADING =====
@@ -202,8 +260,8 @@ async function loadGuildConfig(guildId) {
     const data = await response.json();
     state.guildConfig = data.data; // Access the nested 'data' property
 
-    // Populate all UI elements
-    populateUI(state.guildConfig);
+    // Populate all UI elements with the initial data
+    populateAllUI(state.guildConfig);
 
   } catch (error) {
     console.error('Config loading error:', error);
@@ -213,7 +271,14 @@ async function loadGuildConfig(guildId) {
   }
 }
 
-function populateUI(config) {
+function populateAllUI(config) {
+    // This function is called once to set up all feature configurations
+    populateTwitchUI(config);
+    populateModerationUI(config);
+    // Call other feature populators here as they are added
+}
+
+function populateTwitchUI(config) {
   // Ensure settings exists
   if (!config.settings) {
     config.settings = {};
@@ -225,13 +290,11 @@ function populateUI(config) {
   }
 
   // 1. Feature toggle
-  const featureToggle = document.querySelector('.toggle-switch input');
+  const featureToggle = document.getElementById('twitch-enabled-toggle');
   if (featureToggle) {
     featureToggle.checked = config.settings.twitch.enabled !== false;
-    featureToggle.addEventListener('change', (e) => {
-      config.settings.twitch.enabled = e.target.checked;
-      markUnsavedChanges();
-    });
+    featureToggle.removeEventListener('change', handleTwitchEnableChange); // Avoid duplicate listeners
+    featureToggle.addEventListener('change', handleTwitchEnableChange);
   }
 
   // 2. Channel dropdown (GLOBAL)
@@ -247,7 +310,7 @@ function populateUI(config) {
 
     // Populate with global default
     channelSelect.value = config.settings.twitch?.announcement_channel_id || '';
-
+    channelSelect.removeEventListener('change', handleChannelChange); // Avoid duplicate listeners
     channelSelect.addEventListener('change', handleChannelChange);
   }
 
@@ -286,6 +349,7 @@ function populateUI(config) {
     // Initially disable until a streamer is selected
     pingRolesSelect.disabled = true;
 
+    pingRolesSelect.removeEventListener('change', handlePingRolesChange); // Avoid duplicate listeners
     pingRolesSelect.addEventListener('change', handlePingRolesChange);
   }
 
@@ -294,6 +358,7 @@ function populateUI(config) {
   if (messageTextarea) {
     messageTextarea.value = config.settings.twitch?.announcement_message || '{username} is live!';
     messageTextarea.disabled = true; // Start disabled until a streamer is selected
+    messageTextarea.removeEventListener('input', handleAnnouncementMessageChange); // Avoid duplicate listeners
     messageTextarea.addEventListener('input', handleAnnouncementMessageChange);
   }
 
@@ -301,6 +366,115 @@ function populateUI(config) {
   const streamers = config.settings.twitch?.tracked_streamers || [];
   renderStreamerList(streamers);
 }
+
+function populateModerationUI(config) {
+    if (!config.settings.moderation) {
+        // This should be handled by the API default, but as a fallback
+        config.settings.moderation = { enabled: false, events: {} };
+    }
+    const modSettings = config.settings.moderation;
+
+    // Main toggle
+    const enabledToggle = document.getElementById('moderation-enabled-toggle');
+    if (enabledToggle) {
+        enabledToggle.checked = modSettings.enabled;
+        enabledToggle.removeEventListener('change', handleModerationEnableChange);
+        enabledToggle.addEventListener('change', handleModerationEnableChange);
+    }
+
+    // Channel selects
+    const modLogChannelSelect = document.getElementById('modLogChannelSelect');
+    if (modLogChannelSelect && config.available_channels) {
+        modLogChannelSelect.innerHTML = '<option value="">Select a channel...</option>';
+        config.available_channels.forEach(channel => {
+            const option = document.createElement('option');
+            option.value = channel.id;
+            option.textContent = `#${channel.name}`;
+            modLogChannelSelect.appendChild(option);
+        });
+        modLogChannelSelect.value = modSettings.mod_log_channel_id || '';
+        modLogChannelSelect.removeEventListener('change', handleModLogChannelChange);
+        modLogChannelSelect.addEventListener('change', handleModLogChannelChange);
+    }
+
+    const memberActivityChannelSelect = document.getElementById('memberActivityChannelSelect');
+    if (memberActivityChannelSelect && config.available_channels) {
+        memberActivityChannelSelect.innerHTML = '<option value="">Select a channel...</option>';
+        config.available_channels.forEach(channel => {
+            const option = document.createElement('option');
+            option.value = channel.id;
+            option.textContent = `#${channel.name}`;
+            memberActivityChannelSelect.appendChild(option);
+        });
+        memberActivityChannelSelect.value = modSettings.member_activity_channel_id || '';
+        memberActivityChannelSelect.removeEventListener('change', handleMemberActivityChannelChange);
+        memberActivityChannelSelect.addEventListener('change', handleMemberActivityChannelChange);
+    }
+    
+    // Event toggles
+    document.querySelectorAll('#feature-moderation .event-toggle input[type="checkbox"]').forEach(toggle => {
+        const eventName = toggle.dataset.event;
+        // This is a simplified mapping. A more robust solution would handle the nested structure.
+        let isEnabled = false;
+        if (modSettings.events) {
+            if (modSettings.events[eventName]) {
+                 isEnabled = modSettings.events[eventName].enabled;
+            } else {
+                 for (const category in modSettings.events) {
+                    if (modSettings.events[category][eventName]) {
+                        isEnabled = modSettings.events[category][eventName].enabled;
+                        break;
+                    }
+                 }
+            }
+        }
+        toggle.checked = isEnabled;
+        toggle.removeEventListener('change', handleEventToggleChange);
+        toggle.addEventListener('change', handleEventToggleChange);
+    });
+}
+
+// ===== FORM FIELD CHANGE HANDLERS =====
+
+function handleTwitchEnableChange(e) {
+    if (!state.guildConfig.settings.twitch) state.guildConfig.settings.twitch = {};
+    state.guildConfig.settings.twitch.enabled = e.target.checked;
+    markUnsavedChanges();
+}
+
+function handleModerationEnableChange(e) {
+    if (!state.guildConfig.settings.moderation) state.guildConfig.settings.moderation = { events: {} };
+    state.guildConfig.settings.moderation.enabled = e.target.checked;
+    markUnsavedChanges();
+}
+
+function handleModLogChannelChange(e) {
+    if (!state.guildConfig.settings.moderation) state.guildConfig.settings.moderation = { events: {} };
+    state.guildConfig.settings.moderation.mod_log_channel_id = e.target.value || null;
+    markUnsavedChanges();
+}
+
+function handleMemberActivityChannelChange(e) {
+    if (!state.guildConfig.settings.moderation) state.guildConfig.settings.moderation = { events: {} };
+    state.guildConfig.settings.moderation.member_activity_channel_id = e.target.value || null;
+    markUnsavedChanges();
+}
+
+function handleEventToggleChange(e) {
+    const eventName = e.target.dataset.event;
+    const isEnabled = e.target.checked;
+    if (!state.guildConfig.settings.moderation) state.guildConfig.settings.moderation = { events: {} };
+
+    // Simplified logic: does not handle nested event structure from API design yet
+    // This will need to be improved to match the API structure.
+    if (!state.guildConfig.settings.moderation.events[eventName]) {
+        state.guildConfig.settings.moderation.events[eventName] = {};
+    }
+    state.guildConfig.settings.moderation.events[eventName].enabled = isEnabled;
+    
+    markUnsavedChanges();
+}
+
 
 // ===== STREAMER CRUD OPERATIONS =====
 function renderStreamerList(streamers) {

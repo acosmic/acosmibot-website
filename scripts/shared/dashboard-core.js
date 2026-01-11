@@ -561,6 +561,11 @@ class DashboardCore {
           <span class="nav-text">Custom Commands</span>
           <span class="nav-indicator"></span>
         </div>
+        <div class="nav-item" data-feature="moderation">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Moderation</span>
+          <span class="nav-indicator"></span>
+        </div>
       </div>
     `;
   }
@@ -578,7 +583,8 @@ class DashboardCore {
       'lottery': 'lottery.enabled',
       'embeds': 'embeds.enabled',
       'reaction-roles': 'reaction_roles.enabled',
-      'custom-commands': 'custom_commands.enabled'
+      'custom-commands': 'custom_commands.enabled',
+      'moderation': 'moderation.enabled'
     };
     return configPaths[feature] || null;
   }

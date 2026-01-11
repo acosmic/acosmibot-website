@@ -1,0 +1,77 @@
+<div class="feature-header-container">
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Moderation Logging</h1>
+        </div>
+        <div class="header-right">
+            <label class="toggle-switch">
+                <input type="checkbox" id="moderation-enabled-toggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </header>
+    <p class="feature-description">Configure automated logging for moderation and server events.</p>
+</div>
+<div class="feature-container">
+    <div class="form-section">
+        <h3>Moderation Log Channel</h3>
+        <p class="field-hint">Channel for logging bans, kicks, mutes, and other moderator actions.</p>
+        <select id="modLogChannelSelect" class="feature-select">
+            <option value="">Select a channel...</option>
+        </select>
+    </div>
+
+    <div class="form-section">
+        <h3>Member Activity Channel</h3>
+        <p class="field-hint">Channel for logging member joins and leaves.</p>
+        <select id="memberActivityChannelSelect" class="feature-select">
+            <option value="">Select a channel...</option>
+        </select>
+    </div>
+
+    <div class="form-section">
+        <h3>Event Toggles</h3>
+        <div class="event-toggles-container">
+            <div class="event-toggle">
+                <label for="toggle-member-join">Member Joined</label>
+                <input type="checkbox" id="toggle-member-join" data-event="on_member_join">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-member-leave">Member Left</label>
+                <input type="checkbox" id="toggle-member-leave" data-event="on_member_remove">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-message-edit">Message Edited</label>
+                <input type="checkbox" id="toggle-message-edit" data-event="on_message_edit">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-message-delete">Message Deleted</label>
+                <input type="checkbox" id="toggle-message-delete" data-event="on_message_delete">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-ban">Member Banned</label>
+                <input type="checkbox" id="toggle-ban" data-event="ban">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-unban">Member Unbanned</label>
+                <input type="checkbox" id="toggle-unban" data-event="unban">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-kick">Member Kicked</label>
+                <input type="checkbox" id="toggle-kick" data-event="kick">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-mute">Member Muted</label>
+                <input type="checkbox" id="toggle-mute" data-event="mute">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-role-change">Role Changed</label>
+                <input type="checkbox" id="toggle-role-change" data-event="role_change">
+            </div>
+            <div class="event-toggle">
+                <label for="toggle-nickname-change">Nickname Changed</label>
+                <input type="checkbox" id="toggle-nickname-change" data-event="nickname_change">
+            </div>
+        </div>
+    </div>
+</div>

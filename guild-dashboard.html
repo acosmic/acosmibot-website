@@ -134,6 +134,10 @@
                         <span class="nav-dot"></span>
                         <span class="nav-text">Custom Commands</span>
                     </div>
+                    <div class="nav-item">
+                        <span class="nav-dot"></span>
+                        <span class="nav-text">Moderation</span>
+                    </div>
                 </div>
             </nav>
         </aside>
@@ -145,80 +149,18 @@
                 <div class="notification-indicator"></div>
                 <div class="user-avatar"></div>
             </div>
-
-            <div class="feature-header-container">
-                <!-- Page Header -->
-                <header class="dashboard-header">
-                    <div class="header-left">
-                        <h1>Twitch Alerts</h1>
-                    </div>
-                    <div class="header-right">
-                        <button id="saveButton" class="save-btn" onclick="saveAllChanges()" disabled>
-                            <span class="save-icon">💾</span>
-                            Save Changes
-                            <span class="unsaved-indicator" style="display: none;">●</span>
-                        </button>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </header>
-                <p class="feature-description">Choose what streamers you want to get alerts for</p>
-            </div>
-
-            <!-- Feature Content -->
-            <div class="feature-container">
-
-
-                <!-- Followed Streams Section -->
-                <div class="form-section">
-                    <h3>Followed Streams</h3>
-                    <div id="streamersList">
-                        <!-- Populated by JavaScript -->
-                    </div>
-                    <button class="btn-add-streamer" onclick="addStreamer()">+</button>
-                </div>
-
-                <!-- Selected Streamer Indicator -->
-                <div id="selectedStreamerIndicator" class="selected-streamer-indicator" style="display: none;">
-                    <span>Editing settings for: <strong id="selectedStreamerNameIndicator"></strong></span>
-                    <button class="btn-clear-indicator" onclick="clearStreamerSelection()">✕ Clear Selection</button>
-                </div>
-
-                <!-- Channel Dropdown -->
-                <div class="form-section">
-                    <h3>Channel</h3>
-                    <select id="channelSelect" class="feature-select">
-                        <option value="">Select a channel...</option>
-                    </select>
-                </div>
-
-                <!-- Ping Roles Dropdown (Multi-select) -->
-                <div class="form-section">
-                    <h3>Ping Roles</h3>
-                    <select id="pingRolesSelect" class="feature-select" multiple size="6">
-                        <!-- Populated by JavaScript -->
-                    </select>
-                    <p class="field-hint">Hold Ctrl/Cmd to select multiple roles</p>
-                </div>
-
-                <!-- Announcement Message Section -->
-                <div class="form-section">
-                    <h3>Announcement Message</h3>
-                    <textarea id="announcementMessageTextarea" class="message-textarea" rows="4">{username} is live!</textarea>
-                    <div class="variable-tags">
-                        <span class="var-tag">{username}</span>
-                        <span class="var-tag">{game}</span>
-                        <span class="var-tag">{title}</span>
-                        <span class="var-tag">{viewer_count}</span>
-                    </div>
-                </div>
+            
+            <div id="view-container">
+                <!-- Feature views will be loaded here by the ViewManager -->
             </div>
         </main>
     </div>
 
     <!-- JavaScript -->
-    <script src="scripts/guild-dashboard-new.js"></script>
+    <script src="scripts/shared/dashboard-core.js"></script>
+    <script src="scripts/shared/dashboard-router.js"></script>
+    <script src="scripts/shared/feature-loader.js"></script>
+    <script src="scripts/shared/dashboard-views.js"></script>
+    <script src="scripts/spa-init.js"></script>
 </body>
 </html>
