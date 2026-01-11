@@ -48,10 +48,17 @@
 
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 40px;
-    max-width: 900px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width: 1200px;
     margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+    }
 }
 
 /* Pricing Card */
@@ -421,6 +428,11 @@
     color: white;
 }
 
+.status-badge.premium-plus {
+    background: linear-gradient(135deg, #9333ea, #4f46e5);
+    color: white;
+}
+
 .server-action-btn {
     padding: 12px 24px;
     border: none;
@@ -533,6 +545,60 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Premium + AI Card Styles */
+.pricing-card.premium-plus-card {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(79, 70, 229, 0.05) 100%);
+    border: 2px solid #9333ea;
+}
+
+.pricing-card.premium-plus-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(147, 51, 234, 0.2);
+}
+
+.best-value-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #9333ea, #4f46e5);
+    color: white;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);
+}
+
+.check-icon.ai-check {
+    color: #9333ea;
+}
+
+.info-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: #3b82f6;
+    margin-top: 2px;
+}
+
+.feature-item.feature-note {
+    opacity: 0.7;
+    font-size: 13px;
+}
+
+.cta-button.ai-primary {
+    background: linear-gradient(135deg, #9333ea, #4f46e5);
+    color: white;
+    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+}
+
+.cta-button.ai-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(147, 51, 234, 0.5);
 }
 
 /* Responsive Design */

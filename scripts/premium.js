@@ -3,6 +3,7 @@
 // State
 let userGuilds = [];
 let selectedGuild = null;
+let selectedTier = 'premium'; // Default tier
 
 // Get auth token
 function getAuthToken() {
@@ -14,32 +15,60 @@ function getAuthToken() {
 // Initialize page
 async function initPremiumPage() {
   const token = getAuthToken();
-  const selectServerBtn = document.getElementById('selectServerBtn');
-  const loginHint = document.getElementById('loginHint');
+  const selectServerBtnPremium = document.getElementById('selectServerBtnPremium');
+  const selectServerBtnAI = document.getElementById('selectServerBtnAI');
+  const loginHintPremium = document.getElementById('loginHintPremium');
+  const loginHintAI = document.getElementById('loginHintAI');
 
   console.log('Premium page init - Token found:', !!token);
-  console.log('Button element:', selectServerBtn);
 
   if (token) {
     // User is logged in
-    console.log('Enabling select server button');
-    selectServerBtn.disabled = false;
-    selectServerBtn.style.cursor = 'pointer';
-    selectServerBtn.style.opacity = '1';
-    loginHint.style.display = 'none';
+    console.log('Enabling select server buttons');
 
-    // Set up event listeners
-    selectServerBtn.addEventListener('click', openServerModal);
-    document.getElementById('closeModal').addEventListener('click', closeServerModal);
-    document.querySelector('.modal-overlay').addEventListener('click', closeServerModal);
+    // Enable Premium button
+    if (selectServerBtnPremium) {
+      selectServerBtnPremium.disabled = false;
+      selectServerBtnPremium.style.cursor = 'pointer';
+      selectServerBtnPremium.style.opacity = '1';
+      loginHintPremium.style.display = 'none';
+      selectServerBtnPremium.addEventListener('click', () => {
+        selectedTier = 'premium';
+        openServerModal();
+      });
+    }
+
+    // Enable Premium + AI button
+    if (selectServerBtnAI) {
+      selectServerBtnAI.disabled = false;
+      selectServerBtnAI.style.cursor = 'pointer';
+      selectServerBtnAI.style.opacity = '1';
+      loginHintAI.style.display = 'none';
+      selectServerBtnAI.addEventListener('click', () => {
+        selectedTier = 'premium_plus_ai';
+        openServerModal();
+      });
+    }
+
+    // Set up modal close listeners
+    const closeBtn = document.getElementById('closeModal');
+    const overlay = document.querySelector('.modal-overlay');
+    if (closeBtn) closeBtn.addEventListener('click', closeServerModal);
+    if (overlay) overlay.addEventListener('click', closeServerModal);
 
     // Check for guild parameter in URL for direct upgrade flow
     handleDirectGuildUpgrade();
   } else {
     // User is not logged in
-    console.log('No token - button stays disabled');
-    selectServerBtn.disabled = true;
-    loginHint.style.display = 'block';
+    console.log('No token - buttons stay disabled');
+    if (selectServerBtnPremium) {
+      selectServerBtnPremium.disabled = true;
+      loginHintPremium.style.display = 'block';
+    }
+    if (selectServerBtnAI) {
+      selectServerBtnAI.disabled = true;
+      loginHintAI.style.display = 'block';
+    }
   }
 }
 
@@ -170,6 +199,8 @@ function createServerCard(guild) {
   card.className = 'server-card';
 
   const isPremium = guild.tier === 'premium';
+  const isPremiumPlusAI = guild.tier === 'premium_plus_ai';
+  const hasPremium = isPremium || isPremiumPlusAI;
   const isOwner = guild.owner === true;
 
   // Server icon
@@ -185,7 +216,9 @@ function createServerCard(guild) {
 
   // Status badge
   let statusBadge = '';
-  if (isPremium) {
+  if (isPremiumPlusAI) {
+    statusBadge = '<span class="status-badge premium-plus">🚀 Premium + AI</span>';
+  } else if (isPremium) {
     statusBadge = '<span class="status-badge premium">💎 Premium</span>';
   } else {
     statusBadge = '<span class="status-badge free">Free</span>';
@@ -193,16 +226,26 @@ function createServerCard(guild) {
 
   // Action button
   let actionButton = '';
-  if (isPremium) {
-    actionButton = `
-      <button class="server-action-btn manage" onclick="manageSubscription('${guild.id}', '${guild.name}')">
-        Manage Subscription
-      </button>
-    `;
+  if (hasPremium) {
+    // If user has premium tier but selected Premium + AI, show upgrade option
+    if (isPremium && selectedTier === 'premium_plus_ai') {
+      actionButton = `
+        <button class="server-action-btn upgrade" onclick="upgradeServer('${guild.id}', '${guild.name}')">
+          Upgrade to Premium + AI
+        </button>
+      `;
+    } else {
+      actionButton = `
+        <button class="server-action-btn manage" onclick="manageSubscription('${guild.id}', '${guild.name}')">
+          Manage Subscription
+        </button>
+      `;
+    }
   } else {
+    const tierName = selectedTier === 'premium_plus_ai' ? 'Premium + AI' : 'Premium';
     actionButton = `
       <button class="server-action-btn upgrade" onclick="upgradeServer('${guild.id}', '${guild.name}')">
-        Upgrade to Premium
+        Upgrade to ${tierName}
       </button>
     `;
   }
@@ -232,11 +275,12 @@ function closeServerModal() {
 async function upgradeServer(guildId, guildName) {
   try {
     const token = getAuthToken();
+    const tierName = selectedTier === 'premium_plus_ai' ? 'Premium + AI' : 'Premium';
 
-    if (confirm(`Upgrade "${guildName}" to Premium?\n\nYou will be redirected to Stripe checkout.`)) {
+    if (confirm(`Upgrade "${guildName}" to ${tierName}?\n\nYou will be redirected to Stripe checkout.`)) {
       showNotification('Creating checkout session...', 'info');
 
-      // Use real Stripe checkout
+      // Use real Stripe checkout with selected tier
       const response = await fetch(`${API_BASE_URL}/api/subscriptions/create-checkout`, {
         method: 'POST',
         headers: {
@@ -245,6 +289,7 @@ async function upgradeServer(guildId, guildName) {
         },
         body: JSON.stringify({
           guild_id: guildId,
+          tier: selectedTier,
           success_url: `${window.location.origin}/premium?success=true&guild=${guildId}`,
           cancel_url: `${window.location.origin}/premium?canceled=true`
         })
