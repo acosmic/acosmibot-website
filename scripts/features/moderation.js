@@ -129,5 +129,12 @@ window.ModerationFeature = {
         }
         
         window.DashboardCore.markUnsavedChanges();
+    },
+
+    saveChanges: async function() {
+        const settingsToSave = {
+            moderation: window.DashboardCore.state.guildConfig.settings.moderation
+        };
+        await window.DashboardCore.saveGuildConfig(settingsToSave);
     }
 };
