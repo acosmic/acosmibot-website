@@ -36,46 +36,97 @@
 
     <div class="form-section">
         <h3>Event Toggles</h3>
+        <p class="field-hint">Configure which events to log and optionally set individual channels for each event. If no specific channel is set, the global channels above will be used.</p>
         <div class="event-toggles-container">
-            <div class="event-toggle">
-                <label for="toggle-member-join">Member Joined</label>
-                <input type="checkbox" id="toggle-member-join" data-event="on_member_join">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-member-join">Member Joined</label>
+                    <input type="checkbox" id="toggle-member-join" data-event="on_member_join">
+                </div>
+                <select id="channel-member-join" class="event-channel-select" data-event="on_member_join">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-member-leave">Member Left</label>
-                <input type="checkbox" id="toggle-member-leave" data-event="on_member_remove">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-member-leave">Member Left</label>
+                    <input type="checkbox" id="toggle-member-leave" data-event="on_member_remove">
+                </div>
+                <select id="channel-member-leave" class="event-channel-select" data-event="on_member_remove">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-message-edit">Message Edited</label>
-                <input type="checkbox" id="toggle-message-edit" data-event="on_message_edit">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-message-edit">Message Edited</label>
+                    <input type="checkbox" id="toggle-message-edit" data-event="on_message_edit">
+                </div>
+                <select id="channel-message-edit" class="event-channel-select" data-event="on_message_edit">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-message-delete">Message Deleted</label>
-                <input type="checkbox" id="toggle-message-delete" data-event="on_message_delete">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-message-delete">Message Deleted</label>
+                    <input type="checkbox" id="toggle-message-delete" data-event="on_message_delete">
+                </div>
+                <select id="channel-message-delete" class="event-channel-select" data-event="on_message_delete">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-ban">Member Banned</label>
-                <input type="checkbox" id="toggle-ban" data-event="ban">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-ban">Member Banned</label>
+                    <input type="checkbox" id="toggle-ban" data-event="ban">
+                </div>
+                <select id="channel-ban" class="event-channel-select" data-event="ban">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-unban">Member Unbanned</label>
-                <input type="checkbox" id="toggle-unban" data-event="unban">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-unban">Member Unbanned</label>
+                    <input type="checkbox" id="toggle-unban" data-event="unban">
+                </div>
+                <select id="channel-unban" class="event-channel-select" data-event="unban">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-kick">Member Kicked</label>
-                <input type="checkbox" id="toggle-kick" data-event="kick">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-kick">Member Kicked</label>
+                    <input type="checkbox" id="toggle-kick" data-event="kick">
+                </div>
+                <select id="channel-kick" class="event-channel-select" data-event="kick">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-mute">Member Muted</label>
-                <input type="checkbox" id="toggle-mute" data-event="mute">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-mute">Member Muted</label>
+                    <input type="checkbox" id="toggle-mute" data-event="mute">
+                </div>
+                <select id="channel-mute" class="event-channel-select" data-event="mute">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-role-change">Role Changed</label>
-                <input type="checkbox" id="toggle-role-change" data-event="role_change">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-role-change">Role Changed</label>
+                    <input type="checkbox" id="toggle-role-change" data-event="role_change">
+                </div>
+                <select id="channel-role-change" class="event-channel-select" data-event="role_change">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
-            <div class="event-toggle">
-                <label for="toggle-nickname-change">Nickname Changed</label>
-                <input type="checkbox" id="toggle-nickname-change" data-event="nickname_change">
+            <div class="event-toggle-row">
+                <div class="event-toggle">
+                    <label for="toggle-nickname-change">Nickname Changed</label>
+                    <input type="checkbox" id="toggle-nickname-change" data-event="nickname_change">
+                </div>
+                <select id="channel-nickname-change" class="event-channel-select" data-event="nickname_change">
+                    <option value="">Use global channel</option>
+                </select>
             </div>
         </div>
     </div>
