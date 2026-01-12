@@ -371,7 +371,7 @@ class DashboardCore {
 
       // Success - update original settings to match current
       this.state.originalSettings = JSON.parse(JSON.stringify(this.state.guildConfig.settings));
-      this.state.hasUnsavedChanges = false;
+      this.clearUnsavedChanges();
       this.showSuccess('Changes saved successfully!');
 
       return true;
@@ -709,14 +709,45 @@ class DashboardCore {
     console.log('Loading:', show);
   }
 
+  showNotification(message, type = 'success') {
+    // Create notification container if it doesn't exist
+    let container = document.getElementById('notification-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'notification-container';
+      container.className = 'notification-container';
+      document.body.appendChild(container);
+    }
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+
+    // Add to container
+    container.appendChild(notification);
+
+    // Trigger slide-in animation
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      // Remove from DOM after animation completes
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 3000);
+  }
+
   showError(message) {
-    // TODO: Replace with toast notification
-    alert('Error: ' + message);
+    this.showNotification(message, 'error');
   }
 
   showSuccess(message) {
-    // TODO: Replace with toast notification
-    alert('Success: ' + message);
+    this.showNotification(message, 'success');
   }
 
   // Show user dropdown menu
