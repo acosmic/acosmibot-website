@@ -272,6 +272,7 @@ function addTwitchStreamerInternal() {
   const newStreamer = {
     username: '',
     isValid: false,
+    platform: "twitch",
     mention_role_ids: [],
     mention_everyone: false,
     mention_here: false,
