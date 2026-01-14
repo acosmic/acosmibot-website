@@ -151,6 +151,14 @@ function populateTwitchUI() {
 
   // 5. Streamers list
   const streamers = config.settings.twitch?.tracked_streamers || [];
+  
+  // Ensure all streamers have the platform property set
+  streamers.forEach(streamer => {
+    if (!streamer.platform) {
+      streamer.platform = 'twitch';
+    }
+  });
+
   renderTwitchStreamerList(streamers);
 
   // 6. Update streamer limit display
@@ -270,9 +278,9 @@ function addTwitchStreamerInternal() {
   }
 
   const newStreamer = {
+    platform: 'twitch',
     username: '',
     isValid: false,
-    platform: "twitch",
     mention_role_ids: [],
     mention_everyone: false,
     mention_here: false,
