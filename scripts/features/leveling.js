@@ -316,7 +316,7 @@ function createLevelMappingRow(level, mapping, availableRoles) {
   levelInput.className = 'level-input';
   levelInput.value = level;
   levelInput.min = '0';
-  levelInput.max = '100';
+  levelInput.max = '1000000';
   levelInput.addEventListener('change', (e) => handleLevelChange(level, e.target.value));
 
   // Role dropdown

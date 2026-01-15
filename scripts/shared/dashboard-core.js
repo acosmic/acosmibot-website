@@ -474,6 +474,35 @@ class DashboardCore {
           <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
             <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
           </svg>
+          <span>UTILITIES</span>
+        </div>
+        <div class="nav-item" data-feature="embeds">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Embeds</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="reaction-roles">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Reaction Roles</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="custom-commands">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Custom Commands</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="moderation">
+          <span class="nav-dot"></span>
+          <span class="nav-text">Moderation</span>
+          <span class="nav-indicator"></span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-header">
+          <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
           <span>SOCIAL ALERTS</span>
         </div>
         <div class="nav-item" data-feature="twitch">
@@ -535,35 +564,6 @@ class DashboardCore {
         <div class="nav-item" data-feature="lottery">
           <span class="nav-dot"></span>
           <span class="nav-text">Lottery</span>
-          <span class="nav-indicator"></span>
-        </div>
-      </div>
-
-      <div class="nav-section">
-        <div class="nav-section-header">
-          <svg class="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-            <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          </svg>
-          <span>UTILITIES</span>
-        </div>
-        <div class="nav-item" data-feature="embeds">
-          <span class="nav-dot"></span>
-          <span class="nav-text">Embeds</span>
-          <span class="nav-indicator"></span>
-        </div>
-        <div class="nav-item" data-feature="reaction-roles">
-          <span class="nav-dot"></span>
-          <span class="nav-text">Reaction Roles</span>
-          <span class="nav-indicator"></span>
-        </div>
-        <div class="nav-item" data-feature="custom-commands">
-          <span class="nav-dot"></span>
-          <span class="nav-text">Custom Commands</span>
-          <span class="nav-indicator"></span>
-        </div>
-        <div class="nav-item" data-feature="moderation">
-          <span class="nav-dot"></span>
-          <span class="nav-text">Moderation</span>
           <span class="nav-indicator"></span>
         </div>
       </div>
