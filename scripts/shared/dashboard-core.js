@@ -515,9 +515,10 @@ class DashboardCore {
           <span class="nav-text">YouTube</span>
           <span class="nav-indicator"></span>
         </div>
-        <div class="nav-item" data-feature="kick" data-coming-soon="true">
+        <div class="nav-item" data-feature="kick">
           <span class="nav-dot"></span>
           <span class="nav-text">Kick</span>
+          <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="reddit" data-coming-soon="true">
           <span class="nav-dot"></span>
