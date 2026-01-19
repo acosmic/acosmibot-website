@@ -79,7 +79,11 @@ function populateKickUI() {
   // 1. Feature toggle
   const featureToggle = document.getElementById('featureToggle');
   if (featureToggle) {
-    featureToggle.checked = config.settings.kick.enabled !== false;
+    // Initialize enabled to true if undefined (default enabled)
+    if (config.settings.kick.enabled === undefined) {
+      config.settings.kick.enabled = true;
+    }
+    featureToggle.checked = config.settings.kick.enabled;
     featureToggle.addEventListener('change', (e) => {
       config.settings.kick.enabled = e.target.checked;
       getDashboardCore().markUnsavedChanges();
