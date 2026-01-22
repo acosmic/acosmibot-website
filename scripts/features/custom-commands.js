@@ -340,6 +340,10 @@ const CustomCommandsFeature = {
             this.updateCommandCount();
             this.hideForm();
 
+            // Update dashboard core count and nav indicator
+            dashboardCore.state.customCommandsCount = this.state.commands.length;
+            dashboardCore.updateNavIndicators();
+
             alert(this.state.editingId ? 'Command updated!' : 'Command created!');
 
         } catch (error) {
@@ -377,6 +381,10 @@ const CustomCommandsFeature = {
             this.state.commands.splice(index, 1);
             this.renderCommandsList();
             this.updateCommandCount();
+
+            // Update dashboard core count and nav indicator
+            dashboardCore.state.customCommandsCount = this.state.commands.length;
+            dashboardCore.updateNavIndicators();
 
             alert('Command deleted!');
 

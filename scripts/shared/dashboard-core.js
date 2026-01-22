@@ -16,7 +16,8 @@ class DashboardCore {
       hasUnsavedChanges: false,
       isSaving: false,
       isLoading: false,
-      isNavigating: false // Flag to prevent double unsaved changes popup
+      isNavigating: false, // Flag to prevent double unsaved changes popup
+      customCommandsCount: 0 // Track number of custom commands for nav indicator
     };
   }
 
@@ -328,11 +329,34 @@ class DashboardCore {
       // Store original settings for change detection
       this.state.originalSettings = JSON.parse(JSON.stringify(this.state.guildConfig.settings));
 
+      // Fetch custom commands count for nav indicator
+      await this.loadCustomCommandsCount(guildId);
+
     } catch (error) {
       console.error('Config loading error:', error);
       this.showError('Failed to load guild configuration');
     } finally {
       this.showLoading(false);
+    }
+  }
+
+  // Fetch custom commands count
+  async loadCustomCommandsCount(guildId) {
+    try {
+      const token = localStorage.getItem('discord_token');
+      const response = await fetch(`${this.API_BASE_URL}/api/guilds/${guildId}/custom-commands`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          this.state.customCommandsCount = data.count || 0;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching custom commands count:', error);
+      this.state.customCommandsCount = 0;
     }
   }
 
@@ -373,6 +397,9 @@ class DashboardCore {
       this.state.originalSettings = JSON.parse(JSON.stringify(this.state.guildConfig.settings));
       this.clearUnsavedChanges();
       this.showSuccess('Changes saved successfully!');
+
+      // Update sidenav indicators to reflect new enabled/disabled states
+      this.updateNavIndicators();
 
       return true;
 
@@ -577,6 +604,7 @@ class DashboardCore {
       'leveling': 'leveling.enabled',
       'twitch': 'twitch.enabled',
       'youtube': 'youtube.enabled',
+      'kick': 'kick.enabled',
       'polymorph': 'polymorph.enabled',
       'portals': 'cross_server_portal.enabled',
       'jail': 'jail.enabled',
@@ -584,14 +612,19 @@ class DashboardCore {
       'lottery': 'lottery.enabled',
       'embeds': 'embeds.enabled',
       'reaction-roles': 'reaction_roles.enabled',
-      'custom-commands': 'custom_commands.enabled',
       'moderation': 'moderation.enabled'
+      // Note: custom-commands handled specially in isFeatureEnabled()
     };
     return configPaths[feature] || null;
   }
 
   // Check if a feature is enabled in config
   isFeatureEnabled(feature) {
+    // Special case: custom commands are enabled if any commands exist
+    if (feature === 'custom-commands') {
+      return this.state.customCommandsCount > 0;
+    }
+
     const configPath = this.getFeatureConfigPath(feature);
     if (!configPath || !this.state.guildConfig?.settings) {
       return false;
