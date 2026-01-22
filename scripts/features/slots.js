@@ -144,6 +144,12 @@ const SlotsFeature = {
 
         countEl.textContent = `${current} / ${required}`;
         countEl.style.color = current >= required ? 'var(--success-color)' : 'var(--text-secondary)';
+
+        // Update Add Emoji button disabled state
+        const addBtn = document.getElementById(`${tier}AddBtn`);
+        if (addBtn) {
+            addBtn.disabled = current >= required;
+        }
     },
 
     getEmojiDisplay(emoji, availableEmojis = []) {
@@ -387,11 +393,30 @@ const SlotsFeature = {
             const inputs = section.querySelectorAll('button, input, select');
             inputs.forEach(input => {
                 if (!input.classList.contains('toggle-slider') && input.id !== 'featureToggle') {
-                    input.disabled = !isEnabled;
+                    // Don't just disable all buttons - we need to check if Add Emoji buttons should be disabled based on tier limits
+                    if (input.classList.contains('btn-add-emoji')) {
+                        // Skip - will be handled by updateTierCount
+                    } else {
+                        input.disabled = !isEnabled;
+                    }
                 }
             });
             section.style.opacity = isEnabled ? '1' : '0.5';
         });
+
+        // Update tier counts and button states for Add Emoji buttons
+        if (isEnabled) {
+            this.updateTierCount('common');
+            this.updateTierCount('uncommon');
+            this.updateTierCount('rare');
+            this.updateTierCount('legendary');
+            this.updateTierCount('scatter');
+        } else {
+            // When feature is disabled, disable all Add Emoji buttons
+            document.querySelectorAll('.btn-add-emoji').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
     },
 
     setupEventListeners() {

@@ -36,7 +36,7 @@
             <div class="emoji-tier-container" id="commonEmojis">
                 <!-- Populated by JavaScript -->
             </div>
-            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('common')">+ Add Emoji</button>
+            <button class="btn-add-emoji" id="commonAddBtn" onclick="SlotsFeature.addEmojiToTier('common')">+ Add Emoji</button>
         </div>
 
         <!-- Uncommon Tier -->
@@ -50,7 +50,7 @@
             <div class="emoji-tier-container" id="uncommonEmojis">
                 <!-- Populated by JavaScript -->
             </div>
-            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('uncommon')">+ Add Emoji</button>
+            <button class="btn-add-emoji" id="uncommonAddBtn" onclick="SlotsFeature.addEmojiToTier('uncommon')">+ Add Emoji</button>
         </div>
 
         <!-- Rare Tier -->
@@ -64,7 +64,7 @@
             <div class="emoji-tier-container" id="rareEmojis">
                 <!-- Populated by JavaScript -->
             </div>
-            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('rare')">+ Add Emoji</button>
+            <button class="btn-add-emoji" id="rareAddBtn" onclick="SlotsFeature.addEmojiToTier('rare')">+ Add Emoji</button>
         </div>
 
         <!-- Legendary Tier -->
@@ -78,7 +78,7 @@
             <div class="emoji-tier-container" id="legendaryEmojis">
                 <!-- Populated by JavaScript -->
             </div>
-            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('legendary')">+ Add Emoji</button>
+            <button class="btn-add-emoji" id="legendaryAddBtn" onclick="SlotsFeature.addEmojiToTier('legendary')">+ Add Emoji</button>
         </div>
 
         <!-- Scatter Tier -->
@@ -92,7 +92,7 @@
             <div class="emoji-tier-container" id="scatterEmojis">
                 <!-- Populated by JavaScript -->
             </div>
-            <button class="btn-add-emoji" onclick="SlotsFeature.addEmojiToTier('scatter')">+ Add Emoji</button>
+            <button class="btn-add-emoji" id="scatterAddBtn" onclick="SlotsFeature.addEmojiToTier('scatter')">+ Add Emoji</button>
         </div>
     </div>
 </div>
@@ -120,28 +120,7 @@
 <style>
 /* Tier Section Styling */
 .tier-section {
-    border: 2px solid var(--border-light);
     transition: border-color 0.3s;
-}
-
-.tier-section[data-tier="common"] {
-    border-color: #9e9e9e;
-}
-
-.tier-section[data-tier="uncommon"] {
-    border-color: #4caf50;
-}
-
-.tier-section[data-tier="rare"] {
-    border-color: #2196f3;
-}
-
-.tier-section[data-tier="legendary"] {
-    border-color: #ff9800;
-}
-
-.tier-section[data-tier="scatter"] {
-    border-color: #9c27b0;
 }
 
 .tier-header {
@@ -210,8 +189,30 @@
     min-height: 60px;
     padding: 12px;
     background: rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--border-light);
+    transition: border-color 0.3s;
     border-radius: 8px;
     margin-bottom: 12px;
+}
+
+.tier-section[data-tier="common"] .emoji-tier-container {
+    border-color: #9e9e9e;
+}
+
+.tier-section[data-tier="uncommon"] .emoji-tier-container {
+    border-color: #4caf50;
+}
+
+.tier-section[data-tier="rare"] .emoji-tier-container {
+    border-color: #2196f3;
+}
+
+.tier-section[data-tier="legendary"] .emoji-tier-container {
+    border-color: #ff9800;
+}
+
+.tier-section[data-tier="scatter"] .emoji-tier-container {
+    border-color: #9c27b0;
 }
 
 .emoji-slot-item {
@@ -279,6 +280,17 @@
 .btn-add-emoji:hover {
     background: rgba(0, 217, 255, 0.2);
     border-color: var(--primary-color);
+}
+
+.btn-add-emoji:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-add-emoji:disabled:hover {
+    background: rgba(0, 217, 255, 0.1);
+    border-color: rgba(0, 217, 255, 0.4);
 }
 
 /* Emoji Picker Modal */
