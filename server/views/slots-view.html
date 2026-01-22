@@ -30,7 +30,7 @@
             <div class="tier-header">
                 <h3>Common Tier</h3>
                 <span class="tier-badge common">Most Frequent</span>
-                <span class="tier-count" id="commonCount">0 / 5</span>
+                <span class="limit-display" id="commonCount">0 of 5</span>
             </div>
             <p class="tier-description">These symbols appear most often on the reels.</p>
             <div class="emoji-tier-container" id="commonEmojis">
@@ -44,7 +44,7 @@
             <div class="tier-header">
                 <h3>Uncommon Tier</h3>
                 <span class="tier-badge uncommon">Medium Frequency</span>
-                <span class="tier-count" id="uncommonCount">0 / 3</span>
+                <span class="limit-display" id="uncommonCount">0 of 3</span>
             </div>
             <p class="tier-description">These symbols appear moderately often.</p>
             <div class="emoji-tier-container" id="uncommonEmojis">
@@ -58,7 +58,7 @@
             <div class="tier-header">
                 <h3>Rare Tier</h3>
                 <span class="tier-badge rare">Less Frequent</span>
-                <span class="tier-count" id="rareCount">0 / 1</span>
+                <span class="limit-display" id="rareCount">0 of 1</span>
             </div>
             <p class="tier-description">These symbols are harder to land.</p>
             <div class="emoji-tier-container" id="rareEmojis">
@@ -72,7 +72,7 @@
             <div class="tier-header">
                 <h3>Legendary Tier</h3>
                 <span class="tier-badge legendary">Very Rare</span>
-                <span class="tier-count" id="legendaryCount">0 / 2</span>
+                <span class="limit-display" id="legendaryCount">0 of 2</span>
             </div>
             <p class="tier-description">These symbols rarely appear but give the biggest payouts.</p>
             <div class="emoji-tier-container" id="legendaryEmojis">
@@ -86,7 +86,7 @@
             <div class="tier-header">
                 <h3>Scatter Tier</h3>
                 <span class="tier-badge scatter">Special Symbol</span>
-                <span class="tier-count" id="scatterCount">0 / 1</span>
+                <span class="limit-display" id="scatterCount">0 of 1</span>
             </div>
             <p class="tier-description">Scatter symbols can trigger bonus features.</p>
             <div class="emoji-tier-container" id="scatterEmojis">
@@ -134,11 +134,8 @@
     margin: 0;
 }
 
-.tier-count {
+.tier-header .limit-display {
     margin-left: auto;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
 }
 
 .tier-badge {

@@ -142,8 +142,7 @@ const SlotsFeature = {
         const current = this.state.tierEmojis[tier]?.length || 0;
         const required = this.state.tierRequirements[tier] || 0;
 
-        countEl.textContent = `${current} / ${required}`;
-        countEl.style.color = current >= required ? 'var(--success-color)' : 'var(--text-secondary)';
+        countEl.textContent = `${current} of ${required}`;
 
         // Update Add Emoji button disabled state
         const addBtn = document.getElementById(`${tier}AddBtn`);
