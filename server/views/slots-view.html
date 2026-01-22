@@ -30,6 +30,7 @@
             <div class="tier-header">
                 <h3>Common Tier</h3>
                 <span class="tier-badge common">Most Frequent</span>
+                <span class="tier-count" id="commonCount">0 / 5</span>
             </div>
             <p class="tier-description">These symbols appear most often on the reels.</p>
             <div class="emoji-tier-container" id="commonEmojis">
@@ -43,6 +44,7 @@
             <div class="tier-header">
                 <h3>Uncommon Tier</h3>
                 <span class="tier-badge uncommon">Medium Frequency</span>
+                <span class="tier-count" id="uncommonCount">0 / 3</span>
             </div>
             <p class="tier-description">These symbols appear moderately often.</p>
             <div class="emoji-tier-container" id="uncommonEmojis">
@@ -56,6 +58,7 @@
             <div class="tier-header">
                 <h3>Rare Tier</h3>
                 <span class="tier-badge rare">Less Frequent</span>
+                <span class="tier-count" id="rareCount">0 / 1</span>
             </div>
             <p class="tier-description">These symbols are harder to land.</p>
             <div class="emoji-tier-container" id="rareEmojis">
@@ -69,6 +72,7 @@
             <div class="tier-header">
                 <h3>Legendary Tier</h3>
                 <span class="tier-badge legendary">Very Rare</span>
+                <span class="tier-count" id="legendaryCount">0 / 2</span>
             </div>
             <p class="tier-description">These symbols rarely appear but give the biggest payouts.</p>
             <div class="emoji-tier-container" id="legendaryEmojis">
@@ -82,6 +86,7 @@
             <div class="tier-header">
                 <h3>Scatter Tier</h3>
                 <span class="tier-badge scatter">Special Symbol</span>
+                <span class="tier-count" id="scatterCount">0 / 1</span>
             </div>
             <p class="tier-description">Scatter symbols can trigger bonus features.</p>
             <div class="emoji-tier-container" id="scatterEmojis">
@@ -115,28 +120,28 @@
 <style>
 /* Tier Section Styling */
 .tier-section {
-    border-left: 4px solid var(--border-light);
+    border: 2px solid var(--border-light);
     transition: border-color 0.3s;
 }
 
 .tier-section[data-tier="common"] {
-    border-left-color: #9e9e9e;
+    border-color: #9e9e9e;
 }
 
 .tier-section[data-tier="uncommon"] {
-    border-left-color: #4caf50;
+    border-color: #4caf50;
 }
 
 .tier-section[data-tier="rare"] {
-    border-left-color: #2196f3;
+    border-color: #2196f3;
 }
 
 .tier-section[data-tier="legendary"] {
-    border-left-color: #ff9800;
+    border-color: #ff9800;
 }
 
 .tier-section[data-tier="scatter"] {
-    border-left-color: #9c27b0;
+    border-color: #9c27b0;
 }
 
 .tier-header {
@@ -148,6 +153,13 @@
 
 .tier-header h3 {
     margin: 0;
+}
+
+.tier-count {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 .tier-badge {
@@ -403,6 +415,19 @@
 .emoji-picker-item:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: scale(1.1);
+}
+
+.emoji-picker-item.disabled,
+.emoji-picker-item:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.emoji-picker-item.disabled:hover,
+.emoji-picker-item:disabled:hover {
+    background: transparent;
+    transform: none;
 }
 
 .emoji-picker-item img {

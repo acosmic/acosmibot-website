@@ -12,13 +12,20 @@ const SlotsFeature = {
         initialized: false,
         currentTier: null,
         currentEmojiIndex: null,
-        currentTab: 'standard',
+        currentTab: 'custom',
         tierEmojis: {
             common: [],
             uncommon: [],
             rare: [],
             legendary: [],
             scatter: []
+        },
+        tierRequirements: {
+            common: 5,
+            uncommon: 3,
+            rare: 1,
+            legendary: 2,
+            scatter: 1
         }
     },
 
@@ -123,6 +130,20 @@ const SlotsFeature = {
                 </div>
             `;
         }).join('');
+
+        // Update count display
+        this.updateTierCount(tier);
+    },
+
+    updateTierCount(tier) {
+        const countEl = document.getElementById(`${tier}Count`);
+        if (!countEl) return;
+
+        const current = this.state.tierEmojis[tier]?.length || 0;
+        const required = this.state.tierRequirements[tier] || 0;
+
+        countEl.textContent = `${current} / ${required}`;
+        countEl.style.color = current >= required ? 'var(--success-color)' : 'var(--text-secondary)';
     },
 
     getEmojiDisplay(emoji, availableEmojis = []) {
@@ -155,7 +176,7 @@ const SlotsFeature = {
         const modal = document.getElementById('emojiPickerModal');
         if (modal) {
             modal.style.display = 'flex';
-            this.switchEmojiTab('standard');
+            this.switchEmojiTab('custom');
             document.getElementById('emojiSearchInput').value = '';
         }
     },
@@ -189,6 +210,7 @@ const SlotsFeature = {
         const grid = document.getElementById('emojiPickerGrid');
         if (!grid) return;
 
+        const allSelectedEmojis = this.getAllSelectedEmojis();
         let emojis = [];
 
         if (this.state.currentTab === 'standard') {
@@ -203,11 +225,17 @@ const SlotsFeature = {
                 // unless we maintain a name mapping
             }
 
-            grid.innerHTML = emojis.map(emoji => `
-                <button class="emoji-picker-item" onclick="SlotsFeature.selectEmoji('${emoji}')" title="${emoji}">
-                    ${emoji}
-                </button>
-            `).join('');
+            grid.innerHTML = emojis.map(emoji => {
+                const isUsed = allSelectedEmojis.includes(emoji);
+                const disabledClass = isUsed ? 'disabled' : '';
+                const disabledAttr = isUsed ? 'disabled' : '';
+
+                return `
+                    <button class="emoji-picker-item ${disabledClass}" onclick="SlotsFeature.selectEmoji('${emoji}')" title="${emoji}" ${disabledAttr}>
+                        ${emoji}
+                    </button>
+                `;
+            }).join('');
         } else {
             // Custom server emojis
             const availableEmojis = getDashboardCore()?.state?.guildConfig?.available_emojis || [];
@@ -234,9 +262,12 @@ const SlotsFeature = {
                 const emojiValue = this.buildCustomEmojiValue(emoji);
                 const ext = emoji.animated ? 'gif' : 'png';
                 const imgUrl = `https://cdn.discordapp.com/emojis/${emoji.id}.${ext}`;
+                const isUsed = allSelectedEmojis.includes(emojiValue);
+                const disabledClass = isUsed ? 'disabled' : '';
+                const disabledAttr = isUsed ? 'disabled' : '';
 
                 return `
-                    <button class="emoji-picker-item" onclick="SlotsFeature.selectEmoji('${emojiValue.replace(/'/g, "\\'")}')" title="${emoji.name}">
+                    <button class="emoji-picker-item ${disabledClass}" onclick="SlotsFeature.selectEmoji('${emojiValue.replace(/'/g, "\\'")}')" title="${emoji.name}" ${disabledAttr}>
                         <img src="${imgUrl}" alt="${emoji.name}">
                     </button>
                 `;
@@ -258,6 +289,13 @@ const SlotsFeature = {
 
         const dashboardCore = getDashboardCore();
 
+        // Check if emoji is already used
+        const allSelectedEmojis = this.getAllSelectedEmojis();
+        if (allSelectedEmojis.includes(emoji)) {
+            alert('This emoji is already being used in another tier. Each emoji can only be used once.');
+            return;
+        }
+
         if (index === null) {
             // Adding new emoji
             this.state.tierEmojis[tier].push(emoji);
@@ -268,6 +306,9 @@ const SlotsFeature = {
 
         // Re-render the tier
         this.renderTierEmojis(tier);
+
+        // Update the guild config to reflect changes
+        this.syncTierEmojisToConfig();
 
         // Mark unsaved changes
         dashboardCore?.markUnsavedChanges();
@@ -282,12 +323,58 @@ const SlotsFeature = {
         this.state.tierEmojis[tier].splice(index, 1);
         this.renderTierEmojis(tier);
 
+        // Update the guild config to reflect changes
+        this.syncTierEmojisToConfig();
+
+        // Mark unsaved changes
         dashboardCore?.markUnsavedChanges();
+    },
+
+    syncTierEmojisToConfig() {
+        const dashboardCore = getDashboardCore();
+        if (!dashboardCore?.state?.guildConfig?.settings) return;
+
+        // Ensure games config exists
+        if (!dashboardCore.state.guildConfig.settings.games) {
+            dashboardCore.state.guildConfig.settings.games = {};
+        }
+
+        // Ensure slots-config exists
+        if (!dashboardCore.state.guildConfig.settings.games['slots-config']) {
+            dashboardCore.state.guildConfig.settings.games['slots-config'] = {};
+        }
+
+        // Update tier_emojis in the config
+        dashboardCore.state.guildConfig.settings.games['slots-config'].tier_emojis = {
+            common: [...this.state.tierEmojis.common],
+            uncommon: [...this.state.tierEmojis.uncommon],
+            rare: [...this.state.tierEmojis.rare],
+            legendary: [...this.state.tierEmojis.legendary],
+            scatter: [...this.state.tierEmojis.scatter]
+        };
+    },
+
+    getAllSelectedEmojis() {
+        const allEmojis = [];
+        Object.values(this.state.tierEmojis).forEach(tierArray => {
+            allEmojis.push(...tierArray);
+        });
+        return allEmojis;
     },
 
     handleToggleChange() {
         const dashboardCore = getDashboardCore();
         this.updateSectionStates();
+
+        // Update the guild config to reflect toggle change
+        const featureToggle = document.getElementById('featureToggle');
+        if (dashboardCore?.state?.guildConfig?.settings?.games) {
+            if (!dashboardCore.state.guildConfig.settings.games['slots-config']) {
+                dashboardCore.state.guildConfig.settings.games['slots-config'] = {};
+            }
+            dashboardCore.state.guildConfig.settings.games['slots-config'].enabled = featureToggle?.checked ?? false;
+        }
+
         dashboardCore?.markUnsavedChanges();
     },
 
