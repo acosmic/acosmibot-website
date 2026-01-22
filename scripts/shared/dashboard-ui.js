@@ -128,6 +128,22 @@ function hideLoadingOverlay() {
   }
 }
 
+// ===== ANIMATED LOADING TEXT =====
+// Creates the animated "LOADING" text effect
+function createAnimatedLoading() {
+  return `
+    <div id="animated-load">
+      <div>L</div>
+      <div>O</div>
+      <div>A</div>
+      <div>D</div>
+      <div>I</div>
+      <div>N</div>
+      <div>G</div>
+    </div>
+  `;
+}
+
 // ===== CONFIRMATION DIALOG =====
 function showConfirmDialog(title, message, onConfirm, onCancel = null) {
   const dialog = document.createElement('div');
@@ -198,6 +214,7 @@ window.showErrorToast = showErrorToast;
 window.showInfoToast = showInfoToast;
 window.showLoadingOverlay = showLoadingOverlay;
 window.hideLoadingOverlay = hideLoadingOverlay;
+window.createAnimatedLoading = createAnimatedLoading;
 window.showConfirmDialog = showConfirmDialog;
 window.escapeHtml = escapeHtml;
 window.debounce = debounce;

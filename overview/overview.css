@@ -276,6 +276,8 @@ body {
     text-align: center;
     color: var(--text-secondary);
     padding: 40px;
+    position: relative;
+    min-height: 150px;
 }
 
 .server-card {

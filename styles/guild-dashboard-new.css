@@ -245,6 +245,12 @@ body {
     width: 100%;
 }
 
+.view-loading {
+    position: relative;
+    min-height: 300px;
+    width: 100%;
+}
+
 /* ============================================
    TOP NAVIGATION BAR
    ============================================ */
