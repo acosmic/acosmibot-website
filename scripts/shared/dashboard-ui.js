@@ -133,13 +133,13 @@ function hideLoadingOverlay() {
 function createAnimatedLoading() {
   return `
     <div id="animated-load">
-      <div>L</div>
-      <div>O</div>
-      <div>A</div>
-      <div>D</div>
-      <div>I</div>
-      <div>N</div>
       <div>G</div>
+      <div>N</div>
+      <div>I</div>
+      <div>D</div>
+      <div>A</div>
+      <div>O</div>
+      <div>L</div>
     </div>
   `;
 }
