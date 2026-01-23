@@ -19,7 +19,7 @@ const EmbedsFeature = (function() {
 
         const dashboardCore = getDashboardCore();
         console.log('[Embeds] DashboardCore:', dashboardCore);
-        console.log('[Embeds] Current Guild ID:', dashboardCore?.currentGuildId);
+        console.log('[Embeds] Current Guild ID:', dashboardCore?.state?.currentGuildId);
 
         if (!dashboardCore) {
             console.error('[Embeds] DashboardCore not available');
@@ -27,14 +27,17 @@ const EmbedsFeature = (function() {
             return;
         }
 
-        if (!dashboardCore.currentGuildId) {
+        const guildId = dashboardCore.state.currentGuildId;
+
+        if (!guildId) {
             console.error('[Embeds] No guild ID available');
             showError('No guild selected');
             return;
         }
 
-        state.guildId = dashboardCore.currentGuildId;
+        state.guildId = guildId;
         loadCSS('/styles/embeds.css');
+        await loadScript('/scripts/shared/embed-preview.js');
 
         const route = params.route || 'embeds';
         console.log('[Embeds] Route:', route);
@@ -58,23 +61,18 @@ const EmbedsFeature = (function() {
         console.log('[Embeds] showList called');
 
         try {
-            const response = await fetch('/server/views/embeds-list-view.html');
-            console.log('[Embeds] List view response status:', response.status);
+            // Show list view, hide builder view
+            const listView = document.getElementById('embedsListView');
+            const builderView = document.getElementById('embedsBuilderView');
 
-            if (!response.ok) {
-                throw new Error(`Failed to load list view: ${response.status}`);
+            if (!listView || !builderView) {
+                throw new Error('Embeds view sections not found');
             }
 
-            const html = await response.text();
-            console.log('[Embeds] List view HTML loaded, length:', html.length);
+            listView.style.display = 'block';
+            builderView.style.display = 'none';
 
-            const container = document.getElementById('featureContent');
-            if (!container) {
-                throw new Error('featureContent container not found');
-            }
-
-            container.innerHTML = html;
-            console.log('[Embeds] List view HTML injected');
+            console.log('[Embeds] List view shown');
 
             await Promise.all([fetchEmbeds(), fetchStats()]);
             setupListEventListeners();
@@ -86,14 +84,26 @@ const EmbedsFeature = (function() {
     }
 
     async function showBuilder(embedId = null) {
-        const response = await fetch('/server/views/embeds-builder-view.html');
-        const html = await response.text();
-        document.getElementById('featureContent').innerHTML = html;
+        console.log('[Embeds] showBuilder called, embedId:', embedId);
+
+        // Show builder view, hide list view
+        const listView = document.getElementById('embedsListView');
+        const builderView = document.getElementById('embedsBuilderView');
+
+        if (!listView || !builderView) {
+            console.error('[Embeds] View sections not found');
+            showError('Embeds view sections not found');
+            return;
+        }
+
+        listView.style.display = 'none';
+        builderView.style.display = 'block';
 
         await fetchChannels();
         if (embedId) {
             await loadEmbedForEditing(embedId);
-            document.getElementById('builderTitle').textContent = 'Edit Embed';
+            const titleEl = document.getElementById('builderTitle');
+            if (titleEl) titleEl.textContent = 'Edit Embed';
         } else {
             initializeNewEmbed();
         }
@@ -771,6 +781,20 @@ const EmbedsFeature = (function() {
             link.href = href;
             document.head.appendChild(link);
         }
+    }
+
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
     }
 
     function getValue(id) {
