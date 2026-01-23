@@ -1,68 +1,9 @@
-<!-- Page Header -->
-<header class="dashboard-header">
-    <div class="header-left">
-        <h1>Custom Embeds</h1>
-        <p class="feature-description">Create beautiful embed messages</p>
-    </div>
-</header>
-
-<!-- Feature Content -->
-<div class="feature-container">
-    <div class="coming-soon-content">
-        <div class="coming-soon-icon">📝</div>
-        <h2>Coming Soon</h2>
-        <p>We're working hard to bring you this feature. Check back soon!</p>
-        <div class="coming-soon-features">
-            <p>Custom Embeds will let you create and manage beautiful Discord embed messages with a visual builder.</p>
-        </div>
+<!-- Embeds Feature Container -->
+<!-- Content is dynamically loaded by embeds.js (list or builder view) -->
+<div id="featureContent">
+    <!-- Loading state -->
+    <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
+        <h2 style="color: #FFFFFF; margin-bottom: 8px;">Loading Embeds...</h2>
     </div>
 </div>
-
-<style>
-.coming-soon-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 60px 20px;
-    min-height: 400px;
-}
-
-.coming-soon-icon {
-    font-size: 80px;
-    margin-bottom: 24px;
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.coming-soon-content h2 {
-    font-size: 28px;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-}
-
-.coming-soon-content > p {
-    font-size: 16px;
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-}
-
-.coming-soon-features {
-    background: rgba(0, 217, 255, 0.1);
-    border: 1px solid rgba(0, 217, 255, 0.3);
-    border-radius: 12px;
-    padding: 20px 30px;
-}
-
-.coming-soon-features p {
-    color: var(--text-secondary);
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
-}
-</style>

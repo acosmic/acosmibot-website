@@ -64,8 +64,8 @@ const EmbedsFeature = (function() {
         try {
             const dashboardCore = getDashboardCore();
             const response = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds\`,
-                { headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` } }
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds`,
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
             );
             const data = await response.json();
             if (data.success) state.embeds = data.embeds || [];
@@ -78,8 +78,8 @@ const EmbedsFeature = (function() {
         try {
             const dashboardCore = getDashboardCore();
             const response = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/stats\`,
-                { headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` } }
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/stats`,
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
             );
             const data = await response.json();
             if (data.success) state.stats = data.stats;
@@ -92,8 +92,8 @@ const EmbedsFeature = (function() {
         try {
             const dashboardCore = getDashboardCore();
             const response = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/channels\`,
-                { headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` } }
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/channels`,
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
             );
             const data = await response.json();
             if (data.success) {
@@ -138,20 +138,20 @@ const EmbedsFeature = (function() {
         const statusText = embed.is_sent ? 'Sent' : 'Draft';
         const preview = embed.embed_config?.description || embed.embed_config?.title || 'No content';
 
-        return \`
+        return `
             <div class="embed-card">
                 <div class="embed-card-header">
-                    <h3 class="embed-card-name">\${escapeHtml(embed.name)}</h3>
-                    <span class="embed-card-status \${status}">\${statusText}</span>
+                    <h3 class="embed-card-name">${escapeHtml(embed.name)}</h3>
+                    <span class="embed-card-status ${status}">${statusText}</span>
                 </div>
-                <div class="embed-card-preview">\${escapeHtml(preview)}</div>
+                <div class="embed-card-preview">${escapeHtml(preview)}</div>
                 <div class="embed-card-actions">
-                    <button class="embed-card-btn" onclick="EmbedsFeature.editEmbed(\${embed.id})">Edit</button>
-                    <button class="embed-card-btn" onclick="EmbedsFeature.duplicateEmbed(\${embed.id})">Duplicate</button>
-                    <button class="embed-card-btn delete-btn" onclick="EmbedsFeature.showDeleteModal(\${embed.id})">Delete</button>
+                    <button class="embed-card-btn" onclick="EmbedsFeature.editEmbed(${embed.id})">Edit</button>
+                    <button class="embed-card-btn" onclick="EmbedsFeature.duplicateEmbed(${embed.id})">Duplicate</button>
+                    <button class="embed-card-btn delete-btn" onclick="EmbedsFeature.showDeleteModal(${embed.id})">Delete</button>
                 </div>
             </div>
-        \`;
+        `;
     }
 
     function setupListEventListeners() {
@@ -197,8 +197,8 @@ const EmbedsFeature = (function() {
         try {
             const dashboardCore = getDashboardCore();
             const response = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/\${embedId}\`,
-                { headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` } }
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/${embedId}`,
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
             );
             const data = await response.json();
             if (data.success) {
@@ -254,7 +254,7 @@ const EmbedsFeature = (function() {
         state.channels.forEach(channel => {
             const option = document.createElement('option');
             option.value = channel.id;
-            option.textContent = \`# \${channel.name}\`;
+            option.textContent = `# ${channel.name}`;
             select.appendChild(option);
         });
     }
@@ -308,9 +308,9 @@ const EmbedsFeature = (function() {
         const fields = [];
         fieldsList.querySelectorAll('.field-item').forEach(item => {
             const idx = item.dataset.index;
-            const name = getValue(\`fieldName\${idx}\`);
-            const value = getValue(\`fieldValue\${idx}\`);
-            const inline = document.getElementById(\`fieldInline\${idx}\`)?.checked || false;
+            const name = getValue(`fieldName${idx}`);
+            const value = getValue(`fieldValue${idx}`);
+            const inline = document.getElementById(`fieldInline${idx}`)?.checked || false;
             if (name && value) fields.push({ name, value, inline });
         });
         return fields;
@@ -323,9 +323,9 @@ const EmbedsFeature = (function() {
         const buttons = [];
         buttonsList.querySelectorAll('.button-item').forEach(item => {
             const idx = item.dataset.index;
-            const label = getValue(\`buttonLabel\${idx}\`);
-            const url = getValue(\`buttonUrl\${idx}\`);
-            const emoji = getValue(\`buttonEmoji\${idx}\`);
+            const label = getValue(`buttonLabel${idx}`);
+            const url = getValue(`buttonUrl${idx}`);
+            const emoji = getValue(`buttonEmoji${idx}`);
             if (label && url) {
                 const btn = { label, url };
                 if (emoji) btn.emoji = emoji;
@@ -365,23 +365,23 @@ const EmbedsFeature = (function() {
         field.className = 'field-item';
         field.dataset.index = idx;
 
-        field.innerHTML = \`
+        field.innerHTML = `
             <div class="field-header">
                 <label class="field-inline-checkbox">
-                    <input type="checkbox" id="fieldInline\${idx}" \${fieldData?.inline ? 'checked' : ''}>
+                    <input type="checkbox" id="fieldInline${idx}" ${fieldData?.inline ? 'checked' : ''}>
                     Inline
                 </label>
-                <button class="remove-field-btn" onclick="EmbedsFeature.removeField(\${idx})">×</button>
+                <button class="remove-field-btn" onclick="EmbedsFeature.removeField(${idx})">×</button>
             </div>
             <div class="form-group">
                 <label class="form-label">Field Name</label>
-                <input type="text" id="fieldName\${idx}" class="form-input" value="\${escapeHtml(fieldData?.name || '')}" placeholder="Field name">
+                <input type="text" id="fieldName${idx}" class="form-input" value="${escapeHtml(fieldData?.name || '')}" placeholder="Field name">
             </div>
             <div class="form-group">
                 <label class="form-label">Field Value</label>
-                <textarea id="fieldValue\${idx}" class="form-textarea" placeholder="Field value">\${escapeHtml(fieldData?.value || '')}</textarea>
+                <textarea id="fieldValue${idx}" class="form-textarea" placeholder="Field value">${escapeHtml(fieldData?.value || '')}</textarea>
             </div>
-        \`;
+        `;
 
         fieldsList.appendChild(field);
         field.querySelectorAll('input, textarea').forEach(el => {
@@ -393,7 +393,7 @@ const EmbedsFeature = (function() {
     }
 
     function removeField(idx) {
-        const field = document.querySelector(\`.field-item[data-index="\${idx}"]\`);
+        const field = document.querySelector(`.field-item[data-index="${idx}"]`);
         if (field) {
             field.remove();
             updatePreview();
@@ -415,24 +415,24 @@ const EmbedsFeature = (function() {
         button.className = 'button-item';
         button.dataset.index = idx;
 
-        button.innerHTML = \`
+        button.innerHTML = `
             <div class="button-header">
-                <span>Button \${buttons.length + 1}</span>
-                <button class="remove-button-btn" onclick="EmbedsFeature.removeButton(\${idx})">×</button>
+                <span>Button ${buttons.length + 1}</span>
+                <button class="remove-button-btn" onclick="EmbedsFeature.removeButton(${idx})">×</button>
             </div>
             <div class="form-group">
                 <label class="form-label">Button Label</label>
-                <input type="text" id="buttonLabel\${idx}" class="form-input" value="\${escapeHtml(buttonData?.label || '')}" placeholder="Click here!" maxlength="80">
+                <input type="text" id="buttonLabel${idx}" class="form-input" value="${escapeHtml(buttonData?.label || '')}" placeholder="Click here!" maxlength="80">
             </div>
             <div class="form-group">
                 <label class="form-label">Button URL (HTTPS required)</label>
-                <input type="url" id="buttonUrl\${idx}" class="form-input" value="\${escapeHtml(buttonData?.url || '')}" placeholder="https://example.com">
+                <input type="url" id="buttonUrl${idx}" class="form-input" value="${escapeHtml(buttonData?.url || '')}" placeholder="https://example.com">
             </div>
             <div class="form-group">
                 <label class="form-label">Emoji (Optional)</label>
-                <input type="text" id="buttonEmoji\${idx}" class="form-input" value="\${escapeHtml(buttonData?.emoji || '')}" placeholder="🔗" maxlength="2">
+                <input type="text" id="buttonEmoji${idx}" class="form-input" value="${escapeHtml(buttonData?.emoji || '')}" placeholder="🔗" maxlength="2">
             </div>
-        \`;
+        `;
 
         buttonsList.appendChild(button);
         button.querySelectorAll('input').forEach(el => el.addEventListener('input', updatePreview));
@@ -440,7 +440,7 @@ const EmbedsFeature = (function() {
     }
 
     function removeButton(idx) {
-        const button = document.querySelector(\`.button-item[data-index="\${idx}"]\`);
+        const button = document.querySelector(`.button-item[data-index="${idx}"]`);
         if (button) {
             button.remove();
             updatePreview();
@@ -480,13 +480,13 @@ const EmbedsFeature = (function() {
             const dashboardCore = getDashboardCore();
             const isEditing = !!state.editingId;
             const url = isEditing
-                ? \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/\${state.editingId}\`
-                : \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds\`;
+                ? `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/${state.editingId}`
+                : `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds`;
 
             const response = await fetch(url, {
                 method: isEditing ? 'PUT' : 'POST',
                 headers: {
-                    'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\`,
+                    'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(embedData)
@@ -524,11 +524,11 @@ const EmbedsFeature = (function() {
 
             if (!embedId) {
                 const createResp = await fetch(
-                    \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds\`,
+                    `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds`,
                     {
                         method: 'POST',
                         headers: {
-                            'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\`,
+                            'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(embedData)
@@ -539,11 +539,11 @@ const EmbedsFeature = (function() {
                 embedId = createData.embed.id;
             } else {
                 const updateResp = await fetch(
-                    \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/\${embedId}\`,
+                    `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/${embedId}`,
                     {
                         method: 'PUT',
                         headers: {
-                            'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\`,
+                            'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(embedData)
@@ -554,10 +554,10 @@ const EmbedsFeature = (function() {
             }
 
             const sendResp = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/\${embedId}/send\`,
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/${embedId}/send`,
                 {
                     method: 'POST',
-                    headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` }
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
                 }
             );
 
@@ -580,17 +580,17 @@ const EmbedsFeature = (function() {
     }
 
     function editEmbed(embedId) {
-        navigateTo(\`embeds/edit/\${embedId}\`);
+        navigateTo(`embeds/edit/${embedId}`);
     }
 
     async function duplicateEmbed(embedId) {
         try {
             const dashboardCore = getDashboardCore();
             const response = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/\${embedId}/duplicate\`,
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/${embedId}/duplicate`,
                 {
                     method: 'POST',
-                    headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` }
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
                 }
             );
 
@@ -626,10 +626,10 @@ const EmbedsFeature = (function() {
         try {
             const dashboardCore = getDashboardCore();
             const response = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/\${embedId}\`,
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/${embedId}`,
                 {
                     method: 'DELETE',
-                    headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` }
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
                 }
             );
 
@@ -678,10 +678,10 @@ const EmbedsFeature = (function() {
             formData.append('image_type', state.currentUploadType);
 
             const response = await fetch(
-                \`\${dashboardCore.API_BASE_URL}/api/guilds/\${state.guildId}/embeds/upload-image\`,
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/embeds/upload-image`,
                 {
                     method: 'POST',
-                    headers: { 'Authorization': \`Bearer \${localStorage.getItem('discord_token')}\` },
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` },
                     body: formData
                 }
             );
@@ -723,7 +723,7 @@ const EmbedsFeature = (function() {
     }
 
     function loadCSS(href) {
-        if (!document.querySelector(\`link[href="\${href}"]\`)) {
+        if (!document.querySelector(`link[href="${href}"]`)) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = href;
@@ -766,7 +766,7 @@ const EmbedsFeature = (function() {
         if (dashboardCore?.showNotification) {
             dashboardCore.showNotification(message, type);
         } else {
-            console.log(\`[\${type.toUpperCase()}] \${message}\`);
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
     }
 
