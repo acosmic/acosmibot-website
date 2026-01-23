@@ -15,32 +15,74 @@ const EmbedsFeature = (function() {
     };
 
     async function init(params = {}) {
+        console.log('[Embeds] Init called with params:', params);
+
         const dashboardCore = getDashboardCore();
-        if (!dashboardCore?.currentGuildId) return;
+        console.log('[Embeds] DashboardCore:', dashboardCore);
+        console.log('[Embeds] Current Guild ID:', dashboardCore?.currentGuildId);
+
+        if (!dashboardCore) {
+            console.error('[Embeds] DashboardCore not available');
+            showError('Dashboard not initialized');
+            return;
+        }
+
+        if (!dashboardCore.currentGuildId) {
+            console.error('[Embeds] No guild ID available');
+            showError('No guild selected');
+            return;
+        }
 
         state.guildId = dashboardCore.currentGuildId;
         loadCSS('/styles/embeds.css');
 
         const route = params.route || 'embeds';
-        
-        if (route === 'embeds/new') {
-            await showBuilder();
-        } else if (route.startsWith('embeds/edit/')) {
-            state.editingId = params.embedId || route.split('/')[2];
-            await showBuilder(state.editingId);
-        } else {
-            await showList();
+        console.log('[Embeds] Route:', route);
+
+        try {
+            if (route === 'embeds/new') {
+                await showBuilder();
+            } else if (route.startsWith('embeds/edit/')) {
+                state.editingId = params.embedId || route.split('/')[2];
+                await showBuilder(state.editingId);
+            } else {
+                await showList();
+            }
+        } catch (error) {
+            console.error('[Embeds] Init error:', error);
+            showError('Failed to initialize embeds feature');
         }
     }
 
     async function showList() {
-        const response = await fetch('/server/views/embeds-list-view.html');
-        const html = await response.text();
-        document.getElementById('featureContent').innerHTML = html;
+        console.log('[Embeds] showList called');
 
-        await Promise.all([fetchEmbeds(), fetchStats()]);
-        setupListEventListeners();
-        renderList();
+        try {
+            const response = await fetch('/server/views/embeds-list-view.html');
+            console.log('[Embeds] List view response status:', response.status);
+
+            if (!response.ok) {
+                throw new Error(`Failed to load list view: ${response.status}`);
+            }
+
+            const html = await response.text();
+            console.log('[Embeds] List view HTML loaded, length:', html.length);
+
+            const container = document.getElementById('featureContent');
+            if (!container) {
+                throw new Error('featureContent container not found');
+            }
+
+            container.innerHTML = html;
+            console.log('[Embeds] List view HTML injected');
+
+            await Promise.all([fetchEmbeds(), fetchStats()]);
+            setupListEventListeners();
+            renderList();
+        } catch (error) {
+            console.error('[Embeds] showList error:', error);
+            showError('Failed to load embeds list: ' + error.message);
+        }
     }
 
     async function showBuilder(embedId = null) {
@@ -770,9 +812,37 @@ const EmbedsFeature = (function() {
         }
     }
 
+    function showError(message) {
+        console.error('[Embeds]', message);
+        const container = document.getElementById('featureContent');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 48px; margin-bottom: 16px; color: #FF4444;">❌</div>
+                    <h2 style="color: #FFFFFF; margin-bottom: 8px;">Error</h2>
+                    <p style="color: #B0B0B0;">${message}</p>
+                    <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #00D9FF; color: #1A1A1A; border: none; border-radius: 6px; cursor: pointer;">
+                        Reload Page
+                    </button>
+                </div>
+            `;
+        }
+        showNotification(message, 'error');
+    }
+
+    // Cleanup function for when feature is unloaded
+    async function cleanup() {
+        console.log('[Embeds] Cleanup called');
+        state.embeds = [];
+        state.editingId = null;
+        state.stats = null;
+        state.channels = [];
+    }
+
     // Public API
     return {
         init,
+        cleanup,
         editEmbed,
         duplicateEmbed,
         showDeleteModal,
@@ -790,3 +860,4 @@ const EmbedsFeature = (function() {
 })();
 
 window.EmbedsFeature = EmbedsFeature;
+console.log('[Embeds] Module loaded, EmbedsFeature:', typeof EmbedsFeature);
