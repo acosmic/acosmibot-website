@@ -22,7 +22,7 @@ class DashboardViewManager {
   }
 
   // ===== VIEW LOADING =====
-  async loadView(feature) {
+  async loadView(feature, routeParams = {}) {
     if (this.isLoading) {
       console.log('View loading already in progress');
       return false;
@@ -41,8 +41,9 @@ class DashboardViewManager {
       // Render the view
       this.renderView(html);
 
-      // Load feature-specific script
-      await window.FeatureLoader.load(feature);
+      // Load feature-specific script with route parameters
+      // routeParams includes: subRoute, params (embedId, etc.), feature, guildId
+      await window.FeatureLoader.load(feature, routeParams);
 
       this.currentView = feature;
       this.isLoading = false;

@@ -687,6 +687,41 @@ class DashboardCore {
     }, 100);
   }
 
+  // Load feature with sub-route support
+  // Used by features to navigate to sub-routes (e.g., embeds/new, embeds/edit/123)
+  loadFeature(route) {
+    // Prevent double popup during navigation
+    if (this.state.isNavigating) return;
+
+    if (this.state.hasUnsavedChanges) {
+      if (!confirm('You have unsaved changes. Continue without saving?')) {
+        return;
+      }
+    }
+
+    this.state.isNavigating = true;
+    this.state.hasUnsavedChanges = false;
+
+    if (window.Router) {
+      // Parse route to extract feature and sub-route
+      // e.g., "embeds/new" -> feature: "embeds", subRoute: "new"
+      const parts = route.split('/');
+      const feature = parts[0];
+      const subRoute = parts.slice(1).join('/');
+
+      // SPA navigation with sub-route
+      window.Router.navigate(this.state.currentGuildId, feature, subRoute || null);
+    } else {
+      // Fallback to full page load
+      window.location.href = `/server/${this.state.currentGuildId}/${route}`;
+    }
+
+    // Reset navigation flag
+    setTimeout(() => {
+      this.state.isNavigating = false;
+    }, 100);
+  }
+
   // ===== EVENT LISTENERS =====
   setupEventListeners() {
     // Warn before page unload with unsaved changes

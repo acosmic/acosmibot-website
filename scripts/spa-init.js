@@ -50,8 +50,15 @@ async function initSPA() {
     // Initialize DashboardCore with full init for first load
     await DashboardCore.init(feature);
 
-    // Load initial view
-    const viewLoaded = await ViewManager.loadView(feature);
+    // Load initial view with route parameters
+    // Build route params object with subRoute, params, etc.
+    const routeParams = {
+      route: feature + (initialRoute.subRoute ? '/' + initialRoute.subRoute : ''),
+      subRoute: initialRoute.subRoute,
+      ...initialRoute.params
+    };
+
+    const viewLoaded = await ViewManager.loadView(feature, routeParams);
 
     if (!viewLoaded) {
       console.error('Failed to load initial view');
@@ -98,8 +105,15 @@ async function handleRouteChange(newRoute, oldRoute, { ViewManager, Router, Dash
     // Use lighter SPA init since we're already initialized
     await DashboardCore.initForSPA(feature);
 
-    // Load new view
-    const viewLoaded = await ViewManager.loadView(feature);
+    // Load new view with route parameters
+    // Build route params object with subRoute, params, etc.
+    const routeParams = {
+      route: feature + (newRoute.subRoute ? '/' + newRoute.subRoute : ''),
+      subRoute: newRoute.subRoute,
+      ...newRoute.params
+    };
+
+    const viewLoaded = await ViewManager.loadView(feature, routeParams);
 
     if (!viewLoaded) {
       console.error('Failed to load view for:', feature);

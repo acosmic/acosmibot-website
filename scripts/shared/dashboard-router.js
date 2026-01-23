@@ -13,12 +13,12 @@ class DashboardRouter {
     // Set up popstate listener for browser back/forward
     window.addEventListener('popstate', (e) => {
       if (e.state && e.state.guildId && e.state.feature) {
-        this.handleRouteChange(e.state.guildId, e.state.feature, false);
+        this.handleRouteChange(e.state.guildId, e.state.feature, e.state.subRoute || null, false);
       } else {
         // Parse URL if no state
         const route = this.parseURL();
         if (route) {
-          this.handleRouteChange(route.guildId, route.feature, false);
+          this.handleRouteChange(route.guildId, route.feature, route.subRoute || null, false);
         }
       }
     });
@@ -30,7 +30,8 @@ class DashboardRouter {
     if (this.currentRoute && !history.state) {
       history.replaceState({
         guildId: this.currentRoute.guildId,
-        feature: this.currentRoute.feature
+        feature: this.currentRoute.feature,
+        subRoute: this.currentRoute.subRoute || null
       }, '', window.location.pathname);
     }
 
@@ -39,7 +40,7 @@ class DashboardRouter {
 
   // ===== URL PARSING =====
   parseURL(url = window.location.pathname) {
-    // Parse /server/{guild_id}/{feature} or /server/{guild_id} pattern
+    // Parse /server/{guild_id}/{feature}/{sub_route} pattern
     const pathParts = url.split('/').filter(p => p);
 
     if (pathParts[0] === 'server' && pathParts[1]) {
@@ -47,10 +48,28 @@ class DashboardRouter {
       // Feature is optional - null means show dashboard home/landing
       const feature = pathParts[2] || null;
 
+      // Parse sub-routes (e.g., embeds/new, embeds/edit/123)
+      let subRoute = null;
+      let params = {};
+
+      if (pathParts.length > 3) {
+        // Reconstruct sub-route from remaining parts
+        subRoute = pathParts.slice(3).join('/');
+
+        // Extract parameters for specific patterns
+        if (feature === 'embeds') {
+          if (pathParts[3] === 'edit' && pathParts[4]) {
+            params.embedId = pathParts[4];
+          }
+        }
+      }
+
       return {
         guildId,
         feature,
-        path: feature ? `/server/${guildId}/${feature}` : `/server/${guildId}`
+        subRoute,
+        params,
+        path: feature ? `/server/${guildId}/${feature}${subRoute ? '/' + subRoute : ''}` : `/server/${guildId}`
       };
     }
 
@@ -58,7 +77,7 @@ class DashboardRouter {
   }
 
   // ===== NAVIGATION =====
-  navigate(guildId, feature) {
+  navigate(guildId, feature, subRoute = null) {
     if (this.isNavigating) {
       console.log('Navigation already in progress');
       return;
@@ -67,31 +86,38 @@ class DashboardRouter {
     // Check if we're already at this route
     if (this.currentRoute &&
         this.currentRoute.guildId === guildId &&
-        this.currentRoute.feature === feature) {
+        this.currentRoute.feature === feature &&
+        this.currentRoute.subRoute === subRoute) {
       console.log('Already at this route');
       return;
     }
 
-    const path = `/server/${guildId}/${feature}`;
+    const path = `/server/${guildId}/${feature}${subRoute ? '/' + subRoute : ''}`;
 
     // Push new state to history
-    history.pushState({ guildId, feature }, '', path);
+    history.pushState({ guildId, feature, subRoute }, '', path);
 
     // Handle the route change
-    this.handleRouteChange(guildId, feature, true);
+    this.handleRouteChange(guildId, feature, subRoute, true);
   }
 
   // ===== ROUTE CHANGE HANDLING =====
-  async handleRouteChange(guildId, feature, isPush) {
+  async handleRouteChange(guildId, feature, subRoute, isPush) {
     if (this.isNavigating) return;
 
     this.isNavigating = true;
 
     const oldRoute = this.currentRoute;
+
+    // Parse full route to get params
+    const parsedRoute = this.parseURL(`/server/${guildId}/${feature}${subRoute ? '/' + subRoute : ''}`);
+
     const newRoute = {
       guildId,
       feature,
-      path: `/server/${guildId}/${feature}`
+      subRoute: subRoute || null,
+      params: parsedRoute?.params || {},
+      path: `/server/${guildId}/${feature}${subRoute ? '/' + subRoute : ''}`
     };
 
     this.currentRoute = newRoute;

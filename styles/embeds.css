@@ -1,0 +1,802 @@
+/* Embeds Feature Styles */
+
+/* ============================================================================
+   Discord Message Preview
+   ============================================================================ */
+
+.discord-message-preview {
+    background: #36393f;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.discord-message-text {
+    color: #dcddde;
+    font-size: 16px;
+    line-height: 1.375;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+}
+
+/* ============================================================================
+   Discord Embed
+   ============================================================================ */
+
+.discord-embed {
+    display: flex;
+    background: #2f3136;
+    border-radius: 4px;
+    max-width: 520px;
+    overflow: hidden;
+}
+
+.discord-embed-color-bar {
+    width: 4px;
+    background: #00D9FF;
+    flex-shrink: 0;
+}
+
+.discord-embed-content {
+    padding: 8px 16px 16px 12px;
+    flex: 1;
+    position: relative;
+}
+
+/* ============================================================================
+   Embed Components
+   ============================================================================ */
+
+.discord-embed-author {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.discord-embed-author-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+}
+
+.discord-embed-author-name {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.discord-embed-author a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.discord-embed-author a:hover .discord-embed-author-name {
+    text-decoration: underline;
+}
+
+.discord-embed-title {
+    color: #00b0f4;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+}
+
+.discord-embed-title a {
+    color: #00b0f4;
+    text-decoration: none;
+}
+
+.discord-embed-title a:hover {
+    text-decoration: underline;
+}
+
+.discord-embed-description {
+    color: #dcddde;
+    font-size: 14px;
+    line-height: 1.375;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* ============================================================================
+   Embed Fields
+   ============================================================================ */
+
+.discord-embed-fields {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.discord-embed-field {
+    grid-column: span 3;
+    min-width: 0;
+}
+
+.discord-embed-field-inline {
+    grid-column: span 1;
+}
+
+.discord-embed-field-name {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    word-wrap: break-word;
+}
+
+.discord-embed-field-value {
+    color: #dcddde;
+    font-size: 14px;
+    line-height: 1.375;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* ============================================================================
+   Embed Images
+   ============================================================================ */
+
+.discord-embed-thumbnail {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    max-width: 80px;
+    max-height: 80px;
+}
+
+.discord-embed-thumbnail img {
+    max-width: 100%;
+    max-height: 80px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.discord-embed-image {
+    margin-top: 16px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.discord-embed-image img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+}
+
+/* ============================================================================
+   Embed Footer
+   ============================================================================ */
+
+.discord-embed-footer {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #72767d;
+}
+
+.discord-embed-footer-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+}
+
+.discord-embed-footer-text {
+    color: #72767d;
+}
+
+/* ============================================================================
+   Discord Buttons
+   ============================================================================ */
+
+.discord-buttons {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.discord-button-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.discord-button {
+    background: #4752c4;
+    color: #ffffff;
+    border: none;
+    border-radius: 3px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.17s ease;
+}
+
+.discord-button-link {
+    background: transparent;
+    color: #00b0f4;
+    border: 1px solid #4e5058;
+}
+
+.discord-button-link:hover {
+    background: #4e5058;
+}
+
+.discord-button-emoji {
+    font-size: 16px;
+}
+
+/* ============================================================================
+   Character Indicator
+   ============================================================================ */
+
+.embed-char-indicator {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #B0B0B0;
+    text-align: center;
+}
+
+/* ============================================================================
+   Embeds List View
+   ============================================================================ */
+
+.embeds-container {
+    padding: 24px;
+}
+
+.embeds-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.embeds-header h1 {
+    margin: 0;
+    color: #FFFFFF;
+    font-size: 28px;
+}
+
+.embeds-counter {
+    font-size: 14px;
+    color: #B0B0B0;
+    margin-top: 8px;
+}
+
+.embeds-counter.at-limit {
+    color: #FF4444;
+    font-weight: 600;
+}
+
+.create-embed-btn {
+    background: linear-gradient(135deg, #00D9FF 0%, #00F0FF 100%);
+    color: #1A1A1A;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.create-embed-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+}
+
+.create-embed-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.embeds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.embed-card {
+    background: #2D2D2D;
+    border-radius: 8px;
+    padding: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.embed-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.embed-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 12px;
+}
+
+.embed-card-name {
+    color: #FFFFFF;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+}
+
+.embed-card-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.embed-status-draft {
+    background: #5865F2;
+    color: #FFFFFF;
+}
+
+.embed-status-sent {
+    background: #00FF88;
+    color: #1A1A1A;
+}
+
+.embed-card-preview {
+    color: #B0B0B0;
+    font-size: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.embed-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.embed-card-btn {
+    flex: 1;
+    background: #1A1A1A;
+    color: #FFFFFF;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.embed-card-btn:hover {
+    background: #404040;
+}
+
+.embed-card-btn.delete-btn {
+    border-color: #FF4444;
+    color: #FF4444;
+}
+
+.embed-card-btn.delete-btn:hover {
+    background: #FF4444;
+    color: #FFFFFF;
+}
+
+.embeds-empty {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.embeds-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.embeds-empty h2 {
+    color: #FFFFFF;
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.embeds-empty p {
+    color: #B0B0B0;
+    font-size: 16px;
+    margin-bottom: 24px;
+}
+
+/* ============================================================================
+   Embeds Builder View
+   ============================================================================ */
+
+.embeds-builder {
+    padding: 24px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+.builder-header {
+    margin-bottom: 24px;
+}
+
+.builder-header h1 {
+    margin: 0 0 8px 0;
+    color: #FFFFFF;
+    font-size: 28px;
+}
+
+.builder-subtitle {
+    color: #B0B0B0;
+    font-size: 14px;
+}
+
+.builder-layout {
+    display: grid;
+    grid-template-columns: 40% 1fr;
+    gap: 24px;
+    height: calc(100% - 140px);
+}
+
+.builder-preview-section {
+    background: #2D2D2D;
+    border-radius: 8px;
+    padding: 24px;
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+}
+
+.builder-preview-section h2 {
+    margin: 0 0 16px 0;
+    color: #FFFFFF;
+    font-size: 18px;
+}
+
+.builder-form-section {
+    background: #2D2D2D;
+    border-radius: 8px;
+    padding: 24px;
+    height: fit-content;
+}
+
+.form-section {
+    margin-bottom: 24px;
+}
+
+.form-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 12px;
+    background: #1A1A1A;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    transition: background 0.2s;
+}
+
+.form-section-header:hover {
+    background: #252525;
+}
+
+.form-section-header h3 {
+    margin: 0;
+    color: #FFFFFF;
+    font-size: 16px;
+}
+
+.form-section-toggle {
+    color: #00D9FF;
+    font-size: 20px;
+}
+
+.form-section-content {
+    padding: 0 12px;
+}
+
+.form-section-content.collapsed {
+    display: none;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    color: #B0B0B0;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+    background: #1A1A1A;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #00D9FF;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.form-color-input {
+    width: 100%;
+    height: 40px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.image-upload-group {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+}
+
+.image-upload-input {
+    flex: 1;
+}
+
+.image-upload-btn {
+    background: #404040;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.image-upload-btn:hover {
+    background: #505050;
+}
+
+.image-preview {
+    margin-top: 8px;
+    max-width: 100px;
+    border-radius: 4px;
+}
+
+/* Field Builder */
+.fields-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.field-item {
+    background: #1A1A1A;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.field-inline-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #B0B0B0;
+    font-size: 13px;
+}
+
+.remove-field-btn {
+    background: transparent;
+    color: #FF4444;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.add-field-btn {
+    width: 100%;
+    background: transparent;
+    color: #00D9FF;
+    border: 2px dashed #404040;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.add-field-btn:hover {
+    border-color: #00D9FF;
+    background: rgba(0, 217, 255, 0.05);
+}
+
+/* Button Builder */
+.buttons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.button-item {
+    background: #1A1A1A;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.button-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.remove-button-btn {
+    background: transparent;
+    color: #FF4444;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.add-button-btn {
+    width: 100%;
+    background: transparent;
+    color: #00D9FF;
+    border: 2px dashed #404040;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.add-button-btn:hover {
+    border-color: #00D9FF;
+    background: rgba(0, 217, 255, 0.05);
+}
+
+.button-count-info {
+    color: #B0B0B0;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+/* Builder Actions */
+.builder-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #404040;
+}
+
+.builder-action-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.builder-action-btn.cancel-btn {
+    background: transparent;
+    color: #B0B0B0;
+    border: 1px solid #404040;
+}
+
+.builder-action-btn.cancel-btn:hover {
+    background: #404040;
+    color: #FFFFFF;
+}
+
+.builder-action-btn.save-btn {
+    background: #404040;
+    color: #FFFFFF;
+    border: none;
+}
+
+.builder-action-btn.save-btn:hover {
+    background: #505050;
+}
+
+.builder-action-btn.send-btn {
+    background: linear-gradient(135deg, #00D9FF 0%, #00F0FF 100%);
+    color: #1A1A1A;
+    border: none;
+}
+
+.builder-action-btn.send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+}
+
+.builder-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+    .builder-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .builder-preview-section {
+        position: relative;
+        top: 0;
+    }
+
+    .embeds-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .embeds-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .embeds-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .discord-embed-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .discord-embed-field-inline {
+        grid-column: span 1;
+    }
+}

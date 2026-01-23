@@ -1,0 +1,224 @@
+<div class="embeds-builder">
+    <!-- Builder Header -->
+    <div class="builder-header">
+        <h1 id="builderTitle">Create Embed</h1>
+        <p class="builder-subtitle">Design your custom Discord embed with live preview</p>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="builder-layout">
+        <!-- Left: Live Preview -->
+        <div class="builder-preview-section">
+            <h2>Live Preview</h2>
+            <div id="embedPreviewContainer">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Right: Form Builder -->
+        <div class="builder-form-section">
+            <!-- Message Settings -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="EmbedsFeature.toggleSection('messageSettings')">
+                    <h3>Message Settings</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="messageSettings" class="form-section-content">
+                    <div class="form-group">
+                        <label class="form-label">Embed Name (Internal)</label>
+                        <input type="text" id="embedName" class="form-input" placeholder="My Cool Embed">
+                        <p style="color: #72767d; font-size: 12px; margin-top: 4px;">
+                            Internal name for organization (not shown in Discord)
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Message Text (Optional)</label>
+                        <textarea id="messageText" class="form-textarea" placeholder="Text content before the embed..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Target Channel</label>
+                        <select id="targetChannel" class="form-select">
+                            <option value="">Select a channel...</option>
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Author Section -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="EmbedsFeature.toggleSection('authorSection')">
+                    <h3>Author</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="authorSection" class="form-section-content collapsed">
+                    <div class="form-group">
+                        <label class="form-label">Author Name</label>
+                        <input type="text" id="authorName" class="form-input" placeholder="Author Name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Author URL (Optional)</label>
+                        <input type="url" id="authorUrl" class="form-input" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Author Icon (Optional)</label>
+                        <div class="image-upload-group">
+                            <input type="url" id="authorIcon" class="form-input" placeholder="https://...">
+                            <button class="image-upload-btn" onclick="EmbedsFeature.uploadImage('author_icon')">
+                                Upload
+                            </button>
+                        </div>
+                        <img id="authorIconPreview" class="image-preview" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Embed Content -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="EmbedsFeature.toggleSection('embedContent')">
+                    <h3>Embed Content</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="embedContent" class="form-section-content">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="embedTitle" class="form-input" placeholder="Embed Title">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="embedDescription" class="form-textarea" rows="6" placeholder="Embed description..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Title URL (Optional)</label>
+                        <input type="url" id="embedUrl" class="form-input" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Color</label>
+                        <input type="color" id="embedColor" class="form-color-input" value="#00D9FF">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Section -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="EmbedsFeature.toggleSection('mediaSection')">
+                    <h3>Media</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="mediaSection" class="form-section-content collapsed">
+                    <div class="form-group">
+                        <label class="form-label">Thumbnail (Optional)</label>
+                        <div class="image-upload-group">
+                            <input type="url" id="thumbnailUrl" class="form-input" placeholder="https://...">
+                            <button class="image-upload-btn" onclick="EmbedsFeature.uploadImage('thumbnail')">
+                                Upload
+                            </button>
+                        </div>
+                        <img id="thumbnailPreview" class="image-preview" style="display: none;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Image (Optional)</label>
+                        <div class="image-upload-group">
+                            <input type="url" id="imageUrl" class="form-input" placeholder="https://...">
+                            <button class="image-upload-btn" onclick="EmbedsFeature.uploadImage('image')">
+                                Upload
+                            </button>
+                        </div>
+                        <img id="imagePreview" class="image-preview" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fields Section -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="EmbedsFeature.toggleSection('fieldsSection')">
+                    <h3>Fields</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="fieldsSection" class="form-section-content collapsed">
+                    <div id="fieldsList" class="fields-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <button class="add-field-btn" onclick="EmbedsFeature.addField()">
+                        + Add Field
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer Section -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="EmbedsFeature.toggleSection('footerSection')">
+                    <h3>Footer</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="footerSection" class="form-section-content collapsed">
+                    <div class="form-group">
+                        <label class="form-label">Footer Text</label>
+                        <input type="text" id="footerText" class="form-input" placeholder="Footer text">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Footer Icon (Optional)</label>
+                        <div class="image-upload-group">
+                            <input type="url" id="footerIcon" class="form-input" placeholder="https://...">
+                            <button class="image-upload-btn" onclick="EmbedsFeature.uploadImage('footer_icon')">
+                                Upload
+                            </button>
+                        </div>
+                        <img id="footerIconPreview" class="image-preview" style="display: none;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="field-inline-checkbox">
+                            <input type="checkbox" id="includeTimestamp">
+                            Include Timestamp
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons Section -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="EmbedsFeature.toggleSection('buttonsSection')">
+                    <h3>Buttons</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="buttonsSection" class="form-section-content collapsed">
+                    <div id="buttonsList" class="buttons-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <button id="addButtonBtn" class="add-button-btn" onclick="EmbedsFeature.addButton()">
+                        + Add Button
+                    </button>
+                    <p class="button-count-info">
+                        <span id="buttonCount">0</span> of 25 buttons (max 5 per row)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="builder-actions">
+                <button class="builder-action-btn cancel-btn" onclick="EmbedsFeature.cancelBuilder()">
+                    Cancel
+                </button>
+                <button class="builder-action-btn save-btn" onclick="EmbedsFeature.saveDraft()">
+                    Save Draft
+                </button>
+                <button id="sendEmbedBtn" class="builder-action-btn send-btn" onclick="EmbedsFeature.sendEmbed()">
+                    Send to Discord
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden file input for image uploads -->
+<input type="file" id="imageUploadInput" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" style="display: none;">

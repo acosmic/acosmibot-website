@@ -9,11 +9,11 @@ class FeatureLoader {
   }
 
   // ===== SCRIPT LOADING =====
-  async load(feature) {
+  async load(feature, params = {}) {
     // Check if already loaded
     if (this.loadedFeatures.has(feature)) {
       console.log(`Feature ${feature} already loaded, reinitializing...`);
-      await this.initFeature(feature);
+      await this.initFeature(feature, params);
       return true;
     }
 
@@ -25,7 +25,7 @@ class FeatureLoader {
       this.loadedFeatures.add(feature);
 
       // Initialize the feature
-      await this.initFeature(feature);
+      await this.initFeature(feature, params);
 
       this.currentFeature = feature;
       return true;
@@ -67,15 +67,16 @@ class FeatureLoader {
   }
 
   // ===== FEATURE INITIALIZATION =====
-  async initFeature(feature) {
+  async initFeature(feature, params = {}) {
     // Look for feature module with init method
     const featureModuleName = this.getFeatureModuleName(feature);
     const featureModule = window[featureModuleName];
 
     if (featureModule && typeof featureModule.init === 'function') {
       try {
-        await featureModule.init();
-        console.log(`Initialized feature: ${feature}`);
+        // Pass params to feature init (includes subRoute, embedId, etc.)
+        await featureModule.init(params);
+        console.log(`Initialized feature: ${feature}`, params);
       } catch (error) {
         console.error(`Feature init error for ${feature}:`, error);
         throw error;
