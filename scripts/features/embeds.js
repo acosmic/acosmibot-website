@@ -99,7 +99,7 @@ const EmbedsFeature = (function() {
         listView.style.display = 'none';
         builderView.style.display = 'block';
 
-        await fetchChannels();
+        loadChannelsFromConfig();
         if (embedId) {
             await loadEmbedForEditing(embedId);
             const titleEl = document.getElementById('builderTitle');
@@ -140,21 +140,15 @@ const EmbedsFeature = (function() {
         }
     }
 
-    async function fetchChannels() {
-        try {
-            const dashboardCore = getDashboardCore();
-            const response = await fetch(
-                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/channels`,
-                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
-            );
-            const data = await response.json();
-            if (data.success) {
-                state.channels = (data.channels || []).filter(c => c.type === 0);
-                populateChannelDropdown();
-            }
-        } catch (error) {
-            console.error('Channels error:', error);
-        }
+    function loadChannelsFromConfig() {
+        const dashboardCore = getDashboardCore();
+        const allChannels = dashboardCore?.state?.guildConfig?.available_channels || [];
+
+        // Filter to text channels only (type 0)
+        // Note: available_channels from config-hybrid is already filtered to types 0 & 5
+        // We further filter to just type 0 for embeds
+        state.channels = allChannels.filter(c => c.type === 0);
+        populateChannelDropdown();
     }
 
     function renderList() {
