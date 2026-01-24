@@ -155,6 +155,44 @@ body {
     flex-shrink: 0;
 }
 
+/* Navigation Icons */
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Dashboard Icon */
+.nav-icon-dashboard {
+    background-image: url('/images/acosmibot_dashboard-inactive.svg');
+}
+
+.nav-item.active .nav-icon-dashboard {
+    background-image: url('/images/acosmibot_dashboard-active.svg');
+}
+
+/* Moderation Icon */
+.nav-icon-moderation {
+    background-image: url('/images/acosmibot_moderation-inactive.svg');
+}
+
+.nav-item.active .nav-icon-moderation {
+    background-image: url('/images/acosmibot_moderation-active.svg');
+}
+
+/* Welcomes and Goodbyes Icon */
+.nav-icon-welcomes {
+    background-image: url('/images/acosmibot_welcomesgoodbyes-inactive.svg');
+}
+
+.nav-item.active .nav-icon-welcomes {
+    background-image: url('/images/acosmibot_welcomesgoodbyes-active.svg');
+}
+
 .nav-text {
     font-size: 14px;
     color: var(--text-secondary);

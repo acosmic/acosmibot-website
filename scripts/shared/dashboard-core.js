@@ -465,7 +465,7 @@ class DashboardCore {
           <span class="nav-text">Overview</span>
         </a>
         <div class="nav-item" data-feature="dashboard">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-dashboard"></span>
           <span class="nav-text">Dashboard</span>
         </div>
         <div class="nav-item" data-feature="membership" data-coming-soon="true">
@@ -487,7 +487,7 @@ class DashboardCore {
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="welcomes" data-coming-soon="true">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-welcomes"></span>
           <span class="nav-text">Welcomes and Goodbyes</span>
         </div>
         <div class="nav-item" data-feature="reputation" data-coming-soon="true">
@@ -519,7 +519,7 @@ class DashboardCore {
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="moderation">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-moderation"></span>
           <span class="nav-text">Moderation</span>
           <span class="nav-indicator"></span>
         </div>
