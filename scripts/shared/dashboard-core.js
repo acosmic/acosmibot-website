@@ -502,7 +502,7 @@ class DashboardCore {
           <span>SYSTEMS</span>
         </div>
         <div class="nav-item" data-feature="leveling">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-leveling"></span>
           <span class="nav-text">Leveling</span>
           <span class="nav-indicator"></span>
         </div>

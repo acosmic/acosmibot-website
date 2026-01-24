@@ -238,6 +238,15 @@ body {
     background-image: url('/images/acosmibot_reputation-active.svg');
 }
 
+/* Leveling Icon */
+.nav-icon-leveling {
+    background-image: url('/images/acosmibot_leveling-inactive.svg');
+}
+
+.nav-item.active .nav-icon-leveling {
+    background-image: url('/images/acosmibot_leveling-active.svg');
+}
+
 /* Membership Icon */
 .nav-icon-membership {
     background-image: url('/images/acosmibot_membership-inactive.svg');
