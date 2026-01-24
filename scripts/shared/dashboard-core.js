@@ -461,7 +461,7 @@ class DashboardCore {
           <span>GENERAL</span>
         </div>
         <a href="/overview" class="nav-item nav-link-external">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-overview"></span>
           <span class="nav-text">Overview</span>
         </a>
         <div class="nav-item" data-feature="dashboard">
@@ -491,7 +491,7 @@ class DashboardCore {
           <span class="nav-text">Welcomes and Goodbyes</span>
         </div>
         <div class="nav-item" data-feature="reputation" data-coming-soon="true">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-reputation"></span>
           <span class="nav-text">Reputation</span>
         </div>
       </div>
@@ -514,7 +514,7 @@ class DashboardCore {
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="custom-commands">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-customcommands"></span>
           <span class="nav-text">Custom Commands</span>
           <span class="nav-indicator"></span>
         </div>
@@ -561,7 +561,7 @@ class DashboardCore {
           <span>CHAOS</span>
         </div>
         <div class="nav-item" data-feature="polymorph">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-polymorph"></span>
           <span class="nav-text">Polymorph</span>
           <span class="nav-indicator"></span>
         </div>
@@ -590,7 +590,7 @@ class DashboardCore {
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="lottery">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-lottery"></span>
           <span class="nav-text">Lottery</span>
           <span class="nav-indicator"></span>
         </div>

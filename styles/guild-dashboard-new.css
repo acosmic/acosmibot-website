@@ -193,6 +193,51 @@ body {
     background-image: url('/images/acosmibot_welcomesgoodbyes-active.svg');
 }
 
+/* Overview Icon */
+.nav-icon-overview {
+    background-image: url('/images/acosmibot_overview-inactive.svg');
+}
+
+.nav-item.active .nav-icon-overview {
+    background-image: url('/images/acosmibot_overview-active.svg');
+}
+
+/* Custom Commands Icon */
+.nav-icon-customcommands {
+    background-image: url('/images/acosmibot_customcommands-inactive.svg');
+}
+
+.nav-item.active .nav-icon-customcommands {
+    background-image: url('/images/acosmibot_customcommands-active.svg');
+}
+
+/* Lottery Icon */
+.nav-icon-lottery {
+    background-image: url('/images/acosmibot_lottery-inactive.svg');
+}
+
+.nav-item.active .nav-icon-lottery {
+    background-image: url('/images/acosmibot_lottery-active.svg');
+}
+
+/* Polymorph Icon */
+.nav-icon-polymorph {
+    background-image: url('/images/acosmibot_polymoprh-inactive.svg');
+}
+
+.nav-item.active .nav-icon-polymorph {
+    background-image: url('/images/acosmibot_polymorph-active.svg');
+}
+
+/* Reputation Icon */
+.nav-icon-reputation {
+    background-image: url('/images/acosmibot_reputation-inactive.svg');
+}
+
+.nav-item.active .nav-icon-reputation {
+    background-image: url('/images/acosmibot_reputation-active.svg');
+}
+
 .nav-text {
     font-size: 14px;
     color: var(--text-secondary);
