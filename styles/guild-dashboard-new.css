@@ -222,7 +222,7 @@ body {
 
 /* Polymorph Icon */
 .nav-icon-polymorph {
-    background-image: url('/images/acosmibot_polymoprh-inactive.svg');
+    background-image: url('/images/acosmibot_polymorph-inactive.svg');
 }
 
 .nav-item.active .nav-icon-polymorph {
