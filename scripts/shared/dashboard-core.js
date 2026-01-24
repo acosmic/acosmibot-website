@@ -45,6 +45,9 @@ class DashboardCore {
     // Setup navigation
     this.setupNavigation(featureName);
 
+    // Update notification icon
+    this.updateNotificationIcon();
+
     // Setup global event listeners
     this.setupEventListeners();
 
@@ -71,6 +74,9 @@ class DashboardCore {
 
     // Always re-setup navigation to update active feature
     this.setupNavigation(featureName);
+
+    // Update notification icon
+    this.updateNotificationIcon();
 
     return this.state;
   }
@@ -144,6 +150,20 @@ class DashboardCore {
     // Add click handler for menu
     avatarElement.addEventListener('click', () => this.showUserMenu());
     avatarElement.style.position = 'relative';
+  }
+
+  updateNotificationIcon() {
+    const notificationBtn = document.getElementById('notificationBtn');
+    if (!notificationBtn) return;
+
+    // Check if there are notifications (placeholder logic - always false for now)
+    const hasNotifications = false; // TODO: Implement actual notification checking
+
+    if (hasNotifications) {
+      notificationBtn.classList.add('hasNotifications');
+    } else {
+      notificationBtn.classList.remove('hasNotifications');
+    }
   }
 
   renderServerBranding() {
@@ -469,7 +489,7 @@ class DashboardCore {
           <span class="nav-text">Dashboard</span>
         </div>
         <div class="nav-item" data-feature="membership" data-coming-soon="true">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-membership"></span>
           <span class="nav-text">Membership</span>
         </div>
       </div>
@@ -504,7 +524,7 @@ class DashboardCore {
           <span>UTILITIES</span>
         </div>
         <div class="nav-item" data-feature="embeds">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-embeds"></span>
           <span class="nav-text">Embeds</span>
           <span class="nav-indicator"></span>
         </div>
@@ -585,7 +605,7 @@ class DashboardCore {
           <span>GAMES AND GAMBLING</span>
         </div>
         <div class="nav-item" data-feature="slots">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-slots"></span>
           <span class="nav-text">Slots</span>
           <span class="nav-indicator"></span>
         </div>

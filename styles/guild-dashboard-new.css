@@ -238,6 +238,33 @@ body {
     background-image: url('/images/acosmibot_reputation-active.svg');
 }
 
+/* Membership Icon */
+.nav-icon-membership {
+    background-image: url('/images/acosmibot_membership-inactive.svg');
+}
+
+.nav-item.active .nav-icon-membership {
+    background-image: url('/images/acosmibot_membership-active.svg');
+}
+
+/* Embeds Icon */
+.nav-icon-embeds {
+    background-image: url('/images/acosmibot_embeds-inactive.svg');
+}
+
+.nav-item.active .nav-icon-embeds {
+    background-image: url('/images/acosmibot_embeds-active.svg');
+}
+
+/* Slots Icon */
+.nav-icon-slots {
+    background-image: url('/images/acosmibot_slots-inactive.svg');
+}
+
+.nav-item.active .nav-icon-slots {
+    background-image: url('/images/acosmibot_slots-active.svg');
+}
+
 .nav-text {
     font-size: 14px;
     color: var(--text-secondary);
@@ -249,20 +276,19 @@ body {
 }
 
 .nav-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    width: 16px;
+    height: 16px;
     margin-left: auto;
-    border: 1.5px solid var(--primary-color);
-    background: transparent;
-    opacity: 0.4;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     transition: all 0.2s ease;
+    display: none;
 }
 
 .nav-indicator.active {
-    background: var(--primary-color);
-    border: none;
-    opacity: 1;
+    display: block;
+    background-image: url('/images/acosmibot_toggled.svg');
 }
 
 /* Section Headers */
@@ -397,13 +423,19 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
     transition: all 0.2s ease;
+    background-image: url('/images/acosmibot_notifications-none.svg');
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.notification-btn.hasNotifications {
+    background-image: url('/images/acosmibot_notifications.svg');
 }
 
 .notification-btn:hover {
-    background: var(--bg-overlay);
-    color: var(--text-primary);
+    background-color: var(--bg-overlay);
 }
 
 .user-avatar-nav {
