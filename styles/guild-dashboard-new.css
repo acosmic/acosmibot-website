@@ -265,6 +265,42 @@ body {
     background-image: url('/images/acosmibot_slots-active.svg');
 }
 
+/* Twitch Icon */
+.nav-icon-twitch {
+    background-image: url('/images/acosmibot_twitch-inactive.svg');
+}
+
+.nav-item.active .nav-icon-twitch {
+    background-image: url('/images/acosmibot_twitch-active.svg');
+}
+
+/* YouTube Icon */
+.nav-icon-youtube {
+    background-image: url('/images/acosmibot_youtube-inactive.svg');
+}
+
+.nav-item.active .nav-icon-youtube {
+    background-image: url('/images/acosmibot_youtube-active.svg');
+}
+
+/* Kick Icon */
+.nav-icon-kick {
+    background-image: url('/images/acosmibot_kick-inactive.svg');
+}
+
+.nav-item.active .nav-icon-kick {
+    background-image: url('/images/acosmibot_kick-active.svg');
+}
+
+/* Reddit Icon */
+.nav-icon-reddit {
+    background-image: url('/images/acosmibot_reddit-inactive.svg');
+}
+
+.nav-item.active .nav-icon-reddit {
+    background-image: url('/images/acosmibot_reddit-active.svg');
+}
+
 .nav-text {
     font-size: 14px;
     color: var(--text-secondary);

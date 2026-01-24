@@ -553,22 +553,22 @@ class DashboardCore {
           <span>SOCIAL ALERTS</span>
         </div>
         <div class="nav-item" data-feature="twitch">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-twitch"></span>
           <span class="nav-text">Twitch</span>
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="youtube">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-youtube"></span>
           <span class="nav-text">YouTube</span>
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="kick">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-kick"></span>
           <span class="nav-text">Kick</span>
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="reddit" data-coming-soon="true">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-reddit"></span>
           <span class="nav-text">Reddit</span>
         </div>
       </div>
