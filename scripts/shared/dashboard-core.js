@@ -586,7 +586,7 @@ class DashboardCore {
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="portals">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-portals"></span>
           <span class="nav-text">Portals</span>
           <span class="nav-indicator"></span>
         </div>
