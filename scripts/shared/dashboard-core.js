@@ -529,7 +529,7 @@ class DashboardCore {
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="reaction-roles">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-reactionroles"></span>
           <span class="nav-text">Reaction Roles</span>
           <span class="nav-indicator"></span>
         </div>

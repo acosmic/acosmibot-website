@@ -265,6 +265,15 @@ body {
     background-image: url('/images/acosmibot_embeds-active.svg');
 }
 
+/* Reaction Roles Icon */
+.nav-icon-reactionroles {
+    background-image: url('/images/acosmibot_reactionroles-inactive.svg');
+}
+
+.nav-item.active .nav-icon-reactionroles {
+    background-image: url('/images/acosmibot_reactionroles-active.svg');
+}
+
 /* Slots Icon */
 .nav-icon-slots {
     background-image: url('/images/acosmibot_slots-inactive.svg');
