@@ -591,7 +591,7 @@ class DashboardCore {
           <span class="nav-indicator"></span>
         </div>
         <div class="nav-item" data-feature="jail">
-          <span class="nav-dot"></span>
+          <span class="nav-icon nav-icon-jail"></span>
           <span class="nav-text">Jail</span>
           <span class="nav-indicator"></span>
         </div>
