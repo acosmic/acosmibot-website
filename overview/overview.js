@@ -54,8 +54,8 @@ async function init() {
         state.currentUser = await userResponse.json();
         console.log('Current user:', state.currentUser);
 
-        // Render user avatar in nav
-        renderNavAvatar(state.currentUser);
+        // Initialize overview layout (sidebars)
+        await initializeOverviewLayout(state.currentUser, 'overview');
 
         // Fetch all data in parallel
         await Promise.all([
@@ -66,6 +66,11 @@ async function init() {
         // Populate UI
         populateUserStats();
         populateServers();
+
+        // Setup mobile menu
+        if (window.innerWidth <= 768) {
+            setupMobileMenu();
+        }
 
         console.log('Overview page initialized');
 
@@ -128,31 +133,6 @@ async function loadUserGuilds() {
     } catch (error) {
         console.warn('Could not load guilds:', error);
     }
-}
-
-function renderNavAvatar(user) {
-    const avatarEl = document.getElementById('userAvatarNav');
-    if (!avatarEl || !user) return;
-
-    if (user.avatar) {
-        const avatarUrl = user.avatar.startsWith('http')
-            ? user.avatar
-            : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
-        avatarEl.style.backgroundImage = `url('${avatarUrl}')`;
-    } else {
-        avatarEl.textContent = (user.username || user.global_name || 'U').charAt(0).toUpperCase();
-        avatarEl.style.display = 'flex';
-        avatarEl.style.alignItems = 'center';
-        avatarEl.style.justifyContent = 'center';
-        avatarEl.style.fontSize = '14px';
-        avatarEl.style.fontWeight = 'bold';
-        avatarEl.style.color = 'white';
-    }
-    avatarEl.title = user.global_name || user.username || 'User';
-
-    // Add click handler for menu
-    avatarEl.addEventListener('click', showUserMenu);
-    avatarEl.style.position = 'relative';
 }
 
 function populateUserStats() {
@@ -299,67 +279,27 @@ function showError(message) {
     }
 }
 
-// Show user dropdown menu
-function showUserMenu() {
-    // Remove existing menu if it exists
-    const existingMenu = document.querySelector('.user-menu');
-    if (existingMenu) {
-        existingMenu.remove();
-        return;
-    }
+// Mobile menu setup
+function setupMobileMenu() {
+    const menuBtn = document.querySelector('.top-nav-left');
+    const guildSelector = document.querySelector('.guild-selector-sidebar');
+    const navSidebar = document.querySelector('.navigation-sidebar');
 
-    const menu = document.createElement('div');
-    menu.className = 'user-menu';
+    if (!menuBtn || !guildSelector || !navSidebar) return;
 
-    const user = state.currentUser;
-    const stats = state.userStats || {};
+    menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        guildSelector.classList.toggle('open');
+        navSidebar.classList.toggle('open');
+    });
 
-    menu.innerHTML = `
-        <div class="user-info">
-            <div class="user-name">${user.global_name || user.username || 'User'}</div>
-            <div class="user-stats">Level ${stats.level || 1} • ${formatNumber(stats.currency || 0)} Credits</div>
-        </div>
-        <a href="/overview">Overview</a>
-        <a href="#" onclick="showProfile(); return false;">Profile</a>
-        <div style="border-top: 1px solid var(--border-light); margin: 5px 0;"></div>
-        <a href="#" onclick="logout(); return false;" class="logout-btn">🚪 Logout</a>
-    `;
-
-    // Position menu
-    const avatarEl = document.getElementById('userAvatarNav');
-    if (avatarEl) {
-        avatarEl.appendChild(menu);
-
-        // Close menu when clicking outside
-        setTimeout(() => {
-            document.addEventListener('click', function closeMenu(e) {
-                if (!menu.contains(e.target) && !avatarEl.contains(e.target)) {
-                    menu.remove();
-                    document.removeEventListener('click', closeMenu);
-                }
-            });
-        }, 100);
-    }
-}
-
-// Profile placeholder
-function showProfile() {
-    alert('Profile page coming soon!');
-}
-
-// Logout
-function logout() {
-    localStorage.removeItem('discord_token');
-    state.currentUser = null;
-
-    // Remove any existing menu
-    const menu = document.querySelector('.user-menu');
-    if (menu) menu.remove();
-
-    alert('Successfully logged out!');
-
-    // Redirect to home
-    setTimeout(() => {
-        window.location.href = '/';
-    }, 500);
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!guildSelector.contains(e.target) &&
+            !navSidebar.contains(e.target) &&
+            !menuBtn.contains(e.target)) {
+            guildSelector.classList.remove('open');
+            navSidebar.classList.remove('open');
+        }
+    });
 }

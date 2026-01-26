@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="/images/acosmibot-logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/guild-dashboard-new.css">
     <link rel="stylesheet" href="/overview/overview.css">
 </head>
 <body>
@@ -25,18 +26,31 @@
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
             </button>
-            <div class="user-avatar-nav" id="userAvatarNav"></div>
         </div>
     </nav>
 
-    <div class="overview-container">
+    <!-- Dashboard Layout with Sidebars -->
+    <div class="dashboard-container">
+        <!-- Guild Selector Sidebar -->
+        <aside class="guild-selector-sidebar">
+            <div class="guild-selector-user-avatar" id="guildSelectorAvatar"></div>
+            <div class="guild-selector-divider"></div>
+            <div class="guild-icon-list" id="guildIconList"></div>
+        </aside>
+
+        <!-- Navigation Sidebar -->
+        <aside class="navigation-sidebar">
+            <nav class="sidebar-nav" id="overviewNavigation"></nav>
+        </aside>
+
         <!-- Main Content -->
-        <main class="overview-content">
-            <!-- Page Header -->
-            <header class="overview-header">
-                <h1>Overview</h1>
-                <p class="header-description">Your global stats across all servers</p>
-            </header>
+        <main class="main-content">
+            <div id="overview-content-wrapper">
+                <!-- Page Header -->
+                <header class="overview-header">
+                    <h1>Overview</h1>
+                    <p class="header-description">Your global stats across all servers</p>
+                </header>
 
             <!-- User Stats Section -->
             <section class="content-section">
@@ -146,10 +160,12 @@
                     </a>
                 </div>
             </section>
+            </div> <!-- end overview-content-wrapper -->
         </main>
-    </div>
+    </div> <!-- end dashboard-container -->
 
     <script src="/scripts/shared/dashboard-ui.js"></script>
+    <script src="/scripts/shared/overview-nav.js"></script>
     <script src="/overview/overview.js"></script>
 </body>
 </html>

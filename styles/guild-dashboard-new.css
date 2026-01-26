@@ -47,11 +47,42 @@ body {
     overflow-x: hidden;
     flex-shrink: 0;
     height: calc(100vh - 56px);
-    padding: 24px 0;
+    padding: 16px 0;
     position: fixed;
     left: 0;
     top: 56px;
     z-index: 90;
+}
+
+/* Guild selector user avatar */
+.guild-selector-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    background-size: cover;
+    background-position: center;
+    margin: 0 auto 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+}
+
+.guild-selector-user-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.guild-selector-divider {
+    width: 32px;
+    height: 2px;
+    background: var(--border-light);
+    margin: 0 auto 24px;
 }
 
 .guild-icon-list {

@@ -125,7 +125,7 @@ class DashboardCore {
   }
 
   renderUserAvatar(user) {
-    const avatarElement = document.getElementById('userAvatarNav');
+    const avatarElement = document.getElementById('guildSelectorAvatar');
     if (!avatarElement) return;
 
     if (user.avatar) {
@@ -134,22 +134,26 @@ class DashboardCore {
         ? user.avatar
         : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
       avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
+      avatarElement.textContent = '';
     } else {
       // Fallback: first letter of username
       avatarElement.textContent = (user.username || user.global_name || 'U').charAt(0).toUpperCase();
       avatarElement.style.display = 'flex';
       avatarElement.style.alignItems = 'center';
       avatarElement.style.justifyContent = 'center';
-      avatarElement.style.fontSize = '14px';
+      avatarElement.style.fontSize = '20px';
       avatarElement.style.fontWeight = 'bold';
       avatarElement.style.color = 'white';
+      avatarElement.style.backgroundImage = 'none';
     }
 
-    avatarElement.title = user.global_name || user.username || 'User';
+    avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Overview`;
 
-    // Add click handler for menu
-    avatarElement.addEventListener('click', () => this.showUserMenu());
-    avatarElement.style.position = 'relative';
+    // Make it link to /overview on click
+    avatarElement.addEventListener('click', () => {
+      window.location.href = '/overview';
+    });
+    avatarElement.style.cursor = 'pointer';
   }
 
   updateNotificationIcon() {
