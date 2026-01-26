@@ -96,8 +96,9 @@ function renderGuildIcons(guilds) {
     return;
   }
 
+  container.innerHTML = '';
+
   if (!guilds || guilds.length === 0) {
-    container.innerHTML = '';
     return;
   }
 
@@ -113,29 +114,36 @@ function renderGuildIcons(guilds) {
     return bScore - aScore;
   });
 
-  // Render guild icons
-  container.innerHTML = sortedGuilds.map(guild => {
-    let iconHtml = '';
+  // Render guild icons (matching dashboard-core.js approach)
+  sortedGuilds.forEach(guild => {
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'guild-icon';
+    iconDiv.dataset.guildId = guild.id;
+    iconDiv.title = guild.name;
+
     if (guild.icon) {
       const iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`;
-      iconHtml = `<div class="guild-icon" style="background-image: url('${iconUrl}')" title="${escapeHtml(guild.name)}"></div>`;
+      iconDiv.style.backgroundImage = `url('${iconUrl}')`;
+      iconDiv.style.backgroundSize = 'cover';
+      iconDiv.style.backgroundPosition = 'center';
     } else {
-      const initial = (guild.name || 'S').charAt(0).toUpperCase();
-      iconHtml = `<div class="guild-icon" title="${escapeHtml(guild.name)}">${initial}</div>`;
+      // Fallback: first letter
+      iconDiv.textContent = guild.name.charAt(0).toUpperCase();
+      iconDiv.style.display = 'flex';
+      iconDiv.style.alignItems = 'center';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.fontSize = '20px';
+      iconDiv.style.fontWeight = 'bold';
+      iconDiv.style.color = 'white';
     }
 
-    // Add premium indicator if applicable
-    const premiumBadge = guild.premium_tier === 'premium'
-      ? '<span class="guild-premium-badge">💎</span>'
-      : '';
+    // Make icon clickable to navigate to guild dashboard
+    iconDiv.addEventListener('click', () => {
+      window.location.href = `/server/${guild.id}/dashboard`;
+    });
 
-    return `
-      <a href="/server/${guild.id}/dashboard" class="guild-icon-wrapper">
-        ${iconHtml}
-        ${premiumBadge}
-      </a>
-    `;
-  }).join('');
+    container.appendChild(iconDiv);
+  });
 }
 
 /**

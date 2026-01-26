@@ -95,7 +95,7 @@ body {
     background: var(--bg-card);
     background-size: cover;
     background-position: center;
-    margin: 0 auto 12px;
+    margin: 0 auto 24px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -109,13 +109,6 @@ body {
 .guild-selector-user-avatar:hover {
     transform: scale(1.05);
     box-shadow: 0 0 0 2px var(--primary-color);
-}
-
-.guild-selector-divider {
-    width: 32px;
-    height: 2px;
-    background: var(--border-light);
-    margin: 0 auto 24px;
 }
 
 /* ============================================
