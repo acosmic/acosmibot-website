@@ -28,7 +28,7 @@ class DashboardCore {
     // Validate guild ID exists
     if (!this.state.currentGuildId) {
       this.showError('No guild specified');
-      window.location.href = '/overview';
+      window.location.href = '/dashboard';
       return;
     }
 
@@ -147,11 +147,11 @@ class DashboardCore {
       avatarElement.style.backgroundImage = 'none';
     }
 
-    avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Overview`;
+    avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Dashboard`;
 
-    // Make it link to /overview on click
+    // Make it link to /dashboard on click
     avatarElement.addEventListener('click', () => {
-      window.location.href = '/overview';
+      window.location.href = '/dashboard';
     });
     avatarElement.style.cursor = 'pointer';
   }
@@ -484,13 +484,9 @@ class DashboardCore {
           </svg>
           <span>GENERAL</span>
         </div>
-        <a href="/overview" class="nav-item nav-link-external">
-          <span class="nav-icon nav-icon-overview"></span>
-          <span class="nav-text">Overview</span>
-        </a>
         <div class="nav-item" data-feature="dashboard">
           <span class="nav-icon nav-icon-dashboard"></span>
-          <span class="nav-text">Dashboard</span>
+          <span class="nav-text">Overview</span>
         </div>
         <div class="nav-item" data-feature="membership" data-coming-soon="true">
           <span class="nav-icon nav-icon-membership"></span>

@@ -50,11 +50,11 @@ function renderGuildSelectorAvatar(user) {
     avatarElement.style.backgroundImage = 'none';
   }
 
-  avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Overview`;
+  avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Dashboard`;
 
-  // Make it clickable to navigate to /overview
+  // Make it clickable to navigate to /dashboard
   avatarElement.addEventListener('click', () => {
-    window.location.href = '/overview';
+    window.location.href = '/dashboard';
   });
   avatarElement.style.cursor = 'pointer';
 }
@@ -137,9 +137,9 @@ function renderGuildIcons(guilds) {
       iconDiv.style.color = 'white';
     }
 
-    // Make icon clickable to navigate to guild dashboard
+    // Make icon clickable to navigate to guild overview
     iconDiv.addEventListener('click', () => {
-      window.location.href = `/server/${guild.id}/dashboard`;
+      window.location.href = `/server/${guild.id}/overview`;
     });
 
     container.appendChild(iconDiv);
