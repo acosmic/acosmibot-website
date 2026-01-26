@@ -1,9 +1,8 @@
 /**
  * Overview Page Script
  * Handles authentication, fetching global user stats, and displaying servers
+ * Note: API_BASE_URL is declared in overview-nav.js
  */
-
-const API_BASE_URL = 'https://api.acosmibot.com';
 
 // State
 const state = {

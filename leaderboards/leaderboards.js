@@ -1,9 +1,8 @@
 /**
  * Leaderboards Page Script
  * Handles authentication and displays coming soon message
+ * Note: API_BASE_URL is declared in overview-nav.js
  */
-
-const API_BASE_URL = 'https://api.acosmibot.com';
 
 // State
 const state = {
