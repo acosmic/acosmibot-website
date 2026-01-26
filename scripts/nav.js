@@ -188,7 +188,7 @@ function showUserMenu() {
             <div class="user-name">${currentUser.username}</div>
             <div class="user-stats">Level ${currentUser.level || 1} • ${currentUser.currency || 0} Credits</div>
         </div>
-        <a href="/overview">Overview</a>
+        <a href="/dashboard">Dashboard</a>
         <a href="#" onclick="showProfile()">Profile</a>
         <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 5px 0;"></div>
         <a href="#" onclick="logout()" class="logout-btn">🚪 Logout</a>
