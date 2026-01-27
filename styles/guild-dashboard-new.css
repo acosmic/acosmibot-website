@@ -386,6 +386,15 @@ body {
     background-image: url('/images/acosmibot_logout-active.svg');
 }
 
+/* Leaderboards Icon */
+.nav-icon-leaderboards {
+    background-image: url('/images/acosmibot_leaderboards-inactive.svg');
+}
+
+.nav-item.active .nav-icon-leaderboards {
+    background-image: url('/images/acosmibot_leaderboards-active.svg');
+}
+
 .nav-text {
     font-size: 14px;
     color: var(--text-secondary);
