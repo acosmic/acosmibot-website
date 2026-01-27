@@ -449,13 +449,16 @@ class DashboardCore {
     document.querySelectorAll('.nav-item').forEach(item => {
       const feature = item.dataset.feature;
       const isComingSoon = item.dataset.comingSoon === 'true';
+      const action = item.dataset.action;
 
       if (feature === currentFeature) {
         item.classList.add('active');
       }
 
       item.addEventListener('click', () => {
-        if (isComingSoon) {
+        if (action === 'logout') {
+          this.logout();
+        } else if (isComingSoon) {
           window.showComingSoonModal(feature);
         } else {
           this.navigateToFeature(feature);
@@ -491,6 +494,10 @@ class DashboardCore {
         <div class="nav-item" data-feature="membership" data-coming-soon="true">
           <span class="nav-icon nav-icon-membership"></span>
           <span class="nav-text">Membership</span>
+        </div>
+        <div class="nav-item" data-feature="premium" data-coming-soon="true">
+          <span class="nav-icon nav-icon-premium"></span>
+          <span class="nav-text">Premium</span>
         </div>
       </div>
 
@@ -613,6 +620,13 @@ class DashboardCore {
           <span class="nav-icon nav-icon-lottery"></span>
           <span class="nav-text">Lottery</span>
           <span class="nav-indicator"></span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-item" data-feature="logout" data-action="logout">
+          <span class="nav-icon nav-icon-logout"></span>
+          <span class="nav-text">Logout</span>
         </div>
       </div>
     `;

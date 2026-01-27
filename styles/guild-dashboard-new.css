@@ -368,6 +368,24 @@ body {
     background-image: url('/images/acosmibot_reddit-active.svg');
 }
 
+/* Premium Icon */
+.nav-icon-premium {
+    background-image: url('/images/acosmibot_premium-inactive.svg');
+}
+
+.nav-item.active .nav-icon-premium {
+    background-image: url('/images/acosmibot_premium-active.svg');
+}
+
+/* Logout Icon */
+.nav-icon-logout {
+    background-image: url('/images/acosmibot_logout-inactive.svg');
+}
+
+.nav-item.active .nav-icon-logout {
+    background-image: url('/images/acosmibot_logout-active.svg');
+}
+
 .nav-text {
     font-size: 14px;
     color: var(--text-secondary);
