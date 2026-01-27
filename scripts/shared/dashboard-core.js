@@ -303,7 +303,7 @@ class DashboardCore {
 
     // Get current feature from URL
     const pathParts = window.location.pathname.split('/');
-    const currentFeature = pathParts[3] || 'dashboard'; // Default to dashboard if not specified
+    const currentFeature = pathParts[3] || 'overview'; // Default to overview if not specified
 
     // Navigate to same feature in new guild
     if (window.Router) {
@@ -484,8 +484,8 @@ class DashboardCore {
           </svg>
           <span>GENERAL</span>
         </div>
-        <div class="nav-item" data-feature="dashboard">
-          <span class="nav-icon nav-icon-dashboard"></span>
+        <div class="nav-item" data-feature="overview">
+          <span class="nav-icon nav-icon-overview"></span>
           <span class="nav-text">Overview</span>
         </div>
         <div class="nav-item" data-feature="membership" data-coming-soon="true">

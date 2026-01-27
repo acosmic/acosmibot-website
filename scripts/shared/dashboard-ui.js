@@ -38,7 +38,7 @@ function showComingSoonModal(featureName) {
 // Map feature slugs to display names
 function formatFeatureName(feature) {
   const featureNames = {
-    'dashboard': 'Dashboard',
+    'overview': 'Overview',
     'membership': 'Membership',
     'leveling': 'Leveling',
     'welcomes': 'Welcomes and Goodbyes',

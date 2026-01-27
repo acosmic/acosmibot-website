@@ -42,8 +42,8 @@ async function initSPA() {
     return;
   }
 
-  // Default to 'dashboard' if no feature specified
-  const feature = initialRoute.feature || 'dashboard';
+  // Default to 'overview' if no feature specified
+  const feature = initialRoute.feature || 'overview';
   console.log('Initial route:', initialRoute, '-> feature:', feature);
 
   try {
