@@ -1,0 +1,47 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Kick Integration</h1>
+    <p class="docs-page-description">
+      Get real-time notifications when streamers go live on Kick with webhook-based alerts.
+    </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure Kick Integration →
+    </button>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>Similar to Twitch integration, Kick alerts notify your community when streamers go live on Kick.com with customizable messages and role mentions.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration</h2>
+    <p>Set up through <a href="/server" target="_blank">/server dashboard</a> → Kick section:</p>
+    <ul>
+      <li>Enable Kick integration</li>
+      <li>Set announcement channel</li>
+      <li>Add Kick streamer usernames</li>
+      <li>Configure role mentions per streamer</li>
+      <li>Customize announcement messages</li>
+    </ul>
+  </section>
+
+  <section class="docs-section">
+    <h2>Message Placeholders</h2>
+    <div class="code-block">
+      <code>{streamer} - Streamer name
+{username} - Kick username  
+{title} - Stream title
+{category} - Stream category
+{url} - Kick channel URL</code>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Related Features</h2>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('twitch')">Twitch Integration →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('youtube')">YouTube Integration →</button>
+    </div>
+  </section>
+</div>

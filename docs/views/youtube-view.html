@@ -1,0 +1,146 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>YouTube Integration</h1>
+    <p class="docs-page-description">
+      Get notified when your favorite creators upload videos or go live on YouTube with customizable announcements.
+    </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure YouTube Integration →
+    </button>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      The YouTube integration uses PubSubHubbub (WebSub) to receive instant notifications when channels upload videos or start live streams. Configure custom announcements with role mentions to keep your community updated.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>Key Features</h3>
+      <ul>
+        <li>Real-time notifications for uploads and live streams</li>
+        <li>PubSubHubbub subscription for instant updates</li>
+        <li>Customizable announcement messages per channel</li>
+        <li>Role mentions (@everyone, @here, or specific roles)</li>
+        <li>Video metadata in announcements (title, thumbnail)</li>
+        <li>Automatic webhook management</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Add YouTube Channels</h3>
+          <p>Configure which YouTube channels to track through the <a href="/server" target="_blank">/server dashboard</a>. Enter the channel name or ID.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>PubSubHubbub Subscription</h3>
+          <p>Acosmibot subscribes to YouTube's feed for each channel. When new content is published, YouTube sends a webhook notification.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Content Verification</h3>
+          <p>The bot checks if the content is a new upload or live stream (not a scheduled premiere or re-upload).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Announcement Posted</h3>
+          <p>An announcement is posted to your designated channel with video details, thumbnail, and any role mentions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration</h2>
+    
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Enabled</strong></td>
+          <td>Enable/disable the YouTube integration</td>
+        </tr>
+        <tr>
+          <td><strong>Announcement Channel</strong></td>
+          <td>Discord channel where notifications are posted</td>
+        </tr>
+        <tr>
+          <td><strong>Default Message</strong></td>
+          <td>Template used for all channels (can be overridden)</td>
+        </tr>
+        <tr>
+          <td><strong>Tracked Channels</strong></td>
+          <td>List of YouTube channels to monitor</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Message Placeholders</h2>
+
+    <div class="code-block">
+      <code>🔴 {channel} just uploaded a new video!
+{title}
+{url}</code>
+    </div>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Placeholder</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>{channel}</code></td><td>Channel name</td></tr>
+        <tr><td><code>{title}</code></td><td>Video title</td></tr>
+        <tr><td><code>{url}</code></td><td>Video URL</td></tr>
+        <tr><td><code>{description}</code></td><td>Video description (truncated)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: Notifications aren't working</h4>
+      <p>A: Verify that YouTube integration is enabled, announcement channel is set, and the channel name/ID is correct.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: I'm getting notifications for old videos</h4>
+      <p>A: This can happen when first adding a channel. Future uploads will work correctly.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Related Features</h2>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('twitch')">Twitch Integration →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('kick')">Kick Integration →</button>
+    </div>
+  </section>
+</div>

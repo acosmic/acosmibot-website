@@ -1,0 +1,329 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Economy & Banking System</h1>
+    <p class="docs-page-description">
+      A fully-featured currency system with credits, daily rewards, transfers, and a global bank for your community.
+    </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure in /server →
+    </button>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Acosmibot's economy system provides a virtual currency called "credits" that members can earn, spend, and transfer. The system integrates with games, rewards, and other features to create an engaging server economy.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>Key Features</h3>
+      <ul>
+        <li>Daily credit rewards with streak bonuses</li>
+        <li>Credit transfers between members</li>
+        <li>Global bank for deposits and withdrawals</li>
+        <li>Integration with gambling games</li>
+        <li>Transaction history tracking</li>
+        <li>Leaderboards for richest members</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="info-card">
+      <h3>💰 Credits</h3>
+      <p>
+        Credits are the virtual currency in Acosmibot. Members start with 0 credits and can earn them through:
+      </p>
+      <ul>
+        <li><strong>Daily Rewards:</strong> Claim free credits every 24 hours</li>
+        <li><strong>Gambling Games:</strong> Win credits by playing slots, lottery, blackjack, etc.</li>
+        <li><strong>Transfers:</strong> Receive credits from other members</li>
+        <li><strong>Admin Grants:</strong> Server admins can give credits as rewards</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h3>🏦 Global Bank</h3>
+      <p>
+        The bank allows members to store credits safely. Banked credits cannot be lost in gambling games until withdrawn. This encourages members to save their earnings.
+      </p>
+      <ul>
+        <li><strong>Deposits:</strong> Store credits in the bank</li>
+        <li><strong>Withdrawals:</strong> Take credits out for spending</li>
+        <li><strong>No Interest:</strong> Bank balance doesn't grow automatically</li>
+        <li><strong>Safe Storage:</strong> Banked credits are protected</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/balance [member]</div>
+        <div class="command-description">
+          Check your current credit balance and bank balance. Optionally view another member's balance.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/balance</code>
+          <code>/balance @username</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/daily</div>
+        <div class="command-description">
+          Claim your daily credit reward. Build up streaks by claiming daily without missing a day for bonus rewards.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/daily</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/transfer &lt;member&gt; &lt;amount&gt;</div>
+        <div class="command-description">
+          Send credits to another member. The amount is deducted from your balance and added to theirs.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/transfer @username 500</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/deposit &lt;amount&gt;</div>
+        <div class="command-description">
+          Deposit credits from your wallet into the bank for safe keeping.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/deposit 1000</code>
+          <code>/deposit all</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/withdraw &lt;amount&gt;</div>
+        <div class="command-description">
+          Withdraw credits from the bank to your wallet for spending.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/withdraw 500</code>
+          <code>/withdraw all</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/richest [scope]</div>
+        <div class="command-description">
+          View the richest members leaderboard. Choose between server-only or global rankings.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/richest</code>
+          <code>/richest server</code>
+          <code>/richest global</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/givecredits &lt;member&gt; &lt;amount&gt;</div>
+        <div class="command-description">
+          Grant credits to a member. Requires administrator permissions. Use for events, contests, or rewards.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/givecredits @winner 10000</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/removecredits &lt;member&gt; &lt;amount&gt;</div>
+        <div class="command-description">
+          Remove credits from a member. Requires administrator permissions. Use for penalties or corrections.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/removecredits @username 500</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Daily Rewards & Streaks</h2>
+
+    <div class="info-card info-card-success">
+      <h3>How Daily Rewards Work</h3>
+      <p>
+        Members can claim free credits once every 24 hours using <code>/daily</code>. The base reward is 100 credits, but this can be increased with:
+      </p>
+      <ul>
+        <li><strong>Consecutive Days Streak:</strong> Claim daily without missing a day to build streaks</li>
+        <li><strong>Streak Bonuses:</strong> Higher streaks = bigger rewards</li>
+        <li><strong>Streak Reset:</strong> Missing a day resets your streak to 1</li>
+      </ul>
+    </div>
+
+    <div class="example-card">
+      <h3>Example Streak Progression</h3>
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Streak Days</th>
+            <th>Bonus Multiplier</th>
+            <th>Total Reward</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1 day</td>
+            <td>1.0x</td>
+            <td>100 credits</td>
+          </tr>
+          <tr>
+            <td>7 days</td>
+            <td>1.5x</td>
+            <td>150 credits</td>
+          </tr>
+          <tr>
+            <td>14 days</td>
+            <td>2.0x</td>
+            <td>200 credits</td>
+          </tr>
+          <tr>
+            <td>30 days</td>
+            <td>3.0x</td>
+            <td>300 credits</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Transaction History</h2>
+    <p>
+      All credit transactions are tracked in the database, including:
+    </p>
+    <ul>
+      <li>Daily reward claims</li>
+      <li>Transfers between members</li>
+      <li>Bank deposits and withdrawals</li>
+      <li>Gambling wins and losses</li>
+      <li>Admin grants and removals</li>
+    </ul>
+
+    <div class="info-card">
+      <h3>📊 Viewing Your History</h3>
+      <p>
+        Transaction history can be viewed through your user dashboard at <a href="/dashboard" target="_blank">/dashboard</a>. This shows recent transactions and your balance over time.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Economy Integration with Games</h2>
+    <p>
+      The economy system powers all gambling features:
+    </p>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">🎰 Slots</div>
+        <div class="command-description">
+          Bet credits on slot machine spins with customizable symbols and payouts.
+        </div>
+        <a href="/docs/slots" onclick="event.preventDefault(); window.DocsRouter.navigate('slots')">View Slots Documentation →</a>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🎫 Lottery</div>
+        <div class="command-description">
+          Purchase lottery tickets for a chance to win the jackpot in server-wide drawings.
+        </div>
+        <a href="/docs/lottery" onclick="event.preventDefault(); window.DocsRouter.navigate('lottery')">View Lottery Documentation →</a>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🃏 Blackjack</div>
+        <div class="command-description">
+          Play classic blackjack against the dealer with credit bets.
+        </div>
+        <a href="/docs/blackjack" onclick="event.preventDefault(); window.DocsRouter.navigate('blackjack')">View Blackjack Documentation →</a>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🪙 Coinflip</div>
+        <div class="command-description">
+          Bet on heads or tails for a simple 50/50 gambling game.
+        </div>
+        <a href="/docs/coinflip" onclick="event.preventDefault(); window.DocsRouter.navigate('coinflip')">View Coinflip Documentation →</a>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🎲 Deathroll</div>
+        <div class="command-description">
+          Challenge other members to high-stakes dice rolling duels.
+        </div>
+        <a href="/docs/deathroll" onclick="event.preventDefault(); window.DocsRouter.navigate('deathroll')">View Deathroll Documentation →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Best Practices</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Tips for Server Owners</h3>
+      <ul>
+        <li>Grant starting credits to new members to encourage participation</li>
+        <li>Host events and giveaways using <code>/givecredits</code></li>
+        <li>Monitor the richest leaderboard to ensure healthy economy balance</li>
+        <li>Set gambling limits to prevent members from losing everything</li>
+        <li>Encourage banking to promote saving behavior</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>⚠️ Economy Management</h3>
+      <ul>
+        <li>Don't over-inflate the economy with excessive admin grants</li>
+        <li>Balance game payouts to maintain credit value</li>
+        <li>Consider periodic "wealth taxes" or credit sinks for balance</li>
+        <li>Monitor for exploitation or abuse of transfer/gambling systems</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: I can't claim my daily reward</h4>
+      <p>A: You can only claim <code>/daily</code> once every 24 hours. Check when you last claimed it.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: My streak reset but I didn't miss a day</h4>
+      <p>A: Streaks require claiming within 24 hours of your last claim. If you claim at 11pm one day and 1am the next, you have a very short window the following day.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I transfer credits between servers?</h4>
+      <p>A: No, credits are server-specific. However, your global balance (total across all servers) is tracked for leaderboards.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: What happens if I go into negative credits?</h4>
+      <p>A: You cannot go negative. Gambling games will prevent bets if you don't have enough credits.</p>
+    </div>
+  </section>
+</div>

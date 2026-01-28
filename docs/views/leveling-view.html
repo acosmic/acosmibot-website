@@ -1,0 +1,291 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Leveling System</h1>
+    <p class="docs-page-description">
+      Engage your community with an XP-based progression system featuring customizable formulas, automatic role rewards, and level-up announcements.
+    </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure in /server →
+    </button>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      The leveling system rewards server activity by granting XP (experience points) to members when they send messages. As members accumulate XP, they level up and can be automatically assigned roles based on their level.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>Key Features</h3>
+      <ul>
+        <li>Customizable XP formulas (Linear, Quadratic, Exponential)</li>
+        <li>Automatic role assignment at specified levels</li>
+        <li>Level-up announcements with custom messages</li>
+        <li>Daily leaderboard announcements</li>
+        <li>Streak tracking for consecutive daily activity</li>
+        <li>XP multipliers and level caps</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Members Earn XP</h3>
+          <p>Members earn XP by sending messages in your server. The amount earned is based on your configured XP multiplier and anti-spam protection prevents XP farming.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>XP Accumulates to Levels</h3>
+          <p>As members accumulate XP, they progress through levels. The XP required per level is determined by your chosen formula:</p>
+          <ul>
+            <li><strong>Linear:</strong> XP = base_xp × level</li>
+            <li><strong>Quadratic:</strong> XP = base_xp × level²</li>
+            <li><strong>Exponential:</strong> XP = base_xp × growth_factor^level</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Automatic Role Rewards</h3>
+          <p>When a member reaches a configured level milestone, they automatically receive the assigned roles. You can choose between different role assignment modes.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Announcements</h3>
+          <p>Level-up achievements can be announced in a designated channel with customizable messages that support placeholders for member mentions, levels, and more.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration Options</h2>
+    <p>Customize the leveling system through the <a href="/server" target="_blank">/server dashboard</a>:</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Enabled</strong></td>
+          <td>Enable/disable the entire leveling system</td>
+          <td>false</td>
+        </tr>
+        <tr>
+          <td><strong>XP Multiplier</strong></td>
+          <td>Adjust XP gain rate (0.1 - 5.0)</td>
+          <td>1.0</td>
+        </tr>
+        <tr>
+          <td><strong>Base XP</strong></td>
+          <td>Starting XP requirement (50 - 1,000)</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td><strong>XP Formula</strong></td>
+          <td>Growth pattern: Linear, Quadratic, or Exponential</td>
+          <td>Quadratic</td>
+        </tr>
+        <tr>
+          <td><strong>Growth Factor</strong></td>
+          <td>Exponential formula multiplier (1.0 - 3.0)</td>
+          <td>1.5</td>
+        </tr>
+        <tr>
+          <td><strong>Max Level</strong></td>
+          <td>Maximum achievable level (1 - 1,000,000)</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td><strong>Level-Up Announcements</strong></td>
+          <td>Enable level-up messages</td>
+          <td>true</td>
+        </tr>
+        <tr>
+          <td><strong>Announcement Channel</strong></td>
+          <td>Channel for level-up messages</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td><strong>Daily Announcements</strong></td>
+          <td>Daily leaderboard updates</td>
+          <td>false</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Role Assignment Modes</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">Progressive Mode</div>
+        <div class="command-description">
+          Members keep all previous role rewards as they level up. Each new level adds more roles without removing old ones.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>Level 5: Bronze • Level 10: Bronze + Silver • Level 20: Bronze + Silver + Gold</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Additive Mode</div>
+        <div class="command-description">
+          Similar to progressive, but you have more control over which roles stack and which replace previous ones.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Selective Mode</div>
+        <div class="command-description">
+          Only the highest level role is assigned. Previous level roles are automatically removed when reaching a new tier.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>Level 5: Bronze • Level 10: Silver (Bronze removed) • Level 20: Gold (Silver removed)</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/rank [member]</div>
+        <div class="command-description">
+          View your current rank, level, XP progress, and server leaderboard position. Optionally check another member's stats.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/rank</code>
+          <code>/rank @username</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/leaderboard</div>
+        <div class="command-description">
+          Display the server's XP leaderboard showing top members by level and experience points.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/leaderboard</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/setlevel &lt;member&gt; &lt;level&gt;</div>
+        <div class="command-description">
+          Manually set a member's level. Requires administrator permissions.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/setlevel @username 10</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/addxp &lt;member&gt; &lt;amount&gt;</div>
+        <div class="command-description">
+          Grant XP to a member. Requires administrator permissions.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/addxp @username 500</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Custom Announcement Messages</h2>
+    <p>Personalize level-up announcements with placeholders:</p>
+
+    <div class="code-block">
+      <code>🎉 {member} just reached level {level}! {streak_text}</code>
+    </div>
+
+    <div class="info-card">
+      <h3>Available Placeholders</h3>
+      <ul>
+        <li><code>{member}</code> - Member mention</li>
+        <li><code>{level}</code> - New level number</li>
+        <li><code>{xp}</code> - Current total XP</li>
+        <li><code>{streak_text}</code> - Streak bonus text (if applicable)</li>
+        <li><code>{role_names}</code> - Names of roles earned at this level</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Best Practices</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Tips for Success</h3>
+      <ul>
+        <li>Start with a <strong>quadratic formula</strong> for balanced progression</li>
+        <li>Set the <strong>XP multiplier to 1.0</strong> initially, then adjust based on server activity</li>
+        <li>Create role rewards at <strong>meaningful milestones</strong> (5, 10, 20, 50, etc.)</li>
+        <li>Use <strong>selective mode</strong> if you want clean role hierarchies</li>
+        <li>Enable <strong>daily announcements</strong> to encourage friendly competition</li>
+        <li>Set a <strong>realistic max level</strong> based on your server size</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>⚠️ Common Pitfalls</h3>
+      <ul>
+        <li>Don't set XP multiplier too high or members will max out too quickly</li>
+        <li>Avoid creating too many role milestones (causes role clutter)</li>
+        <li>Test your XP formula with a calculator before deploying</li>
+        <li>Ensure announcement channel permissions allow the bot to send messages</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: Members aren't gaining XP</h4>
+      <p>A: Ensure the leveling system is enabled in your server dashboard. Also check that the bot has permission to read messages in the channels.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Level-up announcements aren't working</h4>
+      <p>A: Verify that you've selected an announcement channel and that the bot has "Send Messages" and "Embed Links" permissions in that channel.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Roles aren't being assigned automatically</h4>
+      <p>A: Make sure the bot's role is higher than the roles it's trying to assign. Check the role hierarchy in Server Settings → Roles.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: How do I reset all levels?</h4>
+      <p>A: Contact support for bulk level resets. Individual resets can be done with <code>/setlevel</code>.</p>
+    </div>
+  </section>
+</div>

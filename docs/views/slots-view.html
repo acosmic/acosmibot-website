@@ -1,0 +1,154 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Slots Game</h1>
+    <p class="docs-page-description">
+      Try your luck at the slot machine! Bet credits and match symbols for big payouts.
+    </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure Slots →
+    </button>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      The slots game is a classic slot machine where you bet credits and spin three reels. Match symbols across the reels to win multipliers on your bet.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>Key Features</h3>
+      <ul>
+        <li>3-reel slot machine with customizable symbols</li>
+        <li>Multiple winning combinations</li>
+        <li>Configurable payout multipliers</li>
+        <li>Visual slot machine display with emojis</li>
+        <li>Integrated with economy system</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How to Play</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Place Your Bet</h3>
+          <p>Use the command <code>/slots &lt;amount&gt;</code> to bet credits.</p>
+          <div class="code-block">
+            <code>/slots 100</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Spin the Reels</h3>
+          <p>The bot spins three reels with random symbols from the configured symbol pool.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Check for Wins</h3>
+          <p>If symbols match, you win! Payouts are based on which symbols matched:</p>
+          <ul>
+            <li><strong>3 of a kind:</strong> Highest payout (e.g., 10x bet)</li>
+            <li><strong>2 of a kind:</strong> Medium payout (e.g., 2x bet)</li>
+            <li><strong>No match:</strong> Lose your bet</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/slots &lt;amount&gt;</div>
+        <div class="command-description">
+          Bet the specified amount of credits and spin the slot machine.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/slots 50</code>
+          <code>/slots 1000</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration</h2>
+    <p>Server admins can customize the slots game through the <a href="/server" target="_blank">/server dashboard</a>:</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Enabled</strong></td>
+          <td>Enable/disable the slots game</td>
+        </tr>
+        <tr>
+          <td><strong>Symbol Pool</strong></td>
+          <td>Customize the emojis used on the reels (default: 12 symbols)</td>
+        </tr>
+        <tr>
+          <td><strong>Payout Rates</strong></td>
+          <td>Adjust multipliers for different winning combinations</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Default Symbols</h2>
+    <p>The slot machine uses these emojis by default:</p>
+
+    <div class="code-block">
+      <code>🍒 🍋 🍊 🍇 🍉 🍓 🍌 🍍 🥝 🍑 🥥 💎</code>
+    </div>
+
+    <div class="info-card">
+      <h3>Custom Symbols</h3>
+      <p>You can customize these symbols in the dashboard to match your server's theme! Use any emoji or even custom server emojis.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Strategy Tips</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Playing Tips</h3>
+      <ul>
+        <li>Start with small bets to learn the game</li>
+        <li>Bank your winnings to protect your credits</li>
+        <li>The more symbols in the pool, the harder it is to match</li>
+        <li>Rare symbols typically have higher payouts</li>
+        <li>Set a budget and stick to it - don't chase losses!</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Related Games</h2>
+    <p>Try other gambling games:</p>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('lottery')">Lottery →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('blackjack')">Blackjack →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('coinflip')">Coinflip →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('deathroll')">Deathroll →</button>
+    </div>
+  </section>
+</div>

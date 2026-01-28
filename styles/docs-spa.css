@@ -1,0 +1,528 @@
+/* ===== DOCUMENTATION SPA STYLES ===== */
+/* Extends guild-dashboard-new.css for documentation pages */
+
+/* Documentation-specific body class */
+body.docs-page {
+  background: #1A1A1A;
+}
+
+/* ============================================
+   SEARCH BAR
+   ============================================ */
+
+.docs-search {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+}
+
+.docs-search input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.2s ease;
+}
+
+.docs-search input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+}
+
+.docs-search input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Search Results Dropdown */
+.docs-search-results {
+  position: absolute;
+  top: 100%;
+  left: 16px;
+  right: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  margin-top: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.search-result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: rgba(0, 217, 255, 0.1);
+}
+
+.search-result-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.search-result-title mark {
+  background: var(--primary-color);
+  color: #000;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.search-result-category {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.search-no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ============================================
+   DOCUMENTATION CONTENT AREA
+   ============================================ */
+
+.docs-main-content {
+  padding: 0;
+}
+
+.docs-page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+/* Page Header */
+.docs-page-header {
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.docs-page-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.docs-page-description {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* Configure Button */
+.btn-configure {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-configure:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 217, 255, 0.3);
+}
+
+.btn-configure:active {
+  transform: translateY(0);
+}
+
+/* Documentation Sections */
+.docs-section {
+  margin-bottom: 48px;
+}
+
+.docs-section h2 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  border-left: 4px solid var(--primary-color);
+  padding-left: 16px;
+}
+
+.docs-section h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  margin-top: 24px;
+  color: var(--text-primary);
+}
+
+.docs-section h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  margin-top: 16px;
+  color: var(--text-primary);
+}
+
+.docs-section p {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.docs-section ul, .docs-section ol {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.docs-section li {
+  margin-bottom: 8px;
+}
+
+/* Info Cards */
+.info-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.info-card h3 {
+  margin-top: 0;
+}
+
+.info-card-success {
+  border-left: 4px solid #10B981;
+}
+
+.info-card-warning {
+  border-left: 4px solid #F59E0B;
+}
+
+.info-card-error {
+  border-left: 4px solid #EF4444;
+}
+
+.info-card-info {
+  border-left: 4px solid var(--primary-color);
+}
+
+/* Code Blocks */
+.code-block {
+  position: relative;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  font-family: 'Monaco', 'Courier New', monospace;
+  overflow-x: auto;
+}
+
+.code-block code {
+  color: var(--primary-color);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.code-block pre {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.copy-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Command Cards */
+.command-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.command-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.command-card:hover {
+  transform: translateX(4px);
+  border-color: var(--primary-color);
+}
+
+.command-signature {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+}
+
+.command-description {
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.command-examples {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.command-examples h4 {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.command-examples code {
+  display: block;
+  background: var(--bg-overlay);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  color: var(--primary-color);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* Step-by-Step Guides */
+.config-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-content h3 {
+  margin-top: 0;
+}
+
+/* Tables */
+.docs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.docs-table th {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.docs-table td {
+  padding: 12px 16px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.docs-table tr:last-child td {
+  border-bottom: none;
+}
+
+.docs-table tr:hover {
+  background: rgba(0, 217, 255, 0.05);
+}
+
+/* Example Cards */
+.example-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.example-card h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+/* FAQ Items */
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.faq-item h4 {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
+
+.faq-item p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 217, 255, 0.1);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Collapsible Sections */
+.collapsible-section {
+  margin-bottom: 16px;
+}
+
+.collapsible-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.collapsible-header:hover {
+  background: rgba(0, 217, 255, 0.05);
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.collapsible-section.open .collapsible-content {
+  max-height: 2000px;
+  padding: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .docs-page-container {
+    padding: 24px;
+  }
+
+  .docs-page-header h1 {
+    font-size: 28px;
+  }
+
+  .docs-section h2 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .guild-selector-sidebar {
+    display: none;
+  }
+
+  .navigation-sidebar {
+    width: 100%;
+    position: fixed;
+    left: -100%;
+    transition: left 0.3s ease;
+    z-index: 100;
+  }
+
+  .navigation-sidebar.open {
+    left: 0;
+  }
+
+  .docs-page-container {
+    padding: 16px;
+  }
+
+  .step {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

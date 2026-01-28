@@ -1,0 +1,225 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Quick Start Guide</h1>
+    <p class="docs-page-description">
+      Get Acosmibot up and running in your server in just a few minutes with this step-by-step guide.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>Step 1: Invite Acosmibot</h2>
+
+    <div class="step">
+      <div class="step-content">
+        <p>Click the button below to invite Acosmibot to your Discord server. You'll need the "Manage Server" permission.</p>
+        <a href="https://discord.com/oauth2/authorize?client_id=1247701827066130433&permissions=8&scope=bot%20applications.commands" target="_blank" class="btn-configure" style="margin-top: 12px;">
+          Invite Acosmibot to Your Server
+        </a>
+      </div>
+    </div>
+
+    <div class="info-card info-card-info" style="margin-top: 24px;">
+      <h3>Required Permissions</h3>
+      <p>For full functionality, grant these permissions:</p>
+      <ul>
+        <li><strong>Read Messages/View Channels</strong> - See channels and messages</li>
+        <li><strong>Send Messages</strong> - Post announcements and responses</li>
+        <li><strong>Manage Roles</strong> - Assign leveling role rewards</li>
+        <li><strong>Embed Links</strong> - Send rich embeds</li>
+        <li><strong>Attach Files</strong> - Share images and files</li>
+        <li><strong>Mention @everyone, @here, All Roles</strong> - For stream alerts</li>
+        <li><strong>Use Slash Commands</strong> - Enable command usage</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Step 2: Access the Dashboard</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Visit the Dashboard</h3>
+          <p>Go to <a href="/dashboard" target="_blank">acosmibot.com/dashboard</a></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Login with Discord</h3>
+          <p>Click "Login with Discord" and authorize the application to view your servers.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Select Your Server</h3>
+          <p>Choose the server you want to configure from the list of servers where you have admin permissions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Step 3: Enable Features</h2>
+
+    <p>Now that you're in the server dashboard, enable the features you want to use:</p>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">⬆️ Leveling System</div>
+        <div class="command-description">
+          Navigate to Leveling in the sidebar, toggle it on, and configure XP formulas and role rewards.
+        </div>
+        <a href="/docs/leveling" onclick="event.preventDefault(); window.DocsRouter.navigate('leveling')">View Leveling Guide →</a>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🟣 Twitch Integration</div>
+        <div class="command-description">
+          Navigate to Twitch in the sidebar, enable it, set an announcement channel, and add streamers to track.
+        </div>
+        <a href="/docs/twitch" onclick="event.preventDefault(); window.DocsRouter.navigate('twitch')">View Twitch Guide →</a>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🛡️ Moderation Logging</div>
+        <div class="command-description">
+          Navigate to Moderation, enable event logging, and select which events to track.
+        </div>
+        <a href="/docs/moderation" onclick="event.preventDefault(); window.DocsRouter.navigate('moderation')">View Moderation Guide →</a>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🎰 Games & Economy</div>
+        <div class="command-description">
+          Games like Slots and Lottery use the economy system automatically. Just enable them in their respective pages.
+        </div>
+        <a href="/docs/slots" onclick="event.preventDefault(); window.DocsRouter.navigate('slots')">View Slots Guide →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Step 4: Use Commands</h2>
+
+    <p>Acosmibot uses Discord's slash commands. Type <code>/</code> in any channel to see available commands.</p>
+
+    <div class="info-card">
+      <h3>Essential Commands to Try</h3>
+      <div class="code-block">
+        <code>/help - Show all available commands
+/rank - Check your level and XP
+/balance - Check your credits
+/daily - Claim daily credit reward
+/leaderboard - View top members</code>
+      </div>
+    </div>
+
+    <div class="example-card">
+      <h3>Command Examples</h3>
+      <ul>
+        <li><code>/rank</code> - View your current rank and level</li>
+        <li><code>/balance @user</code> - Check another member's balance</li>
+        <li><code>/slots 100</code> - Bet 100 credits on slots</li>
+        <li><code>/transfer @friend 500</code> - Send 500 credits to a friend</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Step 5: Customize Settings</h2>
+
+    <div class="info-card info-card-success">
+      <h3>Recommended First Steps</h3>
+      <ol>
+        <li><strong>Set up leveling:</strong> Configure XP formula and add role rewards at levels 5, 10, 20, 50</li>
+        <li><strong>Enable moderation:</strong> Create a #mod-logs channel and enable event tracking</li>
+        <li><strong>Add Twitch alerts:</strong> Create a #live-alerts channel and add your favorite streamers</li>
+        <li><strong>Test commands:</strong> Use <code>/daily</code>, <code>/rank</code>, and <code>/slots</code> to test the economy</li>
+        <li><strong>Create custom commands:</strong> Add fun server-specific commands</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Common First-Time Setup Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: Do I need to enable everything?</h4>
+      <p>A: No! Only enable features you want to use. Start with 1-2 features and expand as you get comfortable.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Will enabling leveling retroactively give XP?</h4>
+      <p>A: No, members only start earning XP after the leveling system is enabled. Past messages don't count.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can members see their stats without using commands?</h4>
+      <p>A: Yes! Members can visit <a href="/dashboard" target="_blank">/dashboard</a> to view their profile, stats, and transaction history.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: How do I give starting credits to members?</h4>
+      <p>A: Use <code>/givecredits @member &lt;amount&gt;</code> as an admin, or encourage members to use <code>/daily</code> to build up credits.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: What if I make a mistake in configuration?</h4>
+      <p>A: All settings can be changed at any time in the dashboard. Changes take effect immediately.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Next Steps</h2>
+
+    <p>Once you've completed the basic setup, explore these advanced features:</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 24px;">
+      <div class="info-card">
+        <h3>🤖 AI Integration</h3>
+        <p>Create a custom AI assistant with personalized instructions.</p>
+        <a href="/docs/ai" onclick="event.preventDefault(); window.DocsRouter.navigate('ai')">Learn More →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>✨ Reaction Roles</h3>
+        <p>Let members self-assign roles by clicking reactions.</p>
+        <a href="/docs/reaction-roles" onclick="event.preventDefault(); window.DocsRouter.navigate('reaction-roles')">Learn More →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>🌀 Cross-Server Portals</h3>
+        <p>Connect your server to others for cross-community chat.</p>
+        <a href="/docs/portals" onclick="event.preventDefault(); window.DocsRouter.navigate('portals')">Learn More →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>📝 Custom Commands</h3>
+        <p>Create server-specific commands with custom responses.</p>
+        <a href="/docs/custom-commands" onclick="event.preventDefault(); window.DocsRouter.navigate('custom-commands')">Learn More →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Need Help?</h2>
+
+    <div class="info-card info-card-success">
+      <h3>Get Support</h3>
+      <p>If you run into issues or have questions:</p>
+      <ul>
+        <li>Join our <a href="https://discord.gg/acosmibot" target="_blank">support server</a> for live help</li>
+        <li>Browse the <a href="/docs/commands" onclick="event.preventDefault(); window.DocsRouter.navigate('commands')">full command list</a></li>
+        <li>Check feature-specific documentation in this documentation site</li>
+      </ul>
+      <a href="https://discord.gg/acosmibot" target="_blank" class="btn-configure" style="margin-top: 12px;">
+        Join Support Server
+      </a>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,323 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Twitch Integration</h1>
+    <p class="docs-page-description">
+      Get real-time notifications when your favorite streamers go live on Twitch with customizable announcements and role mentions.
+    </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure Twitch Integration →
+    </button>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      The Twitch integration uses EventSub webhooks to deliver instant notifications when streamers go live, update their stream, or end their broadcast. Set up custom announcements with role mentions to ensure your community never misses a stream.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>Key Features</h3>
+      <ul>
+        <li>Real-time notifications via Twitch EventSub</li>
+        <li>Customizable announcement messages per streamer</li>
+        <li>Role mentions (@everyone, @here, or specific roles)</li>
+        <li>VOD checking to prevent false alerts</li>
+        <li>Stream update notifications</li>
+        <li>Automatic webhook management</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Add Streamers</h3>
+          <p>Configure which Twitch streamers to track through the <a href="/server" target="_blank">/server dashboard</a>. Enter their Twitch username and customize settings.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>EventSub Subscription</h3>
+          <p>Acosmibot automatically subscribes to Twitch EventSub webhooks for each streamer. When they go live, Twitch sends a webhook notification to our servers.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>VOD Check (Optional)</h3>
+          <p>To prevent duplicate announcements for VODs or re-runs, enable VOD checking. The bot verifies the stream is actually live before announcing.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Announcement Posted</h3>
+          <p>When verified, an announcement is posted to your designated channel with the streamer's title, game, and any role mentions you configured.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration</h2>
+    <p>Set up Twitch integration through the <a href="/server" target="_blank">/server dashboard</a>:</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Enabled</strong></td>
+          <td>Enable/disable the entire Twitch integration</td>
+        </tr>
+        <tr>
+          <td><strong>Announcement Channel</strong></td>
+          <td>Discord channel where live notifications are posted</td>
+        </tr>
+        <tr>
+          <td><strong>Default Announcement Message</strong></td>
+          <td>Template used for all streamers (can be overridden per streamer)</td>
+        </tr>
+        <tr>
+          <td><strong>Tracked Streamers</strong></td>
+          <td>List of Twitch usernames to monitor</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-card">
+      <h3>Per-Streamer Settings</h3>
+      <p>Each tracked streamer can have custom configuration:</p>
+      <ul>
+        <li><strong>Twitch Username:</strong> The streamer's Twitch handle</li>
+        <li><strong>Role Mentions:</strong> Select which roles to ping (@everyone, @here, or custom roles)</li>
+        <li><strong>Custom Message:</strong> Override the default announcement with a personalized message</li>
+        <li><strong>Skip VOD Check:</strong> Disable VOD verification for this streamer</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Announcement Message Placeholders</h2>
+    <p>Customize your announcement messages with these placeholders:</p>
+
+    <div class="code-block">
+      <code>🔴 {streamer} is now live on Twitch!
+{title}
+Playing: {game}
+{url}</code>
+    </div>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Placeholder</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>{streamer}</code></td>
+          <td>Streamer's display name</td>
+          <td>xQc</td>
+        </tr>
+        <tr>
+          <td><code>{username}</code></td>
+          <td>Streamer's Twitch username</td>
+          <td>xqc</td>
+        </tr>
+        <tr>
+          <td><code>{title}</code></td>
+          <td>Current stream title</td>
+          <td>VALORANT RANKED GRIND</td>
+        </tr>
+        <tr>
+          <td><code>{game}</code></td>
+          <td>Game/category name</td>
+          <td>VALORANT</td>
+        </tr>
+        <tr>
+          <td><code>{url}</code></td>
+          <td>Twitch channel URL</td>
+          <td>https://twitch.tv/xqc</td>
+        </tr>
+        <tr>
+          <td><code>{viewers}</code></td>
+          <td>Current viewer count</td>
+          <td>45,123</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Example Setup</h2>
+
+    <div class="example-card">
+      <h3>Single Streamer with @everyone</h3>
+      <div class="config-steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <p>Enable Twitch integration in dashboard</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <p>Set announcement channel to #live-alerts</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <p>Add streamer username: "shroud"</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <p>Enable "Mention Everyone" option</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <p>Set custom message: "@everyone 🔴 {streamer} is live! {url}"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example-card">
+      <h3>Multiple Streamers with Role Mentions</h3>
+      <ul>
+        <li><strong>Streamer 1:</strong> "ninja" → Mention role @NinjaFans</li>
+        <li><strong>Streamer 2:</strong> "pokimane" → Mention role @PokiFans</li>
+        <li><strong>Streamer 3:</strong> "summit1g" → Mention @here</li>
+      </ul>
+      <p>Each streamer can have unique announcement messages and different role pings!</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Advanced: VOD Checking</h2>
+
+    <div class="info-card info-card-warning">
+      <h3>What is VOD Checking?</h3>
+      <p>
+        Sometimes Twitch sends webhook notifications for VODs (video on demand) or re-runs instead of live streams. VOD checking prevents false notifications by verifying the stream is actually live.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>When to Disable VOD Checking</h3>
+      <ul>
+        <li>The streamer never uses VODs or re-runs</li>
+        <li>You want announcements for all stream types</li>
+        <li>Instant notifications are more important than accuracy</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-success">
+      <h3>When to Enable VOD Checking</h3>
+      <ul>
+        <li>The streamer frequently runs re-broadcasts</li>
+        <li>You only want notifications for live content</li>
+        <li>You've experienced duplicate notifications</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Permissions Required</h2>
+    <p>Ensure Acosmibot has these permissions in your announcement channel:</p>
+
+    <ul>
+      <li><strong>View Channel:</strong> Required to access the channel</li>
+      <li><strong>Send Messages:</strong> Required to post announcements</li>
+      <li><strong>Embed Links:</strong> Required for rich embed announcements</li>
+      <li><strong>Mention @everyone/@here/Roles:</strong> Required if using role mentions</li>
+    </ul>
+
+    <div class="info-card info-card-warning">
+      <h3>⚠️ @everyone Permissions</h3>
+      <p>
+        If you enable "Mention Everyone" but the bot doesn't have permission to mention @everyone in that channel, the mention will not work. Check channel permission overrides!
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: Notifications aren't being posted</h4>
+      <p>A: Check that (1) Twitch integration is enabled, (2) announcement channel is set, (3) bot has send message permissions, and (4) the streamer username is correct.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: I'm getting duplicate notifications</h4>
+      <p>A: Enable VOD checking for that streamer. This prevents announcements for re-runs and VODs.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Notifications are delayed by several minutes</h4>
+      <p>A: Twitch webhook delivery can sometimes be delayed. If VOD checking is enabled, add an additional 30-60 second delay. This is normal.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Role mentions aren't working</h4>
+      <p>A: Ensure the bot has "Mention @everyone, @here, and All Roles" permission in the announcement channel. Also verify the role is mentionable in server settings.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I track the same streamer in multiple servers?</h4>
+      <p>A: Yes! Each server has independent Twitch configuration. The same streamer can be tracked in unlimited servers.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: How many streamers can I track?</h4>
+      <p>A: There's no hard limit, but we recommend staying under 50 streamers per server for performance. Premium servers may have higher limits.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Best Practices</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Optimization Tips</h3>
+      <ul>
+        <li>Create a dedicated #live-alerts or #streams channel</li>
+        <li>Use role mentions instead of @everyone to reduce notification fatigue</li>
+        <li>Customize messages per streamer for personalization</li>
+        <li>Enable VOD checking for streamers who re-broadcast</li>
+        <li>Test with one streamer before adding many</li>
+        <li>Use {game} and {title} placeholders for context</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Related Features</h2>
+    <p>Check out other streaming platform integrations:</p>
+
+    <div style="display: flex; gap: 12px; margin-top: 16px;">
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('youtube')">YouTube Integration →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('kick')">Kick Integration →</button>
+    </div>
+  </section>
+</div>

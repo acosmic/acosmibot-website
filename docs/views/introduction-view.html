@@ -1,0 +1,212 @@
+<div class="docs-page-container">
+  <!-- Page Header -->
+  <header class="docs-page-header">
+    <h1>Welcome to Acosmibot Documentation</h1>
+    <p class="docs-page-description">
+      Your comprehensive guide to setting up and using Acosmibot's powerful features to enhance your Discord server.
+    </p>
+
+    <!-- Optional: Guild-contextualized configure button -->
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure in /server →
+    </button>
+  </header>
+
+  <!-- Overview Section -->
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Acosmibot is a feature-rich Discord bot designed to bring advanced functionality to your server. From leveling systems and economy management to social media integrations and interactive games, Acosmibot provides everything you need to create an engaging community.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>🚀 Quick Links</h3>
+      <ul>
+        <li><a href="/docs/quick-start" onclick="event.preventDefault(); window.DocsRouter.navigate('quick-start')">Quick Start Guide</a> - Get up and running in minutes</li>
+        <li><a href="/server" target="_blank">Server Dashboard</a> - Configure your server settings</li>
+        <li><a href="/dashboard" target="_blank">User Dashboard</a> - View your stats and profile</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Key Features -->
+  <section class="docs-section">
+    <h2>Key Features</h2>
+
+    <div class="feature-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+      <div class="info-card">
+        <h3>⬆️ Leveling System</h3>
+        <p>Engage your community with XP-based progression, customizable formulas, and automatic role rewards.</p>
+        <a href="/docs/leveling" onclick="event.preventDefault(); window.DocsRouter.navigate('leveling')">Learn more →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>💰 Economy & Banking</h3>
+        <p>Built-in currency system with credits, daily rewards, and a global bank for transactions.</p>
+        <a href="/docs/economy" onclick="event.preventDefault(); window.DocsRouter.navigate('economy')">Learn more →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>🟣 Social Alerts</h3>
+        <p>Get live notifications for Twitch, YouTube, and Kick streams with customizable announcements.</p>
+        <a href="/docs/twitch" onclick="event.preventDefault(); window.DocsRouter.navigate('twitch')">Learn more →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>🎰 Games & Gambling</h3>
+        <p>Entertain your members with slots, lottery, blackjack, coinflip, and deathroll.</p>
+        <a href="/docs/slots" onclick="event.preventDefault(); window.DocsRouter.navigate('slots')">Learn more →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>🛡️ Moderation Tools</h3>
+        <p>Comprehensive logging for member activity, message events, and audit log entries.</p>
+        <a href="/docs/moderation" onclick="event.preventDefault(); window.DocsRouter.navigate('moderation')">Learn more →</a>
+      </div>
+
+      <div class="info-card">
+        <h3>🤖 AI Integration</h3>
+        <p>Powered by OpenAI, create custom AI assistants with configurable instructions and channel modes.</p>
+        <a href="/docs/ai" onclick="event.preventDefault(); window.DocsRouter.navigate('ai')">Learn more →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Getting Started -->
+  <section class="docs-section">
+    <h2>Getting Started</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Invite Acosmibot to Your Server</h3>
+          <p>Add Acosmibot to your Discord server using our invite link. Make sure to grant the necessary permissions for full functionality.</p>
+          <a href="https://discord.com/oauth2/authorize?client_id=1247701827066130433&permissions=8&scope=bot%20applications.commands" target="_blank" class="btn-configure">
+            Invite Acosmibot
+          </a>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Access the Dashboard</h3>
+          <p>Log in with Discord and navigate to your server's configuration dashboard to customize features.</p>
+          <a href="/dashboard" class="btn-secondary">Go to Dashboard</a>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Enable Features</h3>
+          <p>Enable and configure the systems you want to use. Each feature can be customized independently via the /server dashboard.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Start Using Commands</h3>
+          <p>Acosmibot uses Discord slash commands. Type <code>/</code> in your server to see all available commands.</p>
+          <div class="code-block">
+            <code>/help</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- System Categories -->
+  <section class="docs-section">
+    <h2>System Categories</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">Core Systems</div>
+        <div class="command-description">
+          Essential features including leveling, economy, moderation, and AI integration. These form the foundation of your server's functionality.
+        </div>
+        <div class="command-examples">
+          <span style="color: var(--text-tertiary); font-size: 14px;">Features: Leveling • Economy • Moderation • AI</span>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Social Alerts</div>
+        <div class="command-description">
+          Connect your community with live streaming platforms. Get instant notifications when streamers go live on Twitch, YouTube, or Kick.
+        </div>
+        <div class="command-examples">
+          <span style="color: var(--text-tertiary); font-size: 14px;">Integrations: Twitch • YouTube • Kick</span>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Games & Gambling</div>
+        <div class="command-description">
+          Interactive games using the economy system. Includes slots, lottery, blackjack, coinflip, and deathroll.
+        </div>
+        <div class="command-examples">
+          <span style="color: var(--text-tertiary); font-size: 14px;">Games: Slots • Lottery • Blackjack • Coinflip • Deathroll</span>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Utilities</div>
+        <div class="command-description">
+          Helpful tools for server management including reaction roles, custom commands, better embeds, and reminders.
+        </div>
+        <div class="command-examples">
+          <span style="color: var(--text-tertiary); font-size: 14px;">Tools: Reaction Roles • Custom Commands • Embeds • Reminders</span>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Chaos Features</div>
+        <div class="command-description">
+          Experimental and fun features including cross-server portals, polymorph (nickname changes), and the jail system.
+        </div>
+        <div class="command-examples">
+          <span style="color: var(--text-tertiary); font-size: 14px;">Features: Portals • Polymorph • Jail</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Support & Resources -->
+  <section class="docs-section">
+    <h2>Support & Resources</h2>
+
+    <div class="info-card info-card-success">
+      <h3>Need Help?</h3>
+      <p>Join our support server for assistance, feature requests, and community discussions.</p>
+      <a href="https://discord.gg/acosmibot" target="_blank" class="btn-configure" style="margin-top: 12px;">
+        Join Support Server
+      </a>
+    </div>
+
+    <div class="info-card">
+      <h3>📚 Additional Resources</h3>
+      <ul>
+        <li><a href="/docs/commands" onclick="event.preventDefault(); window.DocsRouter.navigate('commands')">Full Command List</a> - Complete reference of all commands</li>
+        <li><a href="https://github.com/anthropics/acosmibot" target="_blank">GitHub Repository</a> - View source code and contribute</li>
+        <li><a href="/changelog" target="_blank">Changelog</a> - See what's new in the latest updates</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Navigation Helper -->
+  <section class="docs-section">
+    <h2>Next Steps</h2>
+    <p>Ready to dive in? Check out these popular topics:</p>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
+      <button class="btn-configure" onclick="window.DocsRouter.navigate('quick-start')">Quick Start Guide →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('leveling')">Leveling System</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('twitch')">Twitch Integration</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('commands')">Command List</button>
+    </div>
+  </section>
+</div>
