@@ -20,7 +20,7 @@
 }
 
 .page-header .subtitle {
-    color: #000;
+    color: var(--text-secondary);
     font-size: 1.1rem;
 }
 
@@ -48,25 +48,25 @@
 }
 
 .legal-section p {
-    color: #000;
+    color: var(--text-secondary);
     line-height: 1.8;
     margin-bottom: 15px;
 }
 
 .legal-section ul {
-    color: #000;
+    color: var(--text-secondary);
     line-height: 1.8;
     margin-left: 20px;
     margin-bottom: 15px;
 }
 
 .legal-section li {
-    color: #000;
+    color: var(--text-secondary);
     margin-bottom: 10px;
 }
 
 .legal-section strong {
-    color: #000;
+    color: var(--text-primary);
     font-weight: 600;
 }
 
@@ -80,11 +80,11 @@
 
 .highlight-box p {
     margin: 0;
-    color: #000;
+    color: var(--text-secondary);
 }
 
 .highlight-box strong {
-    color: #000;
+    color: var(--text-primary);
 }
 
 .last-updated {
