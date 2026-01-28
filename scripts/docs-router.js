@@ -41,6 +41,9 @@ class DocsRouter {
     let section = 'introduction'; // default
     if (pathParts[0] === 'docs' && pathParts[1]) {
       section = pathParts[1];
+    } else if (pathParts[0] === 'docs' && !pathParts[1]) {
+      // /docs without section - redirect to introduction
+      section = 'introduction';
     }
 
     // Parse query params for guild context
@@ -87,48 +90,87 @@ class DocsRouter {
   }
 
   async loadView(section) {
-    if (!window.ViewManager) {
-      console.error('ViewManager not loaded');
+    const viewContainer = document.getElementById('view-container');
+    if (!viewContainer) {
+      console.error('View container not found');
       return;
     }
 
     // Map section names to view files
-    const viewPath = this.getViewPath(section);
+    const viewPath = `/docs/views/${section}-view.html`;
 
     try {
-      await window.ViewManager.loadView(viewPath);
+      const response = await fetch(viewPath);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const html = await response.text();
+      viewContainer.innerHTML = html;
+
     } catch (error) {
       console.error(`Failed to load view for section: ${section}`, error);
-      // Fallback to 404 or error view
-      await window.ViewManager.loadView('/docs/views/error-view.html');
+      viewContainer.innerHTML = `
+        <div class="docs-page-container">
+          <div class="error-view" style="text-align: center; padding: 60px 20px;">
+            <h1 style="color: var(--text-primary); margin-bottom: 16px;">Page Not Found</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 24px;">The documentation page "${section}" doesn't exist yet.</p>
+            <button class="btn-configure" onclick="window.DocsRouter.navigate('introduction')">Go to Introduction</button>
+          </div>
+        </div>
+      `;
     }
-  }
-
-  getViewPath(section) {
-    // Map section names to view file paths
-    return `/docs/views/${section}-view.html`;
   }
 
   async loadFeature(section) {
-    if (!window.FeatureLoader) {
-      console.error('FeatureLoader not loaded');
-      return;
-    }
-
-    // Map section names to feature module paths
-    const featurePath = this.getFeaturePath(section);
+    // Load feature module if it exists
+    const featurePath = `/scripts/features/docs/${section}.js`;
 
     try {
-      await window.FeatureLoader.loadFeature(featurePath, section);
+      // Check if module already loaded
+      const featureName = `${this.capitalize(section)}DocsFeature`;
+      if (window[featureName]) {
+        // Initialize existing module
+        if (window[featureName].init) {
+          await window[featureName].init();
+        }
+        return;
+      }
+
+      // Dynamically load the script
+      const script = document.createElement('script');
+      script.src = featurePath;
+      script.async = true;
+
+      await new Promise((resolve, reject) => {
+        script.onload = () => {
+          console.log(`Loaded feature module: ${featurePath}`);
+          resolve();
+        };
+        script.onerror = () => {
+          // Not critical if module doesn't exist
+          console.log(`No feature module for section: ${section}`);
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+
+      // Initialize the feature if it was loaded
+      if (window[featureName] && window[featureName].init) {
+        await window[featureName].init();
+      }
+
     } catch (error) {
-      console.warn(`No feature module for section: ${section}`, error);
-      // Not all sections need feature modules, so this is not critical
+      console.warn(`Error loading feature module for ${section}:`, error);
+      // Not critical, continue anyway
     }
   }
 
-  getFeaturePath(section) {
-    // Map section names to feature module paths
-    return `/scripts/features/docs/${section}.js`;
+  capitalize(str) {
+    return str.split('-').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join('');
   }
 
   navigate(section, guildId = null) {
