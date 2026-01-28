@@ -16,15 +16,27 @@
         // Match /server/{guild_id} or /server/{guild_id}/{feature}
         const serverPathMatch = path.match(/^\/server\/(\d+)(\/([a-z-]+))?$/);
 
+        // Match /docs/{section} or /docs/{section}/{subsection}
+        const docsPathMatch = path.match(/^\/docs\/([a-z-]+)(\/([a-z-]+))?$/);
+
         if (serverPathMatch && path !== '/server/index.html') {
           // Store the original path in sessionStorage
           const fullPath = path + search;
           sessionStorage.setItem('spa_redirect', fullPath);
 
-          console.log('Redirecting to SPA with path:', fullPath);
+          console.log('Redirecting to server SPA with path:', fullPath);
 
           // Redirect to SPA shell
           window.location.replace('/server/index.html');
+        } else if (docsPathMatch && path !== '/docs/index.html') {
+          // Store the original path in sessionStorage
+          const fullPath = path + search;
+          sessionStorage.setItem('docs_spa_redirect', fullPath);
+
+          console.log('Redirecting to docs SPA with path:', fullPath);
+
+          // Redirect to docs SPA shell
+          window.location.replace('/docs/index.html');
         } else {
           // For other 404s, show a proper 404 page
           document.write('<h1>404 - Page Not Found</h1>');

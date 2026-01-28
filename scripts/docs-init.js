@@ -9,6 +9,14 @@ console.log('docs-init.js loading...');
   // Wait for DocsCore and DocsRouter to be available
   await waitFor(() => window.DocsCore && window.DocsRouter && window.ViewManager);
 
+  // Check for redirect from 404.html (GitHub Pages SPA routing)
+  const redirectPath = sessionStorage.getItem('docs_spa_redirect');
+  if (redirectPath) {
+    console.log('Restoring path from 404 redirect:', redirectPath);
+    sessionStorage.removeItem('docs_spa_redirect');
+    history.replaceState(null, '', redirectPath);
+  }
+
   // Initialize router
   window.DocsRouter.init();
 
