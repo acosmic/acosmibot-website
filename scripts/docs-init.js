@@ -17,7 +17,14 @@ console.log('docs-init.js loading...');
     history.replaceState(null, '', redirectPath);
   }
 
-  // Initialize router
+  // Parse initial section from URL
+  const pathParts = window.location.pathname.split('/').filter(p => p);
+  const initialSection = (pathParts[0] === 'docs' && pathParts[1]) ? pathParts[1] : 'introduction';
+
+  // Initialize DocsCore FIRST (loads auth, user, guilds)
+  await window.DocsCore.init(initialSection);
+
+  // Then initialize router
   window.DocsRouter.init();
 
   console.log('Documentation SPA initialized successfully!');

@@ -30,8 +30,8 @@ class DocsRouter {
       }
     });
 
-    // Load initial section
-    this.loadSection(section, guildId, true);
+    // Load initial section (isInitialLoad = true to skip DocsCore.initForSPA)
+    this.loadSection(section, guildId, true, true);
   }
 
   parseURL(url = window.location.pathname) {
@@ -53,12 +53,12 @@ class DocsRouter {
     return { section, guildId };
   }
 
-  async loadSection(section, guildId = null, pushState = true) {
+  async loadSection(section, guildId = null, pushState = true, isInitialLoad = false) {
     if (this.isNavigating) return;
     this.isNavigating = true;
 
     try {
-      console.log(`Loading section: ${section}, guildId: ${guildId}`);
+      console.log(`Loading section: ${section}, guildId: ${guildId}, initial: ${isInitialLoad}`);
 
       // Update current state
       this.currentSection = section;
@@ -70,8 +70,8 @@ class DocsRouter {
         window.history.pushState({ section, guildId }, '', url);
       }
 
-      // Update DocsCore state
-      if (window.DocsCore) {
+      // Update DocsCore state (skip on initial load since init() was already called)
+      if (window.DocsCore && !isInitialLoad) {
         await window.DocsCore.initForSPA(section);
       }
 
