@@ -17,7 +17,8 @@ class DashboardCore {
       isSaving: false,
       isLoading: false,
       isNavigating: false, // Flag to prevent double unsaved changes popup
-      customCommandsCount: 0 // Track number of custom commands for nav indicator
+      customCommandsCount: 0, // Track number of custom commands for nav indicator
+      embedsCount: 0 // Track number of embeds for nav indicator
     };
   }
 
@@ -355,6 +356,9 @@ class DashboardCore {
 
       // Fetch custom commands count for nav indicator
       await this.loadCustomCommandsCount(guildId);
+      
+      // Fetch embeds count for nav indicator
+      await this.loadEmbedsCount(guildId);
 
     } catch (error) {
       console.error('Config loading error:', error);
@@ -381,6 +385,26 @@ class DashboardCore {
     } catch (error) {
       console.error('Error fetching custom commands count:', error);
       this.state.customCommandsCount = 0;
+    }
+  }
+
+  // Fetch embeds count
+  async loadEmbedsCount(guildId) {
+    try {
+      const token = localStorage.getItem('discord_token');
+      const response = await fetch(`${this.API_BASE_URL}/api/guilds/${guildId}/embeds/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          this.state.embedsCount = data.stats?.total || 0;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching embeds count:', error);
+      this.state.embedsCount = 0;
     }
   }
 
@@ -657,6 +681,11 @@ class DashboardCore {
     // Special case: custom commands are enabled if any commands exist
     if (feature === 'custom-commands') {
       return this.state.customCommandsCount > 0;
+    }
+
+    // Special case: embeds are enabled if any embeds exist
+    if (feature === 'embeds') {
+      return this.state.embedsCount > 0;
     }
 
     const configPath = this.getFeatureConfigPath(feature);
