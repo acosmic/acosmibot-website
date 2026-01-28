@@ -36,6 +36,22 @@
     </div>
 </div>
 
+<!-- Preview Modal -->
+<div id="previewModal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="EmbedsFeature.hidePreviewModal()"></div>
+    <div class="modal-content preview-modal-content">
+        <div class="modal-header">
+            <h2>Embed Preview</h2>
+            <button class="modal-close" onclick="EmbedsFeature.hidePreviewModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="modalPreviewContainer">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal" style="display: none;">
     <div class="modal-overlay" onclick="EmbedsFeature.hideDeleteModal()"></div>
@@ -163,6 +179,15 @@
 
 .modal-btn.delete-btn:hover {
     background: #FF3333;
+}
+
+.preview-modal-content {
+    max-width: 600px;
+}
+
+.preview-modal-content .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
 }
 </style>
 
