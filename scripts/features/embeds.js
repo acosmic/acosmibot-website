@@ -193,8 +193,8 @@ const EmbedsFeature = (function() {
                 <div class="embed-card-preview">
                     ${escapeHtml(preview)}
                     <div style="margin-top: 8px;">
-                        <a href="#" onclick="event.preventDefault(); EmbedsFeature.showPreview(${embed.id})" style="color: #00D9FF; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                            👁️ See Preview
+                        <a href="#" onclick="event.preventDefault(); EmbedsFeature.showPreview(${embed.id})" style="color: #00D9FF; font-size: 12px; text-decoration: none;">
+                            See Preview
                         </a>
                     </div>
                 </div>
@@ -676,16 +676,29 @@ const EmbedsFeature = (function() {
     }
 
     function showPreview(embedId) {
-        const embed = state.embeds.find(e => e.id === embedId);
-        if (!embed) return;
+        console.log('[Embeds] showPreview called for:', embedId);
+        const embed = state.embeds.find(e => e.id == embedId);
+        
+        if (!embed) {
+            console.error('[Embeds] Embed not found in state');
+            return;
+        }
 
         const modal = document.getElementById('previewModal');
         const container = document.getElementById('modalPreviewContainer');
 
-        if (modal && container && typeof EmbedPreview !== 'undefined') {
-            EmbedPreview.renderImmediate(container, embed.embed_config || {}, embed.buttons || [], embed.message_text || '');
-            modal.style.display = 'flex';
+        if (!modal || !container) {
+            console.error('[Embeds] Preview modal elements not found');
+            return;
         }
+
+        if (typeof EmbedPreview === 'undefined') {
+            console.error('[Embeds] EmbedPreview utility not loaded');
+            return;
+        }
+
+        EmbedPreview.renderImmediate(container, embed.embed_config || {}, embed.buttons || [], embed.message_text || '');
+        modal.style.display = 'flex';
     }
 
     function hidePreviewModal() {
