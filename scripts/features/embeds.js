@@ -190,7 +190,14 @@ const EmbedsFeature = (function() {
                     <h3 class="embed-card-name">${escapeHtml(embed.name)}</h3>
                     <span class="embed-card-status ${status}">${statusText}</span>
                 </div>
-                <div class="embed-card-preview">${escapeHtml(preview)}</div>
+                <div class="embed-card-preview">
+                    ${escapeHtml(preview)}
+                    <div style="margin-top: 8px;">
+                        <a href="#" onclick="event.preventDefault(); EmbedsFeature.showPreview(${embed.id})" style="color: #00D9FF; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            👁️ See Preview
+                        </a>
+                    </div>
+                </div>
                 <div class="embed-card-actions">
                     <button class="embed-card-btn" onclick="EmbedsFeature.editEmbed(${embed.id})">Edit</button>
                     <button class="embed-card-btn" onclick="EmbedsFeature.duplicateEmbed(${embed.id})">Duplicate</button>
@@ -668,6 +675,24 @@ const EmbedsFeature = (function() {
         if (modal) modal.style.display = 'none';
     }
 
+    function showPreview(embedId) {
+        const embed = state.embeds.find(e => e.id === embedId);
+        if (!embed) return;
+
+        const modal = document.getElementById('previewModal');
+        const container = document.getElementById('modalPreviewContainer');
+
+        if (modal && container && typeof EmbedPreview !== 'undefined') {
+            EmbedPreview.renderImmediate(container, embed.embed_config || {}, embed.buttons || [], embed.message_text || '');
+            modal.style.display = 'flex';
+        }
+    }
+
+    function hidePreviewModal() {
+        const modal = document.getElementById('previewModal');
+        if (modal) modal.style.display = 'none';
+    }
+
     async function deleteEmbed(embedId) {
         try {
             const dashboardCore = getDashboardCore();
@@ -865,6 +890,8 @@ const EmbedsFeature = (function() {
         duplicateEmbed,
         showDeleteModal,
         hideDeleteModal,
+        showPreview,
+        hidePreviewModal,
         addField,
         removeField,
         addButton,

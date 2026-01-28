@@ -53,6 +53,23 @@
     </div>
 </div>
 
+<!-- Preview Modal -->
+<div id="previewModal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="EmbedsFeature.hidePreviewModal()"></div>
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>Embed Preview</h2>
+            <button class="modal-close" onclick="EmbedsFeature.hidePreviewModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="modalPreviewContainer"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel-btn" onclick="EmbedsFeature.hidePreviewModal()">Close</button>
+        </div>
+    </div>
+</div>
+
 <style>
 /* Modal Styles */
 .modal {
