@@ -15,16 +15,7 @@ const AIFeature = {
     console.log('AI feature initialized');
     const { DashboardCore, Router } = window;
 
-    // Check tier requirement first
-    const tierCheck = await this.checkTierAccess();
-    if (!tierCheck.hasAccess) {
-      this.showUpgradeCTA();
-      return;
-    }
-
-    this.state.hasPremiumPlusAI = true;
-
-    // Initialize shared core for SPA
+    // Initialize shared core for SPA FIRST (to load config)
     if (Router) {
       // SPA mode - use lighter init
       await DashboardCore.initForSPA('ai');
@@ -33,6 +24,15 @@ const AIFeature = {
       await DashboardCore.init('ai');
     }
 
+    // Check tier requirement after config is loaded
+    const tierCheck = await this.checkTierAccess();
+    if (!tierCheck.hasAccess) {
+      this.showUpgradeCTA();
+      return;
+    }
+
+    this.state.hasPremiumPlusAI = true;
+
     // Populate AI-specific UI
     this.populateAIUI();
     this.state.initialized = true;
@@ -40,43 +40,23 @@ const AIFeature = {
 
   // ===== TIER ACCESS CHECK =====
   async checkTierAccess() {
-    const guildId = this.getGuildId();
-    const token = localStorage.getItem('discord_token');
+    // Use DashboardCore to get config (which should already be loaded by init)
+    const config = window.DashboardCore.state.guildConfig;
+    const tier = config?.premium_tier || 'free';
 
-    if (!token || !guildId) {
-      return { hasAccess: false, tier: null };
-    }
+    console.log('[AI Feature] Tier check:', {
+      guildId: config?.guild_id,
+      premium_tier: tier,
+      hasAccess: tier === 'premium_plus_ai',
+      full_config: config
+    });
 
-    try {
-      const response = await fetch(
-        `https://api.acosmibot.com/api/guilds/${guildId}/subscription`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
+    this.state.tierInfo = { tier: tier };
 
-      if (!response.ok) {
-        console.error('Failed to fetch subscription tier');
-        return { hasAccess: false, tier: null };
-      }
-
-      const tierInfo = await response.json();
-      this.state.tierInfo = tierInfo;
-
-      console.log('[AI Feature] Subscription tier check:', {
-        guildId: guildId,
-        tierInfo: tierInfo,
-        hasAccess: tierInfo.tier === 'premium_plus_ai'
-      });
-
-      return {
-        hasAccess: tierInfo.tier === 'premium_plus_ai',
-        tier: tierInfo.tier
-      };
-    } catch (error) {
-      console.error('Error checking tier access:', error);
-      return { hasAccess: false, tier: null };
-    }
+    return {
+      hasAccess: tier === 'premium_plus_ai',
+      tier: tier
+    };
   },
 
   // ===== SHOW UPGRADE MODAL =====
@@ -272,7 +252,14 @@ const AIFeature = {
   setupMasterToggle(aiSettings) {
     const toggle = document.getElementById('ai-enabled-toggle');
     if (toggle) {
-      toggle.checked = aiSettings.enabled !== false;
+      const isEnabled = aiSettings.enabled !== false;
+      toggle.checked = isEnabled;
+
+      console.log('[AI Feature] Master toggle setup:', {
+        aiSettings_enabled: aiSettings.enabled,
+        toggle_checked: isEnabled
+      });
+
       toggle.addEventListener('change', (e) => {
         aiSettings.enabled = e.target.checked;
         window.DashboardCore.markUnsavedChanges();
