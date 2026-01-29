@@ -500,6 +500,9 @@ class DashboardCore {
 
     // Update nav indicators based on enabled features
     this.updateNavIndicators();
+
+    // Apply tier-based visibility (async)
+    this.applyTierGating();
   }
 
   getNavigationHTML() {
@@ -572,6 +575,12 @@ class DashboardCore {
         <div class="nav-item" data-feature="moderation">
           <span class="nav-icon nav-icon-moderation"></span>
           <span class="nav-text">Moderation</span>
+          <span class="nav-indicator"></span>
+        </div>
+        <div class="nav-item" data-feature="ai" data-tier-required="premium_plus_ai">
+          <span class="nav-icon nav-icon-ai"></span>
+          <span class="nav-text">AI Customization</span>
+          <span class="premium-badge">💎</span>
           <span class="nav-indicator"></span>
         </div>
       </div>
@@ -721,6 +730,46 @@ class DashboardCore {
         indicator.classList.toggle('active', isEnabled);
       }
     });
+  }
+
+  // ===== TIER GATING =====
+  async applyTierGating() {
+    const aiNavItem = document.querySelector('[data-feature="ai"]');
+    if (!aiNavItem) return;
+
+    try {
+      const tierInfo = await this.fetchSubscriptionTier();
+      if (tierInfo.tier !== 'premium_plus_ai') {
+        aiNavItem.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error applying tier gating:', error);
+      // On error, hide AI nav item to be safe
+      aiNavItem.style.display = 'none';
+    }
+  }
+
+  async fetchSubscriptionTier() {
+    const token = localStorage.getItem('discord_token');
+    if (!token || !this.state.currentGuildId) {
+      return { tier: null };
+    }
+
+    try {
+      const response = await fetch(
+        `${this.API_BASE_URL}/api/guilds/${this.state.currentGuildId}/subscription`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (!response.ok) {
+        return { tier: null };
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching subscription tier:', error);
+      return { tier: null };
+    }
   }
 
   navigateToFeature(feature) {

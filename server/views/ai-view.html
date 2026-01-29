@@ -1,0 +1,88 @@
+<!-- Header with toggle and save button -->
+<div class="feature-header-container">
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>AI Customization</h1>
+        </div>
+        <div class="header-right">
+            <button id="saveButton" class="save-btn" onclick="window.AIFeature.saveChanges()" disabled>
+                <span class="save-icon">💾</span>
+                Save Changes
+                <span class="unsaved-indicator" style="display: none;">●</span>
+            </button>
+            <label class="toggle-switch">
+                <input type="checkbox" id="ai-enabled-toggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </header>
+    <p class="feature-description">Customize your AI assistant's personality and behavior (Premium + AI only)</p>
+</div>
+
+<!-- Upgrade CTA (hidden by default, shown if not premium_plus_ai) -->
+<div id="aiUpgradeCTA" style="display: none;" class="upgrade-banner">
+    <h2>🤖 AI Features Require Premium + AI</h2>
+    <p>Unlock advanced AI customization with Premium + AI subscription</p>
+    <a href="/premium" class="btn-upgrade">Upgrade Now</a>
+</div>
+
+<!-- Settings Container (hidden if tier not met) -->
+<div id="aiSettingsContainer" class="feature-container" style="display: none;">
+
+    <!-- AI Model Selection -->
+    <div class="form-section">
+        <h3>AI Model</h3>
+        <p class="field-hint">Choose the AI model for your server</p>
+        <select id="aiModelSelect" class="feature-select">
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+        </select>
+    </div>
+
+    <!-- AI Instructions -->
+    <div class="form-section">
+        <h3>AI Instructions</h3>
+        <p class="field-hint">Customize your AI's personality and behavior</p>
+        <textarea id="aiInstructions" class="message-textarea" rows="8" maxlength="2000" placeholder="You are a helpful AI assistant in this Discord server."></textarea>
+        <div class="character-count">
+            <span id="instructionsCharCount">0</span>/2000 characters
+        </div>
+    </div>
+
+    <!-- Channel Mode Selection -->
+    <div class="form-section">
+        <h3>Channel Restrictions</h3>
+        <p class="field-hint">Control which channels the AI can respond in</p>
+        <div class="radio-group">
+            <label class="radio-option">
+                <input type="radio" name="channel_mode" value="exclude" id="channelModeExclude" checked>
+                <span>All channels except selected</span>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="channel_mode" value="include" id="channelModeInclude">
+                <span>Only selected channels</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Excluded Channels (shown when mode=exclude) -->
+    <div id="excludedChannelsSection" class="form-section">
+        <h3>Excluded Channels</h3>
+        <p class="field-hint">AI will not respond in these channels</p>
+        <div id="excludedChannelsList" class="channel-checkbox-container">
+            <!-- Populated by JS with checkboxes for each text channel -->
+        </div>
+    </div>
+
+    <!-- Allowed Channels (shown when mode=include) -->
+    <div id="allowedChannelsSection" class="form-section" style="display: none;">
+        <h3>Allowed Channels</h3>
+        <p class="field-hint">AI will only respond in these channels</p>
+        <div id="allowedChannelsList" class="channel-checkbox-container">
+            <!-- Populated by JS with checkboxes for each text channel -->
+        </div>
+    </div>
+
+</div>
