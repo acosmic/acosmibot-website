@@ -175,7 +175,7 @@ function updateYoutubeStreamerLimitDisplay() {
   const config = getDashboardCore().state.guildConfig;
   const streamers = config.settings.youtube?.tracked_streamers || [];
   const premiumTier = config.premium_tier || 'free';
-  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
+  const maxStreamers = (premiumTier === 'premium' || premiumTier === 'premium_plus_ai') ? 5 : 1;
 
   const limitDisplay = document.getElementById('streamerLimitDisplay');
   if (limitDisplay) {
@@ -187,7 +187,7 @@ function renderYoutubeStreamerList(streamers) {
   const container = document.getElementById('streamersList');
   const config = getDashboardCore().state.guildConfig;
   const premiumTier = config.premium_tier || 'free';
-  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
+  const maxStreamers = (premiumTier === 'premium' || premiumTier === 'premium_plus_ai') ? 5 : 1;
 
   console.log('renderStreamerList - container:', container, 'streamers count:', streamers?.length);
 

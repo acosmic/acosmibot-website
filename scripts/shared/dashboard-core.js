@@ -199,10 +199,24 @@ class DashboardCore {
       iconHtml = `<div class="server-branding-icon">${initial}</div>`;
     }
 
+    // Build tier badge
+    const tier = config.premium_tier || 'free';
+    let tierBadge = '';
+    if (tier === 'premium_plus_ai') {
+      tierBadge = '<span class="tier-badge premium-plus-ai">💎 Premium + AI</span>';
+    } else if (tier === 'premium') {
+      tierBadge = '<span class="tier-badge premium">💎 Premium</span>';
+    } else {
+      tierBadge = '<span class="tier-badge free">Free</span>';
+    }
+
     // Render branding
     brandingElement.innerHTML = `
       ${iconHtml}
-      <div class="server-branding-name">${this.escapeHtml(config.guild_name || 'Server')}</div>
+      <div class="server-branding-info">
+        <div class="server-branding-name">${this.escapeHtml(config.guild_name || 'Server')}</div>
+        ${tierBadge}
+      </div>
     `;
   }
 

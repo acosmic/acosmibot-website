@@ -170,7 +170,7 @@ function updateTwitchStreamerLimitDisplay() {
   const config = getDashboardCore().state.guildConfig;
   const streamers = config.settings.twitch?.tracked_streamers || [];
   const premiumTier = config.premium_tier || 'free';
-  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
+  const maxStreamers = (premiumTier === 'premium' || premiumTier === 'premium_plus_ai') ? 5 : 1;
 
   const limitDisplay = document.getElementById('streamerLimitDisplay');
   if (limitDisplay) {
@@ -182,7 +182,7 @@ function renderTwitchStreamerList(streamers) {
   const container = document.getElementById('streamersList');
   const config = getDashboardCore().state.guildConfig;
   const premiumTier = config.premium_tier || 'free';
-  const maxStreamers = premiumTier === 'premium' ? 5 : 1;
+  const maxStreamers = (premiumTier === 'premium' || premiumTier === 'premium_plus_ai') ? 5 : 1;
 
   if (!container) return;
 
