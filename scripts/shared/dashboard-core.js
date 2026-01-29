@@ -360,6 +360,13 @@ class DashboardCore {
       const data = await response.json();
       this.state.guildConfig = data.data; // Access the nested 'data' property
 
+      // Debug: Log premium tier
+      console.log('[DashboardCore] Guild config loaded:', {
+        guildId: guildId,
+        premium_tier: this.state.guildConfig.premium_tier,
+        full_config: this.state.guildConfig
+      });
+
       // Ensure settings exists
       if (!this.state.guildConfig.settings) {
         this.state.guildConfig.settings = {};

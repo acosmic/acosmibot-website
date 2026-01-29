@@ -63,6 +63,12 @@ const AIFeature = {
       const tierInfo = await response.json();
       this.state.tierInfo = tierInfo;
 
+      console.log('[AI Feature] Subscription tier check:', {
+        guildId: guildId,
+        tierInfo: tierInfo,
+        hasAccess: tierInfo.tier === 'premium_plus_ai'
+      });
+
       return {
         hasAccess: tierInfo.tier === 'premium_plus_ai',
         tier: tierInfo.tier

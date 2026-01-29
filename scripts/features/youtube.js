@@ -177,6 +177,12 @@ function updateYoutubeStreamerLimitDisplay() {
   const premiumTier = config.premium_tier || 'free';
   const maxStreamers = (premiumTier === 'premium' || premiumTier === 'premium_plus_ai') ? 5 : 1;
 
+  console.log('[YouTube] Limit calculation:', {
+    premium_tier: premiumTier,
+    current_streamers: streamers.length,
+    max_streamers: maxStreamers
+  });
+
   const limitDisplay = document.getElementById('streamerLimitDisplay');
   if (limitDisplay) {
     limitDisplay.textContent = `${streamers.length} of ${maxStreamers}`;

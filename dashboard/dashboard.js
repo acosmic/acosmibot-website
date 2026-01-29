@@ -219,7 +219,9 @@ function populateServers() {
 
         // Build premium icon
         let premiumIconHtml = '';
-        if (guild.premium_tier === 'premium') {
+        if (guild.premium_tier === 'premium_plus_ai') {
+            premiumIconHtml = '<span class="premium-icon" title="Premium + AI Server">🤖💎</span>';
+        } else if (guild.premium_tier === 'premium') {
             premiumIconHtml = '<span class="premium-icon" title="Premium Server">💎</span>';
         }
 
