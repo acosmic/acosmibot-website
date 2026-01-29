@@ -73,16 +73,131 @@ const AIFeature = {
     }
   },
 
-  // ===== SHOW UPGRADE CTA =====
+  // ===== SHOW UPGRADE MODAL =====
   showUpgradeCTA() {
-    const upgradeCTA = document.getElementById('aiUpgradeCTA');
-    const settingsContainer = document.getElementById('aiSettingsContainer');
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: fadeIn 0.3s ease;
+    `;
 
-    if (upgradeCTA) {
-      upgradeCTA.style.display = 'block';
-    }
+    modal.innerHTML = `
+      <div style="
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        border: 2px solid #00D9FF;
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 500px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 217, 255, 0.3);
+        animation: slideUp 0.3s ease;
+      ">
+        <div style="font-size: 64px; margin-bottom: 20px;">🤖</div>
+        <h2 style="
+          font-size: 28px;
+          margin-bottom: 16px;
+          background: linear-gradient(135deg, #00D9FF, #9333EA);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        ">AI Features Require Premium + AI</h2>
+        <p style="
+          font-size: 16px;
+          color: #b0b0b0;
+          margin-bottom: 12px;
+          line-height: 1.6;
+        ">
+          Unlock advanced AI customization to personalize your server's AI assistant with custom personalities, model selection, and channel restrictions.
+        </p>
+        <p style="
+          font-size: 14px;
+          color: #888;
+          margin-bottom: 24px;
+        ">
+          Premium + AI tier required
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <a href="/premium" style="
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #00D9FF, #0099CC);
+            color: #1A1A1A;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 217, 255, 0.4)';"
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 217, 255, 0.3)';">
+            Upgrade to Premium + AI
+          </a>
+          <button onclick="this.closest('div').parentElement.parentElement.remove(); window.Router.navigate(window.DashboardCore.state.currentGuildId, 'overview');" style="
+            padding: 14px 32px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+          " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)';"
+             onmouseout="this.style.background='rgba(255, 255, 255, 0.1)';">
+            Go Back
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+        // Navigate back to overview
+        if (window.Router && window.DashboardCore) {
+          window.Router.navigate(window.DashboardCore.state.currentGuildId, 'overview');
+        }
+      }
+    });
+
+    document.body.appendChild(modal);
+
+    // Don't initialize the settings UI
+    const settingsContainer = document.getElementById('aiSettingsContainer');
     if (settingsContainer) {
       settingsContainer.style.display = 'none';
+    }
+
+    // Hide the inline upgrade banner
+    const upgradeBanner = document.getElementById('aiUpgradeCTA');
+    if (upgradeBanner) {
+      upgradeBanner.style.display = 'none';
     }
   },
 
