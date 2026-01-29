@@ -2,7 +2,7 @@
 // Feature-specific logic for AI personality and behavior configuration
 
 // Feature module pattern for SPA compatibility
-const AIFeature = {
+const AiFeature = {
   // ===== FEATURE STATE =====
   state: {
     initialized: false,
@@ -556,11 +556,11 @@ const AIFeature = {
 };
 
 // Make saveChanges globally accessible for onclick handlers
-window.AIFeature = AIFeature;
+window.AiFeature = AiFeature;
 
 // MPA backwards compatibility - auto-init if not in SPA mode
 if (!window.Router) {
   document.addEventListener('DOMContentLoaded', async () => {
-    await AIFeature.init();
+    await AiFeature.init();
   });
 }
