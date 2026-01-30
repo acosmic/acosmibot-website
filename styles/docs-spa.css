@@ -169,51 +169,234 @@ body.docs-page {
   transform: translateY(0);
 }
 
+/* ============================================
+   GLOBAL DOCUMENTATION STYLES
+   ============================================ */
+
+/* Page Header Styles */
+.docs-page-header {
+  border-bottom: none;
+  padding-bottom: 40px;
+  margin-bottom: 40px;
+}
+
+.docs-page-header h1 {
+  font-size: 32px;
+  font-weight: 400;
+  color: #FFFFFF;
+  margin-bottom: 0;
+}
+
 /* Documentation Sections */
 .docs-section {
-  margin-bottom: 48px;
+  margin-bottom: 40px;
 }
 
 .docs-section h2 {
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: var(--text-primary);
-  border-left: 4px solid var(--primary-color);
-  padding-left: 16px;
+  font-size: 24px;
+  font-weight: 400;
+  color: #FFFFFF;
+  border: none;
+  padding: 0;
+  margin-bottom: 16px;
 }
 
 .docs-section h3 {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 400;
   margin-bottom: 12px;
   margin-top: 24px;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .docs-section h4 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 400;
   margin-bottom: 8px;
   margin-top: 16px;
-  color: var(--text-primary);
+  color: #00D9FF;
 }
 
 .docs-section p {
-  color: var(--text-secondary);
-  line-height: 1.8;
+  color: #B0B0B0;
+  line-height: 1.6;
   margin-bottom: 16px;
 }
 
 .docs-section ul, .docs-section ol {
-  color: var(--text-secondary);
-  line-height: 1.8;
+  color: #B0B0B0;
+  line-height: 1.6;
   margin-bottom: 16px;
-  padding-left: 24px;
+  padding-left: 20px;
 }
 
 .docs-section li {
   margin-bottom: 8px;
+}
+
+/* Cyan Links */
+.docs-section a {
+  color: #00D9FF;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.docs-section a:hover {
+  opacity: 0.8;
+}
+
+/* Simple List Styling (for intro page) */
+.docs-section ul.simple-list {
+  list-style: none;
+  padding-left: 20px;
+}
+
+.docs-section ul.simple-list li {
+  color: #00D9FF;
+}
+
+/* Dark Content Blocks */
+.dark-block {
+  background: #1E1E1E;
+  border: 1px solid #2A2A2A;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.dark-block h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #FFFFFF;
+  margin: 0 0 12px 0;
+}
+
+.dark-block h4 {
+  font-size: 14px;
+  font-weight: 400;
+  color: #FFFFFF;
+  margin: 12px 0 8px 0;
+}
+
+.dark-block p {
+  color: #B0B0B0;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+.dark-block p:last-child {
+  margin-bottom: 0;
+}
+
+.dark-block ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.dark-block ul li {
+  color: #B0B0B0;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 6px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.dark-block ul li:before {
+  content: "•";
+  color: #00D9FF;
+  position: absolute;
+  left: 0;
+}
+
+/* Questions Styling */
+.question {
+  margin-bottom: 24px;
+}
+
+.question h3 {
+  font-size: 16px;
+  font-weight: 400;
+  color: #00D9FF;
+  margin-bottom: 8px;
+}
+
+.question p {
+  color: #B0B0B0;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Navigation Buttons */
+.docs-nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 60px;
+  padding-top: 20px;
+}
+
+.docs-nav-btn {
+  background: #2A2A2A;
+  border: 1px solid #404040;
+  color: #00D9FF;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.docs-nav-btn:hover {
+  background: #333333;
+  border-color: #00D9FF;
+}
+
+.docs-nav-btn .nav-label {
+  color: #00D9FF;
+  font-weight: 500;
+}
+
+.docs-nav-btn .nav-page {
+  color: #B0B0B0;
+  font-size: 12px;
+}
+
+.docs-nav-btn .arrow {
+  color: #00D9FF;
+}
+
+/* Breadcrumb */
+.docs-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.docs-breadcrumb a {
+  color: #B0B0B0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.docs-breadcrumb a:hover {
+  color: #00D9FF;
+}
+
+.docs-breadcrumb .separator {
+  color: #666666;
+}
+
+.docs-breadcrumb .current {
+  color: #FFFFFF;
 }
 
 /* Info Cards */
