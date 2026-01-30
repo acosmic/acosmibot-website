@@ -9,15 +9,15 @@ body.docs-page {
 /* Fix main content area to account for fixed sidebars */
 .dashboard-container.docs-container .main-content {
   margin-left: 352px; /* 72px guild selector + 280px navigation */
-  margin-right: 352px; /* Equal margin on right to center on viewport */
   padding: 40px;
-  background: #252525;
+  background: rgb(37, 37, 37);
   min-height: calc(100vh - 56px);
 }
 
 .dashboard-container.docs-container .main-content .docs-page-container {
   max-width: 900px;
-  margin: 0 auto;
+  margin-left: calc((100vw - 352px - 900px - 80px) / 2); /* Center on viewport: (viewport - sidebars - content - padding) / 2 */
+  margin-right: auto;
 }
 
 /* ============================================
