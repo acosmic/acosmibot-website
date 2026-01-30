@@ -27,6 +27,7 @@ body.docs-page {
   padding: 16px;
   border-bottom: 1px solid var(--border-light);
   position: relative;
+  z-index: 100;
 }
 
 .docs-search input {
@@ -63,7 +64,7 @@ body.docs-page {
   margin-top: 8px;
   max-height: 400px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 10000;
   display: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
