@@ -3,7 +3,7 @@ footer {
     margin-top: 0px;
     margin-bottom: 0px;
     padding: 20px 20px 20px 20px;
-    background: rgb(27, 27, 27);
+    background: rgb(26, 26, 26);
     backdrop-filter: blur(10px);
     border-top: 1px solid var(--border-light);
 }
@@ -25,6 +25,14 @@ footer {
 .dashboard-page .navigation-sidebar,
 .docs-page .docs-navigation-sidebar {
     height: calc(100vh - 156px);
+    border-bottom: none;
+    border-right: none;
+}
+
+/* Ensure guild selector doesn't have right border on these pages */
+.docs-page .guild-selector-sidebar,
+.dashboard-page .guild-selector-sidebar {
+    border-right: none;
 }
 
 .footer-content {
