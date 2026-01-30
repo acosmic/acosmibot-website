@@ -8,10 +8,23 @@ footer {
     border-top: 1px solid var(--border-light);
 }
 
-/* Remove border for docs and dashboard pages */
+/* Docs and dashboard page footer adjustments */
 .docs-page footer,
 .dashboard-page footer {
     border-top: none;
+    position: relative;
+    width: 100vw;
+    margin-left: 0;
+    left: 0;
+}
+
+/* Adjust sidebar heights to stop above footer (56px nav + ~100px footer) */
+.docs-page .guild-selector-sidebar,
+.dashboard-page .guild-selector-sidebar,
+.docs-page .navigation-sidebar,
+.dashboard-page .navigation-sidebar,
+.docs-page .docs-navigation-sidebar {
+    height: calc(100vh - 156px);
 }
 
 .footer-content {
