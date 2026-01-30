@@ -1967,22 +1967,9 @@ body::-webkit-scrollbar-thumb:hover {
     border-top: none !important;
 }
 
-/* Remove border-bottom from nav elements in sidebars (overrides base.css .nav) */
-.docs-page .sidebar-nav,
-.dashboard-page .sidebar-nav,
-.docs-page .navigation-sidebar nav,
-.dashboard-page .navigation-sidebar nav,
-.docs-page nav,
-.dashboard-page nav {
-    border-bottom: none !important;
-}
-
-/* Remove borders from dashboard container */
-.docs-page .dashboard-container,
-.dashboard-page .dashboard-container,
-.docs-page *,
-.dashboard-page *,
-.docs-page,
-.dashboard-page {
+/* Remove border-bottom from specific nav elements in sidebars only (overrides base.css .nav) */
+.guild-selector-sidebar .sidebar-nav,
+.navigation-sidebar .sidebar-nav,
+.docs-navigation-sidebar .sidebar-nav {
     border-bottom: none !important;
 }
