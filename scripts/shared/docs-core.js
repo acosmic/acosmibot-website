@@ -257,17 +257,8 @@ class DocsCore {
   }
 
   switchGuild(guildId) {
-    // Update guild context and navigate to current section with new guild
-    this.state.currentGuildId = guildId;
-
-    const pathParts = window.location.pathname.split('/');
-    const currentSection = pathParts[2] || 'introduction';
-
-    if (window.DocsRouter) {
-      window.DocsRouter.navigate(currentSection, guildId);
-    } else {
-      window.location.href = `/docs/${currentSection}?guild=${guildId}`;
-    }
+    // Navigate to server overview for the selected guild
+    window.location.href = `/server/${guildId}/overview`;
   }
 
   // ===== NAVIGATION SETUP =====
