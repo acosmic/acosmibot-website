@@ -236,8 +236,10 @@ function populateServers() {
                     <div class="server-name">${escapeHtml(guild.name)}</div>
                     <div class="server-members">${guild.member_count || 0} members</div>
                 </div>
-                ${badgeHtml}
-                ${premiumIconHtml}
+                <div class="server-badges">
+                    ${badgeHtml}
+                    ${premiumIconHtml}
+                </div>
             </a>
         `;
     }).join('');

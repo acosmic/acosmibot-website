@@ -192,6 +192,21 @@ const OverviewFeature = {
             }
         }
 
+        // Tier badge
+        const tierBadgeEl = document.getElementById('serverTierBadge');
+        if (tierBadgeEl) {
+            const tier = guildConfig?.premium_tier || 'free';
+            let tierHtml = '';
+            if (tier === 'premium_plus_ai') {
+                tierHtml = '<span class="tier-badge premium-plus-ai">💎 Premium + AI</span>';
+            } else if (tier === 'premium') {
+                tierHtml = '<span class="tier-badge premium">💎 Premium</span>';
+            } else {
+                tierHtml = '<span class="tier-badge free">Free</span>';
+            }
+            tierBadgeEl.innerHTML = tierHtml;
+        }
+
         // Enabled features
         if (guildConfig?.settings) {
             this.populateEnabledFeatures(guildConfig.settings);
