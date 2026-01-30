@@ -8,7 +8,7 @@ body.docs-page {
 
 /* Fix main content area to account for fixed sidebars */
 .dashboard-container.docs-container .main-content {
-  margin-left: 352px; /* 72px guild selector + 280px navigation */
+  margin-left: 176px; /* Shifted left by half of sidebar width (352px / 2) to center on full viewport */
   padding: 40px;
   background: #252525;
   min-height: calc(100vh - 56px);
@@ -248,11 +248,40 @@ body.docs-page {
 /* Simple List Styling (for intro page) */
 .docs-section ul.simple-list {
   list-style: none;
-  padding-left: 20px;
+  padding-left: 0;
+  margin: 0;
 }
 
 .docs-section ul.simple-list li {
   color: #00D9FF;
+  margin-bottom: 16px;
+}
+
+.docs-section ul.simple-list li a {
+  display: block;
+  color: #00D9FF;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* Feature Links Container */
+.feature-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-links a {
+  display: block;
+  color: #00D9FF;
+  font-size: 18px;
+  line-height: 1.6;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.feature-links a:hover {
+  opacity: 0.8;
 }
 
 /* Dark Content Blocks */
