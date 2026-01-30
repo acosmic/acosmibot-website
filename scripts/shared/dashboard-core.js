@@ -598,7 +598,6 @@ class DashboardCore {
         <div class="nav-item" data-feature="ai" data-tier-required="premium_plus_ai">
           <span class="nav-icon nav-icon-ai"></span>
           <span class="nav-text">AI Customization</span>
-          <span class="premium-badge">💎</span>
           <span class="nav-indicator"></span>
         </div>
       </div>
