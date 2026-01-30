@@ -1950,3 +1950,39 @@ body::-webkit-scrollbar-thumb:hover {
 .nav-icon-ai {
     background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2300D9FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h2v2H7v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>') center/contain no-repeat;
 }
+
+/* ============================================
+   DOCS AND DASHBOARD PAGE SIDEBAR ADJUSTMENTS
+   ============================================ */
+
+/* Adjust sidebar heights to stop exactly at footer top (56px nav + footer height) */
+.docs-page .guild-selector-sidebar,
+.dashboard-page .guild-selector-sidebar,
+.docs-page .navigation-sidebar,
+.dashboard-page .navigation-sidebar,
+.docs-page .docs-navigation-sidebar {
+    height: calc(100vh - 56px - 100px) !important;
+    border-bottom: none !important;
+    border-right: none !important;
+    border-top: none !important;
+}
+
+/* Remove border-bottom from nav elements in sidebars (overrides base.css .nav) */
+.docs-page .sidebar-nav,
+.dashboard-page .sidebar-nav,
+.docs-page .navigation-sidebar nav,
+.dashboard-page .navigation-sidebar nav,
+.docs-page nav,
+.dashboard-page nav {
+    border-bottom: none !important;
+}
+
+/* Remove borders from dashboard container */
+.docs-page .dashboard-container,
+.dashboard-page .dashboard-container,
+.docs-page *,
+.dashboard-page *,
+.docs-page,
+.dashboard-page {
+    border-bottom: none !important;
+}

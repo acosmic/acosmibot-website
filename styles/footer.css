@@ -18,24 +18,6 @@ footer {
     left: 0;
 }
 
-/* Adjust sidebar heights to stop exactly at footer top (56px nav + footer height) */
-.docs-page .guild-selector-sidebar,
-.dashboard-page .guild-selector-sidebar,
-.docs-page .navigation-sidebar,
-.dashboard-page .navigation-sidebar,
-.docs-page .docs-navigation-sidebar {
-    height: calc(100vh - 56px - 100px) !important;
-    border-bottom: none !important;
-    border-right: none !important;
-    border-top: none !important;
-}
-
-/* Remove borders from dashboard container on these pages */
-.docs-page .dashboard-container,
-.dashboard-page .dashboard-container {
-    border-bottom: none !important;
-}
-
 .footer-content {
     max-width: 1200px;
     margin: 0 auto;
