@@ -279,8 +279,8 @@ body.docs-page {
 .feature-links a {
   display: block;
   color: #00D9FF;
-  font-size: 18px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.2;
   text-decoration: none;
   transition: opacity 0.2s;
 }
