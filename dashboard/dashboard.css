@@ -19,7 +19,7 @@ body {
 
 /* Dashboard container uses guild-dashboard-new.css styles */
 .dashboard-container {
-    margin-top: 0 !important;
+    margin-top: 56px !important;
 }
 
 /* ============================================
