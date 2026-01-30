@@ -697,7 +697,8 @@ class DashboardCore {
       'lottery': 'lottery.enabled',
       'embeds': 'embeds.enabled',
       'reaction-roles': 'reaction_roles.enabled',
-      'moderation': 'moderation.enabled'
+      'moderation': 'moderation.enabled',
+      'ai': 'ai.enabled'
       // Note: custom-commands handled specially in isFeatureEnabled()
     };
     return configPaths[feature] || null;
