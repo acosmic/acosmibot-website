@@ -20,6 +20,9 @@ class DocsSearch {
       return;
     }
 
+    // Move search results to body to escape sidebar's stacking context
+    document.body.appendChild(searchResults);
+
     // Build search index
     this.buildSearchIndex();
 
