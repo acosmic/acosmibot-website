@@ -8,10 +8,11 @@ body.docs-page {
 
 /* Fix main content area to account for fixed sidebars */
 .dashboard-container.docs-container .main-content {
-  margin-left: 176px; /* Shifted left by half of sidebar width (352px / 2) to center on full viewport */
+  margin-left: calc(50vw - 450px); /* Center 900px content on full viewport */
   padding: 40px;
   background: #252525;
   min-height: calc(100vh - 56px);
+  width: 900px;
 }
 
 .dashboard-container.docs-container .main-content .docs-page-container {
