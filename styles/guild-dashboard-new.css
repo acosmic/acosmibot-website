@@ -674,6 +674,38 @@ body {
     color: var(--text-primary);
 }
 
+.server-branding-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Tier Badge Styles */
+.tier-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.tier-badge.premium-plus-ai {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(147, 51, 234, 0.2));
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    color: #FFD700;
+}
+
+.tier-badge.premium {
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    color: #FFD700;
+}
+
+.tier-badge.free {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+}
+
 /* Limit Display */
 .limit-display {
     font-size: 13px;

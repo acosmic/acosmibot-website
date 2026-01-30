@@ -36,6 +36,10 @@ const EmbedsFeature = (function() {
         }
 
         state.guildId = guildId;
+
+        // Initialize dashboard core for SPA (renders server branding)
+        await dashboardCore.initForSPA('embeds');
+
         loadCSS('/styles/embeds.css');
         await loadScript('/scripts/shared/embed-preview.js');
 
