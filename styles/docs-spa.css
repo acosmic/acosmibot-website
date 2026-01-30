@@ -54,10 +54,9 @@ body.docs-page {
 
 /* Search Results Dropdown */
 .docs-search-results {
-  position: absolute;
-  top: 100%;
-  left: 16px;
-  right: 16px;
+  position: fixed;
+  left: 88px;
+  width: 248px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 8px;
@@ -80,8 +79,13 @@ body.docs-page {
   border-bottom: none;
 }
 
-.search-result-item:hover {
+.search-result-item:hover,
+.search-result-item.selected {
   background: rgba(0, 217, 255, 0.1);
+}
+
+.search-result-item.selected {
+  border-left: 3px solid var(--primary-color);
 }
 
 .search-result-title {

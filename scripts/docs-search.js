@@ -7,6 +7,8 @@ class DocsSearch {
   constructor() {
     this.searchIndex = [];
     this.initialized = false;
+    this.currentResults = [];
+    this.selectedIndex = -1;
   }
 
   init() {
@@ -28,30 +30,68 @@ class DocsSearch {
       if (query.length < 2) {
         searchResults.style.display = 'none';
         searchResults.innerHTML = '';
+        this.currentResults = [];
+        this.selectedIndex = -1;
         return;
       }
 
       const results = this.search(query);
-      this.displayResults(results, searchResults);
+      this.currentResults = results;
+      this.selectedIndex = -1;
+      this.displayResults(results, searchResults, searchInput);
     });
 
-    // Handle Enter key to navigate to first result
+    // Handle keyboard navigation
     searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const query = e.target.value.trim();
+      if (this.currentResults.length === 0) return;
 
-        if (query.length >= 2) {
-          const results = this.search(query);
-          if (results.length > 0) {
-            // Navigate to the first result
-            window.DocsRouter.navigate(results[0].section, window.DocsCore.state.currentGuildId);
-            // Clear the search input and hide results
+      switch (e.key) {
+        case 'Tab':
+          e.preventDefault();
+          // Select first result on Tab
+          this.selectedIndex = 0;
+          this.updateSelectedItem();
+          break;
+
+        case 'ArrowDown':
+          e.preventDefault();
+          // Move down in results
+          if (this.selectedIndex < this.currentResults.length - 1) {
+            this.selectedIndex++;
+            this.updateSelectedItem();
+          }
+          break;
+
+        case 'ArrowUp':
+          e.preventDefault();
+          // Move up in results
+          if (this.selectedIndex > 0) {
+            this.selectedIndex--;
+            this.updateSelectedItem();
+          }
+          break;
+
+        case 'Enter':
+          e.preventDefault();
+          // Navigate to selected result (or first if none selected)
+          const targetIndex = this.selectedIndex >= 0 ? this.selectedIndex : 0;
+          if (this.currentResults[targetIndex]) {
+            this.navigateToResult(this.currentResults[targetIndex]);
+            // Clear and hide
             searchInput.value = '';
             searchResults.style.display = 'none';
             searchResults.innerHTML = '';
+            this.currentResults = [];
+            this.selectedIndex = -1;
           }
-        }
+          break;
+
+        case 'Escape':
+          // Clear selection and hide results
+          searchResults.style.display = 'none';
+          this.selectedIndex = -1;
+          this.updateSelectedItem();
+          break;
       }
     });
 
@@ -59,10 +99,27 @@ class DocsSearch {
     document.addEventListener('click', (e) => {
       if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
         searchResults.style.display = 'none';
+        this.selectedIndex = -1;
       }
     });
 
     this.initialized = true;
+  }
+
+  updateSelectedItem() {
+    const items = document.querySelectorAll('.search-result-item');
+    items.forEach((item, index) => {
+      if (index === this.selectedIndex) {
+        item.classList.add('selected');
+        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } else {
+        item.classList.remove('selected');
+      }
+    });
+  }
+
+  navigateToResult(result) {
+    window.DocsRouter.navigate(result.section, window.DocsCore.state.currentGuildId);
   }
 
   buildSearchIndex() {
@@ -140,22 +197,44 @@ class DocsSearch {
     return results.slice(0, 5);
   }
 
-  displayResults(results, container) {
+  displayResults(results, container, inputElement) {
     if (results.length === 0) {
       container.innerHTML = '<div class="search-no-results">No results found</div>';
       container.style.display = 'block';
+      this.positionResults(container, inputElement);
       return;
     }
 
-    const html = results.map(result => `
-      <div class="search-result-item" onclick="window.DocsRouter.navigate('${result.section}', window.DocsCore.state.currentGuildId)">
-        <div class="search-result-title">${this.highlightQuery(result.title, container.previousElementSibling.value)}</div>
+    const html = results.map((result, index) => `
+      <div class="search-result-item" data-index="${index}">
+        <div class="search-result-title">${this.highlightQuery(result.title, inputElement.value)}</div>
         <div class="search-result-category">${result.category}</div>
       </div>
     `).join('');
 
     container.innerHTML = html;
+
+    // Add click handlers to each result
+    const items = container.querySelectorAll('.search-result-item');
+    items.forEach((item, index) => {
+      item.addEventListener('click', () => {
+        this.navigateToResult(results[index]);
+        inputElement.value = '';
+        container.style.display = 'none';
+        container.innerHTML = '';
+        this.currentResults = [];
+        this.selectedIndex = -1;
+      });
+    });
+
+    this.positionResults(container, inputElement);
     container.style.display = 'block';
+  }
+
+  positionResults(container, inputElement) {
+    // Position the results dropdown based on the input position
+    const rect = inputElement.getBoundingClientRect();
+    container.style.top = `${rect.bottom + 8}px`;
   }
 
   highlightQuery(text, query) {
