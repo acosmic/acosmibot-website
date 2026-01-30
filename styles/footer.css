@@ -18,21 +18,22 @@ footer {
     left: 0;
 }
 
-/* Adjust sidebar heights to stop above footer (56px nav + ~100px footer) */
+/* Adjust sidebar heights to stop exactly at footer top (56px nav + footer height) */
 .docs-page .guild-selector-sidebar,
 .dashboard-page .guild-selector-sidebar,
 .docs-page .navigation-sidebar,
 .dashboard-page .navigation-sidebar,
 .docs-page .docs-navigation-sidebar {
-    height: calc(100vh - 156px);
-    border-bottom: none;
-    border-right: none;
+    height: calc(100vh - 56px - 100px) !important;
+    border-bottom: none !important;
+    border-right: none !important;
+    border-top: none !important;
 }
 
-/* Ensure guild selector doesn't have right border on these pages */
-.docs-page .guild-selector-sidebar,
-.dashboard-page .guild-selector-sidebar {
-    border-right: none;
+/* Remove borders from dashboard container on these pages */
+.docs-page .dashboard-container,
+.dashboard-page .dashboard-container {
+    border-bottom: none !important;
 }
 
 .footer-content {
