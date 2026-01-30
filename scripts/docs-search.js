@@ -35,6 +35,26 @@ class DocsSearch {
       this.displayResults(results, searchResults);
     });
 
+    // Handle Enter key to navigate to first result
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const query = e.target.value.trim();
+
+        if (query.length >= 2) {
+          const results = this.search(query);
+          if (results.length > 0) {
+            // Navigate to the first result
+            window.DocsRouter.navigate(results[0].section, window.DocsCore.state.currentGuildId);
+            // Clear the search input and hide results
+            searchInput.value = '';
+            searchResults.style.display = 'none';
+            searchResults.innerHTML = '';
+          }
+        }
+      }
+    });
+
     // Hide results when clicking outside
     document.addEventListener('click', (e) => {
       if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
