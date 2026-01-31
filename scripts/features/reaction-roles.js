@@ -104,8 +104,13 @@ const ReactionRolesFeature = (function() {
             builderView.style.display = 'none';
             state.currentView = 'list';
 
-            await Promise.all([fetchReactionRoles(), fetchStats()]);
+            // Load channels so we can display names
+            loadChannelsFromConfig();
+            
+            // Setup listeners immediately
             setupListEventListeners();
+
+            await Promise.all([fetchReactionRoles(), fetchStats()]);
             renderList();
         } catch (error) {
             console.error('[ReactionRoles] showList error:', error);
@@ -130,8 +135,8 @@ const ReactionRolesFeature = (function() {
         state.currentView = 'builder';
 
         // Load channels and roles
-        await loadChannelsFromConfig();
-        await loadRolesFromConfig();
+        loadChannelsFromConfig();
+        loadRolesFromConfig();
 
         if (rrId) {
             state.editingId = rrId;
@@ -254,7 +259,8 @@ const ReactionRolesFeature = (function() {
         const statusClass = rr.is_sent ? 'status-sent' : 'status-draft';
         const statusText = rr.is_sent ? 'Sent' : 'Draft';
 
-        const channelName = state.channels.find(c => c.id == rr.channel_id)?.name || 'Unknown Channel';
+        // Ensure channels are loaded before finding name
+        const channelName = state.channels.find(c => String(c.id) === String(rr.channel_id))?.name || 'Unknown Channel';
         const interactionIcon = {
             'emoji': '😀',
             'button': '🔘',
@@ -283,6 +289,11 @@ const ReactionRolesFeature = (function() {
                 <div class="rr-card-body">
                     <div class="rr-card-preview">
                         <div class="rr-card-preview-text">${escapeHtml(previewText.substring(0, 100))}${previewText.length > 100 ? '...' : ''}</div>
+                        <div style="margin-top: 8px;">
+                            <a href="#" onclick="event.preventDefault(); ReactionRolesFeature.showPreviewModal(${rr.id})" style="color: #00D9FF; font-size: 12px; text-decoration: none;">
+                                See Preview
+                            </a>
+                        </div>
                     </div>
                     <div class="rr-card-meta">
                         <div class="rr-card-meta-item">
@@ -311,7 +322,10 @@ const ReactionRolesFeature = (function() {
     function setupListEventListeners() {
         const createBtn = document.getElementById('createRRBtn');
         if (createBtn) {
-            createBtn.addEventListener('click', () => navigateTo('reaction-roles/new'));
+            // Remove existing listener by cloning (prevents duplicates)
+            const newBtn = createBtn.cloneNode(true);
+            createBtn.parentNode.replaceChild(newBtn, createBtn);
+            newBtn.addEventListener('click', () => navigateTo('reaction-roles/new'));
         }
     }
 
@@ -1091,8 +1105,36 @@ const ReactionRolesFeature = (function() {
     }
 
     // ========================================================================
-    // Actions - Duplicate, Delete
+    // Actions - Preview, Duplicate, Delete
     // ========================================================================
+
+    function showPreviewModal(id) {
+        const rr = state.reactionRoles.find(r => r.id === id);
+        if (!rr) return;
+
+        const container = document.getElementById('modalRRPreviewContainer');
+        const modal = document.getElementById('previewRRModal');
+
+        if (container && modal) {
+            // Construct config from rr object to reuse buildPreviewHtml
+            const config = {
+                text_content: rr.text_content,
+                embed_config: rr.embed_config,
+                interaction_type: rr.interaction_type,
+                emoji_role_mappings: rr.emoji_role_mappings,
+                button_configs: rr.button_configs,
+                dropdown_config: rr.dropdown_config
+            };
+
+            container.innerHTML = buildPreviewHtml(config);
+            modal.style.display = 'flex';
+        }
+    }
+
+    function hidePreviewModal() {
+        const modal = document.getElementById('previewRRModal');
+        if (modal) modal.style.display = 'none';
+    }
 
     async function duplicateReactionRole(id) {
         try {
@@ -1244,8 +1286,8 @@ const ReactionRolesFeature = (function() {
 
     function navigateTo(route) {
         const dashboardCore = getDashboardCore();
-        if (dashboardCore && dashboardCore.navigateTo) {
-            dashboardCore.navigateTo(route);
+        if (dashboardCore?.loadFeature) {
+            dashboardCore.loadFeature(route);
         }
     }
 
@@ -1298,6 +1340,8 @@ const ReactionRolesFeature = (function() {
         init,
         cleanup,
         editReactionRole,
+        showPreviewModal,
+        hidePreviewModal,
         duplicateReactionRole,
         showDeleteModal,
         hideDeleteModal,
