@@ -1,594 +1,1322 @@
 /**
  * Reaction Roles Feature Module
- * Handles reaction role message creation and management
  */
 
-function getDashboardCore() {
-    return window.DashboardCore;
-}
+const ReactionRolesFeature = (function() {
+    'use strict';
 
-const ReactionRolesFeature = {
-    state: {
-        initialized: false,
-        messages: [],
+    let state = {
+        guildId: null,
+        reactionRoles: [],
         editingId: null,
+        stats: null,
+        channels: [],
+        roles: [],
         interactionType: 'emoji',
         roleMappings: [],
-        currentEmojiIndex: null,
-        currentTab: 'standard'
-    },
+        embedConfig: {},
+        currentView: 'list',
+        previewDebounce: null
+    };
 
-    // Standard emojis for the picker
-    standardEmojis: [
-        '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟',
-        '✅', '❌', '⭐', '🌟', '💫', '✨', '🎮', '🎵', '🎬', '📚',
-        '💻', '🎨', '📷', '🏆', '🎯', '🔔', '💬', '📢', '🔒', '🔓',
-        '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💗',
-        '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🩷'
-    ],
+    // ========================================================================
+    // Initialization & Routing
+    // ========================================================================
 
-    async init() {
-        console.log('ReactionRolesFeature.init() called');
+    async function init(params = {}) {
+        console.log('[ReactionRoles] Init called with params:', params);
 
         const dashboardCore = getDashboardCore();
         if (!dashboardCore) {
-            console.error('DashboardCore not available');
+            console.error('[ReactionRoles] DashboardCore not available');
+            showError('Dashboard not initialized');
             return;
         }
 
+        const guildId = dashboardCore.state.currentGuildId;
+        if (!guildId) {
+            console.error('[ReactionRoles] No guild ID available');
+            showError('No guild selected');
+            return;
+        }
+
+        state.guildId = guildId;
+
+        // Initialize dashboard core for SPA
         await dashboardCore.initForSPA('reaction-roles');
 
-        this.populateUI();
-        this.setupEventListeners();
+        // Load CSS and dependencies
+        loadCSS('/styles/reaction-roles.css');
+        await loadScript('/scripts/shared/embed-preview.js');
 
-        this.state.initialized = true;
-        console.log('ReactionRolesFeature initialized');
-    },
+        // Load HTML views
+        await loadViews();
 
-    async cleanup() {
-        console.log('ReactionRolesFeature.cleanup() called');
-        this.hideForm();
-        this.closeEmojiPicker();
-        this.state.initialized = false;
-    },
+        const route = params.route || 'reaction-roles';
+        console.log('[ReactionRoles] Route:', route);
 
-    populateUI() {
-        const dashboardCore = getDashboardCore();
-        const config = dashboardCore?.state?.guildConfig;
+        try {
+            if (route === 'reaction-roles/new') {
+                await showBuilder();
+            } else if (route.startsWith('reaction-roles/edit/')) {
+                state.editingId = params.rrId || route.split('/')[2];
+                await showBuilder(state.editingId);
+            } else {
+                await showList();
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Init error:', error);
+            showError('Failed to initialize reaction roles feature');
+        }
+    }
 
-        console.log('populateReactionRolesUI - config:', config);
+    async function loadViews() {
+        const listContent = document.getElementById('rrListContent');
+        const builderContent = document.getElementById('rrBuilderContent');
 
-        if (!config) {
-            console.warn('No guild config available');
+        if (listContent && !listContent.innerHTML) {
+            const listResponse = await fetch('/server/views/reaction-roles-list-view.html');
+            listContent.innerHTML = await listResponse.text();
+        }
+
+        if (builderContent && !builderContent.innerHTML) {
+            const builderResponse = await fetch('/server/views/reaction-roles-builder-view.html');
+            builderContent.innerHTML = await builderResponse.text();
+        }
+    }
+
+    // ========================================================================
+    // View Management
+    // ========================================================================
+
+    async function showList() {
+        console.log('[ReactionRoles] showList called');
+
+        try {
+            const listView = document.getElementById('rrListView');
+            const builderView = document.getElementById('rrBuilderView');
+
+            if (!listView || !builderView) {
+                throw new Error('Reaction roles view sections not found');
+            }
+
+            listView.style.display = 'block';
+            builderView.style.display = 'none';
+            state.currentView = 'list';
+
+            await Promise.all([fetchReactionRoles(), fetchStats()]);
+            setupListEventListeners();
+            renderList();
+        } catch (error) {
+            console.error('[ReactionRoles] showList error:', error);
+            showError('Failed to load reaction roles list: ' + error.message);
+        }
+    }
+
+    async function showBuilder(rrId = null) {
+        console.log('[ReactionRoles] showBuilder called, rrId:', rrId);
+
+        const listView = document.getElementById('rrListView');
+        const builderView = document.getElementById('rrBuilderView');
+
+        if (!listView || !builderView) {
+            console.error('[ReactionRoles] View sections not found');
+            showError('Reaction roles view sections not found');
             return;
         }
 
-        // Get reaction_roles settings
-        const reactionRolesConfig = config.settings?.reaction_roles || {};
-        this.state.messages = reactionRolesConfig.messages || [];
+        listView.style.display = 'none';
+        builderView.style.display = 'block';
+        state.currentView = 'builder';
 
-        // Set feature toggle
-        const featureToggle = document.getElementById('featureToggle');
-        if (featureToggle) {
-            featureToggle.checked = reactionRolesConfig.enabled === true;
-            featureToggle.addEventListener('change', () => this.handleToggleChange());
+        // Load channels and roles
+        await loadChannelsFromConfig();
+        await loadRolesFromConfig();
+
+        if (rrId) {
+            state.editingId = rrId;
+            await loadReactionRoleForEditing(rrId);
+            const titleEl = document.getElementById('builderTitle');
+            if (titleEl) titleEl.textContent = 'Edit Reaction Role';
+        } else {
+            state.editingId = null;
+            initializeNewReactionRole();
+            const titleEl = document.getElementById('builderTitle');
+            if (titleEl) titleEl.textContent = 'Create Reaction Role';
         }
 
-        // Populate channel dropdown
-        this.populateChannelDropdown();
+        setupBuilderEventListeners();
+        updatePreview();
+    }
 
-        // Render existing messages
-        this.renderMessagesList();
+    // ========================================================================
+    // API Calls
+    // ========================================================================
 
-        // Update UI states
-        this.updateUIState();
-    },
+    async function fetchReactionRoles() {
+        try {
+            const dashboardCore = getDashboardCore();
+            const response = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles`,
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
+            );
+            const data = await response.json();
+            if (data.success) {
+                state.reactionRoles = data.data || [];
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Fetch error:', error);
+            showNotification('Failed to load reaction roles', 'error');
+        }
+    }
 
-    populateChannelDropdown() {
+    async function fetchStats() {
+        try {
+            const dashboardCore = getDashboardCore();
+            const response = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles/stats`,
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
+            );
+            const data = await response.json();
+            if (data.success) {
+                state.stats = data.stats;
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Stats error:', error);
+        }
+    }
+
+    function loadChannelsFromConfig() {
         const dashboardCore = getDashboardCore();
-        const channels = dashboardCore?.state?.guildConfig?.available_channels || [];
-        const select = document.getElementById('channelSelect');
+        const allChannels = dashboardCore?.state?.guildConfig?.available_channels || [];
+        state.channels = allChannels.filter(c => c.type === 0); // Text channels only
+        populateChannelDropdown();
+    }
 
-        if (!select) return;
+    function loadRolesFromConfig() {
+        const dashboardCore = getDashboardCore();
+        state.roles = dashboardCore?.state?.guildConfig?.available_roles || [];
+    }
 
-        // Keep the first option
-        select.innerHTML = '<option value="">Select a channel...</option>';
+    async function loadReactionRoleForEditing(rrId) {
+        try {
+            const dashboardCore = getDashboardCore();
+            const response = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles/${rrId}`,
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` } }
+            );
+            const data = await response.json();
+            if (data.success) {
+                populateFormFromReactionRole(data.data);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Load error:', error);
+            showNotification('Failed to load reaction role', 'error');
+            navigateTo('reaction-roles');
+        }
+    }
 
-        // Filter to text channels only
-        const textChannels = channels.filter(c => c.type === 0 || c.type === 'text');
+    // ========================================================================
+    // List View Rendering
+    // ========================================================================
 
-        textChannels.forEach(channel => {
-            const option = document.createElement('option');
-            option.value = channel.id;
-            option.textContent = `#${channel.name}`;
-            select.appendChild(option);
-        });
-    },
+    function renderList() {
+        const grid = document.getElementById('rrGrid');
+        const emptyState = document.getElementById('rrEmptyState');
+        const countSpan = document.getElementById('rrCount');
+        const limitSpan = document.getElementById('rrLimit');
+        const createBtn = document.getElementById('createRRBtn');
 
-    renderMessagesList() {
-        const listContainer = document.getElementById('reactionRolesList');
-        const emptyState = document.getElementById('emptyState');
+        if (!grid) return;
 
-        if (!listContainer) return;
+        // Update counter
+        if (state.stats) {
+            if (countSpan) countSpan.textContent = state.stats.total;
+            if (limitSpan) limitSpan.textContent = state.stats.max;
+            if (createBtn) createBtn.disabled = state.stats.remaining <= 0;
+        }
 
-        if (this.state.messages.length === 0) {
-            listContainer.innerHTML = '';
+        // Show empty state or grid
+        if (state.reactionRoles.length === 0) {
+            grid.style.display = 'none';
             if (emptyState) emptyState.style.display = 'block';
             return;
         }
 
+        grid.style.display = 'grid';
         if (emptyState) emptyState.style.display = 'none';
+        grid.innerHTML = state.reactionRoles.map(rr => createReactionRoleCard(rr)).join('');
+    }
 
-        const dashboardCore = getDashboardCore();
-        const channels = dashboardCore?.state?.guildConfig?.available_channels || [];
-        const roles = dashboardCore?.state?.guildConfig?.available_roles || [];
+    function createReactionRoleCard(rr) {
+        const statusClass = rr.is_sent ? 'status-sent' : 'status-draft';
+        const statusText = rr.is_sent ? 'Sent' : 'Draft';
 
-        listContainer.innerHTML = this.state.messages.map((msg, index) => {
-            const channel = channels.find(c => c.id === msg.channel_id);
-            const channelName = channel ? `#${channel.name}` : 'Unknown Channel';
+        const channelName = state.channels.find(c => c.id == rr.channel_id)?.name || 'Unknown Channel';
+        const interactionIcon = {
+            'emoji': '😀',
+            'button': '🔘',
+            'dropdown': '📋'
+        }[rr.interaction_type] || '⚡';
 
-            // Parse role mappings
-            let mappingsHtml = '';
-            if (msg.interaction_type === 'emoji' && msg.emoji_role_mappings) {
-                const mappings = this.parseEmojiMappings(msg.emoji_role_mappings);
-                mappingsHtml = mappings.map(m => {
-                    const role = roles.find(r => m.roleIds.includes(r.id));
-                    const roleName = role ? role.name : 'Unknown Role';
-                    const emojiDisplay = this.getEmojiDisplay(m.emoji);
-                    return `<span class="mapping-badge">${emojiDisplay} ${roleName}</span>`;
-                }).join('');
-            } else if (msg.interaction_type === 'button' && msg.button_config?.buttons) {
-                mappingsHtml = msg.button_config.buttons.map(btn => {
-                    const role = roles.find(r => btn.role_ids?.includes(r.id));
-                    const roleName = role ? role.name : btn.label || 'Unknown';
-                    return `<span class="mapping-badge">${btn.emoji || '🔘'} ${roleName}</span>`;
-                }).join('');
-            } else if (msg.interaction_type === 'dropdown' && msg.dropdown_config?.options) {
-                mappingsHtml = msg.dropdown_config.options.map(opt => {
-                    const role = roles.find(r => opt.role_ids?.includes(r.id));
-                    const roleName = role ? role.name : opt.label || 'Unknown';
-                    return `<span class="mapping-badge">${opt.emoji || '📋'} ${roleName}</span>`;
-                }).join('');
-            }
+        let mappingsCount = 0;
+        if (rr.interaction_type === 'emoji' && rr.emoji_role_mappings) {
+            mappingsCount = Object.keys(rr.emoji_role_mappings).length;
+        } else if (rr.interaction_type === 'button' && rr.button_configs) {
+            mappingsCount = rr.button_configs.length;
+        } else if (rr.interaction_type === 'dropdown' && rr.dropdown_config) {
+            mappingsCount = rr.dropdown_config.options?.length || 0;
+        }
 
-            const title = msg.embed_config?.title || 'Reaction Role Message';
-            const typeLabel = msg.interaction_type === 'emoji' ? 'Emoji Reactions' :
-                             msg.interaction_type === 'button' ? 'Buttons' : 'Dropdown';
+        const previewText = rr.text_content || rr.embed_config?.title || rr.embed_config?.description || 'No content';
 
-            return `
-                <div class="reaction-role-item" data-message-id="${msg.message_id}">
-                    <div class="reaction-role-info">
-                        <div class="reaction-role-title">${this.escapeHtml(title)}</div>
-                        <div class="reaction-role-meta">
-                            <span>📍 ${channelName}</span>
-                            <span>🎯 ${typeLabel}</span>
-                        </div>
-                        <div class="reaction-role-mappings">
-                            ${mappingsHtml}
-                        </div>
+        return `
+            <div class="rr-card">
+                <div class="rr-card-header">
+                    <div>
+                        <div class="rr-card-title">${escapeHtml(rr.name)}</div>
                     </div>
-                    <div class="reaction-role-actions">
-                        <button class="btn-delete" onclick="ReactionRolesFeature.deleteMessage(${index})">Delete</button>
+                    <span class="rr-card-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="rr-card-body">
+                    <div class="rr-card-preview">
+                        <div class="rr-card-preview-text">${escapeHtml(previewText.substring(0, 100))}${previewText.length > 100 ? '...' : ''}</div>
+                    </div>
+                    <div class="rr-card-meta">
+                        <div class="rr-card-meta-item">
+                            <span class="rr-card-meta-icon">#</span>
+                            ${escapeHtml(channelName)}
+                        </div>
+                        <div class="rr-card-meta-item">
+                            <span class="rr-card-meta-icon">${interactionIcon}</span>
+                            ${rr.interaction_type.charAt(0).toUpperCase() + rr.interaction_type.slice(1)}
+                        </div>
+                        <div class="rr-card-meta-item">
+                            <span class="rr-card-meta-icon">🎯</span>
+                            ${mappingsCount} mapping${mappingsCount !== 1 ? 's' : ''}
+                        </div>
                     </div>
                 </div>
-            `;
-        }).join('');
-    },
+                <div class="rr-card-actions">
+                    <button class="rr-card-action-btn edit-btn" onclick="ReactionRolesFeature.editReactionRole(${rr.id})">Edit</button>
+                    <button class="rr-card-action-btn duplicate-btn" onclick="ReactionRolesFeature.duplicateReactionRole(${rr.id})">Duplicate</button>
+                    <button class="rr-card-action-btn delete-btn" onclick="ReactionRolesFeature.showDeleteModal(${rr.id})">Delete</button>
+                </div>
+            </div>
+        `;
+    }
 
-    parseEmojiMappings(mappings) {
-        try {
-            if (typeof mappings === 'string') {
-                const parsed = JSON.parse(mappings);
-                if (Array.isArray(parsed)) {
-                    return parsed.map(m => ({
-                        emoji: m.emoji,
-                        roleIds: Array.isArray(m.role_ids) ? m.role_ids : [m.role_ids]
-                    }));
-                } else if (typeof parsed === 'object') {
-                    return Object.entries(parsed).map(([emoji, roleIds]) => ({
-                        emoji,
-                        roleIds: Array.isArray(roleIds) ? roleIds : [roleIds]
-                    }));
-                }
-            } else if (Array.isArray(mappings)) {
-                return mappings.map(m => ({
-                    emoji: m.emoji,
-                    roleIds: Array.isArray(m.role_ids) ? m.role_ids : [m.role_ids]
-                }));
-            } else if (typeof mappings === 'object') {
-                return Object.entries(mappings).map(([emoji, roleIds]) => ({
-                    emoji,
-                    roleIds: Array.isArray(roleIds) ? roleIds : [roleIds]
-                }));
+    function setupListEventListeners() {
+        const createBtn = document.getElementById('createRRBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', () => navigateTo('reaction-roles/new'));
+        }
+    }
+
+    // ========================================================================
+    // Builder View - Initialization
+    // ========================================================================
+
+    function initializeNewReactionRole() {
+        state.interactionType = 'emoji';
+        state.roleMappings = [];
+        state.embedConfig = {};
+
+        setValue('rrName', '');
+        setValue('targetChannel', '');
+        setValue('messageText', '');
+        setValue('embedTitle', '');
+        setValue('embedDescription', '');
+        setValue('embedColor', '#5865F2');
+        setValue('thumbnailUrl', '');
+        setValue('imageUrl', '');
+        setValue('footerText', '');
+        setValue('allowRemoval', true);
+        setValue('suppressRolePings', false);
+
+        // Set emoji as default interaction type
+        const emojiRadio = document.getElementById('typeEmoji');
+        if (emojiRadio) emojiRadio.checked = true;
+
+        switchInteractionType('emoji');
+        addEmojiMapping(); // Start with one mapping
+    }
+
+    function populateFormFromReactionRole(rr) {
+        setValue('rrName', rr.name);
+        setValue('targetChannel', rr.channel_id);
+        setValue('messageText', rr.text_content);
+        setValue('allowRemoval', rr.allow_removal);
+
+        // Embed config
+        if (rr.embed_config) {
+            setValue('embedTitle', rr.embed_config.title);
+            setValue('embedDescription', rr.embed_config.description);
+            if (rr.embed_config.color) {
+                setValue('embedColor', '#' + rr.embed_config.color);
             }
-        } catch (e) {
-            console.error('Error parsing emoji mappings:', e);
+            setValue('thumbnailUrl', rr.embed_config.thumbnail);
+            setValue('imageUrl', rr.embed_config.image);
+            setValue('footerText', rr.embed_config.footer);
         }
-        return [];
-    },
 
-    getEmojiDisplay(emoji) {
-        const match = emoji?.match(/<(a?):([^:]+):(\d+)>/);
-        if (match) {
-            const animated = match[1] === 'a';
-            const name = match[2];
-            const id = match[3];
-            const ext = animated ? 'gif' : 'png';
-            return `<img src="https://cdn.discordapp.com/emojis/${id}.${ext}" alt="${name}" style="width:18px;height:18px;vertical-align:middle;">`;
+        // Interaction type
+        state.interactionType = rr.interaction_type;
+        const typeRadio = document.getElementById('type' + capitalizeFirst(rr.interaction_type));
+        if (typeRadio) typeRadio.checked = true;
+
+        // Disable interaction type changing if already sent
+        if (rr.is_sent) {
+            const warning = document.getElementById('interactionTypeWarning');
+            if (warning) warning.style.display = 'block';
+            ['typeEmoji', 'typeButton', 'typeDropdown'].forEach(id => {
+                const radio = document.getElementById(id);
+                if (radio && radio.value !== rr.interaction_type) radio.disabled = true;
+            });
         }
-        return emoji || '❓';
-    },
 
-    showCreateForm() {
-        this.state.editingId = null;
-        this.state.roleMappings = [{ emoji: '', roleId: '' }];
-        this.state.interactionType = 'emoji';
+        // Role mappings
+        switchInteractionType(rr.interaction_type);
 
-        // Reset form fields
-        document.getElementById('formTitle').textContent = 'Create Reaction Role';
-        document.getElementById('saveButtonText').textContent = 'Create & Post';
-        document.getElementById('channelSelect').value = '';
-        document.getElementById('embedTitle').value = '';
-        document.getElementById('embedDescription').value = '';
-        document.getElementById('embedColor').value = '#5865F2';
+        if (rr.interaction_type === 'emoji' && rr.emoji_role_mappings) {
+            Object.entries(rr.emoji_role_mappings).forEach(([emoji, roleIds]) => {
+                addEmojiMapping(emoji, roleIds);
+            });
+        } else if (rr.interaction_type === 'button' && rr.button_configs) {
+            rr.button_configs.forEach(btn => {
+                addButtonConfig(btn);
+            });
+        } else if (rr.interaction_type === 'dropdown' && rr.dropdown_config) {
+            setValue('dropdownPlaceholder', rr.dropdown_config.placeholder);
+            (rr.dropdown_config.options || []).forEach(opt => {
+                addDropdownOption(opt);
+            });
+        }
 
-        // Reset interaction type buttons
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.type === 'emoji');
+        // Show update button if sent
+        if (rr.is_sent) {
+            const sendBtn = document.getElementById('sendBtn');
+            const updateBtn = document.getElementById('updateBtn');
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+            if (sendBtn) sendBtn.style.display = 'none';
+            if (saveDraftBtn) saveDraftBtn.style.display = 'none';
+            if (updateBtn) updateBtn.style.display = 'block';
+        }
+    }
+
+    function populateChannelDropdown() {
+        const select = document.getElementById('targetChannel');
+        if (!select) return;
+
+        while (select.options.length > 1) select.remove(1);
+
+        state.channels.forEach(channel => {
+            const option = document.createElement('option');
+            option.value = channel.id;
+            option.textContent = `# ${channel.name}`;
+            select.appendChild(option);
+        });
+    }
+
+    // ========================================================================
+    // Builder View - Event Listeners
+    // ========================================================================
+
+    function setupBuilderEventListeners() {
+        // Text inputs for preview update
+        const inputs = ['rrName', 'messageText', 'embedTitle', 'embedDescription',
+                       'embedColor', 'thumbnailUrl', 'imageUrl', 'footerText'];
+
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', debouncedUpdatePreview);
+                el.addEventListener('change', debouncedUpdatePreview);
+            }
         });
 
-        this.renderRoleMappings();
+        // Message text character counter
+        const messageText = document.getElementById('messageText');
+        const counter = document.getElementById('messageTextCounter');
+        if (messageText && counter) {
+            messageText.addEventListener('input', () => {
+                counter.textContent = messageText.value.length;
+            });
+        }
 
-        document.getElementById('reactionRoleForm').style.display = 'block';
-    },
-
-    hideForm() {
-        document.getElementById('reactionRoleForm').style.display = 'none';
-        this.state.editingId = null;
-        this.state.roleMappings = [];
-    },
-
-    setInteractionType(type) {
-        this.state.interactionType = type;
-
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.type === type);
+        // Interaction type radio buttons
+        const typeRadios = document.querySelectorAll('input[name="interactionType"]');
+        typeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                switchInteractionType(e.target.value);
+            });
         });
+    }
 
-        this.renderRoleMappings();
-    },
+    // ========================================================================
+    // Interaction Type Management
+    // ========================================================================
 
-    renderRoleMappings() {
-        const container = document.getElementById('roleMappingsContainer');
+    function switchInteractionType(type) {
+        state.interactionType = type;
+
+        const emojiContainer = document.getElementById('emojiMappingsContainer');
+        const buttonContainer = document.getElementById('buttonConfigsContainer');
+        const dropdownContainer = document.getElementById('dropdownConfigContainer');
+
+        if (emojiContainer) emojiContainer.style.display = type === 'emoji' ? 'block' : 'none';
+        if (buttonContainer) buttonContainer.style.display = type === 'button' ? 'block' : 'none';
+        if (dropdownContainer) dropdownContainer.style.display = type === 'dropdown' ? 'block' : 'none';
+
+        updatePreview();
+    }
+
+    // ========================================================================
+    // Role Mappings - Emoji
+    // ========================================================================
+
+    function addEmojiMapping(emoji = '', roleIds = []) {
+        const container = document.getElementById('emojiMappingsList');
         if (!container) return;
 
-        const dashboardCore = getDashboardCore();
-        const roles = dashboardCore?.state?.guildConfig?.available_roles || [];
+        const index = container.children.length;
+        const mappingHtml = createEmojiMappingHtml(index, emoji, roleIds);
+        container.insertAdjacentHTML('beforeend', mappingHtml);
 
-        container.innerHTML = this.state.roleMappings.map((mapping, index) => {
-            const emojiDisplay = mapping.emoji ? this.getEmojiDisplay(mapping.emoji) : '+';
-            const hasEmoji = !!mapping.emoji;
+        // Setup role selector
+        const roleSelect = document.getElementById(`emojiRoleSelect_${index}`);
+        if (roleSelect) {
+            populateRoleSelect(roleSelect, roleIds);
+        }
 
-            return `
-                <div class="role-mapping-row" data-index="${index}">
-                    <button type="button" class="emoji-selector-btn ${hasEmoji ? 'has-emoji' : ''}"
-                            onclick="ReactionRolesFeature.openEmojiPicker(${index})">
-                        ${emojiDisplay}
-                    </button>
-                    <select class="feature-select" onchange="ReactionRolesFeature.updateMappingRole(${index}, this.value)">
-                        <option value="">Select a role...</option>
-                        ${roles.map(role => `
-                            <option value="${role.id}" ${mapping.roleId === role.id ? 'selected' : ''}>
-                                ${this.escapeHtml(role.name)}
-                            </option>
-                        `).join('')}
-                    </select>
-                    ${this.state.roleMappings.length > 1 ? `
-                        <button type="button" class="btn-remove-mapping" onclick="ReactionRolesFeature.removeRoleMapping(${index})">
-                            &times;
-                        </button>
-                    ` : ''}
+        updatePreview();
+    }
+
+    function createEmojiMappingHtml(index, emoji = '', roleIds = []) {
+        return `
+            <div class="mapping-item" id="emojiMapping_${index}">
+                <div class="mapping-header">
+                    <span class="mapping-number">Emoji ${index + 1}</span>
+                    <button class="remove-mapping-btn" onclick="ReactionRolesFeature.removeEmojiMapping(${index})">Remove</button>
+                </div>
+                <div class="mapping-fields">
+                    <div class="form-group">
+                        <label class="form-label">Emoji</label>
+                        <input type="text" id="emoji_${index}" class="form-input" placeholder="😀 or :emoji:" value="${escapeHtml(emoji)}" onchange="ReactionRolesFeature.updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Roles</label>
+                        <select id="emojiRoleSelect_${index}" class="form-select" multiple onchange="ReactionRolesFeature.updatePreview()">
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function removeEmojiMapping(index) {
+        const mapping = document.getElementById(`emojiMapping_${index}`);
+        if (mapping) mapping.remove();
+        updatePreview();
+    }
+
+    // ========================================================================
+    // Role Mappings - Buttons
+    // ========================================================================
+
+    function addButtonConfig(config = {}) {
+        const container = document.getElementById('buttonConfigsList');
+        if (!container) return;
+
+        const index = container.children.length;
+        const buttonHtml = createButtonConfigHtml(index, config);
+        container.insertAdjacentHTML('beforeend', buttonHtml);
+
+        // Setup role selector
+        const roleSelect = document.getElementById(`buttonRoleSelect_${index}`);
+        if (roleSelect) {
+            populateRoleSelect(roleSelect, config.role_ids || []);
+        }
+
+        updatePreview();
+    }
+
+    function createButtonConfigHtml(index, config = {}) {
+        const styles = [
+            { value: 1, label: 'Primary (Blue)' },
+            { value: 2, label: 'Secondary (Gray)' },
+            { value: 3, label: 'Success (Green)' },
+            { value: 4, label: 'Danger (Red)' }
+        ];
+
+        return `
+            <div class="mapping-item" id="buttonConfig_${index}">
+                <div class="mapping-header">
+                    <span class="mapping-number">Button ${index + 1}</span>
+                    <button class="remove-mapping-btn" onclick="ReactionRolesFeature.removeButtonConfig(${index})">Remove</button>
+                </div>
+                <div class="mapping-fields">
+                    <div class="form-group">
+                        <label class="form-label">Label</label>
+                        <input type="text" id="buttonLabel_${index}" class="form-input" placeholder="Click me!" value="${escapeHtml(config.label || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Style</label>
+                        <select id="buttonStyle_${index}" class="form-select" onchange="ReactionRolesFeature.updatePreview()">
+                            ${styles.map(s => `<option value="${s.value}" ${config.style === s.value ? 'selected' : ''}>${s.label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Emoji (Optional)</label>
+                        <input type="text" id="buttonEmoji_${index}" class="form-input" placeholder="😀" value="${escapeHtml(config.emoji || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Roles</label>
+                        <select id="buttonRoleSelect_${index}" class="form-select" multiple onchange="ReactionRolesFeature.updatePreview()">
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function removeButtonConfig(index) {
+        const button = document.getElementById(`buttonConfig_${index}`);
+        if (button) button.remove();
+        updatePreview();
+    }
+
+    // ========================================================================
+    // Role Mappings - Dropdown
+    // ========================================================================
+
+    function addDropdownOption(config = {}) {
+        const container = document.getElementById('dropdownOptionsList');
+        if (!container) return;
+
+        const index = container.children.length;
+        const optionHtml = createDropdownOptionHtml(index, config);
+        container.insertAdjacentHTML('beforeend', optionHtml);
+
+        // Setup role selector
+        const roleSelect = document.getElementById(`dropdownRoleSelect_${index}`);
+        if (roleSelect) {
+            populateRoleSelect(roleSelect, config.role_ids || []);
+        }
+
+        updatePreview();
+    }
+
+    function createDropdownOptionHtml(index, config = {}) {
+        return `
+            <div class="mapping-item" id="dropdownOption_${index}">
+                <div class="mapping-header">
+                    <span class="mapping-number">Option ${index + 1}</span>
+                    <button class="remove-mapping-btn" onclick="ReactionRolesFeature.removeDropdownOption(${index})">Remove</button>
+                </div>
+                <div class="mapping-fields">
+                    <div class="form-group">
+                        <label class="form-label">Label</label>
+                        <input type="text" id="dropdownLabel_${index}" class="form-input" placeholder="Option Label" value="${escapeHtml(config.label || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description (Optional)</label>
+                        <input type="text" id="dropdownDesc_${index}" class="form-input" placeholder="Description..." value="${escapeHtml(config.description || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Emoji (Optional)</label>
+                        <input type="text" id="dropdownEmoji_${index}" class="form-input" placeholder="😀" value="${escapeHtml(config.emoji || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Roles</label>
+                        <select id="dropdownRoleSelect_${index}" class="form-select" multiple onchange="ReactionRolesFeature.updatePreview()">
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function removeDropdownOption(index) {
+        const option = document.getElementById(`dropdownOption_${index}`);
+        if (option) option.remove();
+        updatePreview();
+    }
+
+    function populateRoleSelect(select, selectedRoleIds = []) {
+        if (!select) return;
+
+        select.innerHTML = '';
+        state.roles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role.id;
+            option.textContent = `@${role.name}`;
+            if (selectedRoleIds.includes(role.id) || selectedRoleIds.includes(String(role.id))) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    }
+
+    // ========================================================================
+    // Preview
+    // ========================================================================
+
+    function debouncedUpdatePreview() {
+        if (state.previewDebounce) {
+            clearTimeout(state.previewDebounce);
+        }
+        state.previewDebounce = setTimeout(updatePreview, 300);
+    }
+
+    function updatePreview() {
+        const container = document.getElementById('rrPreviewContainer');
+        if (!container) return;
+
+        const config = getConfigFromForm();
+        const previewHtml = buildPreviewHtml(config);
+        container.innerHTML = previewHtml;
+    }
+
+    function buildPreviewHtml(config) {
+        let html = '<div class="discord-message-preview">';
+
+        // Message text
+        if (config.text_content) {
+            html += `<div class="discord-message-text">${escapeHtml(config.text_content)}</div>`;
+        }
+
+        // Embed
+        if (config.embed_config && (config.embed_config.title || config.embed_config.description)) {
+            html += buildEmbedHtml(config.embed_config);
+        }
+
+        // Interaction components
+        if (config.interaction_type === 'emoji') {
+            html += buildEmojiReactionsHtml(config.emoji_role_mappings);
+        } else if (config.interaction_type === 'button') {
+            html += buildButtonsHtml(config.button_configs);
+        } else if (config.interaction_type === 'dropdown') {
+            html += buildDropdownHtml(config.dropdown_config);
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function buildEmbedHtml(embedConfig) {
+        const color = embedConfig.color || '#5865F2';
+        let html = '<div class="discord-embed">';
+        html += `<div class="discord-embed-color-bar" style="background: ${color};"></div>`;
+        html += '<div class="discord-embed-content">';
+
+        if (embedConfig.title) {
+            html += `<div class="discord-embed-title">${escapeHtml(embedConfig.title)}</div>`;
+        }
+
+        if (embedConfig.description) {
+            html += `<div class="discord-embed-description">${escapeHtml(embedConfig.description)}</div>`;
+        }
+
+        if (embedConfig.thumbnail) {
+            html += `<img src="${escapeHtml(embedConfig.thumbnail)}" class="discord-embed-thumbnail" style="max-width: 80px; border-radius: 4px;">`;
+        }
+
+        if (embedConfig.image) {
+            html += `<img src="${escapeHtml(embedConfig.image)}" class="discord-embed-image" style="max-width: 100%; border-radius: 4px; margin-top: 8px;">`;
+        }
+
+        if (embedConfig.footer) {
+            html += `<div class="discord-embed-footer" style="margin-top: 8px; font-size: 12px; color: #B9BBBE;">${escapeHtml(embedConfig.footer)}</div>`;
+        }
+
+        html += '</div></div>';
+        return html;
+    }
+
+    function buildEmojiReactionsHtml(mappings) {
+        if (!mappings || Object.keys(mappings).length === 0) return '';
+
+        let html = '<div class="discord-reactions">';
+        Object.keys(mappings).forEach(emoji => {
+            html += `
+                <div class="discord-reaction">
+                    <span class="discord-reaction-emoji">${emoji}</span>
+                    <span class="discord-reaction-count">0</span>
                 </div>
             `;
-        }).join('');
-    },
-
-    addRoleMapping() {
-        this.state.roleMappings.push({ emoji: '', roleId: '' });
-        this.renderRoleMappings();
-    },
-
-    removeRoleMapping(index) {
-        this.state.roleMappings.splice(index, 1);
-        this.renderRoleMappings();
-    },
-
-    updateMappingRole(index, roleId) {
-        this.state.roleMappings[index].roleId = roleId;
-    },
-
-    openEmojiPicker(index) {
-        this.state.currentEmojiIndex = index;
-        document.getElementById('emojiPickerModal').style.display = 'flex';
-        this.switchEmojiTab('standard');
-        document.getElementById('emojiSearchInput').value = '';
-    },
-
-    closeEmojiPicker() {
-        document.getElementById('emojiPickerModal').style.display = 'none';
-        this.state.currentEmojiIndex = null;
-    },
-
-    switchEmojiTab(tab) {
-        this.state.currentTab = tab;
-
-        document.querySelectorAll('.emoji-tab').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tab);
         });
+        html += '</div>';
+        return html;
+    }
 
-        this.renderEmojiPickerGrid();
-    },
+    function buildButtonsHtml(buttons) {
+        if (!buttons || buttons.length === 0) return '';
 
-    filterEmojis(query) {
-        this.renderEmojiPickerGrid(query.toLowerCase());
-    },
-
-    renderEmojiPickerGrid(searchQuery = '') {
-        const grid = document.getElementById('emojiPickerGrid');
-        if (!grid) return;
-
-        if (this.state.currentTab === 'standard') {
-            const emojis = this.standardEmojis;
-
-            grid.innerHTML = emojis.map(emoji => `
-                <button class="emoji-picker-item" onclick="ReactionRolesFeature.selectEmoji('${emoji}')" title="${emoji}">
-                    ${emoji}
-                </button>
-            `).join('');
-        } else {
-            const availableEmojis = getDashboardCore()?.state?.guildConfig?.available_emojis || [];
-
-            if (availableEmojis.length === 0) {
-                grid.innerHTML = '<div class="emoji-picker-empty">No custom emojis available</div>';
-                return;
-            }
-
-            let filteredEmojis = availableEmojis;
-            if (searchQuery) {
-                filteredEmojis = availableEmojis.filter(e =>
-                    e.name.toLowerCase().includes(searchQuery)
-                );
-            }
-
-            if (filteredEmojis.length === 0) {
-                grid.innerHTML = '<div class="emoji-picker-empty">No emojis match your search</div>';
-                return;
-            }
-
-            grid.innerHTML = filteredEmojis.map(emoji => {
-                const emojiValue = this.buildCustomEmojiValue(emoji);
-                const ext = emoji.animated ? 'gif' : 'png';
-                const imgUrl = `https://cdn.discordapp.com/emojis/${emoji.id}.${ext}`;
-
-                return `
-                    <button class="emoji-picker-item" onclick="ReactionRolesFeature.selectEmoji('${emojiValue.replace(/'/g, "\\'")}')" title="${emoji.name}">
-                        <img src="${imgUrl}" alt="${emoji.name}">
-                    </button>
-                `;
-            }).join('');
-        }
-    },
-
-    buildCustomEmojiValue(emoji) {
-        const prefix = emoji.animated ? 'a' : '';
-        return `<${prefix}:${emoji.name}:${emoji.id}>`;
-    },
-
-    selectEmoji(emoji) {
-        const index = this.state.currentEmojiIndex;
-        if (index !== null && this.state.roleMappings[index]) {
-            this.state.roleMappings[index].emoji = emoji;
-            this.renderRoleMappings();
-        }
-        this.closeEmojiPicker();
-    },
-
-    async saveReactionRole() {
-        const dashboardCore = getDashboardCore();
-        if (!dashboardCore) return;
-
-        const channelId = document.getElementById('channelSelect').value;
-        const title = document.getElementById('embedTitle').value;
-        const description = document.getElementById('embedDescription').value;
-        const color = document.getElementById('embedColor').value;
-
-        // Validation
-        if (!channelId) {
-            alert('Please select a channel');
-            return;
-        }
-
-        if (!title && !description) {
-            alert('Please enter a title or description');
-            return;
-        }
-
-        const validMappings = this.state.roleMappings.filter(m => m.emoji && m.roleId);
-        if (validMappings.length === 0) {
-            alert('Please add at least one emoji-role mapping');
-            return;
-        }
-
-        // Build the form data
-        const formData = {
-            channel_id: channelId,
-            interaction_type: this.state.interactionType,
-            embed_config: {
-                title: title,
-                description: description,
-                color: parseInt(color.replace('#', ''), 16)
-            }
+        const styleClasses = {
+            1: 'discord-button-primary',
+            2: 'discord-button-secondary',
+            3: 'discord-button-success',
+            4: 'discord-button-danger'
         };
 
-        // Add mappings based on interaction type
-        if (this.state.interactionType === 'emoji') {
-            formData.emoji_role_mappings = validMappings.map(m => ({
-                emoji: m.emoji,
-                role_ids: [m.roleId]
-            }));
-        } else if (this.state.interactionType === 'button') {
-            formData.button_config = {
-                buttons: validMappings.map(m => ({
-                    emoji: m.emoji,
-                    label: '',
-                    style: 'primary',
-                    role_ids: [m.roleId]
-                }))
-            };
-        } else if (this.state.interactionType === 'dropdown') {
-            formData.dropdown_config = {
-                placeholder: 'Select a role...',
-                options: validMappings.map(m => ({
-                    emoji: m.emoji,
-                    label: 'Role',
-                    value: m.roleId,
-                    role_ids: [m.roleId]
-                }))
+        let html = '<div class="discord-buttons">';
+        buttons.forEach(btn => {
+            const styleClass = styleClasses[btn.style] || 'discord-button-secondary';
+            html += `
+                <button class="discord-button ${styleClass}">
+                    ${btn.emoji ? `<span>${btn.emoji}</span>` : ''}
+                    ${escapeHtml(btn.label || 'Button')}
+                </button>
+            `;
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function buildDropdownHtml(config) {
+        if (!config || !config.options || config.options.length === 0) return '';
+
+        const placeholder = config.placeholder || 'Select roles...';
+        return `<div class="discord-select-menu">${escapeHtml(placeholder)}</div>`;
+    }
+
+    // ========================================================================
+    // Form Data Collection
+    // ========================================================================
+
+    function getConfigFromForm() {
+        const config = {
+            name: getValue('rrName'),
+            channel_id: getValue('targetChannel'),
+            text_content: getValue('messageText'),
+            allow_removal: getValue('allowRemoval') === true || getValue('allowRemoval') === 'on',
+            interaction_type: state.interactionType
+        };
+
+        // Embed config
+        const embedTitle = getValue('embedTitle');
+        const embedDesc = getValue('embedDescription');
+        if (embedTitle || embedDesc) {
+            config.embed_config = {
+                title: embedTitle,
+                description: embedDesc,
+                color: getValue('embedColor'),
+                thumbnail: getValue('thumbnailUrl'),
+                image: getValue('imageUrl'),
+                footer: getValue('footerText')
             };
         }
 
-        try {
-            const token = localStorage.getItem('discord_token');
-            const guildId = dashboardCore.state.currentGuildId;
-
-            const response = await fetch(`${dashboardCore.API_BASE_URL}/api/guilds/${guildId}/reaction-roles`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.message || 'Failed to create reaction role');
-            }
-
-            // Add to local state
-            this.state.messages.push(result.data);
-
-            // Update config
-            if (!dashboardCore.state.guildConfig.settings.reaction_roles) {
-                dashboardCore.state.guildConfig.settings.reaction_roles = { enabled: true, messages: [] };
-            }
-            dashboardCore.state.guildConfig.settings.reaction_roles.messages = this.state.messages;
-            dashboardCore.state.guildConfig.settings.reaction_roles.enabled = true;
-
-            // Save config
-            await dashboardCore.saveGuildConfig({
-                reaction_roles: dashboardCore.state.guildConfig.settings.reaction_roles
-            });
-
-            // Update UI
-            this.renderMessagesList();
-            this.hideForm();
-
-            // Update toggle
-            const featureToggle = document.getElementById('featureToggle');
-            if (featureToggle) featureToggle.checked = true;
-
-            alert('Reaction role created successfully!');
-
-        } catch (error) {
-            console.error('Error creating reaction role:', error);
-            alert('Error: ' + error.message);
+        // Role mappings based on interaction type
+        if (state.interactionType === 'emoji') {
+            config.emoji_role_mappings = getEmojiMappingsFromForm();
+        } else if (state.interactionType === 'button') {
+            config.button_configs = getButtonConfigsFromForm();
+        } else if (state.interactionType === 'dropdown') {
+            config.dropdown_config = getDropdownConfigFromForm();
         }
-    },
 
-    async deleteMessage(index) {
-        if (!confirm('Are you sure you want to delete this reaction role message?')) {
+        return config;
+    }
+
+    function getEmojiMappingsFromForm() {
+        const mappings = {};
+        const container = document.getElementById('emojiMappingsList');
+        if (!container) return mappings;
+
+        Array.from(container.children).forEach((child, index) => {
+            const emoji = getValue(`emoji_${index}`);
+            const roleSelect = document.getElementById(`emojiRoleSelect_${index}`);
+
+            if (emoji && roleSelect) {
+                const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
+                if (selectedRoles.length > 0) {
+                    mappings[emoji] = selectedRoles;
+                }
+            }
+        });
+
+        return mappings;
+    }
+
+    function getButtonConfigsFromForm() {
+        const buttons = [];
+        const container = document.getElementById('buttonConfigsList');
+        if (!container) return buttons;
+
+        Array.from(container.children).forEach((child, index) => {
+            const label = getValue(`buttonLabel_${index}`);
+            const roleSelect = document.getElementById(`buttonRoleSelect_${index}`);
+
+            if (label && roleSelect) {
+                const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
+                if (selectedRoles.length > 0) {
+                    buttons.push({
+                        label: label,
+                        style: parseInt(getValue(`buttonStyle_${index}`)) || 1,
+                        emoji: getValue(`buttonEmoji_${index}`),
+                        role_ids: selectedRoles
+                    });
+                }
+            }
+        });
+
+        return buttons;
+    }
+
+    function getDropdownConfigFromForm() {
+        const options = [];
+        const container = document.getElementById('dropdownOptionsList');
+        if (!container) return { options };
+
+        Array.from(container.children).forEach((child, index) => {
+            const label = getValue(`dropdownLabel_${index}`);
+            const roleSelect = document.getElementById(`dropdownRoleSelect_${index}`);
+
+            if (label && roleSelect) {
+                const selectedRoles = Array.from(roleSelect.selectedOptions).map(opt => opt.value);
+                if (selectedRoles.length > 0) {
+                    options.push({
+                        label: label,
+                        description: getValue(`dropdownDesc_${index}`),
+                        emoji: getValue(`dropdownEmoji_${index}`),
+                        role_ids: selectedRoles
+                    });
+                }
+            }
+        });
+
+        return {
+            placeholder: getValue('dropdownPlaceholder') || 'Select roles...',
+            options: options
+        };
+    }
+
+    // ========================================================================
+    // Actions - Save, Send, Update
+    // ========================================================================
+
+    async function saveDraft() {
+        const config = getConfigFromForm();
+
+        if (!validateConfig(config)) {
             return;
         }
 
-        const dashboardCore = getDashboardCore();
-        if (!dashboardCore) return;
-
-        // Remove from local state
-        this.state.messages.splice(index, 1);
-
-        // Update config
-        if (dashboardCore.state.guildConfig.settings.reaction_roles) {
-            dashboardCore.state.guildConfig.settings.reaction_roles.messages = this.state.messages;
-        }
-
-        // Save config
         try {
-            await dashboardCore.saveGuildConfig({
-                reaction_roles: dashboardCore.state.guildConfig.settings.reaction_roles
+            const dashboardCore = getDashboardCore();
+            const url = state.editingId
+                ? `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles/${state.editingId}`
+                : `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles`;
+
+            const method = state.editingId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
             });
 
-            this.renderMessagesList();
-            alert('Reaction role deleted!');
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification(state.editingId ? 'Draft updated!' : 'Draft saved!', 'success');
+                navigateTo('reaction-roles');
+            } else {
+                showNotification(data.message || 'Failed to save draft', 'error');
+            }
         } catch (error) {
-            console.error('Error deleting reaction role:', error);
-            alert('Failed to delete reaction role');
+            console.error('[ReactionRoles] Save error:', error);
+            showNotification('Failed to save draft', 'error');
         }
-    },
+    }
 
-    handleToggleChange() {
-        const dashboardCore = getDashboardCore();
-        const featureToggle = document.getElementById('featureToggle');
+    async function sendToDiscord() {
+        const config = getConfigFromForm();
 
-        if (dashboardCore && featureToggle) {
-            if (!dashboardCore.state.guildConfig.settings.reaction_roles) {
-                dashboardCore.state.guildConfig.settings.reaction_roles = { enabled: false, messages: [] };
-            }
-            dashboardCore.state.guildConfig.settings.reaction_roles.enabled = featureToggle.checked;
-            dashboardCore.markUnsavedChanges();
+        if (!validateConfig(config)) {
+            return;
         }
 
-        this.updateUIState();
-    },
+        // If editing an existing draft, save it first
+        if (state.editingId) {
+            await saveDraft();
+        } else {
+            // Create draft first
+            try {
+                const dashboardCore = getDashboardCore();
+                const response = await fetch(
+                    `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(config)
+                    }
+                );
 
-    updateUIState() {
-        const featureToggle = document.getElementById('featureToggle');
-        const isEnabled = featureToggle?.checked ?? false;
-        const createBtn = document.getElementById('createNewBtn');
+                const data = await response.json();
 
-        if (createBtn) {
-            createBtn.disabled = !isEnabled;
-            createBtn.style.opacity = isEnabled ? '1' : '0.5';
-        }
-    },
-
-    setupEventListeners() {
-        // Close modal on backdrop click
-        const modal = document.getElementById('emojiPickerModal');
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.closeEmojiPicker();
+                if (data.success) {
+                    state.editingId = data.data.id;
+                } else {
+                    showNotification(data.message || 'Failed to create draft', 'error');
+                    return;
                 }
-            });
+            } catch (error) {
+                console.error('[ReactionRoles] Create error:', error);
+                showNotification('Failed to create draft', 'error');
+                return;
+            }
         }
 
-        // Close modal on Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeEmojiPicker();
-                this.hideForm();
-            }
-        });
-    },
+        // Now send to Discord
+        try {
+            const dashboardCore = getDashboardCore();
+            const suppressPings = getValue('suppressRolePings') === true || getValue('suppressRolePings') === 'on';
 
-    escapeHtml(text) {
+            const response = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles/${state.editingId}/send`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ suppress_role_pings: suppressPings })
+                }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('Sent to Discord successfully!', 'success');
+                navigateTo('reaction-roles');
+            } else {
+                showNotification(data.message || 'Failed to send to Discord', 'error');
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Send error:', error);
+            showNotification('Failed to send to Discord', 'error');
+        }
+    }
+
+    async function updateMessage() {
+        const config = getConfigFromForm();
+
+        if (!validateConfig(config)) {
+            return;
+        }
+
+        if (!state.editingId) {
+            showNotification('No reaction role to update', 'error');
+            return;
+        }
+
+        try {
+            const dashboardCore = getDashboardCore();
+            const suppressPings = getValue('suppressRolePings') === true || getValue('suppressRolePings') === 'on';
+            config.suppress_role_pings = suppressPings;
+
+            const response = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles/${state.editingId}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('Message updated successfully!', 'success');
+                navigateTo('reaction-roles');
+            } else {
+                showNotification(data.message || 'Failed to update message', 'error');
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Update error:', error);
+            showNotification('Failed to update message', 'error');
+        }
+    }
+
+    function validateConfig(config) {
+        if (!config.name) {
+            showNotification('Name is required', 'error');
+            return false;
+        }
+
+        if (!config.channel_id) {
+            showNotification('Please select a channel', 'error');
+            return false;
+        }
+
+        // Check for at least one role mapping
+        let hasMappings = false;
+        if (config.interaction_type === 'emoji' && config.emoji_role_mappings) {
+            hasMappings = Object.keys(config.emoji_role_mappings).length > 0;
+        } else if (config.interaction_type === 'button' && config.button_configs) {
+            hasMappings = config.button_configs.length > 0;
+        } else if (config.interaction_type === 'dropdown' && config.dropdown_config) {
+            hasMappings = config.dropdown_config.options.length > 0;
+        }
+
+        if (!hasMappings) {
+            showNotification('Please add at least one role mapping', 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    function cancel() {
+        if (confirm('Are you sure? Any unsaved changes will be lost.')) {
+            navigateTo('reaction-roles');
+        }
+    }
+
+    // ========================================================================
+    // Actions - Duplicate, Delete
+    // ========================================================================
+
+    async function duplicateReactionRole(id) {
+        try {
+            const dashboardCore = getDashboardCore();
+            const response = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles/${id}/duplicate`,
+                {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
+                }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('Reaction role duplicated!', 'success');
+                await fetchReactionRoles();
+                renderList();
+            } else {
+                showNotification(data.message || 'Failed to duplicate', 'error');
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Duplicate error:', error);
+            showNotification('Failed to duplicate reaction role', 'error');
+        }
+    }
+
+    let deleteTargetId = null;
+
+    function showDeleteModal(id) {
+        deleteTargetId = id;
+        const modal = document.getElementById('deleteRRModal');
+        if (modal) modal.style.display = 'flex';
+
+        const confirmBtn = document.getElementById('confirmDeleteRRBtn');
+        if (confirmBtn) {
+            confirmBtn.onclick = confirmDelete;
+        }
+    }
+
+    function hideDeleteModal() {
+        deleteTargetId = null;
+        const modal = document.getElementById('deleteRRModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+            const dashboardCore = getDashboardCore();
+            const response = await fetch(
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles/${deleteTargetId}`,
+                {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('discord_token')}` }
+                }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('Reaction role deleted!', 'success');
+                hideDeleteModal();
+                await fetchReactionRoles();
+                await fetchStats();
+                renderList();
+            } else {
+                showNotification(data.message || 'Failed to delete', 'error');
+            }
+        } catch (error) {
+            console.error('[ReactionRoles] Delete error:', error);
+            showNotification('Failed to delete reaction role', 'error');
+        }
+    }
+
+    // ========================================================================
+    // Utility Functions
+    // ========================================================================
+
+    function editReactionRole(id) {
+        navigateTo(`reaction-roles/edit/${id}`);
+    }
+
+    function toggleSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        const header = section?.previousElementSibling;
+        const toggle = header?.querySelector('.form-section-toggle');
+
+        if (section && toggle) {
+            const isCollapsed = section.classList.contains('collapsed');
+            if (isCollapsed) {
+                section.classList.remove('collapsed');
+                toggle.textContent = '▼';
+            } else {
+                section.classList.add('collapsed');
+                toggle.textContent = '▶';
+            }
+        }
+    }
+
+    function cleanup() {
+        state = {
+            guildId: null,
+            reactionRoles: [],
+            editingId: null,
+            stats: null,
+            channels: [],
+            roles: [],
+            interactionType: 'emoji',
+            roleMappings: [],
+            embedConfig: {},
+            currentView: 'list',
+            previewDebounce: null
+        };
+    }
+
+    function getValue(id) {
+        const el = document.getElementById(id);
+        if (!el) return '';
+
+        if (el.type === 'checkbox') {
+            return el.checked;
+        }
+        return el.value || '';
+    }
+
+    function setValue(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        if (el.type === 'checkbox') {
+            el.checked = !!value;
+        } else {
+            el.value = value || '';
+        }
+    }
+
+    function capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-};
 
-// Export for feature loader
-window.ReactionRolesFeature = ReactionRolesFeature;
+    function navigateTo(route) {
+        const dashboardCore = getDashboardCore();
+        if (dashboardCore && dashboardCore.navigateTo) {
+            dashboardCore.navigateTo(route);
+        }
+    }
+
+    function getDashboardCore() {
+        return window.DashboardCore;
+    }
+
+    function loadCSS(href) {
+        if (!document.querySelector(`link[href="${href}"]`)) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            document.head.appendChild(link);
+        }
+    }
+
+    async function loadScript(src) {
+        if (document.querySelector(`script[src="${src}"]`)) {
+            return Promise.resolve();
+        }
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    function showNotification(message, type = 'info') {
+        const dashboardCore = getDashboardCore();
+        if (dashboardCore && dashboardCore.showNotification) {
+            dashboardCore.showNotification(message, type);
+        } else {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            alert(message);
+        }
+    }
+
+    function showError(message) {
+        showNotification(message, 'error');
+    }
+
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
+    return {
+        init,
+        cleanup,
+        editReactionRole,
+        duplicateReactionRole,
+        showDeleteModal,
+        hideDeleteModal,
+        saveDraft,
+        sendToDiscord,
+        updateMessage,
+        cancel,
+        toggleSection,
+        addEmojiMapping,
+        removeEmojiMapping,
+        addButtonConfig,
+        removeButtonConfig,
+        addDropdownOption,
+        removeDropdownOption,
+        updatePreview
+    };
+})();
+
+// Register with dashboard
+if (window.DashboardCore) {
+    window.DashboardCore.registerFeature('reaction-roles', ReactionRolesFeature);
+}

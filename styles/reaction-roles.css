@@ -1,0 +1,561 @@
+/* Reaction Roles Feature Styles */
+
+/* ============================================================================
+   Container & Layout
+   ============================================================================ */
+
+.rr-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.rr-builder {
+    padding: 24px;
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.rr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+}
+
+.rr-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 8px 0;
+}
+
+.rr-counter {
+    font-size: 14px;
+    color: #AAAAAA;
+}
+
+.rr-counter span {
+    color: #00D9FF;
+    font-weight: 600;
+}
+
+.create-rr-btn {
+    padding: 12px 24px;
+    background: #00D9FF;
+    color: #1A1A1A;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.create-rr-btn:hover {
+    background: #1AE3FF;
+    transform: translateY(-1px);
+}
+
+/* ============================================================================
+   Grid
+   ============================================================================ */
+
+.rr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+/* ============================================================================
+   Reaction Role Card
+   ============================================================================ */
+
+.rr-card {
+    background: #2D2D2D;
+    border-radius: 12px;
+    border: 1px solid #404040;
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.rr-card:hover {
+    border-color: #00D9FF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 217, 255, 0.15);
+}
+
+.rr-card-header {
+    padding: 16px;
+    border-bottom: 1px solid #404040;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.rr-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0 0 8px 0;
+}
+
+.rr-card-status {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-draft {
+    background: rgba(88, 101, 242, 0.2);
+    color: #5865F2;
+}
+
+.status-sent {
+    background: rgba(87, 242, 135, 0.2);
+    color: #57F287;
+}
+
+.rr-card-body {
+    padding: 16px;
+}
+
+.rr-card-preview {
+    background: #1A1A1A;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    max-height: 200px;
+    overflow: hidden;
+}
+
+.rr-card-preview-text {
+    color: #CCCCCC;
+    font-size: 14px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rr-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    color: #AAAAAA;
+}
+
+.rr-card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rr-card-meta-icon {
+    font-size: 16px;
+}
+
+.rr-card-actions {
+    padding: 12px 16px;
+    border-top: 1px solid #404040;
+    display: flex;
+    gap: 8px;
+}
+
+.rr-card-action-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #404040;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rr-card-action-btn:hover {
+    background: #4A4A4A;
+}
+
+.rr-card-action-btn.edit-btn:hover {
+    background: #5865F2;
+}
+
+.rr-card-action-btn.duplicate-btn:hover {
+    background: #00D9FF;
+    color: #1A1A1A;
+}
+
+.rr-card-action-btn.delete-btn:hover {
+    background: #FF4444;
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.rr-empty {
+    text-align: center;
+    padding: 64px 32px;
+}
+
+.rr-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.rr-empty h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0 0 12px 0;
+}
+
+.rr-empty p {
+    font-size: 16px;
+    color: #AAAAAA;
+    margin: 0 0 24px 0;
+}
+
+/* ============================================================================
+   Builder Layout
+   ============================================================================ */
+
+.builder-header {
+    margin-bottom: 32px;
+}
+
+.builder-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 8px 0;
+}
+
+.builder-subtitle {
+    font-size: 14px;
+    color: #AAAAAA;
+    margin: 0;
+}
+
+.builder-layout {
+    display: flex;
+    gap: 24px;
+}
+
+.builder-preview-section {
+    flex: 0 0 40%;
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+}
+
+.builder-preview-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0 0 16px 0;
+}
+
+.builder-form-section {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ============================================================================
+   Form Sections
+   ============================================================================ */
+
+.form-section {
+    background: #2D2D2D;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #404040;
+}
+
+.form-section-header {
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+
+.form-section-header:hover {
+    background: rgba(0, 217, 255, 0.05);
+}
+
+.form-section-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0;
+}
+
+.form-section-toggle {
+    color: #AAAAAA;
+    transition: transform 0.2s;
+}
+
+.form-section-content {
+    padding: 0 20px 20px 20px;
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.form-section-content.collapsed {
+    max-height: 0;
+    padding: 0 20px;
+}
+
+/* ============================================================================
+   Form Elements
+   ============================================================================ */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+    padding: 12px;
+    background: #1A1A1A;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #00D9FF;
+    box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.form-select {
+    cursor: pointer;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    color: #FFFFFF;
+    font-size: 14px;
+}
+
+.form-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* ============================================================================
+   Discord Preview Components
+   ============================================================================ */
+
+.rr-preview-container {
+    background: #36393f;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.discord-message-preview {
+    background: transparent;
+}
+
+.discord-message-text {
+    color: #dcddde;
+    font-size: 16px;
+    line-height: 1.375;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+}
+
+/* Reactions Preview (for emoji type) */
+.discord-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.discord-reaction {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: rgba(79, 84, 92, 0.4);
+    border: 1px solid rgba(79, 84, 92, 0.7);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.discord-reaction-emoji {
+    font-size: 16px;
+}
+
+.discord-reaction-count {
+    color: #b9bbbe;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Buttons Preview (for button type) */
+.discord-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.discord-button {
+    padding: 6px 16px;
+    border-radius: 4px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.discord-button-primary {
+    background: #5865F2;
+    color: #FFFFFF;
+}
+
+.discord-button-secondary {
+    background: #4E5058;
+    color: #FFFFFF;
+}
+
+.discord-button-success {
+    background: #57F287;
+    color: #FFFFFF;
+}
+
+.discord-button-danger {
+    background: #ED4245;
+    color: #FFFFFF;
+}
+
+.discord-button:hover {
+    opacity: 0.9;
+}
+
+/* Dropdown Preview (for dropdown type) */
+.discord-select-menu {
+    margin-top: 8px;
+    background: #4E5058;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 16px;
+    color: #B9BBBE;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.discord-select-menu::after {
+    content: '▼';
+    font-size: 10px;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+    .builder-layout {
+        flex-direction: column;
+    }
+
+    .builder-preview-section {
+        position: static;
+        width: 100%;
+    }
+
+    .rr-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .rr-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .create-rr-btn {
+        width: 100%;
+    }
+
+    .rr-card-actions {
+        flex-direction: column;
+    }
+
+    .rr-card-action-btn {
+        width: 100%;
+    }
+}
+
+/* ============================================================================
+   Dark Theme Colors
+   ============================================================================ */
+
+:root {
+    --bg-primary: #1A1A1A;
+    --bg-secondary: #2D2D2D;
+    --bg-tertiary: #404040;
+    --text-primary: #FFFFFF;
+    --text-secondary: #CCCCCC;
+    --text-tertiary: #AAAAAA;
+    --accent-primary: #00D9FF;
+    --accent-hover: #1AE3FF;
+    --border-color: #404040;
+    --discord-bg: #36393f;
+    --discord-embed-bg: #2f3136;
+}

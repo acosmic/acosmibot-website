@@ -1,0 +1,442 @@
+<div class="rr-builder">
+    <!-- Builder Header -->
+    <div class="builder-header">
+        <h1 id="builderTitle">Create Reaction Role</h1>
+        <p class="builder-subtitle">Configure your reaction role message with live preview</p>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="builder-layout">
+        <!-- Left: Live Preview (40%) -->
+        <div class="builder-preview-section">
+            <h2>Live Preview</h2>
+            <div id="rrPreviewContainer" class="rr-preview-container">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Right: Form Builder (60%) -->
+        <div class="builder-form-section">
+            <!-- Message Settings -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="ReactionRolesFeature.toggleSection('messageSettings')">
+                    <h3>Message Settings</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="messageSettings" class="form-section-content">
+                    <div class="form-group">
+                        <label class="form-label">Name (Internal) <span style="color: #FF4444;">*</span></label>
+                        <input type="text" id="rrName" class="form-input" placeholder="Role Selection" required>
+                        <p style="color: #72767d; font-size: 12px; margin-top: 4px;">
+                            Internal name for organization (not shown in Discord)
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Target Channel <span style="color: #FF4444;">*</span></label>
+                        <select id="targetChannel" class="form-select" required>
+                            <option value="">Select a channel...</option>
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Message Text (Optional)</label>
+                        <textarea id="messageText" class="form-textarea" maxlength="2000" placeholder="React to get roles! 🎭"></textarea>
+                        <div class="char-counter">
+                            <span id="messageTextCounter">0</span> / 2000
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Embed Configuration (Optional) -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="ReactionRolesFeature.toggleSection('embedConfig')">
+                    <h3>Embed Configuration (Optional)</h3>
+                    <span class="form-section-toggle">▶</span>
+                </div>
+                <div id="embedConfig" class="form-section-content collapsed">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="embedTitle" class="form-input" placeholder="Choose Your Roles">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="embedDescription" class="form-textarea" rows="4" placeholder="Select the reactions below to get your roles!"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Color</label>
+                        <input type="color" id="embedColor" class="form-color-input" value="#5865F2">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Thumbnail URL (Optional)</label>
+                        <input type="url" id="thumbnailUrl" class="form-input" placeholder="https://...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Image URL (Optional)</label>
+                        <input type="url" id="imageUrl" class="form-input" placeholder="https://...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Footer Text (Optional)</label>
+                        <input type="text" id="footerText" class="form-input" placeholder="React to assign roles">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interaction Type -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="ReactionRolesFeature.toggleSection('interactionType')">
+                    <h3>Interaction Type <span style="color: #FF4444;">*</span></h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="interactionType" class="form-section-content">
+                    <div class="form-group">
+                        <div class="interaction-type-selector">
+                            <div class="interaction-option" id="emojiOption">
+                                <input type="radio" name="interactionType" value="emoji" id="typeEmoji" checked>
+                                <label for="typeEmoji">
+                                    <span class="interaction-icon">😀</span>
+                                    <span class="interaction-label">Emoji Reactions</span>
+                                    <span class="interaction-desc">Users react with emojis</span>
+                                </label>
+                            </div>
+                            <div class="interaction-option" id="buttonOption">
+                                <input type="radio" name="interactionType" value="button" id="typeButton">
+                                <label for="typeButton">
+                                    <span class="interaction-icon">🔘</span>
+                                    <span class="interaction-label">Buttons</span>
+                                    <span class="interaction-desc">Users click buttons</span>
+                                </label>
+                            </div>
+                            <div class="interaction-option" id="dropdownOption">
+                                <input type="radio" name="interactionType" value="dropdown" id="typeDropdown">
+                                <label for="typeDropdown">
+                                    <span class="interaction-icon">📋</span>
+                                    <span class="interaction-label">Dropdown Menu</span>
+                                    <span class="interaction-desc">Users select from menu</span>
+                                </label>
+                            </div>
+                        </div>
+                        <p id="interactionTypeWarning" style="display: none; color: #FF9900; font-size: 12px; margin-top: 12px;">
+                            ⚠️ Interaction type cannot be changed after sending to Discord
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Mappings -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="ReactionRolesFeature.toggleSection('roleMappings')">
+                    <h3 id="roleMappingsTitle">Role Mappings <span style="color: #FF4444;">*</span></h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="roleMappings" class="form-section-content">
+                    <!-- Emoji Mappings -->
+                    <div id="emojiMappingsContainer">
+                        <div id="emojiMappingsList" class="mappings-list">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <button class="add-mapping-btn" onclick="ReactionRolesFeature.addEmojiMapping()">
+                            + Add Emoji Mapping (Max 20)
+                        </button>
+                    </div>
+
+                    <!-- Button Configs -->
+                    <div id="buttonConfigsContainer" style="display: none;">
+                        <div id="buttonConfigsList" class="mappings-list">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <button class="add-mapping-btn" onclick="ReactionRolesFeature.addButtonConfig()">
+                            + Add Button (Max 25)
+                        </button>
+                    </div>
+
+                    <!-- Dropdown Config -->
+                    <div id="dropdownConfigContainer" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Placeholder Text</label>
+                            <input type="text" id="dropdownPlaceholder" class="form-input" placeholder="Select roles...">
+                        </div>
+                        <div id="dropdownOptionsList" class="mappings-list">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <button class="add-mapping-btn" onclick="ReactionRolesFeature.addDropdownOption()">
+                            + Add Option (Max 25)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="ReactionRolesFeature.toggleSection('settings')">
+                    <h3>Settings</h3>
+                    <span class="form-section-toggle">▼</span>
+                </div>
+                <div id="settings" class="form-section-content">
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="allowRemoval" checked>
+                            <span>Allow users to remove roles</span>
+                        </label>
+                        <p style="color: #72767d; font-size: 12px; margin-top: 4px;">
+                            If enabled, users can un-react/click again to remove their roles
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="suppressRolePings">
+                            <span>Suppress role mentions (don't ping)</span>
+                        </label>
+                        <p style="color: #72767d; font-size: 12px; margin-top: 4px;">
+                            Format role mentions as plain text instead of pinging the role
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="builder-actions">
+                <button id="cancelBtn" class="action-btn cancel-btn" onclick="ReactionRolesFeature.cancel()">
+                    Cancel
+                </button>
+                <button id="saveDraftBtn" class="action-btn draft-btn" onclick="ReactionRolesFeature.saveDraft()">
+                    Save Draft
+                </button>
+                <button id="sendBtn" class="action-btn send-btn" onclick="ReactionRolesFeature.sendToDiscord()">
+                    Send to Discord
+                </button>
+                <button id="updateBtn" class="action-btn update-btn" style="display: none;" onclick="ReactionRolesFeature.updateMessage()">
+                    Update Message
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Interaction Type Selector */
+.interaction-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.interaction-option {
+    position: relative;
+}
+
+.interaction-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.interaction-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    background: #2D2D2D;
+    border: 2px solid #404040;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.interaction-option input[type="radio"]:checked + label {
+    border-color: #00D9FF;
+    background: rgba(0, 217, 255, 0.1);
+}
+
+.interaction-option label:hover {
+    border-color: #5A5A5A;
+}
+
+.interaction-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.interaction-label {
+    font-weight: 600;
+    color: #FFFFFF;
+    margin-bottom: 4px;
+}
+
+.interaction-desc {
+    font-size: 12px;
+    color: #AAAAAA;
+}
+
+/* Mappings List */
+.mappings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mapping-item {
+    background: #2D2D2D;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+}
+
+.mapping-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.mapping-number {
+    font-weight: 600;
+    color: #00D9FF;
+}
+
+.remove-mapping-btn {
+    background: #404040;
+    color: #FFFFFF;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.remove-mapping-btn:hover {
+    background: #FF4444;
+}
+
+.mapping-fields {
+    display: grid;
+    gap: 12px;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #72767d;
+    margin-top: 4px;
+}
+
+/* Color Input */
+.form-color-input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    background: #1A1A1A;
+    cursor: pointer;
+}
+
+/* Add Mapping Button */
+.add-mapping-btn {
+    width: 100%;
+    padding: 12px;
+    background: #404040;
+    color: #FFFFFF;
+    border: 1px dashed #5A5A5A;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.add-mapping-btn:hover {
+    background: #4A4A4A;
+    border-color: #00D9FF;
+    color: #00D9FF;
+}
+
+/* Builder Actions */
+.builder-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid #404040;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-btn {
+    background: #404040;
+    color: #FFFFFF;
+}
+
+.cancel-btn:hover {
+    background: #4A4A4A;
+}
+
+.draft-btn {
+    background: #5865F2;
+    color: #FFFFFF;
+}
+
+.draft-btn:hover {
+    background: #6875F3;
+}
+
+.send-btn {
+    background: #00D9FF;
+    color: #1A1A1A;
+}
+
+.send-btn:hover {
+    background: #1AE3FF;
+}
+
+.update-btn {
+    background: #57F287;
+    color: #1A1A1A;
+}
+
+.update-btn:hover {
+    background: #67F297;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .builder-layout {
+        flex-direction: column;
+    }
+
+    .builder-preview-section {
+        width: 100%;
+    }
+
+    .builder-form-section {
+        width: 100%;
+    }
+
+    .builder-actions {
+        flex-direction: column;
+    }
+
+    .action-btn {
+        width: 100%;
+    }
+}
+</style>
