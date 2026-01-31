@@ -218,7 +218,7 @@ const ReactionRolesFeature = (function() {
     function loadChannelsFromConfig() {
         const dashboardCore = getDashboardCore();
         const allChannels = dashboardCore?.state?.guildConfig?.available_channels || [];
-        state.channels = allChannels.filter(c => c.type === 0); // Text channels only
+        state.channels = allChannels.filter(c => c.type == 0); // Text channels only (loose equality for string/number)
         populateChannelDropdown();
     }
 
@@ -259,6 +259,9 @@ const ReactionRolesFeature = (function() {
         const createBtn = document.getElementById('createRRBtn');
 
         if (!grid) return;
+
+        // Ensure channels are loaded
+        loadChannelsFromConfig();
 
         // Update counter
         if (state.stats) {
@@ -618,6 +621,8 @@ const ReactionRolesFeature = (function() {
         const input = document.getElementById(state.currentEmojiTarget);
         if (input) {
             input.value = emoji;
+            // Trigger input event to update preview
+            input.dispatchEvent(new Event('input'));
             updatePreview();
         }
 
