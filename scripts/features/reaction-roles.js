@@ -1082,11 +1082,11 @@ const ReactionRolesFeature = (function() {
     // Actions - Save, Send, Update
     // ========================================================================
 
-    async function saveDraft() {
+    async function saveDraft(shouldRedirect = true) {
         const config = getConfigFromForm();
 
         if (!validateConfig(config)) {
-            return;
+            return false;
         }
 
         try {
@@ -1109,59 +1109,35 @@ const ReactionRolesFeature = (function() {
             const data = await response.json();
 
             if (data.success) {
-                showNotification(state.editingId ? 'Draft updated!' : 'Draft saved!', 'success');
-                navigateTo('reaction-roles');
+                // Update state if we just created a new one
+                if (!state.editingId && data.data && data.data.id) {
+                    state.editingId = data.data.id;
+                }
+
+                if (shouldRedirect) {
+                    showNotification(state.editingId ? 'Draft updated!' : 'Draft saved!', 'success');
+                    navigateTo('reaction-roles');
+                }
+                return data;
             } else {
                 showNotification(data.message || 'Failed to save draft', 'error');
+                return false;
             }
         } catch (error) {
             console.error('[ReactionRoles] Save error:', error);
             showNotification('Failed to save draft', 'error');
+            return false;
         }
     }
 
     async function sendToDiscord() {
-        const config = getConfigFromForm();
-
-        if (!validateConfig(config)) {
-            return;
+        // First, save/create the draft without navigating away
+        const savedData = await saveDraft(false);
+        if (!savedData || !state.editingId) {
+            return; // Save failed or validation failed
         }
 
-        // If editing an existing draft, save it first
-        if (state.editingId) {
-            await saveDraft();
-        } else {
-            // Create draft first
-            try {
-                const dashboardCore = getDashboardCore();
-                const response = await fetch(
-                    `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/reaction-roles`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('discord_token')}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(config)
-                    }
-                );
-
-                const data = await response.json();
-
-                if (data.success) {
-                    state.editingId = data.data.id;
-                } else {
-                    showNotification(data.message || 'Failed to create draft', 'error');
-                    return;
-                }
-            } catch (error) {
-                console.error('[ReactionRoles] Create error:', error);
-                showNotification('Failed to create draft', 'error');
-                return;
-            }
-        }
-
-        // Now send to Discord
+        // Now send to Discord using the valid state
         try {
             const dashboardCore = getDashboardCore();
             const suppressPings = getValue('suppressRolePings') === true || getValue('suppressRolePings') === 'on';
