@@ -1316,7 +1316,4 @@ const ReactionRolesFeature = (function() {
     };
 })();
 
-// Register with dashboard
-if (window.DashboardCore) {
-    window.DashboardCore.registerFeature('reaction-roles', ReactionRolesFeature);
-}
+window.ReactionRolesFeature = ReactionRolesFeature;
