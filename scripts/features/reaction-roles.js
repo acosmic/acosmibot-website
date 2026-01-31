@@ -16,7 +16,17 @@ const ReactionRolesFeature = (function() {
         roleMappings: [],
         embedConfig: {},
         currentView: 'list',
-        previewDebounce: null
+        previewDebounce: null,
+        currentEmojiTarget: null, // For emoji picker
+        currentTab: 'standard'
+    };
+
+    // Standard emoji categories for the picker (from slots.js)
+    const standardEmojis = {
+        fruits: ['🍒', '🍋', '🍊', '🍇', '🍌', '🍎', '🍐', '🍑', '🍓', '🫐', '🥝', '🍈', '🍉', '🥭', '🍍'],
+        symbols: ['⭐', '🔔', '❤️', '💎', '🎰', '💰', '💵', '💴', '💶', '💷', '🪙', '💸', '🏆', '👑', '🎯'],
+        lucky: ['🍀', '🌟', '✨', '💫', '🎲', '🎁', '🎀', '🏅', '🥇', '🎊', '🎉', '🔮', '🌈', '☘️', '🐞'],
+        misc: ['7️⃣', '🃏', '🎴', '🀄', '🎱', '🔥', '💥', '⚡', '🌙', '☀️', '🌸', '🦄', '🐉', '🎃', '👻']
     };
 
     // ========================================================================
@@ -67,6 +77,20 @@ const ReactionRolesFeature = (function() {
         } catch (error) {
             console.error('[ReactionRoles] Init error:', error);
             showError('Failed to initialize reaction roles feature');
+        }
+
+        setupGlobalEventListeners();
+    }
+
+    function setupGlobalEventListeners() {
+        // Close modal on backdrop click
+        const modal = document.getElementById('emojiPickerModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeEmojiPicker();
+                }
+            });
         }
     }
 
@@ -488,6 +512,134 @@ const ReactionRolesFeature = (function() {
     }
 
     // ========================================================================
+    // Emoji Picker Logic (from slots.js)
+    // ========================================================================
+
+    function openEmojiPicker(targetId) {
+        state.currentEmojiTarget = targetId;
+        const modal = document.getElementById('emojiPickerModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            switchEmojiTab('standard');
+            const searchInput = document.getElementById('emojiSearchInput');
+            if (searchInput) searchInput.value = '';
+        }
+    }
+
+    function closeEmojiPicker() {
+        const modal = document.getElementById('emojiPickerModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        state.currentEmojiTarget = null;
+    }
+
+    function switchEmojiTab(tab) {
+        state.currentTab = tab;
+
+        // Update tab buttons
+        document.querySelectorAll('.emoji-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+
+        // Render emojis
+        renderEmojiPickerGrid();
+    }
+
+    function filterEmojis(query) {
+        renderEmojiPickerGrid(query.toLowerCase());
+    }
+
+    function renderEmojiPickerGrid(searchQuery = '') {
+        const grid = document.getElementById('emojiPickerGrid');
+        if (!grid) return;
+
+        let emojis = [];
+
+        if (state.currentTab === 'standard') {
+            // Flatten standard emojis
+            Object.values(standardEmojis).forEach(category => {
+                emojis.push(...category);
+            });
+
+            grid.innerHTML = emojis.map(emoji => {
+                return `
+                    <button class="emoji-picker-item" onclick="ReactionRolesFeature.selectEmoji('${emoji}')" title="${emoji}">
+                        ${emoji}
+                    </button>
+                `;
+            }).join('');
+        } else {
+            // Custom server emojis
+            const dashboardCore = getDashboardCore();
+            const availableEmojis = dashboardCore?.state?.guildConfig?.available_emojis || [];
+
+            if (availableEmojis.length === 0) {
+                grid.innerHTML = '<div class="emoji-picker-empty">No custom emojis available in this server</div>';
+                return;
+            }
+
+            // Filter by search
+            let filteredEmojis = availableEmojis;
+            if (searchQuery) {
+                filteredEmojis = availableEmojis.filter(e =>
+                    e.name.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            if (filteredEmojis.length === 0) {
+                grid.innerHTML = '<div class="emoji-picker-empty">No emojis match your search</div>';
+                return;
+            }
+
+            grid.innerHTML = filteredEmojis.map(emoji => {
+                const emojiValue = buildCustomEmojiValue(emoji);
+                const ext = emoji.animated ? 'gif' : 'png';
+                const imgUrl = `https://cdn.discordapp.com/emojis/${emoji.id}.${ext}`;
+
+                return `
+                    <button class="emoji-picker-item" onclick="ReactionRolesFeature.selectEmoji('${emojiValue.replace(/'/g, "\\'")}')" title="${emoji.name}">
+                        <img src="${imgUrl}" alt="${emoji.name}">
+                    </button>
+                `;
+            }).join('');
+        }
+    }
+
+    function buildCustomEmojiValue(emoji) {
+        // Build Discord emoji format: <:name:id> or <a:name:id>
+        const prefix = emoji.animated ? 'a' : '';
+        return `<${prefix}:${emoji.name}:${emoji.id}>`;
+    }
+
+    function selectEmoji(emoji) {
+        if (!state.currentEmojiTarget) return;
+
+        const input = document.getElementById(state.currentEmojiTarget);
+        if (input) {
+            input.value = emoji;
+            updatePreview();
+        }
+
+        closeEmojiPicker();
+    }
+
+    function getEmojiDisplay(emoji) {
+        if (!emoji) return '';
+        // Check if it's a custom Discord emoji format <:name:id> or <a:name:id>
+        const match = emoji.match(/<(a?):([^:]+):(\d+)>/);
+        if (match) {
+            const animated = match[1] === 'a';
+            const name = match[2];
+            const id = match[3];
+            const ext = animated ? 'gif' : 'png';
+            return `<img src="https://cdn.discordapp.com/emojis/${id}.${ext}" alt="${name}" title="${name}" class="discord-emoji-img">`;
+        }
+        // Standard emoji
+        return emoji;
+    }
+
+    // ========================================================================
     // Role Mappings - Emoji
     // ========================================================================
 
@@ -518,7 +670,10 @@ const ReactionRolesFeature = (function() {
                 <div class="mapping-fields">
                     <div class="form-group">
                         <label class="form-label">Emoji</label>
-                        <input type="text" id="emoji_${index}" class="form-input" placeholder="😀 or :emoji:" value="${escapeHtml(emoji)}" onchange="ReactionRolesFeature.updatePreview()">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="emoji_${index}" class="form-input" placeholder="😀 or :emoji:" value="${escapeHtml(emoji)}" onchange="ReactionRolesFeature.updatePreview()">
+                            <button class="remove-mapping-btn" onclick="ReactionRolesFeature.openEmojiPicker('emoji_${index}')" style="background: #5865F2;">Select</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Roles</label>
@@ -585,7 +740,10 @@ const ReactionRolesFeature = (function() {
                     </div>
                     <div class="form-group">
                         <label class="form-label">Emoji (Optional)</label>
-                        <input type="text" id="buttonEmoji_${index}" class="form-input" placeholder="😀" value="${escapeHtml(config.emoji || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="buttonEmoji_${index}" class="form-input" placeholder="😀" value="${escapeHtml(config.emoji || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                            <button class="remove-mapping-btn" onclick="ReactionRolesFeature.openEmojiPicker('buttonEmoji_${index}')" style="background: #5865F2;">Select</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Roles</label>
@@ -643,7 +801,10 @@ const ReactionRolesFeature = (function() {
                     </div>
                     <div class="form-group">
                         <label class="form-label">Emoji (Optional)</label>
-                        <input type="text" id="dropdownEmoji_${index}" class="form-input" placeholder="😀" value="${escapeHtml(config.emoji || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="dropdownEmoji_${index}" class="form-input" placeholder="😀" value="${escapeHtml(config.emoji || '')}" onchange="ReactionRolesFeature.updatePreview()">
+                            <button class="remove-mapping-btn" onclick="ReactionRolesFeature.openEmojiPicker('dropdownEmoji_${index}')" style="background: #5865F2;">Select</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Roles</label>
@@ -760,7 +921,7 @@ const ReactionRolesFeature = (function() {
         Object.keys(mappings).forEach(emoji => {
             html += `
                 <div class="discord-reaction">
-                    <span class="discord-reaction-emoji">${emoji}</span>
+                    <span class="discord-reaction-emoji">${getEmojiDisplay(emoji)}</span>
                     <span class="discord-reaction-count">0</span>
                 </div>
             `;
@@ -784,7 +945,7 @@ const ReactionRolesFeature = (function() {
             const styleClass = styleClasses[btn.style] || 'discord-button-secondary';
             html += `
                 <button class="discord-button ${styleClass}">
-                    ${btn.emoji ? `<span>${btn.emoji}</span>` : ''}
+                    ${btn.emoji ? `<span>${getEmojiDisplay(btn.emoji)}</span>` : ''}
                     ${escapeHtml(btn.label || 'Button')}
                 </button>
             `;
@@ -1248,7 +1409,9 @@ const ReactionRolesFeature = (function() {
             roleMappings: [],
             embedConfig: {},
             currentView: 'list',
-            previewDebounce: null
+            previewDebounce: null,
+            currentEmojiTarget: null,
+            currentTab: 'standard'
         };
     }
 
@@ -1356,7 +1519,12 @@ const ReactionRolesFeature = (function() {
         removeButtonConfig,
         addDropdownOption,
         removeDropdownOption,
-        updatePreview
+        updatePreview,
+        openEmojiPicker,
+        closeEmojiPicker,
+        switchEmojiTab,
+        filterEmojis,
+        selectEmoji
     };
 })();
 
