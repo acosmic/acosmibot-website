@@ -618,7 +618,6 @@ const ActivityMonitorFeature = (function() {
     };
 })();
 
-// Register feature with dashboard
-if (window.DashboardCore) {
-    window.DashboardCore.registerFeature('activity-monitor', ActivityMonitorFeature);
-}
+// Export feature module for SPA
+window.ActivityMonitorFeature = ActivityMonitorFeature;
+console.log('[ActivityMonitor] Module loaded, ActivityMonitorFeature:', typeof ActivityMonitorFeature);
