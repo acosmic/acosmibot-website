@@ -569,7 +569,7 @@ const ActivityMonitorFeature = (function() {
     }
 
     function getAuthToken() {
-        return localStorage.getItem('token');
+        return localStorage.getItem('discord_token');
     }
 
     function loadCSS(href) {
