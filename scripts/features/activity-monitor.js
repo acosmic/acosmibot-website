@@ -94,9 +94,10 @@ const ActivityMonitorFeature = (function() {
     async function loadConfig() {
         try {
             showLoading();
+            const dashboardCore = getDashboardCore();
             const token = getAuthToken();
             const response = await fetch(
-                `${API_BASE_URL}/api/guilds/${state.guildId}/activity-monitor/config`,
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/activity-monitor/config`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -129,9 +130,10 @@ const ActivityMonitorFeature = (function() {
     async function saveConfig() {
         try {
             showLoading('Saving configuration...');
+            const dashboardCore = getDashboardCore();
             const token = getAuthToken();
             const response = await fetch(
-                `${API_BASE_URL}/api/guilds/${state.guildId}/activity-monitor/config`,
+                `${dashboardCore.API_BASE_URL}/api/guilds/${state.guildId}/activity-monitor/config`,
                 {
                     method: 'POST',
                     headers: {
