@@ -152,6 +152,7 @@ class DocsSearch {
 
       // Utilities
       { section: 'reaction-roles', title: 'Reaction Roles', keywords: 'reaction role self assign button emoji', category: 'Utilities' },
+      { section: 'activity-monitor', title: 'Activity Monitor', keywords: 'activity monitor streaming playing gaming live role automatic', category: 'Utilities' },
       { section: 'custom-commands', title: 'Custom Commands', keywords: 'custom command trigger response action', category: 'Utilities' },
       { section: 'embeds', title: 'Better Embeds', keywords: 'embed instagram better link preview', category: 'Utilities' },
       { section: 'reminders', title: 'Reminders', keywords: 'reminder remind me timer schedule', category: 'Utilities' },

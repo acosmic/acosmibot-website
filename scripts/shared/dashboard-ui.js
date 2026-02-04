@@ -54,7 +54,8 @@ function formatFeatureName(feature) {
     'lottery': 'Lottery',
     'embeds': 'Embeds',
     'reaction-roles': 'Reaction Roles',
-    'custom-commands': 'Custom Commands'
+    'custom-commands': 'Custom Commands',
+    'activity-monitor': 'Activity Monitor'
   };
 
   return featureNames[feature] || feature.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());

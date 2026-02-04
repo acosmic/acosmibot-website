@@ -585,6 +585,11 @@ class DashboardCore {
           <span class="nav-text">Reaction Roles</span>
           <span class="nav-indicator"></span>
         </div>
+        <div class="nav-item" data-feature="activity-monitor">
+          <span class="nav-icon nav-icon-activitymonitor"></span>
+          <span class="nav-text">Activity Monitor</span>
+          <span class="nav-indicator"></span>
+        </div>
         <div class="nav-item" data-feature="custom-commands">
           <span class="nav-icon nav-icon-customcommands"></span>
           <span class="nav-text">Custom Commands</span>
@@ -696,6 +701,7 @@ class DashboardCore {
       'lottery': 'lottery.enabled',
       'embeds': 'embeds.enabled',
       'reaction-roles': 'reaction_roles.enabled',
+      'activity-monitor': 'activity_monitor.enabled',
       'moderation': 'moderation.enabled',
       'ai': 'ai.enabled'
       // Note: custom-commands handled specially in isFeatureEnabled()

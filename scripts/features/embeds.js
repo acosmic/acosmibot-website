@@ -417,7 +417,8 @@ const EmbedsFeature = (function() {
         const fieldsList = document.getElementById('fieldsList');
         if (!fieldsList) return;
 
-        const idx = Date.now();
+        // Use random ID to prevent collisions when fields are added in quick succession
+        const idx = Date.now() + Math.floor(Math.random() * 10000);
         const field = document.createElement('div');
         field.className = 'field-item';
         field.dataset.index = idx;
@@ -467,7 +468,8 @@ const EmbedsFeature = (function() {
             return;
         }
 
-        const idx = Date.now();
+        // Use random ID to prevent collisions when buttons are added in quick succession
+        const idx = Date.now() + Math.floor(Math.random() * 10000);
         const button = document.createElement('div');
         button.className = 'button-item';
         button.dataset.index = idx;

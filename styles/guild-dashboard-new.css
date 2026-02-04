@@ -305,6 +305,15 @@ body {
     background-image: url('/images/acosmibot_reactionroles-active.svg');
 }
 
+/* Activity Monitor Icon */
+.nav-icon-activitymonitor {
+    background-image: url('/images/acosmibot_activitymonitor-inactive.svg');
+}
+
+.nav-item.active .nav-icon-activitymonitor {
+    background-image: url('/images/acosmibot_activitymonitor-active.svg');
+}
+
 /* Jail Icon */
 .nav-icon-jail {
     background-image: url('/images/acosmibot_jail-inactive.svg');
