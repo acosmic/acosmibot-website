@@ -522,12 +522,4 @@
     }
 }
 
-/* Dark mode color variables (default) */
-:root {
-    --bg-primary: #36393f;
-    --bg-secondary: #2f3136;
-    --bg-tertiary: #202225;
-    --text-primary: #ffffff;
-    --text-secondary: #b9bbbe;
-    --border-color: #202225;
-}
+/* Use global color variables from base.css */

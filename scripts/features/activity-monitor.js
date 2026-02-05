@@ -177,13 +177,6 @@ const ActivityMonitorFeature = (function() {
 
         const html = `
             <div class="activity-monitor-view">
-                <div class="feature-header">
-                    <div class="header-content">
-                        <h1>Activity Monitor</h1>
-                        <p>Automatically assign roles based on Discord activities (streaming, playing games, listening to music, etc.)</p>
-                    </div>
-                </div>
-
                 <div class="master-control-section">
                     <div class="control-row">
                         <div class="control-label">
