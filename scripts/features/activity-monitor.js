@@ -228,12 +228,6 @@ const ActivityMonitorFeature = (function() {
                 ${state.config.rules.length === 0 ? renderEmptyRules() : renderRulesList()}
             </div>
 
-            <div class="action-buttons">
-                <button class="btn btn-success btn-lg" id="saveConfigBtn">
-                    <span>💾</span> Save Configuration
-                </button>
-            </div>
-
             ${renderRuleEditorModal()}
         `;
     }
@@ -388,9 +382,11 @@ const ActivityMonitorFeature = (function() {
         // Master enable toggle
         const masterEnable = document.getElementById('masterEnable');
         if (masterEnable) {
-            masterEnable.addEventListener('change', (e) => {
+            masterEnable.addEventListener('change', async (e) => {
                 state.config.enabled = e.target.checked;
-                renderUI();
+
+                // Auto-save configuration
+                await saveConfig();
             });
         }
 
@@ -398,12 +394,6 @@ const ActivityMonitorFeature = (function() {
         const addRuleBtn = document.getElementById('addRuleBtn');
         if (addRuleBtn) {
             addRuleBtn.addEventListener('click', () => openRuleEditor());
-        }
-
-        // Save config button
-        const saveConfigBtn = document.getElementById('saveConfigBtn');
-        if (saveConfigBtn) {
-            saveConfigBtn.addEventListener('click', saveConfig);
         }
 
         // Activity type change
@@ -474,7 +464,7 @@ const ActivityMonitorFeature = (function() {
         state.editingRuleId = null;
     }
 
-    function saveRule() {
+    async function saveRule() {
         const form = document.getElementById('ruleForm');
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -523,27 +513,30 @@ const ActivityMonitorFeature = (function() {
         }
 
         closeRuleEditor();
-        renderUI();
-        showSuccess('Rule saved! Click "Save Configuration" to apply changes.');
+
+        // Auto-save configuration
+        await saveConfig();
     }
 
-    function toggleRule(ruleId) {
+    async function toggleRule(ruleId) {
         const rule = state.config.rules.find(r => r.id === ruleId);
         if (rule) {
             rule.enabled = !rule.enabled;
-            renderUI();
-            showSuccess('Rule toggled! Click "Save Configuration" to apply changes.');
+
+            // Auto-save configuration
+            await saveConfig();
         }
     }
 
-    function deleteRule(ruleId) {
+    async function deleteRule(ruleId) {
         if (!confirm('Are you sure you want to delete this rule?')) {
             return;
         }
 
         state.config.rules = state.config.rules.filter(r => r.id !== ruleId);
-        renderUI();
-        showSuccess('Rule deleted! Click "Save Configuration" to apply changes.');
+
+        // Auto-save configuration
+        await saveConfig();
     }
 
     // ========================================================================
