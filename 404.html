@@ -13,11 +13,11 @@
 
         console.log('404 handler - path:', path);
 
-        // Match /server/{guild_id} or /server/{guild_id}/{feature}
-        const serverPathMatch = path.match(/^\/server\/(\d+)(\/([a-z-]+))?$/);
+        // Match /server/{guild_id} with any nested paths
+        const serverPathMatch = path.match(/^\/server\/\d+(\/.+)?$/);
 
-        // Match /docs/{section} or /docs/{section}/{subsection}
-        const docsPathMatch = path.match(/^\/docs\/([a-z-]+)(\/([a-z-]+))?$/);
+        // Match /docs with any nested paths
+        const docsPathMatch = path.match(/^\/docs\/.+$/);
 
         if (serverPathMatch && path !== '/server/index.html') {
           // Store the original path in sessionStorage
