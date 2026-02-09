@@ -382,7 +382,7 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// Bot invite handler
+// Bot invite handler - Coming Soon version
 async function handleBotInvite() {
     try {
         const response = await fetchWithTimeout(`${API_BASE_URL}/bot/invite`, {}, 5000);
@@ -393,31 +393,63 @@ async function handleBotInvite() {
 
         const data = await response.json();
 
-        if (data.success && data.invite_url) {
-            // Open invite in new window
-            const inviteWindow = window.open(
-                data.invite_url,
-                'discord-bot-invite',
-                'width=500,height=800,scrollbars=yes'
-            );
-
-            // Show success message
-            showNotification('✅ Bot invite opened! After adding the bot, refresh this page.', 'success');
-
-            // Optionally: auto-refresh after delay
-            setTimeout(() => {
-                const shouldRefresh = confirm('Have you finished adding the bot? Click OK to refresh and see your server.');
-                if (shouldRefresh) {
-                    location.reload();
-                }
-            }, 10000);
-        } else {
+        if (data.status === 'coming_soon') {
+            showComingSoonModal(data);
+        }
+        // TODO: Uncomment when ready to allow bot invites
+        // else if (data.success && data.invite_url) {
+        //     // Open invite in new window
+        //     const inviteWindow = window.open(
+        //         data.invite_url,
+        //         'discord-bot-invite',
+        //         'width=500,height=800,scrollbars=yes'
+        //     );
+        //
+        //     // Show success message
+        //     showNotification('✅ Bot invite opened! After adding the bot, refresh this page.', 'success');
+        //
+        //     // Optionally: auto-refresh after delay
+        //     setTimeout(() => {
+        //         const shouldRefresh = confirm('Have you finished adding the bot? Click OK to refresh and see your server.');
+        //         if (shouldRefresh) {
+        //             location.reload();
+        //         }
+        //     }, 10000);
+        // }
+        else {
             throw new Error(data.message || 'Invite URL not available');
         }
     } catch (error) {
         console.error('Bot invite error:', error);
         showNotification('❌ Failed to open bot invite. Please try again.', 'error');
     }
+}
+
+// Show coming soon modal
+function showComingSoonModal(data) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.8); display: flex; align-items: center;
+        justify-content: center; z-index: 10000;
+    `;
+
+    modal.innerHTML = `
+        <div style="background: linear-gradient(135deg, #5865F2, #7289DA); padding: 30px; border-radius: 15px; max-width: 400px; text-align: center; color: white; border: 1px solid rgba(255,255,255,0.2);">
+            <h2 style="margin-bottom: 15px;">🚀 Coming Soon!</h2>
+            <p style="margin-bottom: 15px;">${data.eta || 'Bot invites will be available soon!'}</p>
+            <p style="margin-bottom: 20px;">${data.contact || 'Stay tuned!'}</p>
+            <button onclick="this.closest('div').parentElement.remove()"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                Got it!
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
 }
 
 // Mobile menu setup
@@ -447,3 +479,4 @@ function setupMobileMenu() {
 
 // Make functions globally accessible for onclick handlers
 window.handleBotInvite = handleBotInvite;
+window.showComingSoonModal = showComingSoonModal;
