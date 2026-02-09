@@ -45,9 +45,11 @@ function renderGuildSelectorAvatar(user) {
     avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
     avatarElement.textContent = '';
   } else {
-    // Fallback: first letter of username
-    avatarElement.textContent = (user.username || user.global_name || 'U').charAt(0).toUpperCase();
-    avatarElement.style.backgroundImage = 'none';
+    // Fallback: Discord default avatar
+    const defaultAvatarIndex = (parseInt(user.id) >> 22) % 6;
+    const defaultAvatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
+    avatarElement.style.backgroundImage = `url('${defaultAvatarUrl}')`;
+    avatarElement.textContent = '';
   }
 
   avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Dashboard`;

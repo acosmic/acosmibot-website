@@ -137,15 +137,11 @@ class DashboardCore {
       avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
       avatarElement.textContent = '';
     } else {
-      // Fallback: first letter of username
-      avatarElement.textContent = (user.username || user.global_name || 'U').charAt(0).toUpperCase();
-      avatarElement.style.display = 'flex';
-      avatarElement.style.alignItems = 'center';
-      avatarElement.style.justifyContent = 'center';
-      avatarElement.style.fontSize = '20px';
-      avatarElement.style.fontWeight = 'bold';
-      avatarElement.style.color = 'white';
-      avatarElement.style.backgroundImage = 'none';
+      // Fallback: Discord default avatar
+      const defaultAvatarIndex = (parseInt(user.id) >> 22) % 6;
+      const defaultAvatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
+      avatarElement.style.backgroundImage = `url('${defaultAvatarUrl}')`;
+      avatarElement.textContent = '';
     }
 
     avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Dashboard`;
