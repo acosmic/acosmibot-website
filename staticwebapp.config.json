@@ -10,10 +10,12 @@
     ]
   },
   "routes": [
-    { "route": "/server",         "rewrite": "/server/index.html" },
-    { "route": "/server/*",       "rewrite": "/server/index.html" },
-    { "route": "/docs",           "rewrite": "/docs/index.html" },
-    { "route": "/docs/*",         "rewrite": "/docs/index.html" },
+    { "route": "/server",              "rewrite": "/server/index.html" },
+    { "route": "/server/views/*.html" },
+    { "route": "/server/*",            "rewrite": "/server/index.html" },
+    { "route": "/docs",                "rewrite": "/docs/index.html" },
+    { "route": "/docs/views/*.html" },
+    { "route": "/docs/*",              "rewrite": "/docs/index.html" },
     { "route": "/dashboard",           "rewrite": "/dashboard/index.html" },
     { "route": "/dashboard/dashboard.css" },
     { "route": "/dashboard/dashboard.js" },
