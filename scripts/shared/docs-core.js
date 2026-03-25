@@ -6,7 +6,7 @@ console.log('docs-core.js loading...');
 
 class DocsCore {
   constructor() {
-    this.API_BASE_URL = 'https://api.acosmibot.com';
+    this.API_BASE_URL = AppConfig.apiBaseUrl;
     this.state = {
       isAuthenticated: false,
       userGuilds: [],

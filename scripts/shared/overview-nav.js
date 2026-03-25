@@ -2,7 +2,7 @@
 // Shared navigation functionality for overview-style pages
 // Used by: /overview, /leaderboards
 
-const API_BASE_URL = 'https://api.acosmibot.com';
+const API_BASE_URL = AppConfig.apiBaseUrl;
 
 /**
  * Initialize the overview layout with guild selector and navigation sidebar

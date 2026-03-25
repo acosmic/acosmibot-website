@@ -1,7 +1,7 @@
 // Shared Navigation Component
 // This file provides consistent navigation across all pages
 
-const API_BASE_URL = 'https://api.acosmibot.com';
+const API_BASE_URL = AppConfig.apiBaseUrl;
 let currentUser = null;
 
 // Initialize navigation on page load

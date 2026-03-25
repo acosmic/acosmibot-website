@@ -6,7 +6,7 @@ console.log('dashboard-core.js loading...');
 
 class DashboardCore {
   constructor() {
-    this.API_BASE_URL = 'https://api.acosmibot.com';
+    this.API_BASE_URL = AppConfig.apiBaseUrl;
     this.state = {
       userGuilds: [],
       currentGuildId: null,

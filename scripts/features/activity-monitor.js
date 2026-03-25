@@ -73,8 +73,7 @@ const ActivityMonitorFeature = (function() {
 
         try {
             const response = await fetch('/server/views/activity-monitor-view.html');
-            const html = await response.text();
-            viewContainer.innerHTML = html;
+            viewContainer.innerHTML = await response.text();
         } catch (error) {
             console.error('[ActivityMonitor] Failed to load view:', error);
             viewContainer.innerHTML = '<div class="error-message">Failed to load activity monitor view</div>';
@@ -107,7 +106,10 @@ const ActivityMonitorFeature = (function() {
             );
 
             if (!response.ok) {
-                throw new Error('Failed to load configuration');
+                console.error('[ActivityMonitor] Load config error: Failed to load configuration');
+                showError('Failed to load activity monitor configuration');
+                state.config = { enabled: false, check_interval: 60, rules: [] };
+                return;
             }
 
             const result = await response.json();
@@ -116,12 +118,7 @@ const ActivityMonitorFeature = (function() {
         } catch (error) {
             console.error('[ActivityMonitor] Load config error:', error);
             showError('Failed to load activity monitor configuration');
-            // Use default config
-            state.config = {
-                enabled: false,
-                check_interval: 60,
-                rules: []
-            };
+            state.config = { enabled: false, check_interval: 60, rules: [] };
         } finally {
             hideLoading();
         }
@@ -150,7 +147,9 @@ const ActivityMonitorFeature = (function() {
                 const errorMsg = result.errors ?
                     result.errors.map(e => typeof e === 'string' ? e : e.message).join(', ') :
                     result.message || 'Failed to save configuration';
-                throw new Error(errorMsg);
+                console.error('[ActivityMonitor] Save config error:', errorMsg);
+                showError(errorMsg);
+                return;
             }
 
             showSuccess('Configuration saved successfully!');
@@ -175,7 +174,7 @@ const ActivityMonitorFeature = (function() {
             return;
         }
 
-        const html = `
+        container.innerHTML = `
             <div class="activity-monitor-view">
                 <div class="master-control-section">
                     <div class="control-row">
@@ -193,8 +192,6 @@ const ActivityMonitorFeature = (function() {
                 ${state.config.enabled ? renderRulesSection() : renderDisabledMessage()}
             </div>
         `;
-
-        container.innerHTML = html;
         attachEventListeners();
     }
 
@@ -246,7 +243,7 @@ const ActivityMonitorFeature = (function() {
         `;
     }
 
-    function renderRuleCard(rule, index) {
+    function renderRuleCard(rule) {
         const activityType = ACTIVITY_TYPES.find(t => t.value === rule.activity_type);
         const triggerRole = state.roles.find(r => r.id === rule.trigger_role_id);
         const assignedRole = state.roles.find(r => r.id === rule.assigned_role_id);
@@ -607,5 +604,5 @@ const ActivityMonitorFeature = (function() {
 })();
 
 // Export feature module for SPA
-window.ActivityMonitorFeature = ActivityMonitorFeature;
+window['ActivityMonitorFeature'] = ActivityMonitorFeature;
 console.log('[ActivityMonitor] Module loaded, ActivityMonitorFeature:', typeof ActivityMonitorFeature);
