@@ -814,6 +814,48 @@ class DashboardCore {
     }, 100);
   }
 
+  // ===== MOBILE SIDEBAR TOGGLE =====
+  setupMobileSidebar() {
+    const toggle = document.getElementById('mobileSidebarToggle');
+    if (!toggle) return;
+
+    // Inject backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'sidebar-backdrop';
+    backdrop.id = 'sidebarBackdrop';
+    document.body.appendChild(backdrop);
+
+    const openSidebars = () => {
+      document.querySelector('.guild-selector-sidebar')?.classList.add('open');
+      document.querySelector('.navigation-sidebar')?.classList.add('open');
+      backdrop.classList.add('open');
+      toggle.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeSidebars = () => {
+      document.querySelector('.guild-selector-sidebar')?.classList.remove('open');
+      document.querySelector('.navigation-sidebar')?.classList.remove('open');
+      backdrop.classList.remove('open');
+      toggle.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    toggle.addEventListener('click', () => {
+      const isOpen = backdrop.classList.contains('open');
+      isOpen ? closeSidebars() : openSidebars();
+    });
+
+    backdrop.addEventListener('click', closeSidebars);
+
+    // Close sidebars when a nav item is clicked on mobile
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && e.target.closest('.nav-item')) {
+        closeSidebars();
+      }
+    });
+  }
+
   // ===== EVENT LISTENERS =====
   setupEventListeners() {
     // Warn before page unload with unsaved changes
@@ -823,6 +865,9 @@ class DashboardCore {
         e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
       }
     });
+
+    // Setup mobile sidebar toggle
+    this.setupMobileSidebar();
   }
 
   // ===== STATE MANAGEMENT HELPERS =====

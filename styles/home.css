@@ -803,6 +803,11 @@ body {
         display: none;
     }
 
+    .hero-content {
+        text-align: center;
+        margin: 0 auto;
+    }
+
     .hero h1 {
         font-size: 2.5rem;
     }
