@@ -731,20 +731,18 @@ body.docs-page {
 }
 
 @media (max-width: 768px) {
-  .guild-selector-sidebar {
-    display: none;
-  }
-
-  .navigation-sidebar {
+  /* Fix: main content was pushed off-screen on mobile */
+  .dashboard-container.docs-container .main-content {
+    margin-left: 0;
+    padding: 20px;
     width: 100%;
-    position: fixed;
-    left: -100%;
-    transition: left 0.3s ease;
-    z-index: 100;
   }
 
-  .navigation-sidebar.open {
-    left: 0;
+  /* Use transform-based slide (consistent with guild-dashboard-new.css) */
+  .navigation-sidebar {
+    left: 0 !important;
+    width: 280px !important;
+    /* transition and transform are already set by guild-dashboard-new.css */
   }
 
   .docs-page-container {

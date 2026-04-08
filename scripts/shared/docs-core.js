@@ -38,7 +38,54 @@ class DocsCore {
     // Setup navigation
     this.setupNavigation(sectionName);
 
+    // Setup mobile sidebar toggle
+    this.setupMobileSidebar();
+
     return this.state;
+  }
+
+  // ===== MOBILE SIDEBAR TOGGLE =====
+  setupMobileSidebar() {
+    const toggle = document.getElementById('mobileSidebarToggle');
+    if (!toggle) return;
+
+    // Inject backdrop if not already present
+    if (!document.getElementById('sidebarBackdrop')) {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'sidebar-backdrop';
+      backdrop.id = 'sidebarBackdrop';
+      document.body.appendChild(backdrop);
+    }
+
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    const openSidebar = () => {
+      document.querySelector('.navigation-sidebar')?.classList.add('open');
+      backdrop.classList.add('open');
+      toggle.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeSidebar = () => {
+      document.querySelector('.navigation-sidebar')?.classList.remove('open');
+      backdrop.classList.remove('open');
+      toggle.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    toggle.addEventListener('click', () => {
+      const isOpen = backdrop.classList.contains('open');
+      isOpen ? closeSidebar() : openSidebar();
+    });
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    // Close sidebar when a nav item is clicked on mobile
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && e.target.closest('.nav-item')) {
+        closeSidebar();
+      }
+    });
   }
 
   // ===== SPA REINITIALIZATION =====

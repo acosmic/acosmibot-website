@@ -826,7 +826,6 @@ class DashboardCore {
     document.body.appendChild(backdrop);
 
     const openSidebars = () => {
-      document.querySelector('.guild-selector-sidebar')?.classList.add('open');
       document.querySelector('.navigation-sidebar')?.classList.add('open');
       backdrop.classList.add('open');
       toggle.classList.add('open');
@@ -834,7 +833,6 @@ class DashboardCore {
     };
 
     const closeSidebars = () => {
-      document.querySelector('.guild-selector-sidebar')?.classList.remove('open');
       document.querySelector('.navigation-sidebar')?.classList.remove('open');
       backdrop.classList.remove('open');
       toggle.classList.remove('open');
