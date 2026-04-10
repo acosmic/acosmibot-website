@@ -107,6 +107,13 @@ class DocsRouter {
       }
 
       const html = await response.text();
+
+      // Guard against the Azure 404 fallback serving index.html as a 200.
+      // If the response is a full HTML page (<!DOCTYPE), it's not a view fragment.
+      if (html.trimStart().toLowerCase().startsWith('<!doctype')) {
+        throw new Error('View not found (received full page fallback)');
+      }
+
       viewContainer.innerHTML = html;
 
     } catch (error) {

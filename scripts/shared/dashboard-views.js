@@ -73,6 +73,11 @@ class DashboardViewManager {
 
       const html = await response.text();
 
+      // Guard against Azure 404 fallback serving index.html as a 200.
+      if (html.trimStart().toLowerCase().startsWith('<!doctype')) {
+        throw new Error('View not found (received full page fallback)');
+      }
+
       // Cache the template
       this.templateCache[feature] = html;
 
