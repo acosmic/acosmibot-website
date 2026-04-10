@@ -187,7 +187,7 @@ function setupMobileNav() {
         </div>
         <ul class="mobile-nav-links" id="mobileNavLinks">
             <li><a href="/#features">Features</a></li>
-            <li><a href="/premium">Premium</a></li>
+            <li><a href="#" onclick="showPremiumComingSoon(event)">Premium</a></li>
             <li><a href="/docs/introduction">Documentation</a></li>
             <li id="mobileDrawerDashboardItem" style="display:none;"><a href="/dashboard">Dashboard</a></li>
             <li id="mobileDrawerServerItem" style="display:none;"><a href="/guild-selector">Server Management</a></li>
@@ -387,6 +387,28 @@ function highlightActivePage() {
         }
     });
 }
+
+// Show premium coming soon modal
+function showPremiumComingSoon(event) {
+    if (event) event.preventDefault();
+    const existing = document.getElementById('premiumComingSoonModal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'premiumComingSoonModal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;';
+    modal.innerHTML = `
+        <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:40px;border-radius:15px;max-width:420px;text-align:center;color:white;border:1px solid rgba(255,215,0,0.3);box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+            <div style="font-size:64px;margin-bottom:15px;">✨</div>
+            <h2 style="margin-bottom:15px;color:#FFD700;">Premium Coming Soon!</h2>
+            <p style="color:#ccc;margin-bottom:10px;">Premium features are currently under development and will be available soon.</p>
+            <p style="color:#aaa;font-size:14px;margin-bottom:25px;">Stay tuned for exclusive perks, advanced features, and enhanced functionality!</p>
+            <button onclick="document.getElementById('premiumComingSoonModal').remove()" style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1a1a;border:none;padding:12px 30px;border-radius:8px;cursor:pointer;font-weight:600;font-size:16px;">Got it!</button>
+        </div>
+    `;
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    document.body.appendChild(modal);
+}
+window.showPremiumComingSoon = showPremiumComingSoon;
 
 // Show notification
 function showNotification(message, type = 'info') {

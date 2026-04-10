@@ -217,8 +217,32 @@ function debounce(func, wait) {
   };
 }
 
+// Show premium coming soon modal
+function showPremiumComingSoon(event) {
+  if (event) event.preventDefault();
+  const existing = document.getElementById('premiumComingSoonModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'premiumComingSoonModal';
+  modal.className = 'coming-soon-modal';
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="this.parentElement.remove()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-icon">✨</div>
+        <h2>Premium Coming Soon!</h2>
+        <p>Premium features are currently under development and will be available soon.</p>
+        <p>Stay tuned for exclusive perks, advanced features, and enhanced functionality!</p>
+        <button class="modal-close-btn" onclick="this.closest('.coming-soon-modal').remove()">Got it!</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  requestAnimationFrame(() => { modal.style.opacity = '1'; });
+}
+
 // Make functions globally accessible
 window.showComingSoonModal = showComingSoonModal;
+window.showPremiumComingSoon = showPremiumComingSoon;
 window.formatFeatureName = formatFeatureName;
 window.showToast = showToast;
 window.showSuccessToast = showSuccessToast;

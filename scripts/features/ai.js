@@ -114,7 +114,7 @@ const AiFeature = {
           Premium + AI tier required
         </p>
         <div style="display: flex; gap: 12px; justify-content: center;">
-          <a href="/premium" style="
+          <a href="#" onclick="showPremiumComingSoon(event)" style="
             display: inline-block;
             padding: 14px 32px;
             background: linear-gradient(135deg, #00D9FF, #0099CC);
