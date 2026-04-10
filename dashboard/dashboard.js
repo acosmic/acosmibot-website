@@ -382,47 +382,17 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// Bot invite handler - Coming Soon version
+// Bot invite handler
 async function handleBotInvite() {
-    try {
-        const response = await fetchWithTimeout(`${API_BASE_URL}/bot/invite`, {}, 5000);
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+    const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+    window.open(INVITE_URL, 'discord-bot-invite', 'width=500,height=800,scrollbars=yes');
+    showNotification('✅ Bot invite opened! After adding the bot, refresh this page.', 'success');
+    setTimeout(() => {
+        const shouldRefresh = confirm('Have you finished adding the bot? Click OK to refresh and see your server.');
+        if (shouldRefresh) {
+            location.reload();
         }
-
-        const data = await response.json();
-
-        if (data.status === 'coming_soon') {
-            showComingSoonModal(data);
-        }
-        // TODO: Uncomment when ready to allow bot invites
-        // else if (data.success && data.invite_url) {
-        //     // Open invite in new window
-        //     const inviteWindow = window.open(
-        //         data.invite_url,
-        //         'discord-bot-invite',
-        //         'width=500,height=800,scrollbars=yes'
-        //     );
-        //
-        //     // Show success message
-        //     showNotification('✅ Bot invite opened! After adding the bot, refresh this page.', 'success');
-        //
-        //     // Optionally: auto-refresh after delay
-        //     setTimeout(() => {
-        //         const shouldRefresh = confirm('Have you finished adding the bot? Click OK to refresh and see your server.');
-        //         if (shouldRefresh) {
-        //             location.reload();
-        //         }
-        //     }, 10000);
-        // }
-        else {
-            throw new Error(data.message || 'Invite URL not available');
-        }
-    } catch (error) {
-        console.error('Bot invite error:', error);
-        showNotification('❌ Failed to open bot invite. Please try again.', 'error');
-    }
+    }, 10000);
 }
 
 // Show coming soon modal

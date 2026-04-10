@@ -124,25 +124,11 @@ function setupHomePageListeners() {
     });
 }
 
-// Handle bot invite (coming soon version)
+// Handle bot invite
 async function handleInvite() {
-    try {
-        showNotification('Checking bot availability...', 'info');
-
-        const response = await fetch(`${API_BASE_URL}/bot/invite`);
-        const data = await response.json();
-
-        if (data.status === 'coming_soon') {
-            showNotification(data.message, 'info');
-            showComingSoonModal(data);
-        } else if (data.invite_url) {
-            window.open(data.invite_url, '_blank');
-            showNotification('Bot invite opened in new tab!', 'success');
-        }
-    } catch (error) {
-        console.error('Invite error:', error);
-        showNotification('Unable to process invite request.', 'error');
-    }
+    const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+    window.open(INVITE_URL, '_blank');
+    showNotification('Bot invite opened in new tab!', 'success');
 }
 
 // Show coming soon modal
