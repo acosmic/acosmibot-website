@@ -251,6 +251,15 @@ body {
     background-image: url('/images/acosmibot_lottery-active.svg');
 }
 
+/* Giveaway Icon */
+.nav-icon-giveaway {
+    background-image: url('/images/acosmibot_lottery-inactive.svg');
+}
+
+.nav-item.active .nav-icon-giveaway {
+    background-image: url('/images/acosmibot_lottery-active.svg');
+}
+
 /* Polymorph Icon */
 .nav-icon-polymorph {
     background-image: url('/images/acosmibot_polymorph-inactive.svg');

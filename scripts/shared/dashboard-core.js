@@ -672,6 +672,11 @@ class DashboardCore {
           <span class="nav-text">Lottery</span>
           <span class="nav-indicator"></span>
         </div>
+        <div class="nav-item" data-feature="giveaway">
+          <span class="nav-icon nav-icon-giveaway"></span>
+          <span class="nav-text">Giveaway</span>
+          <span class="nav-indicator"></span>
+        </div>
       </div>
 
       <div class="nav-section">
@@ -699,7 +704,8 @@ class DashboardCore {
       'reaction-roles': 'reaction_roles.enabled',
       'activity-monitor': 'activity_monitor.enabled',
       'moderation': 'moderation.enabled',
-      'ai': 'ai.enabled'
+      'ai': 'ai.enabled',
+      'giveaway': 'giveaway.enabled'
       // Note: custom-commands handled specially in isFeatureEnabled()
     };
     return configPaths[feature] || null;
