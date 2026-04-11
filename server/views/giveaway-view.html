@@ -1,0 +1,727 @@
+<div class="feature-header-container">
+    <!-- Page Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Giveaways</h1>
+        </div>
+        <div class="header-right">
+            <button id="saveButton" class="save-btn" onclick="GiveawayFeature.saveAllChanges()" disabled>
+                <span class="save-icon"></span>
+                Save Changes
+                <span class="unsaved-indicator" style="display: none;">●</span>
+            </button>
+            <label class="toggle-switch" title="Enable/Disable Giveaway Feature">
+                <input type="checkbox" id="featureToggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </header>
+    <p class="feature-description">Run and configure giveaway events for your server</p>
+</div>
+
+<!-- Feature Content -->
+<div class="feature-container">
+
+    <!-- ── Default Settings ─────────────────────────────────────── -->
+    <div class="form-section collapsible-section" id="defaultSettingsSection">
+        <div class="section-header" onclick="GiveawayFeature.toggleSection('defaultSettingsSection')">
+            <h3>Default Settings</h3>
+            <div class="section-header-right">
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <p class="section-desc">These values are applied to every new giveaway unless overridden in the bot command.</p>
+
+            <!-- Default Emoji -->
+            <div class="form-group">
+                <label for="defaultEmoji">Default Entry Emoji</label>
+                <input type="text" id="defaultEmoji" placeholder="🎉" maxlength="8"
+                       class="feature-select giveaway-emoji-input">
+                <p class="field-hint">The reaction emoji members click to enter. Defaults to 🎉.</p>
+            </div>
+
+            <!-- Winner Log Channel -->
+            <div class="form-group">
+                <label for="winnerLogChannel">Winner Log Channel</label>
+                <select id="winnerLogChannel" class="feature-select">
+                    <option value="">None (disabled)</option>
+                </select>
+                <p class="field-hint">If set, a winner summary is posted here when each giveaway ends.</p>
+            </div>
+
+            <!-- DM Winner Toggle -->
+            <div class="form-group giveaway-toggle-group">
+                <div class="giveaway-toggle-row">
+                    <div>
+                        <label>DM Winner on Win</label>
+                        <p class="field-hint" style="margin-top: 4px;">Send the winner a congratulatory DM when they win.</p>
+                    </div>
+                    <label class="toggle-switch" onclick="event.stopPropagation()">
+                        <input type="checkbox" id="dmWinner">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Winner Rules ─────────────────────────────────────────── -->
+    <div class="form-section collapsible-section" id="winnerRulesSection">
+        <div class="section-header" onclick="GiveawayFeature.toggleSection('winnerRulesSection')">
+            <h3>Winner Rules</h3>
+            <div class="section-header-right">
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+
+            <!-- Recent Winner Lockout -->
+            <div class="form-group">
+                <label for="recentWinnerLockout">Recent Winner Lockout</label>
+                <div class="giveaway-input-row">
+                    <input type="number" id="recentWinnerLockout" min="0" max="100" placeholder="0"
+                           class="feature-select giveaway-short-input">
+                    <span class="giveaway-input-suffix">giveaways</span>
+                </div>
+                <p class="field-hint">
+                    Winners cannot win again for this many giveaways. Set to <strong>0</strong> to disable.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Entry Requirements ───────────────────────────────────── -->
+    <div class="form-section collapsible-section" id="entryRequirementsSection">
+        <div class="section-header" onclick="GiveawayFeature.toggleSection('entryRequirementsSection')">
+            <h3>Entry Requirements</h3>
+            <div class="section-header-right">
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <p class="section-desc">These defaults apply to new giveaways and can be overridden per-giveaway in the bot command.</p>
+
+            <!-- Required Roles -->
+            <div class="form-group">
+                <label>Required Roles</label>
+                <p class="field-hint">Members must have at least one of these roles to enter.</p>
+                <div class="giveaway-role-tags" id="requiredRolesContainer">
+                    <!-- Populated by JS -->
+                </div>
+                <select id="requiredRoleAdd" class="feature-select" style="margin-top: 8px;">
+                    <option value="">+ Add Required Role</option>
+                </select>
+            </div>
+
+            <!-- Excluded Roles -->
+            <div class="form-group">
+                <label>Excluded Roles</label>
+                <p class="field-hint">Members with any of these roles cannot enter.</p>
+                <div class="giveaway-role-tags" id="excludedRolesContainer">
+                    <!-- Populated by JS -->
+                </div>
+                <select id="excludedRoleAdd" class="feature-select" style="margin-top: 8px;">
+                    <option value="">+ Add Excluded Role</option>
+                </select>
+            </div>
+
+            <!-- Min Account Age -->
+            <div class="form-group">
+                <label for="minAccountAge">Minimum Account Age</label>
+                <div class="giveaway-input-row">
+                    <input type="number" id="minAccountAge" min="0" max="3650" placeholder="0"
+                           class="feature-select giveaway-short-input">
+                    <span class="giveaway-input-suffix">days</span>
+                </div>
+                <p class="field-hint">Minimum Discord account age in days. Set to <strong>0</strong> to disable.</p>
+            </div>
+
+            <!-- Min Server Join Age -->
+            <div class="form-group">
+                <label for="minServerJoinAge">Minimum Server Membership</label>
+                <div class="giveaway-input-row">
+                    <input type="number" id="minServerJoinAge" min="0" max="3650" placeholder="0"
+                           class="feature-select giveaway-short-input">
+                    <span class="giveaway-input-suffix">days</span>
+                </div>
+                <p class="field-hint">Minimum days a member must have been in the server. Set to <strong>0</strong> to disable.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Entry Multipliers ────────────────────────────────────── -->
+    <div class="form-section collapsible-section" id="multipliersSection">
+        <div class="section-header" onclick="GiveawayFeature.toggleSection('multipliersSection')">
+            <h3>Entry Multipliers</h3>
+            <div class="section-header-right">
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <p class="section-desc">Give certain members extra entries by default. Multipliers stack with the highest value taking precedence.</p>
+
+            <!-- Booster Multiplier Enable -->
+            <div class="form-group">
+                <div class="giveaway-toggle-row">
+                    <div>
+                        <label>Server Booster Multiplier</label>
+                        <p class="field-hint" style="margin-top: 4px;">Server Nitro Boosters get extra entries.</p>
+                    </div>
+                    <label class="toggle-switch" onclick="event.stopPropagation()">
+                        <input type="checkbox" id="boosterMultiplierEnabled">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Booster Multiplier Value (shown when enabled) -->
+            <div class="form-group" id="boosterMultiplierValueGroup">
+                <label for="boosterMultiplier">Booster Multiplier</label>
+                <div class="giveaway-input-row">
+                    <input type="number" id="boosterMultiplier" min="2" max="10" placeholder="2"
+                           class="feature-select giveaway-short-input">
+                    <span class="giveaway-input-suffix">× entries</span>
+                </div>
+                <p class="field-hint">Boosters receive this many times the normal number of entries (min 2).</p>
+            </div>
+
+            <!-- Role Multipliers -->
+            <div class="form-group">
+                <label>Role Multipliers</label>
+                <p class="field-hint">Assign extra entries to specific roles.</p>
+                <div id="roleMultipliersList" class="giveaway-role-multipliers-list">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="giveaway-role-multiplier-add">
+                    <select id="roleMulRoleSelect" class="feature-select">
+                        <option value="">Select a role…</option>
+                    </select>
+                    <input type="number" id="roleMulValue" min="2" max="10" placeholder="2"
+                           class="feature-select giveaway-short-input">
+                    <span class="giveaway-input-suffix" style="white-space: nowrap;">× entries</span>
+                    <button class="giveaway-btn-add" onclick="GiveawayFeature.addRoleMultiplier()">+ Add</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Banned Users ─────────────────────────────────────────── -->
+    <div class="form-section collapsible-section" id="bannedUsersSection">
+        <div class="section-header" onclick="GiveawayFeature.toggleSection('bannedUsersSection')">
+            <h3>Banned Users</h3>
+            <div class="section-header-right">
+                <span class="collapse-icon">▼</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <p class="section-desc">These users will be prevented from entering any giveaway on this server.</p>
+
+            <!-- Banned Users List -->
+            <div id="bannedUsersList" class="giveaway-banned-list">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Add by Discord ID -->
+            <div class="form-group" style="margin-top: 16px;">
+                <label for="bannedUserInput">Add User by Discord ID</label>
+                <div class="giveaway-add-user-row">
+                    <input type="text" id="bannedUserInput"
+                           placeholder="Discord User ID (e.g. 123456789012345678)"
+                           class="feature-select" maxlength="20">
+                    <button class="giveaway-btn-add" onclick="GiveawayFeature.addBannedUser()">+ Add</button>
+                </div>
+                <p class="field-hint">Right-click a user in Discord → Copy User ID. Enable Developer Mode in Discord settings first.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Active Giveaways ─────────────────────────────────────── -->
+    <div class="form-section" id="activeGiveawaysSection">
+        <div class="section-header giveaway-section-header-actions">
+            <h3>Active Giveaways</h3>
+            <button class="giveaway-btn-refresh" onclick="GiveawayFeature.refreshGiveaways()">↻ Refresh</button>
+        </div>
+        <div id="activeGiveawaysList" class="giveaway-list">
+            <p class="giveaway-loading-text">Loading active giveaways…</p>
+        </div>
+    </div>
+
+    <!-- ── Recent Giveaways ─────────────────────────────────────── -->
+    <div class="form-section" id="recentGiveawaysSection">
+        <div class="section-header">
+            <h3>Recent Giveaways</h3>
+        </div>
+        <div id="recentGiveawaysList" class="giveaway-list">
+            <p class="giveaway-loading-text">Loading recent giveaways…</p>
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* ── Collapsible Sections ────────────────────────────────────────── */
+.collapsible-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.collapsible-section .section-header h3 {
+    margin: 0;
+}
+
+.section-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.collapse-icon {
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+    font-size: 12px;
+}
+
+.collapsible-section.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
+
+.collapsible-section .section-content {
+    padding-top: 16px;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    overflow: hidden;
+}
+
+.collapsible-section.collapsed .section-content {
+    max-height: 0 !important;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+/* ── Non-collapsible section headers ─────────────────────────────── */
+.form-section .section-header {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0;
+}
+
+.form-section .section-header h3 {
+    margin: 0;
+}
+
+.giveaway-section-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ── Form Groups ─────────────────────────────────────────────────── */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* ── Descriptions / Hints ────────────────────────────────────────── */
+.section-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+.field-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+/* ── Emoji Input ─────────────────────────────────────────────────── */
+.giveaway-emoji-input {
+    max-width: 120px !important;
+    font-size: 20px !important;
+    text-align: center;
+}
+
+/* ── Toggle Row ──────────────────────────────────────────────────── */
+.giveaway-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.giveaway-toggle-row label:first-child {
+    margin: 0;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* ── Number Input + Suffix ───────────────────────────────────────── */
+.giveaway-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.giveaway-short-input {
+    max-width: 100px !important;
+}
+
+.giveaway-input-suffix {
+    font-size: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* ── Role Tags ───────────────────────────────────────────────────── */
+.giveaway-role-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+    min-height: 16px;
+}
+
+.giveaway-role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 20px;
+    border: 1px solid #555;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.giveaway-role-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.giveaway-role-tag .btn-remove-icon {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.giveaway-role-tag .btn-remove-icon:hover {
+    color: var(--error-color);
+}
+
+/* ── Role Multipliers ────────────────────────────────────────────── */
+.giveaway-role-multipliers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.giveaway-role-multiplier-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+}
+
+.giveaway-role-multiplier-row .role-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.giveaway-role-multiplier-row .role-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.giveaway-role-multiplier-row .multiplier-value {
+    font-size: 14px;
+    color: var(--primary-color);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.giveaway-role-multiplier-row .btn-remove-icon {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    transition: color 0.2s;
+}
+
+.giveaway-role-multiplier-row .btn-remove-icon:hover {
+    color: var(--error-color);
+}
+
+.giveaway-role-multiplier-add {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.giveaway-role-multiplier-add .feature-select:first-child {
+    flex: 1;
+    min-width: 160px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.giveaway-btn-add {
+    padding: 10px 16px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.giveaway-btn-add:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.giveaway-btn-refresh {
+    padding: 6px 14px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.giveaway-btn-refresh:hover {
+    background: var(--bg-overlay-hover);
+    color: var(--text-primary);
+}
+
+.giveaway-btn-danger {
+    padding: 6px 14px;
+    background: rgba(255, 68, 68, 0.15);
+    border: 1px solid rgba(255, 68, 68, 0.4);
+    border-radius: 8px;
+    color: var(--error-color);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.giveaway-btn-danger:hover {
+    background: rgba(255, 68, 68, 0.25);
+}
+
+/* ── Banned Users ────────────────────────────────────────────────── */
+.giveaway-banned-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.giveaway-banned-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+}
+
+.giveaway-banned-entry .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.giveaway-banned-entry .user-name {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.giveaway-banned-entry .user-id {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.giveaway-banned-entry .btn-remove-icon {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.giveaway-banned-entry .btn-remove-icon:hover {
+    color: var(--error-color);
+}
+
+/* ── Add User Row ────────────────────────────────────────────────── */
+.giveaway-add-user-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.giveaway-add-user-row .feature-select {
+    flex: 1;
+}
+
+/* ── Empty / Loading States ──────────────────────────────────────── */
+.giveaway-empty-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 8px 0;
+}
+
+.giveaway-loading-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 16px 0;
+}
+
+.giveaway-error-text {
+    font-size: 14px;
+    color: var(--error-color);
+    margin: 16px 0;
+}
+
+/* ── Giveaway Cards ──────────────────────────────────────────────── */
+.giveaway-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+}
+
+.giveaway-card {
+    padding: 16px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.giveaway-card.active {
+    border-color: rgba(0, 217, 255, 0.3);
+}
+
+.giveaway-card.ended {
+    border-color: rgba(255, 255, 255, 0.08);
+    opacity: 0.8;
+}
+
+.giveaway-card.cancelled {
+    border-color: rgba(255, 68, 68, 0.2);
+    opacity: 0.6;
+}
+
+.giveaway-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.giveaway-prize {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.giveaway-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+    font-style: italic;
+}
+
+.giveaway-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
+.giveaway-card-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── Status Badges ───────────────────────────────────────────────── */
+.giveaway-status-badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.giveaway-status-badge.active {
+    background: rgba(0, 217, 255, 0.15);
+    color: var(--primary-color);
+    border: 1px solid rgba(0, 217, 255, 0.3);
+}
+
+.giveaway-status-badge.ended {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--success-color);
+    border: 1px solid rgba(0, 255, 136, 0.25);
+}
+
+.giveaway-status-badge.cancelled {
+    background: rgba(255, 68, 68, 0.1);
+    color: var(--error-color);
+    border: 1px solid rgba(255, 68, 68, 0.25);
+}
+</style>
