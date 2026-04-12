@@ -5,6 +5,9 @@ let userGuilds = [];
 let selectedGuild = null;
 let selectedTier = 'premium'; // Default tier
 
+// TEMPORARY: Authorized user ID (will be removed when premium goes live)
+const AUTHORIZED_USER_ID = '110637665128325120';
+
 // Get auth token
 function getAuthToken() {
   return localStorage.getItem('discord_token');
@@ -12,8 +15,53 @@ function getAuthToken() {
 
 // Note: showNotification() is provided by nav.js
 
+// Check if user is authorized to access premium page
+async function checkPremiumAccess() {
+  const token = getAuthToken();
+
+  if (!token) {
+    // Not logged in - redirect to home
+    window.location.href = '/';
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      window.location.href = '/';
+      return false;
+    }
+
+    const userData = await response.json();
+
+    // Check if user ID matches authorized ID
+    if (userData.id !== AUTHORIZED_USER_ID) {
+      showNotification('Premium page is not yet available.', 'info');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Authorization check failed:', error);
+    window.location.href = '/';
+    return false;
+  }
+}
+
 // Initialize page
 async function initPremiumPage() {
+  // Check access first
+  const hasAccess = await checkPremiumAccess();
+  if (!hasAccess) {
+    return; // Exit early if not authorized
+  }
+
   const token = getAuthToken();
   const selectServerBtnPremium = document.getElementById('selectServerBtnPremium');
   const selectServerBtnAI = document.getElementById('selectServerBtnAI');
