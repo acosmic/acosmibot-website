@@ -2,19 +2,197 @@
   <header class="docs-page-header">
     <h1>Reminders</h1>
     <p class="docs-page-description">
-      Set up automated reminders for yourself or your server.
+      Never forget anything — set a reminder and Acosmibot will DM you the moment the time arrives.
     </p>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      The reminder system lets any server member schedule a personal message to be delivered at a future time. Reminders are sent as a direct message from the bot so they reach you wherever you are, even if you've left the server in the meantime.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for the reminder system is currently being prepared. This will cover creating reminders, scheduling options, recurring reminders, and notification settings.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure reminders through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Set reminders up to 5 years in the future</li>
+        <li>Flexible time format — combine units like <code>2h30m</code> or <code>1d12h</code></li>
+        <li>View and manage all your active reminders at any time</li>
+        <li>Cancel individual reminders by ID before they fire</li>
+        <li>Delivered as a DM so you never miss it</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/remind &lt;time&gt; &lt;message&gt;</div>
+        <div class="command-description">
+          Set a reminder for a future time. The bot will DM you with your message when the time arrives. Time can use any supported format or a combination of units.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/remind 30m Check the oven</code>
+          <code>/remind 2h30m Team meeting starts soon</code>
+          <code>/remind 1d Take out the trash</code>
+          <code>/remind 1w Server event this time next week</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/reminders</div>
+        <div class="command-description">
+          View a list of all your active reminders, including each reminder's ID, message, and the time remaining until it fires.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/reminders</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/cancelreminder &lt;id&gt;</div>
+        <div class="command-description">
+          Cancel an active reminder before it fires. Use <code>/reminders</code> to find the ID of the reminder you want to remove.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/cancelreminder 42</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Time Format Reference</h2>
+    <p>
+      Time values are flexible and human-friendly. You can use shorthand abbreviations or write them out, and combine multiple units in a single value.
+    </p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Accepted Formats</th>
+          <th>Example Input</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Seconds</td>
+          <td><code>s</code></td>
+          <td><code>30s</code></td>
+        </tr>
+        <tr>
+          <td>Minutes</td>
+          <td><code>m</code>, <code>min</code></td>
+          <td><code>5m</code>, <code>15min</code></td>
+        </tr>
+        <tr>
+          <td>Hours</td>
+          <td><code>h</code>, <code>hr</code></td>
+          <td><code>2h</code>, <code>3hr</code></td>
+        </tr>
+        <tr>
+          <td>Days</td>
+          <td><code>d</code></td>
+          <td><code>1d</code>, <code>7d</code></td>
+        </tr>
+        <tr>
+          <td>Weeks</td>
+          <td><code>w</code>, <code>week</code></td>
+          <td><code>2w</code>, <code>4week</code></td>
+        </tr>
+        <tr>
+          <td>Years</td>
+          <td><code>y</code>, <code>yr</code></td>
+          <td><code>1y</code>, <code>2yr</code></td>
+        </tr>
+        <tr>
+          <td>Combined</td>
+          <td>Multiple units chained</td>
+          <td><code>2h30m</code>, <code>1d12h</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-card info-card-success">
+      <h3>Combining Time Units</h3>
+      <ul>
+        <li><code>2h30m</code> — 2 hours and 30 minutes from now</li>
+        <li><code>1d12h</code> — 1 day and 12 hours from now</li>
+        <li><code>1w2d</code> — 1 week and 2 days from now</li>
+        <li><code>1y6m</code> — 1 year and 6 months from now</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Set your reminder</h3>
+          <p>Run <code>/remind &lt;time&gt; &lt;message&gt;</code> in any channel where the bot is active. The bot confirms your reminder with a timestamp showing exactly when it will fire.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Go about your day</h3>
+          <p>The bot tracks the timer in the background. You don't need to stay in the server or keep Discord open — the reminder will be waiting when you return.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Receive your DM</h3>
+          <p>When the time arrives, Acosmibot sends you a direct message with your original reminder text so you know exactly what you asked to be reminded about.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Limits & Notes</h2>
+
+    <div class="info-card info-card-warning">
+      <h3>Things to Keep in Mind</h3>
+      <ul>
+        <li>Maximum reminder time is <strong>5 years</strong> in the future</li>
+        <li>Reminders are personal — only you receive your own DMs</li>
+        <li>Make sure your DMs are open to receive the reminder message</li>
+        <li>If the bot is offline when a reminder fires, it will be sent as soon as the bot comes back online</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: I didn't receive my reminder DM</h4>
+      <p>A: Check that your Discord privacy settings allow DMs from bot accounts. In User Settings → Privacy & Safety, ensure "Allow direct messages from server members" is enabled, or add Acosmibot as a friend to allow DMs directly.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I set multiple reminders at once?</h4>
+      <p>A: Yes. You can have as many active reminders as you like. Use <code>/reminders</code> to see them all listed together.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can other people see my reminders?</h4>
+      <p>A: No. Your reminders are private — only you can view them with <code>/reminders</code>, and only you receive the DM when they fire.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: What if I leave the server before my reminder fires?</h4>
+      <p>A: The reminder will still be delivered to you via DM as long as the bot can message you.</p>
     </div>
   </section>
 

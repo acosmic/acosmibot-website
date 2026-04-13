@@ -2,24 +2,293 @@
   <header class="docs-page-header">
     <h1>Command List</h1>
     <p class="docs-page-description">
-      Complete reference of all Acosmibot commands and their usage.
+      A complete reference of every Acosmibot command, organized by category. Use <code>/commands</code> in Discord for the interactive version.
     </p>
   </header>
 
   <section class="docs-section">
+    <h2>In-Discord Help Menu</h2>
+    <p>
+      The fastest way to explore commands is directly in Discord. Run <code>/commands</code> and the bot will open an interactive paginated menu organized across four categories. Navigation buttons let you flip between pages, and the menu stays active for three minutes.
+    </p>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/commands</div>
+        <div class="command-description">
+          Open the interactive command reference menu. Displays all available commands organized across four pages with navigation buttons. The menu stays active for 3 minutes before timing out.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/commands</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Page 1 — Games &amp; Gambling</h2>
+    <p>All credit-based games and entertainment commands.</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/slots &lt;bet&gt;</code></td>
+          <td>Spin the slot machine and bet credits on the outcome</td>
+        </tr>
+        <tr>
+          <td><code>/blackjack &lt;bet&gt;</code></td>
+          <td>Play a game of blackjack against the dealer</td>
+        </tr>
+        <tr>
+          <td><code>/coinflip &lt;bet&gt; &lt;side&gt;</code></td>
+          <td>Bet on heads or tails for a 50/50 chance</td>
+        </tr>
+        <tr>
+          <td><code>/deathroll &lt;bet&gt;</code></td>
+          <td>Challenge another member to a high-stakes dice duel</td>
+        </tr>
+        <tr>
+          <td><code>/rps &lt;choice&gt;</code></td>
+          <td>Play Rock Paper Scissors against the bot</td>
+        </tr>
+        <tr>
+          <td><code>/8ball &lt;question&gt;</code></td>
+          <td>Ask the magic 8-ball for a mystical answer</td>
+        </tr>
+        <tr>
+          <td><code>/lottery buy &lt;tickets&gt;</code></td>
+          <td>Purchase lottery tickets for the next server drawing</td>
+        </tr>
+        <tr>
+          <td><code>/lottery info</code></td>
+          <td>View the current jackpot and next drawing time</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Page 2 — Banking &amp; Portals</h2>
+    <p>Economy management and cross-server portal commands.</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/balance [member]</code></td>
+          <td>Check your wallet and bank balance, or view another member's</td>
+        </tr>
+        <tr>
+          <td><code>/daily</code></td>
+          <td>Claim your daily credit reward and build your streak</td>
+        </tr>
+        <tr>
+          <td><code>/transfer &lt;member&gt; &lt;amount&gt;</code></td>
+          <td>Send credits from your wallet to another member</td>
+        </tr>
+        <tr>
+          <td><code>/deposit &lt;amount&gt;</code></td>
+          <td>Deposit credits into the bank for safe keeping</td>
+        </tr>
+        <tr>
+          <td><code>/withdraw &lt;amount&gt;</code></td>
+          <td>Withdraw credits from the bank to your wallet</td>
+        </tr>
+        <tr>
+          <td><code>/richest [scope]</code></td>
+          <td>View the richest members leaderboard (server or global)</td>
+        </tr>
+        <tr>
+          <td><code>/portal-search &lt;query&gt;</code></td>
+          <td>Search the public portal directory for other servers</td>
+        </tr>
+        <tr>
+          <td><code>/portal-open &lt;server id&gt;</code></td>
+          <td>Open a two-minute portal to another server (costs credits)</td>
+        </tr>
+        <tr>
+          <td><code>/portal-send &lt;message&gt;</code></td>
+          <td>Send a message through the active portal session</td>
+        </tr>
+        <tr>
+          <td><code>/portal-status</code></td>
+          <td>Check whether a portal is open and how much time remains</td>
+        </tr>
+        <tr>
+          <td><code>/portal-close</code></td>
+          <td>Close the active portal session early</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Page 3 — Leveling &amp; Stats</h2>
+    <p>Commands for tracking XP, ranks, and server activity.</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/rank [member]</code></td>
+          <td>View your current level, XP, and rank card, or check another member's</td>
+        </tr>
+        <tr>
+          <td><code>/leaderboard [scope]</code></td>
+          <td>View the top members by XP for this server or globally</td>
+        </tr>
+        <tr>
+          <td><code>/stats [member]</code></td>
+          <td>See detailed activity stats including messages, voice time, and more</td>
+        </tr>
+        <tr>
+          <td><code>/season</code></td>
+          <td>View info about the current season including end date and rewards</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Page 4 — Utility &amp; Admin</h2>
+    <p>General utility commands, moderation tools, and admin-only controls.</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/remind &lt;time&gt; &lt;message&gt;</code></td>
+          <td>Set a personal reminder — delivered via DM when the time arrives</td>
+        </tr>
+        <tr>
+          <td><code>/reminders</code></td>
+          <td>View all your active reminders and their IDs</td>
+        </tr>
+        <tr>
+          <td><code>/cancelreminder &lt;id&gt;</code></td>
+          <td>Cancel an active reminder before it fires</td>
+        </tr>
+        <tr>
+          <td><code>/polymorph &lt;user&gt; &lt;nickname&gt;</code></td>
+          <td>Spend credits to change another member's server nickname</td>
+        </tr>
+        <tr>
+          <td><code>/avatar [member]</code></td>
+          <td>Display your avatar or another member's at full resolution</td>
+        </tr>
+        <tr>
+          <td><code>/ping</code></td>
+          <td>Check the bot's current response latency</td>
+        </tr>
+        <tr>
+          <td><code>/weather &lt;location&gt;</code></td>
+          <td>Get the current weather for any city or location</td>
+        </tr>
+        <tr>
+          <td><code>/ai &lt;prompt&gt;</code></td>
+          <td>Send a prompt to the bot's AI and get a response in chat</td>
+        </tr>
+        <tr>
+          <td><code>/jail &lt;user&gt; &lt;duration&gt;</code></td>
+          <td>Restrict a member to the jail channel (Moderator+)</td>
+        </tr>
+        <tr>
+          <td><code>/unjail &lt;user&gt;</code></td>
+          <td>Release a jailed member before their sentence expires (Moderator+)</td>
+        </tr>
+        <tr>
+          <td><code>/kick &lt;user&gt; [reason]</code></td>
+          <td>Kick a member from the server (Moderator+)</td>
+        </tr>
+        <tr>
+          <td><code>/ban &lt;user&gt; [reason]</code></td>
+          <td>Ban a member from the server (Administrator+)</td>
+        </tr>
+        <tr>
+          <td><code>/warn &lt;user&gt; &lt;reason&gt;</code></td>
+          <td>Issue a formal warning to a member (Moderator+)</td>
+        </tr>
+        <tr>
+          <td><code>/givecredits &lt;member&gt; &lt;amount&gt;</code></td>
+          <td>Grant credits to a member (Administrator+)</td>
+        </tr>
+        <tr>
+          <td><code>/removecredits &lt;member&gt; &lt;amount&gt;</code></td>
+          <td>Remove credits from a member (Administrator+)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Permission Levels</h2>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
+      <h3>Who Can Use What</h3>
+      <ul>
+        <li><strong>Everyone</strong> — Games, balance, daily, reminders, rank, stats, utility (ping, avatar, weather, AI, polymorph)</li>
+        <li><strong>Moderator+</strong> — Jail, unjail, kick, warn, and other moderation tools</li>
+        <li><strong>Administrator+</strong> — Ban, givecredits, removecredits, and all admin configuration commands</li>
+        <li><strong>Server Owner</strong> — Full access to all commands and dashboard settings</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>Note on Moderator Role</h3>
       <p>
-        A comprehensive command reference is currently being prepared. This will include all available commands, their parameters, permissions, and examples.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can use slash commands in Discord to see available commands and their descriptions.
+        Moderation commands require that the user either holds the Discord "Administrator" permission or has been assigned the designated Moderator role configured in your server dashboard. The exact role can be set under Moderation settings in <a href="/server" target="_blank">/server</a>.
       </p>
     </div>
   </section>
 
+  <section class="docs-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: A command isn't showing up for me — why?</h4>
+      <p>A: Some commands only appear if the feature is enabled in your server. If a command is missing entirely, check that Acosmibot has been authorized with the correct scopes and that the feature is toggled on in the <a href="/server" target="_blank">/server dashboard</a>.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: How long does the /commands help menu stay open?</h4>
+      <p>A: The interactive menu stays active for 3 minutes. After that the navigation buttons stop working, but you can run <code>/commands</code> again at any time to get a fresh one.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I restrict certain commands to specific channels?</h4>
+      <p>A: Yes. Discord's built-in slash command permissions let server admins restrict any command to specific channels or roles — no bot configuration needed. Go to Server Settings → Integrations → Acosmibot to manage this.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Are new commands added over time?</h4>
+      <p>A: Yes. Acosmibot is actively developed and new commands are added regularly. Keep an eye on the changelog or join the support server for announcements.</p>
+    </div>
+  </section>
+
   <!-- Navigation -->
-  <div class="docs-nav-container">
+  <div class="docs-nav-container" style="justify-content: flex-start;">
     <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('jail')">
       <span class="arrow">←</span>
       <span class="nav-label">Back</span>

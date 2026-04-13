@@ -2,19 +2,156 @@
   <header class="docs-page-header">
     <h1>Lottery</h1>
     <p class="docs-page-description">
-      Server-wide lottery system with jackpots and ticket-based drawings.
+      Give your community a shot at a big payout with a server-wide lottery — members enter by reacting to the lottery post, and when time's up a winner is randomly selected and awarded credits from the guild vault.
     </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure in /server →
+    </button>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      The lottery is a community event where members pool their chances for a credit prize funded directly from the server's guild vault. An admin kicks things off with a single command, members enter by reacting to the announcement post, and the bot handles everything else — countdown, winner selection, and payout.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for the lottery system is currently being prepared. This will cover ticket purchasing, drawing schedules, jackpot mechanics, and prize distribution.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure lottery features through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Simple ticket-emoji entry — no additional commands needed for members</li>
+        <li>Admin-controlled duration in hours</li>
+        <li>Winner drawn randomly and fairly from all participants</li>
+        <li>Prize paid out automatically from the guild vault</li>
+        <li>Lottery announced in your chosen channel</li>
+        <li>Only one lottery can run at a time per server</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Admin Starts the Lottery</h3>
+          <p>An administrator uses <code>/admin-start-lotto</code> to launch a lottery, specifying how many hours it will run and which channel the announcement should be posted in. The bot immediately posts the lottery embed with the prize amount, end time, and entry instructions.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Members Enter by Reacting</h3>
+          <p>To enter, members simply react to the lottery post with the ticket emoji. Each member gets one entry — reacting multiple times does not grant additional entries. Members can un-react to withdraw from the lottery before it ends.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Timer Expires</h3>
+          <p>When the lottery duration expires, the bot locks entries and collects the final list of participants. If no members entered, the lottery is cancelled and the prize is returned to the vault.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Winner is Selected and Paid</h3>
+          <p>A winner is randomly selected from all participants with equal probability. The prize amount is transferred from the guild vault to the winner's credit balance, and the bot announces the result in the lottery channel with a congratulatory message.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/admin-start-lotto &lt;hours&gt; &lt;channel&gt;</div>
+        <div class="command-description">
+          Start a server lottery. Requires administrator permissions. The lottery runs for the specified number of hours and the announcement is posted in the specified channel. The prize pool is drawn from the guild vault balance at the time the lottery starts.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/admin-start-lotto 24 #giveaways</code>
+          <code>/admin-start-lotto 48 #announcements</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>The Guild Vault</h2>
+    <p>
+      The lottery prize is funded by your server's guild vault — a shared credit pool separate from individual member balances. The vault is built up over time through various server economy activities.
+    </p>
+
+    <div class="info-card">
+      <h3>Vault Requirements</h3>
+      <ul>
+        <li>The guild vault must have sufficient credits to fund the lottery prize before it can be started</li>
+        <li>The prize amount is locked at lottery start — vault changes during the lottery do not affect the payout</li>
+        <li>If the vault is empty or insufficient, the bot will notify the admin and prevent the lottery from starting</li>
+        <li>Vault balance can be checked and managed through the <a href="/server" target="_blank">/server dashboard</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Tips for Running Great Lotteries</h2>
+
+    <div class="info-card info-card-success">
+      <h3>Getting the Most Out of the Lottery</h3>
+      <ul>
+        <li>Announce the lottery in a high-traffic channel and <strong>pin the post</strong> so members don't miss it</li>
+        <li>Run lotteries on a <strong>regular cadence</strong> (weekly, monthly) so members look forward to them</li>
+        <li>Pair lottery announcements with <strong>@everyone or @here pings</strong> to boost participation</li>
+        <li>A <strong>24–48 hour</strong> window gives members in different time zones a fair chance to enter</li>
+        <li>Use the lottery to <strong>recirculate vault credits</strong> back into the community economy</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>Things to Keep in Mind</h3>
+      <ul>
+        <li>Only <strong>one lottery can run at a time</strong> — you cannot stack multiple drawings</li>
+        <li>The lottery cannot be cancelled once started — plan your timing carefully</li>
+        <li>Make sure the bot has permission to <strong>read reactions</strong> in the lottery channel</li>
+        <li>Members who leave the server before the draw are <strong>removed from the entry pool</strong></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: The lottery won't start — I'm getting an error about the vault</h4>
+      <p>A: The guild vault needs enough credits to fund the prize. Check your vault balance in the server dashboard and ensure it meets the minimum required to start a lottery.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Members are reacting but I don't see them listed as participants</h4>
+      <p>A: Confirm the bot has "Read Message Reactions" permission in the lottery channel. Without it, the bot cannot detect who reacted to the post.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: No winner was announced when the timer expired</h4>
+      <p>A: If no members entered the lottery (no valid reactions), the drawing is cancelled and the vault credits are returned. The bot will post a message in the lottery channel noting that there were no participants.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I run a lottery without using the guild vault?</h4>
+      <p>A: Currently the prize is always drawn from the guild vault. Custom prize amounts and member-funded entry pools are not supported at this time.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I cancel a lottery that's already running?</h4>
+      <p>A: Cancelling an active lottery is not currently supported through a command. Contact support if you need to emergency-stop a running lottery.</p>
     </div>
   </section>
 

@@ -1,20 +1,229 @@
 <div class="docs-page-container">
   <header class="docs-page-header">
-    <h1>Moderation</h1>
+    <h1>Moderation Logs</h1>
     <p class="docs-page-description">
-      Comprehensive moderation tools for keeping your server safe and organized.
+      Keep your moderators informed with automatic event logging — member joins and leaves, deleted messages, and edited messages, all delivered to your chosen channels as clean timestamped embeds.
     </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure in /server →
+    </button>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Acosmibot's moderation logging system captures key server events and posts detailed embeds to your designated log channels. Every log entry includes timestamps, user information, and relevant context so your mod team always knows what happened, when, and to whom.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for the moderation system is currently being prepared. This will cover warning systems, auto-moderation, kick/ban commands, and more.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure moderation features through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Automatic logging for member joins, leaves, kicks, and bans</li>
+        <li>Message delete logs with original content and channel context</li>
+        <li>Message edit logs showing before and after content side-by-side</li>
+        <li>Route each event type to its own dedicated channel</li>
+        <li>Toggle individual event types on or off independently</li>
+        <li>All logs delivered as timestamped Discord embeds with user info</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Logged Events</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">Member Join</div>
+        <div class="command-description">
+          A log embed is posted whenever a new member joins the server. The entry includes the member's username, account creation date, and the exact time they joined — useful for spotting newly created accounts.
+        </div>
+        <div class="command-examples">
+          <h4>Log includes:</h4>
+          <code>Member mention • Account age • Join timestamp</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Member Leave</div>
+        <div class="command-description">
+          A log is posted when a member leaves, is kicked, or is banned. Where possible, the bot distinguishes between a voluntary departure and an administrative action, including the responsible moderator and any reason provided.
+        </div>
+        <div class="command-examples">
+          <h4>Log includes:</h4>
+          <code>Member mention • Action type (leave / kick / ban) • Moderator • Reason</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Message Delete</div>
+        <div class="command-description">
+          When a non-bot message is deleted, a log embed is posted showing the original message content, the author, and the channel it was deleted from. Bot messages are excluded to keep logs clean.
+        </div>
+        <div class="command-examples">
+          <h4>Log includes:</h4>
+          <code>Author • Channel • Original message content • Delete timestamp</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Message Edit</div>
+        <div class="command-description">
+          When a non-bot message is edited, a log embed is posted showing the content before and after the edit. Both versions are displayed together so moderators can quickly review changes.
+        </div>
+        <div class="command-examples">
+          <h4>Log includes:</h4>
+          <code>Author • Channel • Before content • After content • Edit timestamp</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How to Set It Up</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Create Your Log Channels</h3>
+          <p>Create one shared moderation channel, or separate channels for each event type (e.g. <strong>#mod-joins</strong>, <strong>#mod-messages</strong>). The bot needs "Send Messages" and "Embed Links" permissions in every log channel.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Assign Channels in the Dashboard</h3>
+          <p>Open your <a href="/server" target="_blank">/server dashboard</a> and navigate to the Moderation section. Assign each event type to the channel where you want its logs to appear. You can point multiple event types at the same channel if you prefer a unified feed.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Enable the Events You Want</h3>
+          <p>Toggle each event type independently. If your server is high-traffic and message-edit logs would be noisy, you can disable that type while keeping others active. Changes take effect immediately.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Verify and Test</h3>
+          <p>Have a test account join and send a message, then edit and delete it. Confirm that logs appear in the correct channels with the right information before announcing the setup to your mod team.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration Options</h2>
+    <p>All moderation log settings are managed through the <a href="/server" target="_blank">/server dashboard</a>:</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Member Join Log Channel</strong></td>
+          <td>Channel where member join events are posted</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td><strong>Member Leave Log Channel</strong></td>
+          <td>Channel where member leave, kick, and ban events are posted</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td><strong>Message Delete Log Channel</strong></td>
+          <td>Channel where deleted message logs are posted</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td><strong>Message Edit Log Channel</strong></td>
+          <td>Channel where edited message logs are posted</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td><strong>Log Member Joins</strong></td>
+          <td>Toggle join event logging on or off</td>
+          <td>false</td>
+        </tr>
+        <tr>
+          <td><strong>Log Member Leaves</strong></td>
+          <td>Toggle leave/kick/ban event logging on or off</td>
+          <td>false</td>
+        </tr>
+        <tr>
+          <td><strong>Log Message Deletes</strong></td>
+          <td>Toggle deleted message logging on or off</td>
+          <td>false</td>
+        </tr>
+        <tr>
+          <td><strong>Log Message Edits</strong></td>
+          <td>Toggle edited message logging on or off</td>
+          <td>false</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Tips for Effective Logging</h2>
+
+    <div class="info-card info-card-success">
+      <h3>Best Practices</h3>
+      <ul>
+        <li>Use <strong>separate channels</strong> for each event type to keep logs easy to scan</li>
+        <li>Restrict log channels to <strong>moderators only</strong> — they often contain sensitive message content</li>
+        <li>Pin a brief channel description so moderators know what each log channel covers</li>
+        <li>Consider a <strong>single unified channel</strong> for smaller servers where log volume is low</li>
+        <li>Pair moderation logs with Discord's built-in audit log for the most complete picture</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>Things to Keep in Mind</h3>
+      <ul>
+        <li>Messages deleted before the bot was added to the server <strong>cannot be recovered</strong></li>
+        <li>Discord does not expose who deleted a message unless it was deleted by a moderator — bulk deletes may show as unknown</li>
+        <li>Very long messages are truncated in logs to fit Discord's embed character limits</li>
+        <li>The bot must be online when an event occurs to log it — events during downtime are missed</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: Logs aren't appearing in my channel</h4>
+      <p>A: First confirm a channel is assigned for that event type in the dashboard and that the toggle is enabled. Then check that the bot has "Send Messages" and "Embed Links" permissions in the target channel.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Member leave logs aren't distinguishing kicks from voluntary leaves</h4>
+      <p>A: The bot checks Discord's audit log to identify kicks and bans. Make sure the bot role has "View Audit Log" permission. Without it, all departures will appear as voluntary leaves.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Message delete logs are showing "Content unavailable"</h4>
+      <p>A: Discord does not cache every message. If a message was sent before the bot started watching the channel, or if Discord's cache expired, the original content cannot be retrieved.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I log events to a thread instead of a channel?</h4>
+      <p>A: At this time, log channels must be standard text channels. Thread support may be added in a future update.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Will the bot log its own messages if they're deleted?</h4>
+      <p>A: No. Bot messages are excluded from message delete and edit logs to prevent unnecessary noise.</p>
     </div>
   </section>
 

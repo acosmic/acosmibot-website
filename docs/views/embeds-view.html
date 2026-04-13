@@ -2,19 +2,206 @@
   <header class="docs-page-header">
     <h1>Better Embeds</h1>
     <p class="docs-page-description">
-      Create beautiful rich embeds for announcements and information.
+      Build rich, beautifully formatted embed messages for announcements, information cards, and custom bot responses.
     </p>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Acosmibot's embed builder lets you craft Discord embeds with full control over every visual element — from the color accent to images, footers, and labeled field sections. Embeds are validated before saving so you'll never end up with broken output in your channels.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for the embed builder is currently being prepared. This will cover embed creation, customization options, fields, images, and formatting.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can use the embed builder through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>What You Can Customize</h3>
+      <ul>
+        <li><strong>Title</strong> — The bold heading displayed at the top of the embed</li>
+        <li><strong>Description</strong> — The main body text supporting Discord markdown</li>
+        <li><strong>Color</strong> — A hex color code that sets the left border accent</li>
+        <li><strong>Fields</strong> — Any number of labeled sections, with optional inline layout</li>
+        <li><strong>Thumbnail</strong> — A small image displayed in the top-right corner</li>
+        <li><strong>Image</strong> — A full-width image displayed at the bottom of the embed</li>
+        <li><strong>Author</strong> — Author display name and optional icon</li>
+        <li><strong>Footer</strong> — Small descriptive text shown at the very bottom</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Embed Structure</h2>
+    <p>
+      Embeds are defined using a JSON structure. Below is a reference showing all available fields. Only include the fields you need — every field is optional.
+    </p>
+
+    <div class="code-block"><code>{
+  "title": "Welcome to the Server!",
+  "description": "We're glad you're here. Read the rules and enjoy your stay.",
+  "color": "#5865F2",
+  "author": {
+    "name": "Server Staff",
+    "icon_url": "https://example.com/icon.png"
+  },
+  "thumbnail": {
+    "url": "https://example.com/thumbnail.png"
+  },
+  "fields": [
+    { "name": "Rules", "value": "See #rules for guidelines.", "inline": true },
+    { "name": "Support", "value": "Ask in #help.", "inline": true }
+  ],
+  "image": {
+    "url": "https://example.com/banner.png"
+  },
+  "footer": {
+    "text": "Last updated April 2026"
+  }
+}</code></div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Field Reference</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Limit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>title</code></td>
+          <td>string</td>
+          <td>Bold heading at the top of the embed</td>
+          <td>256 chars</td>
+        </tr>
+        <tr>
+          <td><code>description</code></td>
+          <td>string</td>
+          <td>Main body text; supports Discord markdown</td>
+          <td>4096 chars</td>
+        </tr>
+        <tr>
+          <td><code>color</code></td>
+          <td>hex string</td>
+          <td>Left border accent color (e.g. <code>#FF5733</code>)</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>author.name</code></td>
+          <td>string</td>
+          <td>Author name shown above the title</td>
+          <td>256 chars</td>
+        </tr>
+        <tr>
+          <td><code>author.icon_url</code></td>
+          <td>URL</td>
+          <td>Small icon shown next to the author name</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>thumbnail.url</code></td>
+          <td>URL</td>
+          <td>Small image in the top-right corner</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>fields</code></td>
+          <td>array</td>
+          <td>Labeled sections with name, value, and optional inline flag</td>
+          <td>25 fields</td>
+        </tr>
+        <tr>
+          <td><code>image.url</code></td>
+          <td>URL</td>
+          <td>Full-width image at the bottom of the embed</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><code>footer.text</code></td>
+          <td>string</td>
+          <td>Small text at the very bottom</td>
+          <td>2048 chars</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Inline Fields</h2>
+    <p>
+      When a field has <code>"inline": true</code>, Discord will attempt to display it side-by-side with adjacent inline fields — typically two or three per row depending on screen width. This is useful for compact stat displays or comparison tables.
+    </p>
+
+    <div class="info-card info-card-success">
+      <h3>Inline Layout Tips</h3>
+      <ul>
+        <li>Discord displays up to 3 inline fields per row on desktop</li>
+        <li>A non-inline field always starts a new row</li>
+        <li>Keep inline field values short to avoid layout issues on mobile</li>
+        <li>You can mix inline and non-inline fields freely</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Validation & Saving</h2>
+    <p>
+      Before an embed is saved, Acosmibot validates the JSON structure and field limits. If something is malformed — an invalid hex color, a field that's too long, or a missing required value — you'll receive a clear error message explaining what needs to be fixed.
+    </p>
+
+    <div class="info-card info-card-warning">
+      <h3>Common Validation Errors</h3>
+      <ul>
+        <li>Color must be a valid hex code starting with <code>#</code> (e.g. <code>#5865F2</code>)</li>
+        <li>Image and thumbnail values must be valid HTTPS URLs</li>
+        <li>Field names and values cannot be empty strings</li>
+        <li>Total embed character count cannot exceed 6000</li>
+        <li>Maximum of 25 fields per embed</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Where Embeds Are Used</h2>
+    <p>
+      Embeds can be attached to custom commands so the bot responds with a rich card instead of plain text. They're also used in bot-generated announcements, welcome messages, and automated notifications throughout your server.
+    </p>
+
+    <div class="info-card">
+      <h3>Common Use Cases</h3>
+      <ul>
+        <li>Welcome messages with server rules and links</li>
+        <li>Announcement cards for events or updates</li>
+        <li>Info commands that display structured data neatly</li>
+        <li>Role descriptions or FAQ cards pinned in channels</li>
+        <li>Giveaway or contest announcements</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: Can I use Discord markdown in embed descriptions?</h4>
+      <p>A: Yes. Descriptions and field values support standard Discord markdown including bold, italic, code blocks, and hyperlinks.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I include multiple images?</h4>
+      <p>A: Each embed supports one thumbnail (top-right) and one large image (bottom). To display more, you would need multiple embeds.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Do embeds work on mobile?</h4>
+      <p>A: Yes, though inline field layout and image sizes may render differently on smaller screens. Test your embeds across devices when presentation matters.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Where do I build and save embeds?</h4>
+      <p>A: Embeds are configured through the <a href="/server" target="_blank">/server dashboard</a> embed builder, which includes a live preview so you can see exactly how your embed will look before saving.</p>
     </div>
   </section>
 

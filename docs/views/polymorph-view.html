@@ -2,19 +2,155 @@
   <header class="docs-page-header">
     <h1>Polymorph</h1>
     <p class="docs-page-description">
-      Temporarily transform members with custom names and avatars.
+      Spend credits to change another member's display name in your server — a fun, credit-powered prank with just enough teeth to make it interesting.
     </p>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Polymorph lets members spend credits to rename another member's server nickname. Whether you're pulling a harmless prank on a friend or treating yourself to a fresh identity, Polymorph adds a layer of community-driven fun to your server economy. The target member can't stop it — but it costs you credits, so use it wisely.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
+      <h3>Key Details</h3>
+      <ul>
+        <li>Costs <strong>10,000 credits</strong> to polymorph another member</li>
+        <li>Costs only <strong>1,000 credits</strong> to polymorph yourself</li>
+        <li>10% of the cost is contributed to the guild vault automatically</li>
+        <li>Cannot be used on the server owner</li>
+        <li>Nicknames follow Discord's 32-character limit</li>
+        <li>The bot must have permission to manage nicknames for the target</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/polymorph &lt;user&gt; &lt;new nickname&gt;</div>
+        <div class="command-description">
+          Change the target member's server display name. Costs 10,000 credits if targeting another member, or 1,000 credits if targeting yourself. The new nickname takes effect immediately.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/polymorph @Clint "Lord of the Pings"</code>
+          <code>/polymorph @yourself "New Me"</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Credit Costs</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Credit Cost</th>
+          <th>Guild Vault Contribution</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Polymorph another member</td>
+          <td>10,000 credits</td>
+          <td>1,000 credits (10%)</td>
+        </tr>
+        <tr>
+          <td>Polymorph yourself</td>
+          <td>1,000 credits</td>
+          <td>100 credits (10%)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-card info-card-success">
+      <h3>Guild Vault Contribution</h3>
       <p>
-        Documentation for the polymorph system is currently being prepared. This will cover transformation mechanics, duration settings, permissions, and fun use cases.
+        Every polymorph automatically sends 10% of the credit cost into your server's guild vault. This means community fun directly funds shared server resources — a small but meaningful way every prank gives back.
       </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure polymorph through the <a href="/server" target="_blank">/server dashboard</a>.
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Restrictions & Requirements</h2>
+
+    <div class="info-card info-card-warning">
+      <h3>When Polymorph Won't Work</h3>
+      <ul>
+        <li><strong>Server Owner:</strong> The server owner cannot be polymorphed by anyone</li>
+        <li><strong>Bot Permissions:</strong> Acosmibot must have the "Manage Nicknames" permission and must be ranked above the target member in the server role hierarchy</li>
+        <li><strong>Character Limit:</strong> The new nickname must be 32 characters or fewer — Discord's hard limit</li>
+        <li><strong>Insufficient Credits:</strong> You must have enough credits in your wallet to cover the full cost before the command goes through</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h3>Role Hierarchy Note</h3>
+      <p>
+        Discord enforces a strict role hierarchy for nickname management. Acosmibot can only change the nickname of members whose highest role is ranked <em>below</em> the bot's own role. If you're trying to polymorph a server admin or someone with a high role, make sure Acosmibot's role is positioned above theirs in Server Settings → Roles.
       </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Plays Out</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Choose your target and name</h3>
+          <p>Run <code>/polymorph @member "nickname"</code>. Pick something creative — everyone in the server will see it the moment it applies.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Credits are deducted</h3>
+          <p>10,000 credits (or 1,000 for self) are taken from your wallet. 10% flows automatically into the guild vault. The rest is the price of fun.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Nickname changes instantly</h3>
+          <p>The target member's display name updates immediately across the entire server. The bot posts a confirmation so everyone knows what happened and who's responsible.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: Can the target member change their nickname back?</h4>
+      <p>A: Yes — unless the server has restricted members from changing their own nicknames. A member can always go to Server Settings and update their own display name after being polymorphed.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can an admin reverse a polymorph?</h4>
+      <p>A: Admins can change any member's nickname at any time through standard Discord server management tools, regardless of how the name was set.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Why can't I polymorph the server owner?</h4>
+      <p>A: Discord does not allow any bot or user — regardless of permissions — to change the server owner's nickname. This is a Discord platform restriction.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: What counts toward the 32-character limit?</h4>
+      <p>A: All characters in the nickname string, including spaces, punctuation, and emoji (which can count as multiple characters). The bot will reject nicknames that exceed the limit before spending your credits.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Does the guild vault have a cap?</h4>
+      <p>A: The guild vault accumulates contributions from polymorph and other sources. Check the economy section of your server dashboard to see the current vault balance and how it's used.</p>
     </div>
   </section>
 

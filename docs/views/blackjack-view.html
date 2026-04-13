@@ -2,19 +2,254 @@
   <header class="docs-page-header">
     <h1>Blackjack</h1>
     <p class="docs-page-description">
-      Play classic blackjack against the dealer with credit bets.
+      Play a full-featured game of Blackjack against the dealer using standard casino rules — hit, stand, double down, split pairs, take insurance, or surrender, all with your server credits on the line.
     </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure in /server →
+    </button>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Acosmibot's Blackjack game brings a complete casino-style experience to your Discord server. Members wager server credits against a virtual dealer in a full implementation of the game, including advanced options like splitting pairs, doubling down, insurance, and surrender. Games are played interactively using Discord's button interface — no extra commands needed mid-hand.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for the blackjack game is currently being prepared. This will cover game rules, betting mechanics, card strategies, and payout rates.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure blackjack settings through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Full casino ruleset — Hit, Stand, Double Down, Split, Insurance, Surrender</li>
+        <li>Played with a 6-deck shoe for realistic card distribution</li>
+        <li>Natural Blackjack pays 1.5× your bet</li>
+        <li>Bets from 50 to 10,000 credits per hand</li>
+        <li>Interactive button controls — no extra typing mid-game</li>
+        <li>Dealer stands on 17, hits on 16 or lower</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How to Play</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Place Your Bet</h3>
+          <p>Start a game with <code>/blackjack &lt;bet&gt;</code>, wagering between 50 and 10,000 credits. The credits are immediately deducted from your balance. The dealer and player are each dealt two cards — the dealer's second card is face down (the hole card).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Choose Your Action</h3>
+          <p>Use the interactive buttons that appear below the game embed to take your turn. Depending on your hand and the situation, you may have access to Hit, Stand, Double Down, Split, Insurance, and Surrender. Options that aren't available for your current hand are automatically hidden.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Dealer Plays Out</h3>
+          <p>Once you stand (or bust), the dealer flips their hole card and plays out their hand according to fixed rules: they must hit on 16 or lower and stand on 17 or higher. The dealer does not make strategic choices — their play is fully deterministic.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Result and Payout</h3>
+          <p>The hand closest to 21 without going over wins. Winnings are credited to your balance immediately. A push (tie) returns your original bet. A natural Blackjack on your first two cards pays 1.5× your wager.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/blackjack &lt;bet&gt;</div>
+        <div class="command-description">
+          Start a new Blackjack game with the specified credit bet. Bets must be between 50 and 10,000 credits. You must have enough credits in your balance to cover the bet before the game starts.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/blackjack 100</code>
+          <code>/blackjack 5000</code>
+          <code>/blackjack 10000</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Game Rules Reference</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Deck</strong></td>
+          <td>6-deck shoe, reshuffled each game</td>
+        </tr>
+        <tr>
+          <td><strong>Blackjack Payout</strong></td>
+          <td>1.5× bet (e.g. bet 100, win 150)</td>
+        </tr>
+        <tr>
+          <td><strong>Win Payout</strong></td>
+          <td>1× bet (e.g. bet 100, win 100)</td>
+        </tr>
+        <tr>
+          <td><strong>Push</strong></td>
+          <td>Original bet returned, no win or loss</td>
+        </tr>
+        <tr>
+          <td><strong>Dealer Stands</strong></td>
+          <td>On 17 or higher</td>
+        </tr>
+        <tr>
+          <td><strong>Dealer Hits</strong></td>
+          <td>On 16 or lower</td>
+        </tr>
+        <tr>
+          <td><strong>Double Down</strong></td>
+          <td>Available on first two cards — doubles your bet, one card dealt, then stand</td>
+        </tr>
+        <tr>
+          <td><strong>Split</strong></td>
+          <td>Available when first two cards are a pair — splits into two separate hands</td>
+        </tr>
+        <tr>
+          <td><strong>Insurance</strong></td>
+          <td>Offered when dealer shows an Ace — side bet worth half your original wager</td>
+        </tr>
+        <tr>
+          <td><strong>Surrender</strong></td>
+          <td>Available on first two cards — forfeit the hand and recover half your bet</td>
+        </tr>
+        <tr>
+          <td><strong>Minimum Bet</strong></td>
+          <td>50 credits</td>
+        </tr>
+        <tr>
+          <td><strong>Maximum Bet</strong></td>
+          <td>10,000 credits</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Advanced Actions Explained</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">Double Down</div>
+        <div class="command-description">
+          Available on your first two cards only. Doubles your original bet — you receive exactly one more card and then automatically stand. Best used when you have a strong starting total (9, 10, or 11) and the dealer is showing a weak card.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>Bet: 200 → Double Down → New bet: 400 → One card dealt → Stand</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Split</div>
+        <div class="command-description">
+          Available when your first two cards are a matching pair. Splits your hand into two independent hands, each with its own bet equal to your original wager. Each hand is then played out separately against the dealer.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>Pair of 8s + bet 300 → Split → Two hands of 8, each with 300 bet</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Insurance</div>
+        <div class="command-description">
+          Offered when the dealer's face-up card is an Ace. You can place a side bet worth up to half your original wager. If the dealer has Blackjack, insurance pays 2:1 (covering your main bet loss). If the dealer does not have Blackjack, the insurance bet is lost and the main hand continues.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>Bet: 200 → Insurance: 100 → Dealer has BJ → Insurance pays 200 → Net: even</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">Surrender</div>
+        <div class="command-description">
+          Available on your first two cards only. Forfeit the hand immediately and recover half of your original bet. Useful when you have a bad starting hand against a strong dealer card and want to cut your losses.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>Bet: 400 → Surrender → Lose 200, recover 200</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Strategy Tips</h2>
+
+    <div class="info-card info-card-success">
+      <h3>Basic Strategy Pointers</h3>
+      <ul>
+        <li><strong>Always stand on 17 or higher</strong> — the risk of busting outweighs the potential gain</li>
+        <li><strong>Double down on 11</strong> whenever possible — statistically one of the strongest moves</li>
+        <li><strong>Split Aces and 8s</strong> — Aces give you two strong starts; 8s escape a weak 16</li>
+        <li><strong>Never split 10s</strong> — a 20 is already an excellent hand</li>
+        <li><strong>Use Surrender on 16 vs. dealer 9, 10, or Ace</strong> — cutting losses is the right play here</li>
+        <li><strong>Avoid Insurance</strong> unless you're counting cards — statistically a poor bet over time</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>Common Mistakes to Avoid</h3>
+      <ul>
+        <li>Don't chase losses by betting the maximum on every hand after a losing streak</li>
+        <li>Avoid hitting on 12–16 when the dealer shows a 4, 5, or 6 — let the dealer bust</li>
+        <li>Don't assume the dealer's hole card is always a 10 — play the probabilities, not assumptions</li>
+        <li>Never go all-in on a single hand if your credit balance is tight</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: The game buttons disappeared before I could take my turn</h4>
+      <p>A: Game sessions time out after a period of inactivity to free up resources. If the buttons are gone, the hand has been forfeited. Start a new game with <code>/blackjack</code>.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: I don't have enough credits to play</h4>
+      <p>A: The minimum bet is 50 credits. Earn more credits through the server economy — check commands like <code>/daily</code> or other economy features your server has enabled.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: The Split option isn't showing up even though I have a pair</h4>
+      <p>A: Split requires enough credits to place a second bet equal to your original wager. If your balance is lower than your bet amount, the Split option will not be available.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: What happens to my credits if the bot goes offline mid-game?</h4>
+      <p>A: If a game is interrupted by downtime, the bet may be held until the session clears. Contact server support or wait for the session to expire — credits are not permanently lost.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can multiple people play Blackjack at the same time?</h4>
+      <p>A: Yes — each <code>/blackjack</code> command starts an independent game for that member. Multiple players can have active games simultaneously without interfering with each other.</p>
     </div>
   </section>
 

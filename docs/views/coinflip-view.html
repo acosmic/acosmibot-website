@@ -2,19 +2,160 @@
   <header class="docs-page-header">
     <h1>Coinflip</h1>
     <p class="docs-page-description">
-      Simple 50/50 gambling game - bet on heads or tails.
+      A simple 50/50 bet — pick a side, place your wager, and let the coin decide your fate.
     </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure Coinflip →
+    </button>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Coinflip is the purest gambling game in Acosmibot's economy — no strategy, no house edge tricks, just a straight 50/50 shot. Pick heads or tails, name your price, and double up if the coin lands in your favor. It's fast, simple, and endlessly satisfying (or agonizing).
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
+      <h3>Key Features</h3>
+      <ul>
+        <li>True 50/50 odds — no hidden house advantage</li>
+        <li>Win double your bet on a correct guess</li>
+        <li>10% of losing bets flow into the guild vault</li>
+        <li>Minimum bet of 1 credit keeps it accessible</li>
+        <li>Instant results — no waiting around</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How to Play</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Choose Your Side</h3>
+          <p>Decide between <strong>Heads</strong> or <strong>Tails</strong>. This is your prediction for which side the coin will land on.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Place Your Bet</h3>
+          <p>Enter the amount of credits you want to wager. The minimum bet is <strong>1 credit</strong> and you cannot bet more than your current wallet balance.</p>
+          <div class="code-block">
+            <code>/coinflip Heads 500</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>See the Result</h3>
+          <p>The coin is flipped instantly. If your guess is correct, you win double your bet. If you're wrong, your bet is lost — 10% of it goes to the guild vault.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/coinflip &lt;side&gt; &lt;bet&gt;</div>
+        <div class="command-description">
+          Flip a coin — choose Heads or Tails and place your bet. Win double on a correct guess. Minimum bet is 1 credit.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/coinflip Heads 100</code>
+          <code>/coinflip Tails 2500</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Payouts & Loss Mechanics</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Outcome</th>
+          <th>What Happens</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Win</strong></td>
+          <td>You receive double your bet (net gain = bet amount)</td>
+        </tr>
+        <tr>
+          <td><strong>Loss</strong></td>
+          <td>Your bet is deducted; 10% of it is added to the guild vault</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-card">
+      <h3>🏦 Guild Vault</h3>
       <p>
-        Documentation for the coinflip game is currently being prepared. This will cover betting mechanics, payout rates, and gameplay strategies.
+        The guild vault accumulates credits from losses across all gambling games. Server admins can distribute these funds as event prizes, giveaways, or rewards — creating a natural credit sink that keeps the economy healthy.
       </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure coinflip settings through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Tips</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Playing Smart</h3>
+      <ul>
+        <li>Coinflip is purely luck — no strategy changes the odds</li>
+        <li>Use smaller bets to stretch your credits further across many flips</li>
+        <li>Bank a portion of your winnings after a big flip to protect your gains</li>
+        <li>Don't chase losses — the odds reset to 50/50 every single flip</li>
+        <li>Great for settling friendly disputes between members too!</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: The command says I don't have enough credits</h4>
+      <p>A: Your bet cannot exceed your wallet balance. Use <code>/balance</code> to check your current credits. If you have credits in the bank, use <code>/withdraw</code> first.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: I bet below the minimum and got an error</h4>
+      <p>A: The minimum bet is 1 credit. Make sure your bet amount is at least 1.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Is coinflip truly 50/50?</h4>
+      <p>A: Yes. Each flip is an independent random result with equal probability for heads and tails. Previous outcomes have no effect on the next flip.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Where does the 10% from my loss go?</h4>
+      <p>A: It goes to the server's guild vault. Server admins control how those funds are used — typically for events or community giveaways.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Related Games</h2>
+    <p>Looking for more ways to test your luck?</p>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('deathroll')">Deathroll →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('slots')">Slots →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('blackjack')">Blackjack →</button>
+      <button class="btn-secondary" onclick="window.DocsRouter.navigate('lottery')">Lottery →</button>
     </div>
   </section>
 

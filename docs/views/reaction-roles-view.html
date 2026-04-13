@@ -2,19 +2,179 @@
   <header class="docs-page-header">
     <h1>Reaction Roles</h1>
     <p class="docs-page-description">
-      Let members assign themselves roles by reacting to messages.
+      Let members self-assign roles by reacting to a message, clicking a button, or choosing from a dropdown — no admin intervention required.
     </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure Reaction Roles →
+    </button>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Reaction Roles let your members take control of their own role assignments. Instead of admins manually handing out roles, members can pick the ones that apply to them — whether that's game preferences, notification opt-ins, color roles, or anything else you can imagine. Set it up once and it just works.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for reaction roles is currently being prepared. This will cover setup, emoji configuration, role limits, and best practices.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure reaction roles through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Three interaction types: emoji reactions, buttons, and dropdowns</li>
+        <li>One emoji or button can assign multiple roles simultaneously</li>
+        <li>Toggle role removal on or off per configuration</li>
+        <li>Works with any roles the bot has permission to manage</li>
+        <li>Fully configured through the dashboard — no commands needed</li>
+        <li>Changes apply instantly without restarting the bot</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Interaction Types</h2>
+
+    <div class="info-card">
+      <h3>🎭 Emoji Reactions</h3>
+      <p>Members react to a designated message with a specific emoji to receive the mapped role. Remove the reaction to remove the role (if role removal is enabled in your configuration). This is the classic reaction roles experience.</p>
+    </div>
+
+    <div class="info-card">
+      <h3>🔘 Buttons</h3>
+      <p>The bot posts a message with clickable buttons. Members click a button to toggle their role on or off. Buttons are more visually prominent than reactions and work well for servers with members who might miss small emoji options.</p>
+    </div>
+
+    <div class="info-card">
+      <h3>📋 Dropdowns</h3>
+      <p>A dropdown (select menu) is attached to a message. Members open the menu and pick from a list of available roles. Great for servers with many role options — keeps the interface clean and organized.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Setup</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Open the Dashboard</h3>
+          <p>Go to your <a href="/server" target="_blank">server dashboard</a> and navigate to the Reaction Roles section. This is where all your reaction role configurations live.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Choose an Interaction Type</h3>
+          <p>Select whether you want to use <strong>Emoji Reactions</strong>, <strong>Buttons</strong>, or a <strong>Dropdown</strong> for this configuration. Each type suits different use cases.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Configure the Mapping</h3>
+          <p>Specify the target message, then map each emoji, button, or dropdown option to one or more roles. A single interaction can assign multiple roles at once.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Set Role Removal Behavior</h3>
+          <p>Decide whether removing the reaction (or clicking again) should also remove the role. You can toggle this on or off per configuration depending on your use case.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Save and Go Live</h3>
+          <p>Save your configuration from the dashboard. The reaction role goes live immediately — no bot restart needed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration Options</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Interaction Type</strong></td>
+          <td>Emoji reaction, button, or dropdown</td>
+        </tr>
+        <tr>
+          <td><strong>Target Message</strong></td>
+          <td>The message members interact with to receive roles</td>
+        </tr>
+        <tr>
+          <td><strong>Emoji / Label</strong></td>
+          <td>The emoji to react with, or the button/option label</td>
+        </tr>
+        <tr>
+          <td><strong>Role(s)</strong></td>
+          <td>One or more roles assigned by this interaction</td>
+        </tr>
+        <tr>
+          <td><strong>Role Removal</strong></td>
+          <td>Whether un-reacting or re-clicking removes the role</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Best Practices</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Tips for a Great Setup</h3>
+      <ul>
+        <li>Pin your reaction role message so members can always find it</li>
+        <li>Use descriptive button labels or emoji that clearly indicate the role</li>
+        <li>Group related roles together in one message for a cleaner experience</li>
+        <li>Use dropdowns when you have more than 5–6 role options to keep things tidy</li>
+        <li>Test your setup in a private channel before publishing to the server</li>
+        <li>Make sure the bot's role is higher than the roles it needs to assign</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>⚠️ Bot Permission Requirements</h3>
+      <p>The bot can only assign roles that are <strong>lower</strong> in the role hierarchy than its own highest role. If the bot can't assign a role, check that the bot's role sits above the target role in <strong>Server Settings → Roles</strong>.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: Members react but don't receive the role</h4>
+      <p>A: Check that the bot has the <strong>Manage Roles</strong> permission and that its role is positioned above the target role in the server's role hierarchy.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Removing a reaction doesn't remove the role</h4>
+      <p>A: Role removal must be enabled in your reaction role configuration on the dashboard. Check that setting and save the configuration again.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: The bot's reactions disappeared from the message</h4>
+      <p>A: This can happen if the bot lost the <strong>Add Reactions</strong> or <strong>Read Message History</strong> permission in that channel. Restore those permissions and the bot will re-add its reactions.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can one emoji assign more than one role?</h4>
+      <p>A: Yes! A single emoji, button, or dropdown option can be mapped to multiple roles at once. Configure this from the dashboard when setting up the mapping.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I use custom server emojis?</h4>
+      <p>A: Yes. The bot supports both standard Unicode emojis and custom server emojis for reaction-type configurations.</p>
     </div>
   </section>
 

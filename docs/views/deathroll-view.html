@@ -2,19 +2,187 @@
   <header class="docs-page-header">
     <h1>Deathroll</h1>
     <p class="docs-page-description">
-      Challenge other members to high-stakes dice rolling duels.
+      A head-to-head betting duel where two players take turns rolling a shrinking die. One wrong roll ends it all.
     </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure Deathroll →
+    </button>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Deathroll is Acosmibot's most intense gambling game — a tense, back-and-forth duel between two players. The stakes are high, the rolls keep shrinking, and one unlucky 1 ends it all. Challenge a friend, accept the risk, and may the odds be with you.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for the deathroll game is currently being prepared. This will cover game mechanics, challenge systems, betting rules, and winning strategies.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure deathroll settings through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Head-to-head PvP betting — challenge any server member</li>
+        <li>Shrinking roll range creates mounting tension each turn</li>
+        <li>Interactive button prompt for the challenged player to accept</li>
+        <li>120-second acceptance window before the challenge expires</li>
+        <li>Minimum bet of 100 credits</li>
+        <li>Loser pays the winner the full bet amount</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How to Play</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Issue the Challenge</h3>
+          <p>Use <code>/deathroll</code> to challenge another member and specify the bet amount. The minimum wager is <strong>100 credits</strong>. Both players must have enough credits to cover the bet.</p>
+          <div class="code-block">
+            <code>/deathroll @username 500</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Accept the Challenge</h3>
+          <p>The challenged player receives a message with an <strong>Accept</strong> button. They have <strong>120 seconds</strong> to accept. If they don't respond in time, the challenge expires and no credits are exchanged.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Take Turns Rolling</h3>
+          <p>The game begins with a roll range of <strong>1 to the bet amount</strong>. The challenger rolls first. Whatever number they roll becomes the new maximum for the next roll. Players alternate turns.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Survive the 1</h3>
+          <p>The first player to roll a <strong>1</strong> loses the game and pays the full bet to their opponent. As the range shrinks, the chance of rolling a 1 increases — the final rolls are the most nerve-wracking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/deathroll &lt;user&gt; &lt;bet&gt;</div>
+        <div class="command-description">
+          Challenge another member to a Deathroll duel for the specified credit amount. Both players must have sufficient credits. Minimum bet is 100 credits.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/deathroll @Clint 100</code>
+          <code>/deathroll @username 5000</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Game Rules</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Starting Range</strong></td>
+          <td>1 to the bet amount (e.g., bet 500 → first roll is 1–500)</td>
+        </tr>
+        <tr>
+          <td><strong>Roll Shrink</strong></td>
+          <td>Each roll result becomes the new maximum for the next player's roll</td>
+        </tr>
+        <tr>
+          <td><strong>Losing Condition</strong></td>
+          <td>Rolling a 1 — that player loses the full bet</td>
+        </tr>
+        <tr>
+          <td><strong>Minimum Bet</strong></td>
+          <td>100 credits</td>
+        </tr>
+        <tr>
+          <td><strong>Acceptance Window</strong></td>
+          <td>120 seconds — challenge expires if not accepted</td>
+        </tr>
+        <tr>
+          <td><strong>Turn Order</strong></td>
+          <td>The challenger rolls first</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Example Round</h2>
+
+    <div class="info-card">
+      <h3>🎲 Sample Game (500 credit bet)</h3>
+      <ul>
+        <li><strong>Player A</strong> rolls 1–500 → lands on <strong>312</strong></li>
+        <li><strong>Player B</strong> rolls 1–312 → lands on <strong>87</strong></li>
+        <li><strong>Player A</strong> rolls 1–87 → lands on <strong>14</strong></li>
+        <li><strong>Player B</strong> rolls 1–14 → lands on <strong>3</strong></li>
+        <li><strong>Player A</strong> rolls 1–3 → lands on <strong>1</strong> 💀 — Player A loses!</li>
+        <li>Player B wins 500 credits.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Tips & Strategy</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Playing Smart</h3>
+      <ul>
+        <li>Higher bets increase the starting range, giving more room before the pressure builds</li>
+        <li>There's no guaranteed strategy — luck dominates once the range gets small</li>
+        <li>Only challenge players who have enough credits to cover the bet</li>
+        <li>Watch the range carefully — when it drops below 10, every roll matters enormously</li>
+        <li>Accept challenges quickly — you only have 120 seconds before it expires</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>⚠️ Credit Requirements</h3>
+      <p>Both you and your opponent must have enough credits in your wallet (not the bank) to cover the full bet before the game can start. Withdraw from the bank if needed using <code>/withdraw</code>.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: My challenge expired — what happened to my credits?</h4>
+      <p>A: No credits are exchanged when a challenge expires. The 120-second window passed without your opponent accepting, so everything stays as-is.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I challenge a bot or myself?</h4>
+      <p>A: No. Deathroll requires two real, distinct server members. You cannot challenge yourself or bots.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: My opponent doesn't have enough credits — can we still play?</h4>
+      <p>A: No. Both players must have the full bet amount available in their wallet. The bot will inform you if either player's balance is insufficient.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I cancel a challenge after sending it?</h4>
+      <p>A: Challenges expire automatically after 120 seconds if not accepted. There is no manual cancel button — just wait it out.</p>
     </div>
   </section>
 

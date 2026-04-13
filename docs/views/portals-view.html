@@ -2,19 +2,212 @@
   <header class="docs-page-header">
     <h1>Cross-Server Portals</h1>
     <p class="docs-page-description">
-      Connect channels across different Discord servers for cross-server communication.
+      Open a temporary communication bridge between two Discord servers and let communities talk to each other in real time.
     </p>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Cross-Server Portals let any two servers with Acosmibot open a live two-minute communication session. Messages sent through the portal are relayed between both servers instantly — it's like a direct phone line between communities. Portals are credit-powered, making each connection a meaningful interaction rather than background noise.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for cross-server portals is currently being prepared. This will cover portal creation, linking channels, moderation, and privacy settings.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure portals through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Two-minute real-time messaging sessions between servers</li>
+        <li>Messages flow both directions — both communities can participate</li>
+        <li>Searchable portal directory for discovering other servers</li>
+        <li>Credit cost per connection (configurable per server)</li>
+        <li>Admins can control portal availability, channel, and visibility</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Find a server</h3>
+          <p>Use <code>/portal-search</code> to browse the public portal directory. Any server that has opted into public listing will appear here. Search by name or topic to find communities you want to connect with.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Open a portal</h3>
+          <p>Run <code>/portal-open &lt;server id&gt;</code> to initiate the connection. This spends credits from your balance (default 1,000, but each server can set their own cost). The portal opens immediately if the target server has portals enabled.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Communicate</h3>
+          <p>Use <code>/portal-send &lt;message&gt;</code> to send messages through the active portal. Both servers see every message relayed in real time in their designated portal channel. The session lasts two minutes.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Portal closes</h3>
+          <p>After two minutes the portal automatically closes. You can also close it early with <code>/portal-close</code>. Credits are spent on open — there's no refund for closing early.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/portal-search &lt;query&gt;</div>
+        <div class="command-description">
+          Search the directory of servers that have made their portal publicly visible. Returns a list of matching servers with their display names and portal credit costs.
+        </div>
+        <div class="command-examples">
+          <h4>Examples:</h4>
+          <code>/portal-search gaming</code>
+          <code>/portal-search anime</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/portal-open &lt;server id&gt;</div>
+        <div class="command-description">
+          Open a portal to another server using its Discord server ID. Spends credits from your balance. The default cost is 1,000 credits, though each server can configure their own rate.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/portal-open 123456789012345678</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/portal-send &lt;message&gt;</div>
+        <div class="command-description">
+          Send a message through the currently active portal. The message is relayed to the other server's portal channel in real time.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/portal-send Hey from our server! Anyone want to play tonight?</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/portal-status</div>
+        <div class="command-description">
+          Check whether a portal is currently open in this server and see how much time remains in the session.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/portal-status</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/portal-close</div>
+        <div class="command-description">
+          Close the active portal session early. Both servers are notified that the portal has closed. Credits are not refunded for early closure.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/portal-close</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Server Configuration (Admin)</h2>
+    <p>
+      Server administrators can control exactly how portals work in their community. All portal settings are managed through the <a href="/server" target="_blank">/server dashboard</a>.
+    </p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Enable / Disable Portals</td>
+          <td>Turn portal functionality on or off for your server entirely</td>
+        </tr>
+        <tr>
+          <td>Portal Channel</td>
+          <td>Designate which channel receives and displays incoming portal messages</td>
+        </tr>
+        <tr>
+          <td>Public Listing</td>
+          <td>Opt in to the portal directory so other servers can find and connect to you</td>
+        </tr>
+        <tr>
+          <td>Display Name</td>
+          <td>Set a custom name shown in search results (defaults to your server name)</td>
+        </tr>
+        <tr>
+          <td>Credit Cost</td>
+          <td>Configure how many credits it costs for another server to open a portal to yours</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-card info-card-success">
+      <h3>Getting Listed in the Directory</h3>
+      <ul>
+        <li>Enable portals in your server dashboard</li>
+        <li>Designate a portal channel where messages will appear</li>
+        <li>Toggle "Public Listing" to appear in <code>/portal-search</code> results</li>
+        <li>Set a friendly display name so other communities recognize you</li>
+        <li>Optionally adjust the credit cost to open a portal to your server</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Credits & Costs</h2>
+    <p>
+      Opening a portal costs the initiating user credits. The default cost is <strong>1,000 credits</strong>, but each server can set their own price for incoming portals. Check a server's cost with <code>/portal-search</code> before connecting.
+    </p>
+
+    <div class="info-card info-card-warning">
+      <h3>Credit Spending Notes</h3>
+      <ul>
+        <li>Credits are deducted from the user who runs <code>/portal-open</code></li>
+        <li>Credits are spent at the moment the portal opens — not refunded if closed early</li>
+        <li>Each server sets their own incoming portal cost independently</li>
+        <li>Only one portal can be active per server at a time</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: Can both servers see who sent each message?</h4>
+      <p>A: Yes. Relayed messages include the sender's display name and server so both communities know who they're talking to.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: What happens if a server has portals disabled?</h4>
+      <p>A: You won't be able to open a portal to that server, and it won't appear in the public directory. The command will return an error if you try to connect using its server ID directly.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can admins moderate portal messages?</h4>
+      <p>A: Admins can close the portal at any time with <code>/portal-close</code> and can disable portals entirely from the dashboard if a connection becomes problematic.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Is there a cooldown between portals?</h4>
+      <p>A: Only one portal can be active per server at a time. Once a session ends, you can open a new one immediately.</p>
     </div>
   </section>
 

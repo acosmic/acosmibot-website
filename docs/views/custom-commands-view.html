@@ -2,19 +2,215 @@
   <header class="docs-page-header">
     <h1>Custom Commands</h1>
     <p class="docs-page-description">
-      Create your own custom bot commands with text responses and actions.
+      Create your own commands with text or rich embed responses — give your server a personal touch without writing any code.
     </p>
+    <button id="configureInServerBtn" class="btn-configure" style="display: none;">
+      Configure Custom Commands →
+    </button>
   </header>
 
   <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Custom Commands let you define your own bot responses triggered by a prefix and a name you choose. Whether it's a quick FAQ answer, a server rules summary, a fun catchphrase, or a beautifully formatted embed with your server's branding — if members type the command, the bot delivers the response instantly.
+    </p>
+
     <div class="info-card info-card-info">
-      <h3>📝 Coming Soon</h3>
-      <p>
-        Documentation for custom commands is currently being prepared. This will cover command creation, placeholders, permissions, and advanced features.
-      </p>
-      <p style="margin-top: 12px;">
-        In the meantime, you can configure custom commands through the <a href="/server" target="_blank">/server dashboard</a>.
-      </p>
+      <h3>Key Features</h3>
+      <ul>
+        <li>Trigger commands with a prefix (typically <code>!</code>) and a name you define</li>
+        <li>Two response types: plain text or rich Discord embeds</li>
+        <li>Embeds support title, description, color, fields, thumbnail, image, author, and footer</li>
+        <li>Changes take effect immediately — no bot restart needed</li>
+        <li>Free tier: 1 custom command per server</li>
+        <li>Premium tier: up to 25 custom commands per server</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Open the Dashboard</h3>
+          <p>Navigate to your <a href="/server" target="_blank">server dashboard</a> and open the Custom Commands section. This is where you create and manage all your commands.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Create a New Command</h3>
+          <p>Give your command a name — this is what members type after the prefix. For example, a command named <code>rules</code> is triggered by typing <code>!rules</code> in chat.</p>
+          <div class="code-block">
+            <code>!rules</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Choose a Response Type</h3>
+          <p>Select <strong>Text</strong> for a simple message, or <strong>Embed</strong> for a rich, formatted response. Embeds let you add a title, color, fields, images, and more.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Write Your Response</h3>
+          <p>For text responses, type your message. For embeds, fill in whichever fields you need — all embed fields are optional except the description. The preview in the dashboard shows exactly how it will look.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Save and Use It</h3>
+          <p>Save the command from the dashboard. It's live instantly — members can use it in any channel the bot has access to right away.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Response Types</h2>
+
+    <div class="info-card">
+      <h3>💬 Text Response</h3>
+      <p>A plain text message sent by the bot when the command is triggered. Fast and simple — perfect for short answers, links, or quick information like a server invite or social media handle.</p>
+      <div class="code-block">
+        <code>Our Discord rules can be found in #rules. Please read them before posting!</code>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>🎨 Embed Response</h3>
+      <p>A rich Discord embed with full formatting support. Use embeds when you want your response to stand out or convey structured information clearly.</p>
+      <ul>
+        <li><strong>Title</strong> — Bold heading at the top of the embed</li>
+        <li><strong>Description</strong> — Main body text (supports Discord markdown)</li>
+        <li><strong>Color</strong> — Left-border accent color of the embed</li>
+        <li><strong>Fields</strong> — Labeled sections, optionally displayed inline</li>
+        <li><strong>Thumbnail</strong> — Small image in the top-right corner</li>
+        <li><strong>Image</strong> — Large image below the description</li>
+        <li><strong>Author</strong> — Name and icon shown above the title</li>
+        <li><strong>Footer</strong> — Small text and icon at the bottom</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Tiers &amp; Limits</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Custom Commands Limit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Free</strong></td>
+          <td>1 custom command per server</td>
+        </tr>
+        <tr>
+          <td><strong>Premium</strong></td>
+          <td>25 custom commands per server</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-card info-card-success">
+      <h3>✨ Going Premium</h3>
+      <p>Upgrade to Premium to unlock up to 25 custom commands — enough to build a full self-service FAQ, welcome guide, role info pages, and more. Check out the <a href="/premium" target="_blank">Premium page</a> for details.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configuration</h2>
+    <p>Custom commands are managed entirely through the <a href="/server" target="_blank">server dashboard</a>. There are no slash commands for creating or editing them.</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Command Name</strong></td>
+          <td>The word members type after the prefix to trigger the command</td>
+        </tr>
+        <tr>
+          <td><strong>Prefix</strong></td>
+          <td>The character that precedes the command name (default: <code>!</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Response Type</strong></td>
+          <td>Text or Embed</td>
+        </tr>
+        <tr>
+          <td><strong>Response Content</strong></td>
+          <td>The message or embed data returned when the command is used</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Best Practices</h2>
+
+    <div class="info-card info-card-success">
+      <h3>💡 Tips for Great Custom Commands</h3>
+      <ul>
+        <li>Keep command names short and intuitive — members shouldn't have to guess</li>
+        <li>Pin a message listing your server's custom commands so members know they exist</li>
+        <li>Use embeds for longer responses — they're easier to read than walls of text</li>
+        <li>Use the color field in embeds to match your server's branding</li>
+        <li>Avoid special characters or spaces in command names — stick to letters and hyphens</li>
+        <li>Update commands from the dashboard whenever information changes; it's instant</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>⚠️ Command Name Conflicts</h3>
+      <p>Custom command names cannot conflict with Acosmibot's built-in slash commands. If a name is already in use, choose a different one or make it unique (e.g., <code>!server-rules</code> instead of <code>!rules</code>).</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: I typed the command but the bot didn't respond</h4>
+      <p>A: Make sure you're using the correct prefix (default <code>!</code>) and the exact command name as configured. Also confirm the bot has permission to read messages and send messages in that channel.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: I can't create more commands — it says I've hit the limit</h4>
+      <p>A: Free servers are limited to 1 custom command. Upgrade to Premium to create up to 25. If you're already on Premium and at 25, consider combining related commands into a single embed with multiple fields.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: My embed looks different in the dashboard preview versus Discord</h4>
+      <p>A: Minor rendering differences can occur between the dashboard preview and Discord's client. The structure and content will always match — only subtle visual details may vary slightly.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I restrict a custom command to certain channels or roles?</h4>
+      <p>A: Custom commands currently respond in any channel the bot can read and write in. To limit usage, restrict the bot's channel permissions to only the channels where you want commands available.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can members trigger custom commands in DMs?</h4>
+      <p>A: No. Custom commands only work in server channels where the bot is present.</p>
     </div>
   </section>
 
