@@ -63,7 +63,7 @@ export const GuildSelectPage: React.FC = () => {
               <p className="text-muted mb-4">No servers found where you have permissions.</p>
               <button 
                 className="btn primary py-3 px-5" 
-                onClick={() => window.open('https://discord.com/api/oauth2/authorize?client_id=1089620593718136894&permissions=8&scope=bot%20applications.commands', '_blank')}
+                onClick={() => window.open('https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot', '_blank')}
               >
                 Invite Acosmibot to a Server
               </button>

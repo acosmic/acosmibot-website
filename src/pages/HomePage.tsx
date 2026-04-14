@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth';
 import '@/styles/home.css';
 
-const DISCORD_INVITE = 'https://discord.com/api/oauth2/authorize?client_id=1089620593718136894&permissions=8&scope=bot%20applications.commands';
+const DISCORD_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 const BTC_ADDRESS = '3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS';
 
 export const HomePage: React.FC = () => {
