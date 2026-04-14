@@ -1,9 +1,13 @@
 import { useAuthStore } from '@/store/auth';
 
+const getApiBase = (): string =>
+  (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = useAuthStore.getState().token;
-  
-  const response = await fetch(path, {
+  const url = path.startsWith('http') ? path : `${getApiBase()}${path}`;
+
+  const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
