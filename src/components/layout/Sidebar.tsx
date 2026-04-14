@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 
 interface NavItemProps {
@@ -54,26 +55,58 @@ const NavSection: React.FC<{ title: string; children: React.ReactNode }> = ({ ti
 export const Sidebar: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { guilds, setSelectedGuildId } = useGuildStore();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleGuildClick = (id: string) => {
+    setSelectedGuildId(id);
+    navigate(`/server/${id}/overview`);
+  };
 
   return (
     <div className="d-flex h-100">
       {/* Guild Selector */}
-      <aside className="guild-selector-sidebar" style={{ 
-        width: '72px', 
-        background: '#151515', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
+      <aside className="guild-selector-sidebar" style={{
+        width: '72px',
+        background: '#151515',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         padding: '12px 0',
         gap: '8px',
         borderRight: '1px solid var(--border-light)'
       }}>
+        {/* User avatar at top */}
+        {user && (
+          <div
+            title={`${user.global_name || user.username} — click to log out`}
+            onClick={logout}
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundImage: user.avatar
+                ? `url(https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png)`
+                : 'none',
+              backgroundSize: 'cover',
+              backgroundColor: '#2b2d31',
+              cursor: 'pointer',
+              flexShrink: 0,
+              marginBottom: '4px',
+            }}
+          />
+        )}
+
+        {/* Divider */}
+        <div style={{ width: '32px', height: '2px', background: 'var(--border-light)', flexShrink: 0 }} />
+
+        {/* Guild icons */}
         {guilds.map(guild => (
-          <div 
+          <div
             key={guild.id}
             className={`guild-icon ${guild.id === guildId ? 'active' : ''}`}
             title={guild.name}
-            onClick={() => setSelectedGuildId(guild.id)}
+            onClick={() => handleGuildClick(guild.id)}
             style={{
               width: '48px',
               height: '48px',
@@ -88,7 +121,8 @@ export const Sidebar: React.FC = () => {
               justifyContent: 'center',
               color: 'white',
               fontSize: '18px',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              flexShrink: 0,
             }}
           >
             {!guild.icon && guild.name.charAt(0).toUpperCase()}
@@ -97,9 +131,9 @@ export const Sidebar: React.FC = () => {
       </aside>
 
       {/* Navigation Sidebar */}
-      <aside className="navigation-sidebar" style={{ 
-        width: '240px', 
-        background: '#2b2d31', 
+      <aside className="navigation-sidebar" style={{
+        width: '280px',
+        background: '#2b2d31',
         overflowY: 'auto',
         padding: '16px 0'
       }}>

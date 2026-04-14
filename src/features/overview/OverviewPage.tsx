@@ -1,12 +1,14 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth';
+import { useGuildStore } from '@/store/guild';
 import { useOverviewStats } from './useOverviewStats';
 import { LoadingSpinner } from '@/components/ui';
 
 export const OverviewPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { user } = useAuthStore();
+  const { currentGuild } = useGuildStore();
   const { userStats, guildStats, isLoading } = useOverviewStats(guildId!, user?.id || '');
 
   if (isLoading) return <LoadingSpinner />;
@@ -101,6 +103,34 @@ export const OverviewPage: React.FC = () => {
         </div>
 
         <div className="col-md-4">
+          {currentGuild && (
+            <div className="card p-4 mb-4 d-flex flex-row align-items-center gap-3">
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '12px',
+                backgroundImage: currentGuild.icon
+                  ? `url(https://cdn.discordapp.com/icons/${currentGuild.id}/${currentGuild.icon}.png)`
+                  : 'none',
+                backgroundSize: 'cover',
+                backgroundColor: 'var(--bg-tertiary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                color: 'white',
+                flexShrink: 0,
+              }}>
+                {!currentGuild.icon && currentGuild.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="fw-bold fs-6">{currentGuild.name}</div>
+                <div className="small text-muted">{guildStats?.member_count?.toLocaleString() ?? '-'} members</div>
+              </div>
+            </div>
+          )}
+
           <div className="card p-4 mb-4">
             <h3 className="mb-4">Quick Links</h3>
             <div className="d-grid gap-2">
