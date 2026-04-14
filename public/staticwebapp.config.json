@@ -7,23 +7,10 @@
       "/scripts/*.js",
       "/assets/*",
       "/*.{png,jpg,ico,webmanifest}",
-      "/cdn-cgi/*"
+      "/cdn-cgi/*",
+      "/docs/views/*.html"
     ]
   },
-  "routes": [
-    { "route": "/server",              "rewrite": "/server/index.html" },
-    { "route": "/server/views/*.html" },
-    { "route": "/server/*",            "rewrite": "/server/index.html" },
-    { "route": "/docs",                "rewrite": "/docs/index.html" },
-    { "route": "/docs/views/*.html" },
-    { "route": "/docs/*",              "rewrite": "/docs/index.html" },
-    { "route": "/dashboard",           "rewrite": "/dashboard/index.html" },
-    { "route": "/dashboard/dashboard.css" },
-    { "route": "/dashboard/dashboard.js" },
-    { "route": "/dashboard/*",         "rewrite": "/dashboard/index.html" },
-    { "route": "/leaderboards",   "rewrite": "/leaderboards/index.html" },
-    { "route": "/leaderboards/*", "rewrite": "/leaderboards/index.html" }
-  ],
   "responseOverrides": {
     "404": {
       "rewrite": "/index.html",
