@@ -3,21 +3,20 @@ import { api } from '@/api/client';
 
 export interface UserStats {
   level: number;
-  credits: number;
+  currency: number;
   rank: number;
   messages: number;
   reactions: number;
-  experience: number;
-  member_since: string;
+  exp: number;
+  joined_at: string;
 }
 
 export interface GuildStats {
-  total_members: number;
-  active_members: number;
+  member_count: number;
+  total_active_members: number;
   total_messages: number;
   total_reactions: number;
-  total_commands: number;
-  top_active_channels: Array<{ id: string; name: string; count: number }>;
+  guild_name: string;
 }
 
 export function useOverviewStats(guildId: string, userId: string) {

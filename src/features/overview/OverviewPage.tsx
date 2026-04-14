@@ -51,7 +51,7 @@ export const OverviewPage: React.FC = () => {
                 </div>
                 <div className="col-6 col-md-3">
                   <div className="p-3 rounded bg-tertiary text-center border border-light">
-                    <div className="fs-4 fw-bold text-primary">{userStats?.credits?.toLocaleString() || '-'}</div>
+                    <div className="fs-4 fw-bold text-primary">{userStats?.currency?.toLocaleString() || '-'}</div>
                     <div className="small text-muted">Credits</div>
                   </div>
                 </div>
@@ -63,7 +63,7 @@ export const OverviewPage: React.FC = () => {
                 </div>
                 <div className="col-6 col-md-3">
                   <div className="p-3 rounded bg-tertiary text-center border border-light">
-                    <div className="fs-4 fw-bold text-primary">{userStats?.experience?.toLocaleString() || '-'}</div>
+                    <div className="fs-4 fw-bold text-primary">{userStats?.exp?.toLocaleString() || '-'}</div>
                     <div className="small text-muted">Total XP</div>
                   </div>
                 </div>
@@ -78,11 +78,11 @@ export const OverviewPage: React.FC = () => {
                 <div className="col-md-6">
                   <div className="d-flex justify-content-between mb-2">
                     <span className="text-muted">Total Members</span>
-                    <span className="fw-bold">{guildStats?.total_members || 'Loading...'}</span>
+                    <span className="fw-bold">{guildStats?.member_count?.toLocaleString() || '-'}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span className="text-muted">Active (24h)</span>
-                    <span className="fw-bold text-success">{guildStats?.active_members || '-'}</span>
+                    <span className="text-muted">Active Members</span>
+                    <span className="fw-bold text-success">{guildStats?.total_active_members?.toLocaleString() || '-'}</span>
                   </div>
                   <div className="d-flex justify-content-between">
                     <span className="text-muted">Total Messages</span>
@@ -90,22 +90,9 @@ export const OverviewPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="col-md-6">
-                  <h4 className="fs-6 mb-3">Top Active Channels</h4>
-                  <div className="channels-activity">
-                    {guildStats?.top_active_channels?.map((channel: any, idx: number) => (
-                      <div key={idx} className="mb-2">
-                        <div className="d-flex justify-content-between small mb-1">
-                          <span>#{channel.name}</span>
-                          <span>{channel.count} msgs</span>
-                        </div>
-                        <div className="progress" style={{ height: '4px', background: 'var(--bg-tertiary)' }}>
-                          <div 
-                            className="progress-bar bg-primary" 
-                            style={{ width: `${(channel.count / guildStats.total_messages) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    )) || <p className="text-muted small">No channel data available.</p>}
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Total Reactions</span>
+                    <span className="fw-bold">{guildStats?.total_reactions?.toLocaleString() || '-'}</span>
                   </div>
                 </div>
               </div>

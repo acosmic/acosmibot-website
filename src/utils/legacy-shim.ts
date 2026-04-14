@@ -3,6 +3,7 @@ import { useGuildStore } from '@/store/guild';
 
 export function setupLegacyShim() {
   (window as any).DashboardCore = {
+    API_BASE_URL: (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com',
     state: {
       get guildConfig() {
         return (window as any).DashboardState.getGuildConfig();
