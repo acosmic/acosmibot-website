@@ -16,21 +16,28 @@ interface AuthState {
   logout: () => void;
 }
 
+// Read from either key — the old vanilla dashboard stores as 'discord_token'
+const storedToken =
+  localStorage.getItem('auth_token') || localStorage.getItem('discord_token');
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: localStorage.getItem('auth_token'),
-  isAuthenticated: !!localStorage.getItem('auth_token'),
+  token: storedToken,
+  isAuthenticated: !!storedToken,
   setUser: (user) => set({ user }),
   setToken: (token) => {
     if (token) {
       localStorage.setItem('auth_token', token);
+      localStorage.setItem('discord_token', token); // keep old dashboard in sync
     } else {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('discord_token');
     }
     set({ token, isAuthenticated: !!token });
   },
   logout: () => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('discord_token');
     set({ user: null, token: null, isAuthenticated: false });
   },
 }));
