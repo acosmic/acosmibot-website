@@ -3,7 +3,8 @@ import type { Guild, Channel, Role } from '@/types/guild';
 
 export const guildApi = {
   getGuilds: () =>
-    api.fetch<Guild[]>('/api/user/guilds'),
+    api.fetch<{ success: boolean; guilds: Guild[] }>('/api/user/guilds')
+      .then(r => r.guilds ?? []),
 
   getGuild: (guildId: string) =>
     api.fetch<Guild>(`/api/guilds/${guildId}`),
