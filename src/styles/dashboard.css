@@ -1,0 +1,416 @@
+/* Dashboard layout — ported from public/styles/guild-dashboard-new.css
+   Global resets (*, body) are intentionally omitted; they live in globals.css */
+
+/* ============================================
+   GUILD SELECTOR SIDEBAR (Far Left)
+   ============================================ */
+
+.guild-selector-sidebar {
+  width: 72px;
+  min-width: 72px;
+  max-width: 72px;
+  background: #1A1A1A;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  height: calc(100vh - 56px);
+  padding: 16px 0;
+  position: fixed;
+  left: 0;
+  top: 56px;
+  z-index: 90;
+}
+
+.guild-selector-user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  background-size: cover;
+  background-position: center;
+  margin: 0 auto 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+}
+
+.guild-selector-user-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.guild-selector-divider {
+  width: 32px;
+  height: 2px;
+  background: var(--border-light);
+  margin: 0 auto 24px;
+}
+
+.guild-icon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.guild-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.guild-icon:hover {
+  transform: scale(1.05);
+}
+
+.guild-icon:not(.active) {
+  opacity: 0.6;
+}
+
+.guild-icon.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 32px;
+  background: var(--primary-color);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ============================================
+   NAVIGATION SIDEBAR
+   ============================================ */
+
+.navigation-sidebar {
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  height: calc(100vh - 56px);
+  position: fixed;
+  left: 72px;
+  top: 56px;
+  z-index: 90;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+  max-width: 280px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-item:hover {
+  background: var(--bg-overlay);
+}
+
+.nav-item.active {
+  background: var(--bg-overlay-hover);
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Nav icons */
+.nav-icon-overview      { background-image: url('/images/acosmibot_overview-inactive.svg'); }
+.nav-item.active .nav-icon-overview { background-image: url('/images/acosmibot_overview-active.svg'); }
+.nav-icon-leveling      { background-image: url('/images/acosmibot_leveling-inactive.svg'); }
+.nav-item.active .nav-icon-leveling { background-image: url('/images/acosmibot_leveling-active.svg'); }
+.nav-icon-welcomes      { background-image: url('/images/acosmibot_welcomesgoodbyes-inactive.svg'); }
+.nav-item.active .nav-icon-welcomes { background-image: url('/images/acosmibot_welcomesgoodbyes-active.svg'); }
+.nav-icon-reputation    { background-image: url('/images/acosmibot_reputation-inactive.svg'); }
+.nav-item.active .nav-icon-reputation { background-image: url('/images/acosmibot_reputation-active.svg'); }
+.nav-icon-embeds        { background-image: url('/images/acosmibot_embeds-inactive.svg'); }
+.nav-item.active .nav-icon-embeds { background-image: url('/images/acosmibot_embeds-active.svg'); }
+.nav-icon-reactionroles { background-image: url('/images/acosmibot_reactionroles-inactive.svg'); }
+.nav-item.active .nav-icon-reactionroles { background-image: url('/images/acosmibot_reactionroles-active.svg'); }
+.nav-icon-activitymonitor { background-image: url('/images/acosmibot_activitymonitor-inactive.svg'); }
+.nav-item.active .nav-icon-activitymonitor { background-image: url('/images/acosmibot_activitymonitor-active.svg'); }
+.nav-icon-customcommands { background-image: url('/images/acosmibot_customcommands-inactive.svg'); }
+.nav-item.active .nav-icon-customcommands { background-image: url('/images/acosmibot_customcommands-active.svg'); }
+.nav-icon-moderation    { background-image: url('/images/acosmibot_moderation-inactive.svg'); }
+.nav-item.active .nav-icon-moderation { background-image: url('/images/acosmibot_moderation-active.svg'); }
+.nav-icon-ai            { background-image: url('/images/acosmibot_customcommands-inactive.svg'); }
+.nav-item.active .nav-icon-ai { background-image: url('/images/acosmibot_customcommands-active.svg'); }
+.nav-icon-twitch        { background-image: url('/images/acosmibot_twitch-inactive.svg'); }
+.nav-item.active .nav-icon-twitch { background-image: url('/images/acosmibot_twitch-active.svg'); }
+.nav-icon-youtube       { background-image: url('/images/acosmibot_youtube-inactive.svg'); }
+.nav-item.active .nav-icon-youtube { background-image: url('/images/acosmibot_youtube-active.svg'); }
+.nav-icon-kick          { background-image: url('/images/acosmibot_kick-inactive.svg'); }
+.nav-item.active .nav-icon-kick { background-image: url('/images/acosmibot_kick-active.svg'); }
+.nav-icon-reddit        { background-image: url('/images/acosmibot_reddit-inactive.svg'); }
+.nav-icon-polymorph     { background-image: url('/images/acosmibot_polymorph-inactive.svg'); }
+.nav-item.active .nav-icon-polymorph { background-image: url('/images/acosmibot_polymorph-active.svg'); }
+.nav-icon-portals       { background-image: url('/images/acosmibot_portal-inactive.svg'); }
+.nav-item.active .nav-icon-portals { background-image: url('/images/acosmibot_portal-active.svg'); }
+.nav-icon-jail          { background-image: url('/images/acosmibot_jail-inactive.svg'); }
+.nav-item.active .nav-icon-jail { background-image: url('/images/acosmibot_jail-active.svg'); }
+.nav-icon-slots         { background-image: url('/images/acosmibot_slots-inactive.svg'); }
+.nav-item.active .nav-icon-slots { background-image: url('/images/acosmibot_slots-active.svg'); }
+.nav-icon-lottery       { background-image: url('/images/acosmibot_lottery-inactive.svg'); }
+.nav-item.active .nav-icon-lottery { background-image: url('/images/acosmibot_lottery-active.svg'); }
+.nav-icon-giveaway      { background-image: url('/images/acosmibot_lottery-inactive.svg'); }
+.nav-item.active .nav-icon-giveaway { background-image: url('/images/acosmibot_lottery-active.svg'); }
+.nav-icon-membership    { background-image: url('/images/acosmibot_membership-inactive.svg'); }
+.nav-item.active .nav-icon-membership { background-image: url('/images/acosmibot_membership-active.svg'); }
+.nav-icon-premium       { background-image: url('/images/acosmibot_premium-inactive.svg'); }
+.nav-item.active .nav-icon-premium { background-image: url('/images/acosmibot_premium-active.svg'); }
+
+.nav-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.nav-item.active .nav-text {
+  color: var(--text-primary);
+}
+
+.nav-indicator {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all 0.2s ease;
+  display: none;
+}
+
+.nav-indicator.active {
+  display: block;
+  background-image: url('/images/acosmibot_toggled.svg');
+}
+
+/* Section headers */
+.nav-section {
+  margin-top: 16px;
+}
+
+.nav-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.collapse-arrow {
+  color: var(--primary-color);
+  transition: transform 0.3s ease;
+}
+
+.nav-section.collapsed .collapse-arrow {
+  transform: rotate(-90deg);
+}
+
+/* ============================================
+   MAIN CONTENT AREA
+   ============================================ */
+
+.dashboard-main-content {
+  flex: 1;
+  padding: 40px;
+  background: #252525;
+  margin-left: 352px; /* 72px guild icons + 280px nav */
+  min-height: calc(100vh - 56px);
+}
+
+/* ============================================
+   TOP BAR
+   ============================================ */
+
+.user-avatar-nav {
+  width: 44px;
+  height: 44px;
+  background: var(--bg-card);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-size: cover;
+  background-position: center;
+}
+
+.user-avatar-nav:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.user-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 10px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 10px;
+  min-width: 200px;
+  z-index: 1001;
+}
+
+.user-menu .user-info {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 8px;
+}
+
+.user-menu .user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.user-menu a {
+  display: block;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.user-menu a:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.user-menu .logout-btn {
+  color: #ff6b6b;
+}
+
+.login-btn {
+  background: var(--primary-color);
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  opacity: 0.85;
+}
+
+/* ============================================
+   DASHBOARD HEADER / SAVE BAR
+   ============================================ */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.header-left .feature-description {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.save-btn {
+  background: var(--primary-color);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.save-btn.has-changes {
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+  animation: savePulse 2s infinite;
+}
+
+.save-btn:not(:disabled):hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+@keyframes savePulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 217, 255, 0.5); }
+  50%       { box-shadow: 0 0 30px rgba(0, 217, 255, 0.8); }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .guild-selector-sidebar { display: none; }
+
+  .navigation-sidebar {
+    left: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
+  }
+
+  .navigation-sidebar.open { transform: translateX(0); }
+
+  .dashboard-main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+}

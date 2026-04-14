@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { guildApi } from '@/api/guilds';
+import '@/styles/dashboard.css';
 
 export const DashboardShell: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -18,10 +19,14 @@ export const DashboardShell: React.FC = () => {
       return;
     }
 
-    // Load user data if not present
+    // Fetch user if not already loaded
     if (!user) {
-      // In a real app, we'd fetch user data here
-      // For now, let's assume it's loaded elsewhere or fetch it
+      const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+      const token = useAuthStore.getState().token;
+      fetch(`${apiBase}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(setUser)
+        .catch(() => { /* keep going even if /auth/me fails */ });
     }
 
     // Load guilds
@@ -36,14 +41,12 @@ export const DashboardShell: React.FC = () => {
   }, [guildId, setSelectedGuildId]);
 
   return (
-    <div className="dashboard-layout vh-100 d-flex flex-column" style={{ background: 'var(--bg-primary)' }}>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <TopBar />
-      <div className="d-flex flex-grow-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-grow-1 overflow-auto p-4">
-          <Outlet />
-        </main>
-      </div>
+      <Sidebar />
+      <main className="dashboard-main-content">
+        <Outlet />
+      </main>
     </div>
   );
 };

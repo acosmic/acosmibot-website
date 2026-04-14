@@ -3,7 +3,7 @@ import type { Guild, Channel, Role } from '@/types/guild';
 
 export const guildApi = {
   getGuilds: () =>
-    api.fetch<Guild[]>('/api/guilds'),
+    api.fetch<Guild[]>('/api/user/guilds'),
 
   getGuild: (guildId: string) =>
     api.fetch<Guild>(`/api/guilds/${guildId}`),
