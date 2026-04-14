@@ -5,6 +5,7 @@
       "/images/*.{png,jpg,gif,webp,svg,ico}",
       "/styles/*.css",
       "/scripts/*.js",
+      "/assets/*",
       "/*.{png,jpg,ico,webmanifest}",
       "/cdn-cgi/*"
     ]
