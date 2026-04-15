@@ -14,7 +14,7 @@ export const FeatureToggle: React.FC<FeatureToggleProps> = ({
   description
 }) => {
   return (
-    <div className="card mb-4">
+    <div className="card p-4 mb-4">
       <div className="d-flex justify-content-between align-items-center">
         <div>
           <h3 className="mb-1">{label}</h3>

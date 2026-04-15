@@ -1,20 +1,20 @@
 export interface GiveawayConfig {
   enabled: boolean;
-  maxWinners: number;
-  durationMinutes: number;
-  announcementChannelId: string | null;
-  requiredRoleId: string | null;
-  bypassRoleId: string | null;
+  defaultEmoji: string;
+  winnerLogChannelId: string | null;
+  dmWinner: boolean;
+  recentWinnerLockoutCount: number;
+  boosterMultiplierEnabled: boolean;
+  boosterMultiplier: number;
+  minAccountAgeDays: number;
+  minServerJoinDays: number;
+  requiredRoleIds: string[];
+  excludedRoleIds: string[];
+  roleMultipliers: Record<string, number>;
+  bannedUserIds: string[];
 }
 
-export interface UpdateGiveawayConfigRequest {
-  enabled?: boolean;
-  maxWinners?: number;
-  durationMinutes?: number;
-  announcementChannelId?: string | null;
-  requiredRoleId?: string | null;
-  bypassRoleId?: string | null;
-}
+export interface UpdateGiveawayConfigRequest extends Partial<GiveawayConfig> {}
 
 export interface LevelingConfig {
   enabled: boolean;

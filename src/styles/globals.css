@@ -60,3 +60,117 @@ body {
     min-height: 100vh;
     margin: 0;
 }
+
+/* ============================================================
+   Bootstrap Dark-Theme Overrides
+   (loaded after bootstrap.min.css so these win)
+   ============================================================ */
+
+/* Cards */
+.card {
+    background-color: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+.card-header {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+.card-body {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Form inputs & selects */
+.form-control,
+.form-select {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 217, 255, 0.2);
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+    background-color: var(--bg-secondary);
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* Make <option> elements match the dark background in all browsers */
+option {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Text utilities */
+.text-primary { color: var(--primary-color) !important; }
+.text-muted   { color: var(--text-muted)    !important; }
+
+/* Background utilities */
+.bg-tertiary  { background-color: var(--bg-tertiary) !important; }
+.bg-card      { background-color: var(--bg-card)     !important; }
+
+/* Borders */
+.border-light { border-color: var(--border-light) !important; }
+
+/* Buttons — plain .btn should use dark text */
+.btn { color: var(--text-primary); }
+.btn:hover { color: var(--text-primary); }
+
+.btn.primary,
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #000;
+}
+
+.btn.primary:hover,
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #000;
+}
+
+/* Toggle/checkbox switch */
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Success badge */
+.badge.bg-success {
+    background-color: var(--success-color) !important;
+    color: #000;
+}
+
+/* Feature page base layout */
+.feature-page {
+    max-width: 960px;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+}

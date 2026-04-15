@@ -43,7 +43,7 @@ const NavSection: React.FC<{ title: string; children: React.ReactNode }> = ({ ti
           transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
           transition: 'transform 0.2s ease'
         }}>
-          <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M3 5L6 8L9 5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
         </svg>
         <span>{title}</span>
       </div>
