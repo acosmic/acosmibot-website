@@ -32,7 +32,7 @@ export const OverviewPage: React.FC = () => {
                     width: '80px', 
                     height: '80px', 
                     borderRadius: '50%', 
-                    backgroundImage: user?.avatar ? `url(https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png)` : 'none',
+                    backgroundImage: user?.avatar ? `url(${user.avatar})` : 'none',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundColor: 'var(--bg-tertiary)'

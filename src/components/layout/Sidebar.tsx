@@ -85,9 +85,7 @@ export const Sidebar: React.FC = () => {
               width: '40px',
               height: '40px',
               borderRadius: '50%',
-              backgroundImage: user.avatar
-                ? `url(https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png)`
-                : 'none',
+              backgroundImage: user.avatar ? `url(${user.avatar})` : 'none',
               backgroundSize: 'cover',
               backgroundColor: '#2b2d31',
               cursor: 'pointer',
