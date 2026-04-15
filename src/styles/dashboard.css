@@ -253,6 +253,8 @@
   background: #252525;
   margin-left: 352px; /* 72px guild icons + 280px nav */
   min-height: calc(100vh - 56px);
+  color: var(--text-secondary);
+  font-family: 'Poppins', sans-serif;
 }
 
 /* ============================================
