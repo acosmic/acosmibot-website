@@ -10,6 +10,7 @@ import { ModerationPage } from './features/moderation/ModerationPage';
 import { AiPage } from './features/ai/AiPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
+import { GuildSelectPage } from './pages/GuildSelectPage';
 import { DocsPage } from './pages/docs/DocsPage';
 
 const FeatureOutlet = () => {
@@ -50,6 +51,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/dashboard" element={<GuildSelectPage />} />
       <Route path="/server/:guildId" element={<DashboardShell />}>
         <Route path=":feature" element={<FeatureOutlet />} />
         <Route index element={<Navigate to="overview" replace />} />

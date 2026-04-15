@@ -17,8 +17,13 @@ interface AuthState {
 }
 
 // Read from either key — the old vanilla dashboard stores as 'discord_token'
-const storedToken =
-  localStorage.getItem('auth_token') || localStorage.getItem('discord_token');
+const storedToken = (() => {
+  try {
+    return localStorage.getItem('auth_token') || localStorage.getItem('discord_token');
+  } catch {
+    return null;
+  }
+})();
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
