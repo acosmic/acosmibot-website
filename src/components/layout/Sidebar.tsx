@@ -80,7 +80,7 @@ export const Sidebar: React.FC = () => {
         {user && (
           <div
             title={user.global_name || user.username}
-            onClick={() => navigate('/servers')}
+            onClick={() => { window.location.href = '/profile'; }}
             style={{
               width: '40px',
               height: '40px',
