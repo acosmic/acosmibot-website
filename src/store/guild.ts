@@ -1,14 +1,5 @@
 import { create } from 'zustand';
-
-interface Guild {
-  id: string;
-  name: string;
-  icon: string | null;
-  owner: boolean;
-  permissions: string[];
-  member_count?: number;
-  premium_tier?: string;
-}
+import type { Guild } from '@/types/guild';
 
 interface GuildState {
   guilds: Guild[];

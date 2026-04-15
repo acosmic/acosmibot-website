@@ -10,8 +10,9 @@ export interface Guild {
   name: string;
   icon: string | null;
   owner: boolean;
-  permissions: number;
-  features: string[];
+  permissions: string[];
+  member_count?: number;
+  premium_tier?: string;
 }
 
 export interface Channel {
