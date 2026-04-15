@@ -79,8 +79,8 @@ export const Sidebar: React.FC = () => {
         {/* User avatar at top */}
         {user && (
           <div
-            title={`${user.global_name || user.username} — click to log out`}
-            onClick={logout}
+            title={user.global_name || user.username}
+            onClick={() => navigate('/')}
             style={{
               width: '40px',
               height: '40px',

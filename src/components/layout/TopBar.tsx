@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 
 export const TopBar: React.FC = () => {
@@ -18,8 +19,12 @@ export const TopBar: React.FC = () => {
       padding: '0 16px',
     }}>
       <div className="d-flex align-items-center gap-3">
-        {currentGuild ? (
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
+        </Link>
+        {currentGuild && (
           <>
+            <span style={{ color: 'var(--border-light)' }}>|</span>
             <img
               src={currentGuild.icon
                 ? `https://cdn.discordapp.com/icons/${currentGuild.id}/${currentGuild.icon}.png`
@@ -27,10 +32,8 @@ export const TopBar: React.FC = () => {
               alt={currentGuild.name}
               style={{ height: '32px', borderRadius: '50%' }}
             />
-            <h2 className="mb-0 fs-5">{currentGuild.name}</h2>
+            <h2 className="mb-0 fs-5" style={{ color: 'var(--text-primary)' }}>{currentGuild.name}</h2>
           </>
-        ) : (
-          <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
         )}
       </div>
     </header>
