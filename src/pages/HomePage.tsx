@@ -137,7 +137,7 @@ export const HomePage: React.FC = () => {
           <li><button onClick={() => { setMobileNavOpen(false); setShowPremiumModal(true); }}>Premium</button></li>
           <li><a href="/docs/introduction" onClick={() => setMobileNavOpen(false)}>Documentation</a></li>
           {isAuthenticated && (
-            <li><a href="/dashboard" onClick={() => setMobileNavOpen(false)}>Dashboard</a></li>
+            <li><a href="/servers" onClick={() => setMobileNavOpen(false)}>Dashboard</a></li>
           )}
         </ul>
         <div className="mobile-nav-divider" />
@@ -181,7 +181,7 @@ export const HomePage: React.FC = () => {
               </li>
               <li><a href="/docs/introduction">Documentation</a></li>
               {isAuthenticated && (
-                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/servers">Dashboard</a></li>
               )}
             </ul>
 
@@ -211,7 +211,7 @@ export const HomePage: React.FC = () => {
                     <div className="user-info">
                       <div className="user-name">{user.username}</div>
                     </div>
-                    <a href="/dashboard">Dashboard</a>
+                    <a href="/servers">Dashboard</a>
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '5px 0' }} />
                     <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
                   </div>

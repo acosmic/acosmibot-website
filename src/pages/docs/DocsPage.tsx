@@ -138,7 +138,7 @@ export const DocsPage: React.FC = () => {
           </Link>
         </div>
         <div className="docs-topbar-right">
-          <a href="/dashboard" style={{ color: 'var(--primary-color)' }}>Dashboard</a>
+          <a href="/servers" style={{ color: 'var(--primary-color)' }}>Dashboard</a>
         </div>
       </header>
 

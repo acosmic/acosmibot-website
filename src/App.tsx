@@ -51,7 +51,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/dashboard" element={<GuildSelectPage />} />
+      <Route path="/servers" element={<GuildSelectPage />} />
       <Route path="/server/:guildId" element={<DashboardShell />}>
         <Route path=":feature" element={<FeatureOutlet />} />
         <Route index element={<Navigate to="overview" replace />} />

@@ -80,7 +80,7 @@ export const Sidebar: React.FC = () => {
         {user && (
           <div
             title={user.global_name || user.username}
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/servers')}
             style={{
               width: '40px',
               height: '40px',
