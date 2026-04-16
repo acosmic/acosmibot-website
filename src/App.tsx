@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { DashboardShell } from './components/layout/DashboardShell';
 import { LegacyFeatureView } from './components/legacy/LegacyFeatureView';
 import { GiveawayPage } from './features/giveaway/GiveawayPage';
@@ -12,6 +13,24 @@ import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
 import { DocsPage } from './pages/docs/DocsPage';
+import { useAuthStore } from './store/auth';
+
+/** Catches the ?token= param from the API OAuth redirect and saves it, then sends to /servers */
+const AuthCallback = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { setToken } = useAuthStore();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setToken(token);
+    }
+    navigate('/servers', { replace: true });
+  }, []);
+
+  return null;
+};
 
 const FeatureOutlet = () => {
   const { feature } = useParams<{ feature: string }>();
@@ -51,6 +70,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/dashboard" element={<AuthCallback />} />
       <Route path="/servers" element={<GuildSelectPage />} />
       <Route path="/server/:guildId" element={<DashboardShell />}>
         <Route path=":feature" element={<FeatureOutlet />} />
