@@ -3,17 +3,27 @@ import { configApi } from '@/api/config';
 
 export interface AiConfig {
   enabled: boolean;
-  personality_name: string;
-  personality_description: string;
-  behavior_rules: string[];
-  max_memory_messages: number;
+  model: string;
+  instructions: string;
+  channel_mode: 'all' | 'exclude' | 'include';
+  excluded_channels: string[];
+  allowed_channels: string[];
 }
+
+const DEFAULT_AI: AiConfig = {
+  enabled: false,
+  model: 'gpt-4o-mini',
+  instructions: '',
+  channel_mode: 'all',
+  excluded_channels: [],
+  allowed_channels: [],
+};
 
 export function useAiConfig(guildId: string) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['guild', guildId, 'hybrid-config'],
+    queryKey: ['guild', guildId, 'config-hybrid'],
     queryFn: () => configApi.getHybridConfig(guildId),
     enabled: !!guildId,
   });
@@ -22,19 +32,24 @@ export function useAiConfig(guildId: string) {
     mutationFn: (ai: Partial<AiConfig>) =>
       configApi.updateHybridConfig(guildId, { ai }),
     onSuccess: (updated) => {
-      queryClient.setQueryData(['guild', guildId, 'hybrid-config'], updated);
+      queryClient.setQueryData(['guild', guildId, 'config-hybrid'], updated);
     },
   });
 
+  const raw = query.data?.data?.settings?.ai;
   const tier = query.data?.data?.premium_tier || 'free';
   const hasAccess = tier === 'premium_plus_ai';
 
-  return { 
-    data: query.data?.data?.settings?.ai as AiConfig, 
+  const data: AiConfig | undefined = raw
+    ? { ...DEFAULT_AI, ...raw }
+    : undefined;
+
+  return {
+    data,
     hasAccess,
     tier,
-    isLoading: query.isLoading, 
-    save: mutation.mutate, 
-    isSaving: mutation.isPending 
+    isLoading: query.isLoading,
+    save: mutation.mutate,
+    isSaving: mutation.isPending,
   };
 }

@@ -6,7 +6,7 @@ export function useModerationConfig(guildId: string) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['guild', guildId, 'hybrid-config'],
+    queryKey: ['guild', guildId, 'config-hybrid'],
     queryFn: () => configApi.getHybridConfig(guildId),
     enabled: !!guildId,
   });
@@ -15,7 +15,7 @@ export function useModerationConfig(guildId: string) {
     mutationFn: (moderation: Partial<ModerationConfig>) =>
       configApi.updateHybridConfig(guildId, { moderation }),
     onSuccess: (updated) => {
-      queryClient.setQueryData(['guild', guildId, 'hybrid-config'], updated);
+      queryClient.setQueryData(['guild', guildId, 'config-hybrid'], updated);
     },
   });
 
