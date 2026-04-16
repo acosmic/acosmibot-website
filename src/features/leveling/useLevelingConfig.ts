@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 
@@ -61,12 +62,14 @@ export function useLevelingConfig(guildId: string) {
   });
 
   const settings = query.data?.data?.settings;
-  const leveling: LevelingConfig | undefined = settings?.leveling
-    ? { ...DEFAULT_LEVELING, ...settings.leveling }
-    : undefined;
-  const roles: RolesConfig | undefined = settings?.roles
-    ? { ...DEFAULT_ROLES, ...settings.roles }
-    : undefined;
+  const leveling = useMemo<LevelingConfig | undefined>(
+    () => settings?.leveling ? { ...DEFAULT_LEVELING, ...settings.leveling } : undefined,
+    [settings?.leveling],
+  );
+  const roles = useMemo<RolesConfig | undefined>(
+    () => settings?.roles ? { ...DEFAULT_ROLES, ...settings.roles } : undefined,
+    [settings?.roles],
+  );
 
   return {
     leveling,

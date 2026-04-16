@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 
@@ -40,9 +41,10 @@ export function useAiConfig(guildId: string) {
   const tier = query.data?.data?.premium_tier || 'free';
   const hasAccess = tier === 'premium_plus_ai';
 
-  const data: AiConfig | undefined = raw
-    ? { ...DEFAULT_AI, ...raw }
-    : undefined;
+  const data = useMemo<AiConfig | undefined>(
+    () => raw ? { ...DEFAULT_AI, ...raw } : undefined,
+    [raw],
+  );
 
   return {
     data,
