@@ -529,7 +529,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 1002;
 }
 
 .top-nav-left {
@@ -2045,4 +2045,15 @@ body::-webkit-scrollbar-thumb:hover {
 .navigation-sidebar .sidebar-nav,
 .docs-navigation-sidebar .sidebar-nav {
     border-bottom: none !important;
+}
+
+/* On mobile, the navigation sidebar becomes a full-height overlay — override the footer height adjustment */
+@media (max-width: 768px) {
+    .docs-page .navigation-sidebar,
+    .dashboard-page .navigation-sidebar,
+    .docs-page .docs-navigation-sidebar {
+        height: calc(100vh - 56px) !important;
+        overflow-y: auto;
+        bottom: 0 !important;
+    }
 }
