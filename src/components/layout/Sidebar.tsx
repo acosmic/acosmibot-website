@@ -9,9 +9,10 @@ interface NavItemProps {
   label: string;
   indicator?: boolean;
   comingSoon?: boolean;
+  onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon, label, indicator, comingSoon }) => {
+const NavItem: React.FC<NavItemProps> = ({ to, icon, label, indicator, comingSoon, onClick }) => {
   if (comingSoon) {
     return (
       <div className="nav-item" style={{ opacity: 0.4, cursor: 'not-allowed' }} title="Coming Soon">
@@ -25,6 +26,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, indicator, comingSoo
     <NavLink
       to={to}
       className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+      onClick={onClick}
     >
       <span className={`nav-icon nav-icon-${icon}`}></span>
       <span className="nav-text">{label}</span>
@@ -53,7 +55,12 @@ const NavSection: React.FC<{ title: string; children: React.ReactNode }> = ({ ti
   );
 };
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { guildId } = useParams<{ guildId: string }>();
   const { guilds, setSelectedGuildId } = useGuildStore();
   const { user } = useAuthStore();
@@ -62,11 +69,12 @@ export const Sidebar: React.FC = () => {
   const handleGuildClick = (id: string) => {
     setSelectedGuildId(id);
     navigate(`/server/${id}/overview`);
+    onClose?.();
   };
 
   return (
     <div className="d-flex h-100">
-      {/* Guild Selector Sidebar */}
+      {/* Guild Selector Sidebar — hidden on mobile via CSS */}
       <aside className="guild-selector-sidebar">
         {/* User avatar */}
         {user && (
@@ -114,47 +122,47 @@ export const Sidebar: React.FC = () => {
         </div>
       </aside>
 
-      {/* Navigation Sidebar */}
-      <aside className="navigation-sidebar">
+      {/* Navigation Sidebar — slides in as overlay on mobile */}
+      <aside className={`navigation-sidebar${isOpen ? ' open' : ''}`}>
         <nav className="sidebar-nav">
           <NavSection title="GENERAL">
-            <NavItem to={`/server/${guildId}/overview`} icon="overview" label="Overview" />
+            <NavItem to={`/server/${guildId}/overview`} icon="overview" label="Overview" onClick={onClose} />
             <NavItem to="#" icon="membership" label="Membership" comingSoon />
             <NavItem to="#" icon="premium" label="Premium" comingSoon />
           </NavSection>
 
           <NavSection title="SYSTEMS">
-            <NavItem to={`/server/${guildId}/leveling`} icon="leveling" label="Leveling" indicator />
+            <NavItem to={`/server/${guildId}/leveling`} icon="leveling" label="Leveling" indicator onClick={onClose} />
             <NavItem to="#" icon="welcomes" label="Welcomes" comingSoon />
             <NavItem to="#" icon="reputation" label="Reputation" comingSoon />
           </NavSection>
 
           <NavSection title="UTILITIES">
-            <NavItem to={`/server/${guildId}/embeds`} icon="embeds" label="Embeds" indicator />
-            <NavItem to={`/server/${guildId}/reaction-roles`} icon="reactionroles" label="Reaction Roles" indicator />
-            <NavItem to={`/server/${guildId}/activity-monitor`} icon="activitymonitor" label="Activity Monitor" indicator />
-            <NavItem to={`/server/${guildId}/custom-commands`} icon="customcommands" label="Custom Commands" indicator />
-            <NavItem to={`/server/${guildId}/moderation`} icon="moderation" label="Moderation" indicator />
-            <NavItem to={`/server/${guildId}/ai`} icon="ai" label="AI Customization" indicator />
+            <NavItem to={`/server/${guildId}/embeds`} icon="embeds" label="Embeds" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/reaction-roles`} icon="reactionroles" label="Reaction Roles" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/activity-monitor`} icon="activitymonitor" label="Activity Monitor" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/custom-commands`} icon="customcommands" label="Custom Commands" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/moderation`} icon="moderation" label="Moderation" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/ai`} icon="ai" label="AI Customization" indicator onClick={onClose} />
           </NavSection>
 
           <NavSection title="SOCIAL ALERTS">
-            <NavItem to={`/server/${guildId}/twitch`} icon="twitch" label="Twitch" indicator />
-            <NavItem to={`/server/${guildId}/youtube`} icon="youtube" label="YouTube" indicator />
-            <NavItem to={`/server/${guildId}/kick`} icon="kick" label="Kick" indicator />
+            <NavItem to={`/server/${guildId}/twitch`} icon="twitch" label="Twitch" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/youtube`} icon="youtube" label="YouTube" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/kick`} icon="kick" label="Kick" indicator onClick={onClose} />
             <NavItem to="#" icon="reddit" label="Reddit" comingSoon />
           </NavSection>
 
           <NavSection title="CHAOS">
-            <NavItem to={`/server/${guildId}/polymorph`} icon="polymorph" label="Polymorph" indicator />
-            <NavItem to={`/server/${guildId}/portals`} icon="portals" label="Portals" indicator />
-            <NavItem to={`/server/${guildId}/jail`} icon="jail" label="Jail" indicator />
+            <NavItem to={`/server/${guildId}/polymorph`} icon="polymorph" label="Polymorph" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/portals`} icon="portals" label="Portals" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/jail`} icon="jail" label="Jail" indicator onClick={onClose} />
           </NavSection>
 
           <NavSection title="GAMES AND GAMBLING">
-            <NavItem to={`/server/${guildId}/slots`} icon="slots" label="Slots" indicator />
-            <NavItem to={`/server/${guildId}/lottery`} icon="lottery" label="Lottery" indicator />
-            <NavItem to={`/server/${guildId}/giveaway`} icon="giveaway" label="Giveaway" indicator />
+            <NavItem to={`/server/${guildId}/slots`} icon="slots" label="Slots" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/lottery`} icon="lottery" label="Lottery" indicator onClick={onClose} />
+            <NavItem to={`/server/${guildId}/giveaway`} icon="giveaway" label="Giveaway" indicator onClick={onClose} />
           </NavSection>
         </nav>
       </aside>

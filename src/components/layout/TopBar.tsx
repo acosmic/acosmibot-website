@@ -2,7 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 
-export const TopBar: React.FC = () => {
+interface TopBarProps {
+  onMenuClick?: () => void;
+  menuOpen?: boolean;
+}
+
+export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
   const { currentGuild } = useGuildStore();
 
   return (
@@ -13,12 +18,20 @@ export const TopBar: React.FC = () => {
       borderBottom: '1px solid var(--border-light)',
       position: 'sticky',
       top: 0,
-      zIndex: 1000,
+      zIndex: 1002,
       display: 'flex',
       alignItems: 'center',
+      justifyContent: 'space-between',
       padding: '0 16px',
     }}>
       <div className="d-flex align-items-center gap-3">
+        <button
+          className={`mobile-sidebar-toggle${menuOpen ? ' open' : ''}`}
+          onClick={onMenuClick}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        >
+          <span></span><span></span><span></span>
+        </button>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
         </Link>

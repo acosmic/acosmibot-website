@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useParams, useNavigate } from 'react-router-dom';
 import { TopBar } from './TopBar';
 import { Sidebar } from './Sidebar';
@@ -12,6 +12,7 @@ export const DashboardShell: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, setUser } = useAuthStore();
   const { setGuilds, setSelectedGuildId } = useGuildStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -40,10 +41,26 @@ export const DashboardShell: React.FC = () => {
     }
   }, [guildId, setSelectedGuildId]);
 
+  // Lock body scroll when sidebar is open on mobile
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [sidebarOpen]);
+
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
-      <TopBar />
-      <Sidebar />
+      <TopBar onMenuClick={() => setSidebarOpen(o => !o)} menuOpen={sidebarOpen} />
+      {/* Backdrop — closes sidebar when tapped */}
+      {sidebarOpen && (
+        <div className="sidebar-backdrop open" onClick={closeSidebar} />
+      )}
+      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
       <main className="dashboard-main-content">
         <Outlet />
       </main>
