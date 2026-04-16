@@ -14,8 +14,8 @@ export function useModerationConfig(guildId: string) {
   const mutation = useMutation({
     mutationFn: (moderation: Partial<ModerationConfig>) =>
       configApi.updateHybridConfig(guildId, { moderation }),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(['guild', guildId, 'config-hybrid'], updated);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
     },
   });
 

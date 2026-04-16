@@ -32,8 +32,8 @@ export function useAiConfig(guildId: string) {
   const mutation = useMutation({
     mutationFn: (ai: Partial<AiConfig>) =>
       configApi.updateHybridConfig(guildId, { ai }),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(['guild', guildId, 'config-hybrid'], updated);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
     },
   });
 

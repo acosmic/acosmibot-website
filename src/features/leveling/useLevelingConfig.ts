@@ -56,8 +56,8 @@ export function useLevelingConfig(guildId: string) {
   const mutation = useMutation({
     mutationFn: (data: { leveling: Partial<LevelingConfig>; roles: Partial<RolesConfig> }) =>
       configApi.updateHybridConfig(guildId, data),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(['guild', guildId, 'config-hybrid'], updated);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
     },
   });
 
