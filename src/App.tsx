@@ -9,6 +9,7 @@ import { OverviewPage } from './features/overview/OverviewPage';
 import { CustomCommandsPage } from './features/custom-commands/CustomCommandsPage';
 import { ModerationPage } from './features/moderation/ModerationPage';
 import { AiPage } from './features/ai/AiPage';
+import { SlotsPage } from './features/slots/SlotsPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
@@ -62,7 +63,11 @@ const FeatureOutlet = () => {
   if (feature === 'ai') {
     return <AiPage />;
   }
-  
+
+  if (feature === 'slots') {
+    return <SlotsPage />;
+  }
+
   return <LegacyFeatureView feature={feature || 'overview'} />;
 };
 

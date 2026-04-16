@@ -85,3 +85,10 @@ export interface ModerationConfig {
 export interface UpdateModerationConfigRequest {
   moderation?: Partial<ModerationConfig>;
 }
+
+export type SlotsTier = 'common' | 'uncommon' | 'rare' | 'legendary' | 'scatter';
+
+export interface SlotsConfig {
+  enabled: boolean;
+  tier_emojis: Record<SlotsTier, string[]>;
+}
