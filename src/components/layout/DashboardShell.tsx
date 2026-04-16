@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useParams, useNavigate } from 'react-router-dom';
 import { TopBar } from './TopBar';
 import { Sidebar } from './Sidebar';
@@ -12,6 +12,7 @@ export const DashboardShell: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, setUser } = useAuthStore();
   const { setGuilds, setSelectedGuildId } = useGuildStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -42,8 +43,8 @@ export const DashboardShell: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
-      <TopBar />
-      <Sidebar />
+      <TopBar onMenuClick={() => setSidebarOpen(true)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="dashboard-main-content">
         <Outlet />
       </main>

@@ -53,7 +53,12 @@ const NavSection: React.FC<{ title: string; children: React.ReactNode }> = ({ ti
   );
 };
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { guildId } = useParams<{ guildId: string }>();
   const { guilds, setSelectedGuildId } = useGuildStore();
   const { user } = useAuthStore();
@@ -62,10 +67,24 @@ export const Sidebar: React.FC = () => {
   const handleGuildClick = (id: string) => {
     setSelectedGuildId(id);
     navigate(`/server/${id}/overview`);
+    onClose?.();
   };
 
   return (
-    <div className="d-flex h-100">
+    <>
+      {isOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 1000,
+          }}
+        />
+      )}
+    <div className={`d-flex h-100 ${isOpen ? 'sidebar-mobile-open' : ''}`}>
       {/* Guild Selector Sidebar */}
       <aside className="guild-selector-sidebar">
         {/* User avatar */}
@@ -115,7 +134,7 @@ export const Sidebar: React.FC = () => {
       </aside>
 
       {/* Navigation Sidebar */}
-      <aside className="navigation-sidebar">
+      <aside className={`navigation-sidebar${isOpen ? ' open' : ''}`}>
         <nav className="sidebar-nav">
           <NavSection title="GENERAL">
             <NavItem to={`/server/${guildId}/overview`} icon="overview" label="Overview" />
@@ -159,5 +178,6 @@ export const Sidebar: React.FC = () => {
         </nav>
       </aside>
     </div>
+    </>
   );
 };

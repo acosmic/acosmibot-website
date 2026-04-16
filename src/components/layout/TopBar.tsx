@@ -2,7 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 
-export const TopBar: React.FC = () => {
+interface TopBarProps {
+  onMenuClick?: () => void;
+}
+
+export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { currentGuild } = useGuildStore();
 
   return (
@@ -19,6 +23,23 @@ export const TopBar: React.FC = () => {
       padding: '0 16px',
     }}>
       <div className="d-flex align-items-center gap-3">
+        <button
+          className="topbar-hamburger"
+          onClick={onMenuClick}
+          aria-label="Open menu"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            fontSize: '20px',
+            lineHeight: 1,
+            display: 'none',
+          }}
+        >
+          ☰
+        </button>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
         </Link>
@@ -39,3 +60,4 @@ export const TopBar: React.FC = () => {
     </header>
   );
 };
+
