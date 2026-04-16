@@ -1,6 +1,14 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 import { ModerationConfig } from '@/types/features';
+
+const DEFAULT_MODERATION: ModerationConfig = {
+  enabled: false,
+  mod_log_channel_id: null,
+  member_activity_channel_id: null,
+  events: {},
+};
 
 export function useModerationConfig(guildId: string) {
   const queryClient = useQueryClient();
@@ -19,8 +27,14 @@ export function useModerationConfig(guildId: string) {
     },
   });
 
+  const raw = query.data?.data?.settings?.moderation;
+  const data = useMemo<ModerationConfig | undefined>(
+    () => query.data ? { ...DEFAULT_MODERATION, ...(raw || {}) } : undefined,
+    [query.data, raw],
+  );
+
   return {
-    data: query.data?.data?.settings?.moderation as ModerationConfig,
+    data,
     isLoading: query.isLoading,
     save: mutation.mutate,
     isSaving: mutation.isPending,

@@ -63,12 +63,12 @@ export function useLevelingConfig(guildId: string) {
 
   const settings = query.data?.data?.settings;
   const leveling = useMemo<LevelingConfig | undefined>(
-    () => settings?.leveling ? { ...DEFAULT_LEVELING, ...settings.leveling } : undefined,
-    [settings?.leveling],
+    () => query.data ? { ...DEFAULT_LEVELING, ...(settings?.leveling || {}) } : undefined,
+    [query.data, settings?.leveling],
   );
   const roles = useMemo<RolesConfig | undefined>(
-    () => settings?.roles ? { ...DEFAULT_ROLES, ...settings.roles } : undefined,
-    [settings?.roles],
+    () => query.data ? { ...DEFAULT_ROLES, ...(settings?.roles || {}) } : undefined,
+    [query.data, settings?.roles],
   );
 
   return {

@@ -42,8 +42,8 @@ export function useAiConfig(guildId: string) {
   const hasAccess = tier === 'premium_plus_ai';
 
   const data = useMemo<AiConfig | undefined>(
-    () => raw ? { ...DEFAULT_AI, ...raw } : undefined,
-    [raw],
+    () => query.data ? { ...DEFAULT_AI, ...(raw || {}) } : undefined,
+    [query.data, raw],
   );
 
   return {
