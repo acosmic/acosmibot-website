@@ -19,10 +19,11 @@ export function useModerationConfig(guildId: string) {
     },
   });
 
-  return { 
-    data: query.data?.data?.settings?.moderation as ModerationConfig, 
-    isLoading: query.isLoading, 
-    save: mutation.mutate, 
-    isSaving: mutation.isPending 
+  return {
+    data: query.data?.data?.settings?.moderation as ModerationConfig,
+    isLoading: query.isLoading,
+    save: mutation.mutate,
+    isSaving: mutation.isPending,
+    saveError: mutation.error as Error | null,
   };
 }

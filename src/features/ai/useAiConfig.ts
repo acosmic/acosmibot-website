@@ -53,5 +53,6 @@ export function useAiConfig(guildId: string) {
     isLoading: query.isLoading,
     save: mutation.mutate,
     isSaving: mutation.isPending,
+    saveError: mutation.error as Error | null,
   };
 }

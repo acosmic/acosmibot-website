@@ -15,7 +15,7 @@ const MODEL_OPTIONS = [
 
 export const AiPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, hasAccess, tier, isLoading, save, isSaving } = useAiConfig(guildId!);
+  const { data, hasAccess, tier, isLoading, save, isSaving, saveError } = useAiConfig(guildId!);
   const { form, setForm, isDirty, resetForm } = useDirtyState<AiConfig>(data);
   const { data: channels } = useGuildChannels(guildId!);
 
@@ -187,6 +187,7 @@ export const AiPage: React.FC = () => {
         onSave={() => save(form)}
         onDiscard={resetForm}
         isSaving={isSaving}
+        saveError={saveError}
       />
     </div>
   );

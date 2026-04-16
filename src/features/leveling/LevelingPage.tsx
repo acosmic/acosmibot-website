@@ -8,7 +8,7 @@ import { useGuildRoles } from '@/hooks/useGuildRoles';
 
 export const LevelingPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { leveling, roles, isLoading, save, isSaving } = useLevelingConfig(guildId!);
+  const { leveling, roles, isLoading, save, isSaving, saveError } = useLevelingConfig(guildId!);
   const { form: levelForm, setForm: setLevelForm, isDirty: levelDirty, resetForm: resetLevelForm } = useDirtyState<LevelingConfig>(leveling);
   const { form: roleForm, setForm: setRoleForm, isDirty: roleDirty, resetForm: resetRoleForm } = useDirtyState<RolesConfig>(roles);
   const { data: availableRoles } = useGuildRoles(guildId!);
@@ -270,6 +270,7 @@ export const LevelingPage: React.FC = () => {
         onSave={handleSave}
         onDiscard={handleDiscard}
         isSaving={isSaving}
+        saveError={saveError}
       />
     </div>
   );

@@ -12,7 +12,7 @@ interface StreamPlatformFeatureProps {
 
 export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ platform }) => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, isLoading, save, isSaving } = useStreamPlatformConfig(guildId!, platform);
+  const { data, isLoading, save, isSaving, saveError } = useStreamPlatformConfig(guildId!, platform);
   const { form, setForm, isDirty, resetForm } = useDirtyState(data);
   const [selectedStreamerIndex, setSelectedStreamerIndex] = useState<number | null>(null);
 
@@ -227,11 +227,12 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
         </div>
       </div>
 
-      <SaveBar 
-        isDirty={isDirty} 
-        onSave={() => save(form)} 
-        onDiscard={resetForm} 
-        isSaving={isSaving} 
+      <SaveBar
+        isDirty={isDirty}
+        onSave={() => save(form)}
+        onDiscard={resetForm}
+        isSaving={isSaving}
+        saveError={saveError}
       />
     </div>
   );

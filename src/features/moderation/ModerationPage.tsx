@@ -7,7 +7,7 @@ import { ModerationConfig } from '@/types/features';
 
 export const ModerationPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, isLoading, save, isSaving } = useModerationConfig(guildId!);
+  const { data, isLoading, save, isSaving, saveError } = useModerationConfig(guildId!);
   const { form, setForm, isDirty, resetForm } = useDirtyState<ModerationConfig>(data);
 
   if (isLoading) return <LoadingSpinner />;
@@ -124,11 +124,12 @@ export const ModerationPage: React.FC = () => {
         </div>
       </CollapsibleSection>
 
-      <SaveBar 
-        isDirty={isDirty} 
-        onSave={() => save(form)} 
-        onDiscard={resetForm} 
-        isSaving={isSaving} 
+      <SaveBar
+        isDirty={isDirty}
+        onSave={() => save(form)}
+        onDiscard={resetForm}
+        isSaving={isSaving}
+        saveError={saveError}
       />
     </div>
   );

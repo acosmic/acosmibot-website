@@ -9,7 +9,7 @@ import { useGuildRoles } from '@/hooks/useGuildRoles';
 
 export const GiveawayPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, isLoading, save, isSaving } = useGiveawayConfig(guildId!);
+  const { data, isLoading, save, isSaving, saveError } = useGiveawayConfig(guildId!);
   const { form, setForm, isDirty, resetForm } = useDirtyState(data);
   const { data: availableRoles } = useGuildRoles(guildId!);
 
@@ -387,6 +387,7 @@ export const GiveawayPage: React.FC = () => {
         onSave={() => save(form)}
         onDiscard={resetForm}
         isSaving={isSaving}
+        saveError={saveError}
       />
     </div>
   );

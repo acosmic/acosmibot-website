@@ -19,5 +19,10 @@ export function useStreamPlatformConfig(guildId: string, platform: Platform) {
     },
   });
 
-  return { ...query, save: mutation.mutate, isSaving: mutation.isPending };
+  return {
+    ...query,
+    save: mutation.mutate,
+    isSaving: mutation.isPending,
+    saveError: mutation.error as Error | null,
+  };
 }
