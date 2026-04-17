@@ -25,15 +25,37 @@ const TIERS: TierMeta[] = [
 
 const isCustomEmoji = (v: string) => /^<a?:[^:]+:\d+>$/.test(v);
 
+const FALLBACK_EXTS: Record<string, string[]> = {
+  gif: ['webp', 'png'],
+  png: ['webp', 'gif'],
+};
+
 const renderEmoji = (value: string): React.ReactNode => {
   const m = value.match(/^<(a?):([^:]+):(\d+)>$/);
   if (m) {
     const animated = m[1] === 'a';
     const name = m[2];
     const id = m[3];
-    const ext = animated ? 'gif' : 'png';
-    return <img src={`https://cdn.discordapp.com/emojis/${id}.${ext}`} alt={name} title={name}
-                style={{ width: 36, height: 36, objectFit: 'contain' }} />;
+    const primary = animated ? 'gif' : 'png';
+    const url = (ext: string) =>
+      `https://cdn.discordapp.com/emojis/${id}.${ext}${ext === 'webp' && animated ? '?animated=true' : ''}`;
+    return (
+      <img
+        src={url(primary)}
+        alt={name}
+        title={name}
+        style={{ width: 36, height: 36, objectFit: 'contain' }}
+        onError={(ev) => {
+          const img = ev.currentTarget;
+          const tried = (img.dataset.tried ?? primary).split(',');
+          const next = FALLBACK_EXTS[primary]?.find(e => !tried.includes(e));
+          if (next) {
+            img.dataset.tried = [...tried, next].join(',');
+            img.src = url(next);
+          }
+        }}
+      />
+    );
   }
   return <span>{value}</span>;
 };
