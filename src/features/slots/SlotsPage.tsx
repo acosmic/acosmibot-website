@@ -106,35 +106,35 @@ export const SlotsPage: React.FC = () => {
         const full = count >= meta.limit;
         const sectionDisabled = !form.enabled;
         return (
-          <div key={meta.tier} className="card p-4 mb-4" style={{ opacity: sectionDisabled ? 0.5 : 1, transition: 'opacity 0.2s' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <h3 style={{ margin: 0 }}>{meta.title}</h3>
+          <div key={meta.tier} className="card mb-2" style={{ padding: '12px 16px', opacity: sectionDisabled ? 0.5 : 1, transition: 'opacity 0.2s' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0, fontSize: 16 }}>{meta.title}</h3>
               <span style={{
-                fontSize: 11, padding: '4px 10px', borderRadius: 12,
+                fontSize: 10, padding: '2px 8px', borderRadius: 10,
                 fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px',
                 background: hexToRgba(meta.color, 0.2), color: lighten(meta.color),
               }}>{meta.badge}</span>
-              <span style={{ marginLeft: 'auto', color: 'var(--text-secondary)', fontSize: 13 }}>
+              <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+                · {meta.description}
+              </span>
+              <span style={{ marginLeft: 'auto', color: 'var(--text-secondary)', fontSize: 12 }}>
                 {count} of {meta.limit}
               </span>
             </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: '0 0 16px 0' }}>
-              {meta.description}
-            </p>
             <div style={{
-              display: 'flex', flexWrap: 'wrap', gap: 12, minHeight: 60, padding: 12,
-              background: 'rgba(0,0,0,0.2)', border: `2px solid ${meta.color}`,
-              borderRadius: 8, marginBottom: 12,
+              display: 'flex', flexWrap: 'wrap', gap: 8, padding: 8,
+              background: 'rgba(0,0,0,0.2)', border: `1px solid ${meta.color}`,
+              borderRadius: 6,
             }}>
               {emojis.map((e, i) => (
                 <div
                   key={`${e}-${i}`}
                   onClick={() => !sectionDisabled && openPickerReplace(meta.tier, i)}
                   style={{
-                    position: 'relative', width: 56, height: 56,
+                    position: 'relative', width: 44, height: 44,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'var(--bg-overlay)', border: '2px solid var(--border-light)',
-                    borderRadius: 12, fontSize: 28,
+                    background: 'var(--bg-overlay)', border: '1px solid var(--border-light)',
+                    borderRadius: 8, fontSize: 22,
                     cursor: sectionDisabled ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -147,30 +147,32 @@ export const SlotsPage: React.FC = () => {
                     disabled={sectionDisabled}
                     title={isCustomEmoji(e) ? e : undefined}
                     style={{
-                      position: 'absolute', top: -6, right: -6, width: 20, height: 20,
+                      position: 'absolute', top: -5, right: -5, width: 16, height: 16,
                       background: '#e74c3c', color: 'white', border: 'none',
-                      borderRadius: '50%', fontSize: 14, lineHeight: 1,
+                      borderRadius: '50%', fontSize: 11, lineHeight: 1,
                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >×</button>
                 </div>
               ))}
+              <button
+                onClick={() => openPickerAdd(meta.tier)}
+                disabled={full || sectionDisabled}
+                style={{
+                  width: 44, height: 44,
+                  background: 'rgba(0,217,255,0.1)',
+                  border: '1px dashed rgba(0,217,255,0.4)',
+                  borderRadius: 8,
+                  color: 'var(--primary-color)',
+                  fontSize: 20, fontWeight: 600, lineHeight: 1,
+                  cursor: (full || sectionDisabled) ? 'not-allowed' : 'pointer',
+                  opacity: (full || sectionDisabled) ? 0.3 : 1,
+                  transition: 'all 0.2s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+                title="Add emoji"
+              >+</button>
             </div>
-            <button
-              onClick={() => openPickerAdd(meta.tier)}
-              disabled={full || sectionDisabled}
-              style={{
-                padding: '10px 20px',
-                background: 'rgba(0,217,255,0.1)',
-                border: '2px dashed rgba(0,217,255,0.4)',
-                borderRadius: 8,
-                color: 'var(--primary-color)',
-                fontSize: 14, fontWeight: 600,
-                cursor: (full || sectionDisabled) ? 'not-allowed' : 'pointer',
-                opacity: (full || sectionDisabled) ? 0.3 : 1,
-                transition: 'all 0.2s',
-              }}
-            >+ Add Emoji</button>
           </div>
         );
       })}
