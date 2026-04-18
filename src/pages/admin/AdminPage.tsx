@@ -4,6 +4,20 @@ import { useAuthStore } from '@/store/auth';
 
 const OWNER_ID = '110637665128325120';
 
+function IpCell({ ip }: { ip: string | null }) {
+  const [revealed, setRevealed] = useState(false);
+  if (!ip) return <span>—</span>;
+  if (revealed) return <span style={{ cursor: 'pointer', fontFamily: 'monospace' }} onClick={() => setRevealed(false)}>{ip}</span>;
+  return (
+    <span
+      onClick={() => setRevealed(true)}
+      style={{ cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.8rem', userSelect: 'none' }}
+    >
+      click to show
+    </span>
+  );
+}
+
 type SortDir = 'asc' | 'desc';
 
 interface SigninLog {
@@ -215,7 +229,7 @@ export const AdminPage: React.FC = () => {
     { key: 'username', label: 'Username' },
     { key: 'global_name', label: 'Display Name', render: (r: SigninLog) => r.global_name ?? '—' },
     { key: 'discord_id', label: 'Discord ID' },
-    { key: 'ip_address', label: 'IP Address', render: (r: SigninLog) => r.ip_address ?? '—' },
+    { key: 'ip_address', label: 'IP Address', render: (r: SigninLog) => <IpCell ip={r.ip_address} /> },
     { key: 'user_agent', label: 'User Agent', render: (r: SigninLog) => <span title={r.user_agent ?? ''}>{r.user_agent ? r.user_agent.slice(0, 60) + (r.user_agent.length > 60 ? '…' : '') : '—'}</span> },
   ];
 
