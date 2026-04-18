@@ -3,9 +3,10 @@ import { api } from '@/api/client';
 
 export interface CustomCommand {
   id: string;
-  trigger: string;
+  command: string;
+  prefix: string;
   response_type: 'text' | 'embed';
-  response_content: string;
+  response_text: string;
   created_at?: string;
 }
 
@@ -25,9 +26,20 @@ export function useCustomCommands(guildId: string) {
   });
 
   const addMutation = useMutation({
-    mutationFn: (data: Partial<CustomCommand>) =>
+    mutationFn: (data: { command: string; prefix?: string; response_type: string; response_text: string }) =>
       api.fetch<any>(`/api/guilds/${guildId}/custom-commands`, {
         method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'custom-commands'] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ commandId, data }: { commandId: string; data: Partial<CustomCommand> }) =>
+      api.fetch<any>(`/api/guilds/${guildId}/custom-commands/${commandId}`, {
+        method: 'PUT',
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
@@ -51,6 +63,8 @@ export function useCustomCommands(guildId: string) {
     isLoading: commandsQuery.isLoading || statsQuery.isLoading,
     addCommand: addMutation.mutate,
     isAdding: addMutation.isPending,
+    updateCommand: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
     deleteCommand: deleteMutation.mutate,
     isDeleting: deleteMutation.isPending,
   };
