@@ -597,7 +597,7 @@ const ReactionRolesFeature = (function() {
 
             grid.innerHTML = filteredEmojis.map(emoji => {
                 const emojiValue = buildCustomEmojiValue(emoji);
-                const ext = emoji.animated ? 'gif' : 'png';
+                const ext = emoji.animated ? 'gif' : 'webp';
                 const imgUrl = `https://cdn.discordapp.com/emojis/${emoji.id}.${ext}`;
 
                 return `
@@ -637,7 +637,7 @@ const ReactionRolesFeature = (function() {
             const animated = match[1] === 'a';
             const name = match[2];
             const id = match[3];
-            const ext = animated ? 'gif' : 'png';
+            const ext = animated ? 'gif' : 'webp';
             return `<img src="https://cdn.discordapp.com/emojis/${id}.${ext}" alt="${name}" title="${name}" class="discord-emoji-img">`;
         }
         // Standard emoji

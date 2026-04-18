@@ -141,7 +141,7 @@ export const OverviewPage: React.FC = () => {
                   <div className="small text-muted">Learn about features</div>
                 </div>
               </a>
-              <a href="https://discord.gg/acosmibot" target="_blank" className="btn text-start p-3 d-flex align-items-center gap-3">
+              <a href="https://discord.gg/hrj7WhCyEv" target="_blank" className="btn text-start p-3 d-flex align-items-center gap-3">
                 <span style={{ fontSize: '1.2rem' }}>💬</span>
                 <div>
                   <div className="fw-bold">Support Server</div>
