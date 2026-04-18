@@ -1,63 +1,164 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { useCustomCommands, CustomCommand } from './useCustomCommands';
+import { useCustomCommands, CustomCommand, CommandPayload, EmbedConfig } from './useCustomCommands';
 import { LoadingSpinner } from '@/components/ui';
 
-interface NewCommandForm {
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function intToHex(n: number | null | undefined): string {
+  if (n == null) return '#5865F2';
+  return '#' + n.toString(16).padStart(6, '0');
+}
+
+function hexToInt(hex: string): number {
+  return parseInt(hex.replace('#', ''), 16);
+}
+
+function embedPreview(cfg: EmbedConfig | null | undefined): string {
+  return cfg?.title || cfg?.description || 'Rich Embed';
+}
+
+const VARIABLES = ['{user}', '{server}', '{channel}', '{uses}'];
+
+// ── form state ────────────────────────────────────────────────────────────────
+
+interface FormState {
   command: string;
   prefix: string;
   response_type: 'text' | 'embed';
   response_text: string;
+  // flattened embed fields for easier binding
+  embed_title: string;
+  embed_description: string;
+  embed_color: string;
+  embed_thumbnail: string;
+  embed_image: string;
+  embed_footer: string;
 }
 
-const emptyForm = (): NewCommandForm => ({
-  command: '',
-  prefix: '!',
-  response_type: 'text',
-  response_text: '',
-});
+function emptyForm(): FormState {
+  return {
+    command: '',
+    prefix: '!',
+    response_type: 'text',
+    response_text: '',
+    embed_title: '',
+    embed_description: '',
+    embed_color: '#5865F2',
+    embed_thumbnail: '',
+    embed_image: '',
+    embed_footer: '',
+  };
+}
+
+function formFromCommand(cmd: CustomCommand): FormState {
+  return {
+    command: cmd.command,
+    prefix: cmd.prefix,
+    response_type: cmd.response_type,
+    response_text: cmd.response_text ?? '',
+    embed_title: cmd.embed_config?.title ?? '',
+    embed_description: cmd.embed_config?.description ?? '',
+    embed_color: intToHex(cmd.embed_config?.color),
+    embed_thumbnail: cmd.embed_config?.thumbnail?.url ?? '',
+    embed_image: cmd.embed_config?.image?.url ?? '',
+    embed_footer: cmd.embed_config?.footer?.text ?? '',
+  };
+}
+
+function buildPayload(form: FormState): CommandPayload {
+  const base = { command: form.command.trim(), prefix: form.prefix, response_type: form.response_type };
+  if (form.response_type === 'text') {
+    return { ...base, response_text: form.response_text };
+  }
+  const cfg: EmbedConfig = {
+    title: form.embed_title.trim() || null,
+    description: form.embed_description.trim() || null,
+    color: hexToInt(form.embed_color),
+  };
+  if (form.embed_thumbnail.trim()) cfg.thumbnail = { url: form.embed_thumbnail.trim() };
+  if (form.embed_image.trim()) cfg.image = { url: form.embed_image.trim() };
+  if (form.embed_footer.trim()) cfg.footer = { text: form.embed_footer.trim() };
+  return { ...base, embed_config: cfg };
+}
+
+// ── component ─────────────────────────────────────────────────────────────────
 
 export const CustomCommandsPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { commands, maxCommands, isLoading, addCommand, isAdding, updateCommand, isUpdating, deleteCommand } =
     useCustomCommands(guildId!);
 
+  const [form, setForm] = useState<FormState>(emptyForm());
+  const [editingId, setEditingId] = useState<string | null>(null); // null = create mode
   const [showForm, setShowForm] = useState(false);
-  const [newCommand, setNewCommand] = useState<NewCommandForm>(emptyForm());
-
-  // Edit state: which command id is being edited, and its draft values
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<Partial<CustomCommand>>({});
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   if (isLoading) return <LoadingSpinner />;
 
-  const handleSave = () => {
-    if (!newCommand.command || !newCommand.response_text) return;
-    addCommand(
-      { command: newCommand.command, prefix: newCommand.prefix, response_type: newCommand.response_type, response_text: newCommand.response_text },
-      {
-        onSuccess: () => {
-          setShowForm(false);
-          setNewCommand(emptyForm());
-        },
-      }
-    );
+  const isSaving = isAdding || isUpdating;
+
+  // ── form helpers ────────────────────────────────────────────────────────────
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm());
+    setShowForm(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   };
 
-  const handleEditStart = (cmd: CustomCommand) => {
+  const openEdit = (cmd: CustomCommand) => {
     setEditingId(cmd.id);
-    setEditDraft({ command: cmd.command, prefix: cmd.prefix, response_type: cmd.response_type, response_text: cmd.response_text });
+    setForm(formFromCommand(cmd));
+    setShowForm(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   };
 
-  const handleEditSave = (cmdId: string) => {
-    updateCommand(
-      { commandId: cmdId, data: editDraft },
-      { onSuccess: () => setEditingId(null) }
-    );
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingId(null);
   };
+
+  const set = (key: keyof FormState, value: string) => setForm(f => ({ ...f, [key]: value }));
+
+  const insertVariable = (variable: string) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart ?? ta.value.length;
+    const end = ta.selectionEnd ?? ta.value.length;
+    const next = ta.value.substring(0, start) + variable + ta.value.substring(end);
+    set('response_text', next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.selectionStart = ta.selectionEnd = start + variable.length;
+    });
+  };
+
+  const validate = (): string | null => {
+    if (!form.command.trim()) return 'Command name is required.';
+    if (!/^[a-zA-Z0-9_-]+$/.test(form.command.trim())) return 'Command name can only contain letters, numbers, hyphens, and underscores.';
+    if (form.response_type === 'text' && !form.response_text.trim()) return 'Response text is required.';
+    if (form.response_type === 'embed' && !form.embed_title.trim() && !form.embed_description.trim()) return 'Embed must have at least a title or description.';
+    return null;
+  };
+
+  const handleSave = () => {
+    const err = validate();
+    if (err) { alert(err); return; }
+    const payload = buildPayload(form);
+    if (editingId) {
+      updateCommand({ commandId: editingId, data: payload }, { onSuccess: closeForm });
+    } else {
+      addCommand(payload, { onSuccess: closeForm });
+    }
+  };
+
+  // ── render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="feature-page">
+      {/* Header */}
       <div className="page-header d-flex justify-content-between align-items-center mb-4">
         <div className="text-start">
           <h1>Custom Commands</h1>
@@ -65,88 +166,200 @@ export const CustomCommandsPage: React.FC = () => {
         </div>
         <button
           className="btn primary py-2 px-4"
-          onClick={() => setShowForm(!showForm)}
-          disabled={commands.length >= maxCommands}
+          onClick={showForm && !editingId ? closeForm : openCreate}
+          disabled={!showForm && commands.length >= maxCommands}
         >
-          {showForm ? 'Cancel' : 'Add Command'}
+          {showForm && !editingId ? 'Cancel' : 'Add Command'}
         </button>
       </div>
 
+      {/* Create / Edit form */}
       {showForm && (
-        <div className="card p-4 mb-4 border-primary fade-in">
-          <h3 className="mb-4">New Command</h3>
-          <div className="row mb-3">
-            <div className="col-3">
+        <div ref={formRef} className="card p-4 mb-4 border-primary fade-in">
+          <h3 className="mb-4">{editingId ? 'Edit Command' : 'New Command'}</h3>
+
+          {/* Prefix + Command */}
+          <div className="d-flex gap-3 mb-3">
+            <div style={{ width: '80px', flexShrink: 0 }}>
               <label className="form-label mb-2 d-block">Prefix</label>
               <input
                 type="text"
                 className="form-control"
-                value={newCommand.prefix}
-                onChange={(e) => setNewCommand({ ...newCommand, prefix: e.target.value })}
-                placeholder="!"
-                style={{ maxWidth: '80px' }}
+                value={form.prefix}
+                onChange={e => set('prefix', e.target.value)}
               />
             </div>
-            <div className="col-9">
-              <label className="form-label mb-2 d-block">Command (ex: rules)</label>
+            <div className="flex-grow-1">
+              <label className="form-label mb-2 d-block">Command Name</label>
               <input
                 type="text"
                 className="form-control"
-                value={newCommand.command}
-                onChange={(e) => setNewCommand({ ...newCommand, command: e.target.value })}
-                placeholder="Enter command name..."
+                value={form.command}
+                onChange={e => set('command', e.target.value)}
+                placeholder="e.g. rules"
               />
             </div>
           </div>
+
+          {/* Live preview */}
+          <div className="mb-3" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Preview: <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
+              {form.prefix}{form.command || 'command'}
+            </span>
+          </div>
+
+          {/* Response type toggle */}
           <div className="mb-3">
             <label className="form-label mb-2 d-block">Response Type</label>
-            <select
-              className="form-control"
-              value={newCommand.response_type}
-              onChange={(e) => setNewCommand({ ...newCommand, response_type: e.target.value as 'text' | 'embed' })}
-            >
-              <option value="text">Plain Text</option>
-              <option value="embed">Embed (Rich Content)</option>
-            </select>
+            <div className="d-flex gap-2">
+              {(['text', 'embed'] as const).map(t => (
+                <button
+                  key={t}
+                  className={`btn btn-sm ${form.response_type === t ? 'primary' : 'btn-outline-secondary'}`}
+                  style={{ minWidth: '80px' }}
+                  onClick={() => set('response_type', t)}
+                >
+                  {t === 'text' ? 'Plain Text' : 'Embed'}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="mb-4">
-            <label className="form-label mb-2 d-block">Response Content</label>
-            <textarea
-              className="form-control"
-              rows={4}
-              value={newCommand.response_text}
-              onChange={(e) => setNewCommand({ ...newCommand, response_text: e.target.value })}
-              placeholder="Enter what the bot should say..."
-            />
-          </div>
+
+          {/* ── Text section ─────────────────────────────────── */}
+          {form.response_type === 'text' && (
+            <div className="mb-4">
+              <label className="form-label mb-2 d-block">Response Text</label>
+              <div className="d-flex flex-wrap gap-1 mb-2">
+                {VARIABLES.map(v => (
+                  <button
+                    key={v}
+                    className="btn btn-sm"
+                    style={{ fontSize: '12px', padding: '2px 8px', background: 'var(--bg-overlay)', color: 'var(--text-secondary)' }}
+                    onClick={() => insertVariable(v)}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                ref={textareaRef}
+                className="form-control"
+                rows={4}
+                value={form.response_text}
+                onChange={e => set('response_text', e.target.value)}
+                placeholder="Enter what the bot should say..."
+              />
+            </div>
+          )}
+
+          {/* ── Embed section ─────────────────────────────────── */}
+          {form.response_type === 'embed' && (
+            <div className="mb-4">
+              <div className="card p-3" style={{ background: 'var(--bg-overlay)', borderRadius: '8px' }}>
+                {/* Accent preview bar */}
+                <div style={{ height: '4px', borderRadius: '2px', background: form.embed_color, marginBottom: '12px' }} />
+
+                <div className="mb-3">
+                  <label className="form-label mb-2 d-block">Title</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={form.embed_title}
+                    onChange={e => set('embed_title', e.target.value)}
+                    placeholder="Embed title..."
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label mb-2 d-block">Description</label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value={form.embed_description}
+                    onChange={e => set('embed_description', e.target.value)}
+                    placeholder="Embed description..."
+                  />
+                </div>
+
+                <div className="d-flex gap-3 mb-3">
+                  <div>
+                    <label className="form-label mb-2 d-block">Color</label>
+                    <div className="d-flex align-items-center gap-2">
+                      <input
+                        type="color"
+                        value={form.embed_color}
+                        onChange={e => set('embed_color', e.target.value)}
+                        style={{ width: '40px', height: '36px', padding: '2px', background: 'none', border: '1px solid var(--border-light)', borderRadius: '6px', cursor: 'pointer' }}
+                      />
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={form.embed_color}
+                        onChange={e => set('embed_color', e.target.value)}
+                        style={{ width: '100px' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label mb-2 d-block">Thumbnail URL <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>(optional)</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={form.embed_thumbnail}
+                    onChange={e => set('embed_thumbnail', e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label mb-2 d-block">Image URL <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>(optional)</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={form.embed_image}
+                    onChange={e => set('embed_image', e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+
+                <div className="mb-0">
+                  <label className="form-label mb-2 d-block">Footer <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>(optional)</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={form.embed_footer}
+                    onChange={e => set('embed_footer', e.target.value)}
+                    placeholder="Footer text..."
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
           <div className="d-flex justify-content-end gap-3">
-            <button className="btn" onClick={() => setShowForm(false)}>
-              Cancel
-            </button>
-            <button
-              className="btn primary"
-              onClick={handleSave}
-              disabled={isAdding || !newCommand.command || !newCommand.response_text}
-            >
-              {isAdding ? 'Creating...' : 'Create Command'}
+            <button className="btn" onClick={closeForm}>Cancel</button>
+            <button className="btn primary" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : editingId ? 'Save Changes' : 'Create Command'}
             </button>
           </div>
         </div>
       )}
 
+      {/* Commands table */}
       <div className="card p-0 overflow-hidden">
         <div className="card-header bg-tertiary p-3 border-bottom border-light">
           <div className="d-flex justify-content-between align-items-center">
             <h3 className="mb-0 fs-5">Existing Commands</h3>
-            <span className="badge bg-secondary">
-              {commands.length} / {maxCommands}
-            </span>
+            <span className="badge bg-secondary">{commands.length} / {maxCommands}</span>
           </div>
         </div>
         <div className="card-body p-0">
           {commands.length === 0 ? (
             <div className="text-center p-5 text-muted">
-              No custom commands found. Click "Add Command" to create one.
+              No custom commands yet. Click "Add Command" to create one.
             </div>
           ) : (
             <div className="table-responsive">
@@ -160,98 +373,41 @@ export const CustomCommandsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {commands.map((cmd: CustomCommand) =>
-                    editingId === cmd.id ? (
-                      <tr key={cmd.id}>
-                        <td className="p-3 align-top">
-                          <div className="d-flex gap-1">
-                            <input
-                              type="text"
-                              className="form-control form-control-sm"
-                              style={{ width: '50px' }}
-                              value={editDraft.prefix ?? cmd.prefix}
-                              onChange={(e) => setEditDraft({ ...editDraft, prefix: e.target.value })}
-                            />
-                            <input
-                              type="text"
-                              className="form-control form-control-sm"
-                              value={editDraft.command ?? cmd.command}
-                              onChange={(e) => setEditDraft({ ...editDraft, command: e.target.value })}
-                            />
-                          </div>
-                        </td>
-                        <td className="p-3 align-top">
-                          <select
-                            className="form-control form-control-sm"
-                            value={editDraft.response_type ?? cmd.response_type}
-                            onChange={(e) =>
-                              setEditDraft({ ...editDraft, response_type: e.target.value as 'text' | 'embed' })
-                            }
+                  {commands.map(cmd => (
+                    <tr key={cmd.id} className={editingId === cmd.id ? 'table-active' : ''}>
+                      <td className="p-3 align-middle fw-bold text-primary">
+                        {cmd.prefix}{cmd.command}
+                      </td>
+                      <td className="p-3 align-middle">
+                        <span className="badge bg-tertiary text-muted">{cmd.response_type}</span>
+                      </td>
+                      <td className="p-3 align-middle">
+                        <div className="text-truncate" style={{ maxWidth: '300px' }}>
+                          {cmd.response_type === 'embed'
+                            ? embedPreview(cmd.embed_config)
+                            : cmd.response_text}
+                        </div>
+                      </td>
+                      <td className="p-3 align-middle text-end">
+                        <div className="d-flex gap-2 justify-content-end">
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            style={{ minWidth: '50px' }}
+                            onClick={() => editingId === cmd.id ? closeForm() : openEdit(cmd)}
                           >
-                            <option value="text">text</option>
-                            <option value="embed">embed</option>
-                          </select>
-                        </td>
-                        <td className="p-3 align-top">
-                          <textarea
-                            className="form-control form-control-sm"
-                            rows={3}
-                            value={editDraft.response_text ?? cmd.response_text}
-                            onChange={(e) => setEditDraft({ ...editDraft, response_text: e.target.value })}
-                          />
-                        </td>
-                        <td className="p-3 align-top text-end">
-                          <div className="d-flex gap-2 justify-content-end">
-                            <button
-                              className="btn btn-sm btn-outline-success px-2"
-                              onClick={() => handleEditSave(cmd.id)}
-                              disabled={isUpdating}
-                            >
-                              {isUpdating ? '...' : 'Save'}
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-secondary px-2"
-                              onClick={() => setEditingId(null)}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      <tr key={cmd.id}>
-                        <td className="p-3 align-middle fw-bold text-primary">
-                          {cmd.prefix}{cmd.command}
-                        </td>
-                        <td className="p-3 align-middle">
-                          <span className="badge bg-tertiary text-muted">{cmd.response_type}</span>
-                        </td>
-                        <td className="p-3 align-middle">
-                          <div className="text-truncate" style={{ maxWidth: '300px' }}>
-                            {cmd.response_text}
-                          </div>
-                        </td>
-                        <td className="p-3 align-middle text-end">
-                          <div className="d-flex gap-2 justify-content-end">
-                            <button
-                              className="btn btn-sm btn-outline-primary px-2"
-                              onClick={() => handleEditStart(cmd)}
-                              style={{ minWidth: '50px' }}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger p-1"
-                              onClick={() => { if (confirm('Delete this command?')) deleteCommand(cmd.id); }}
-                              style={{ minWidth: '32px' }}
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  )}
+                            {editingId === cmd.id ? 'Cancel' : 'Edit'}
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger p-1"
+                            style={{ minWidth: '32px' }}
+                            onClick={() => { if (confirm('Delete this command?')) deleteCommand(cmd.id); }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

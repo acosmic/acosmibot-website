@@ -58,7 +58,23 @@ export const LegacyFeatureView: React.FC<LegacyFeatureViewProps> = ({ feature })
             guildConfig,
           },
           initForSPA: async () => {},
-          loadFeature: (route: string) => navigate(`/server/${guildId}/${route}`),
+          loadFeature: (route: string) => {
+            const routeParts = route.split('/');
+            const baseFeature = routeParts[0]; // e.g. 'reaction-roles'
+
+            if (baseFeature === feature) {
+              // Same feature with a sub-route (e.g. 'reaction-roles/edit/123' or 'reaction-roles/new').
+              // React Router only matches single-segment :feature, so instead of navigating
+              // we re-call the feature's init directly with the route params.
+              const featureName = toPascalCase(feature) + 'Feature';
+              const legacyFeature = (window as any)[featureName];
+              if (legacyFeature?.init) {
+                legacyFeature.init({ route, rrId: routeParts[2] });
+              }
+            } else {
+              navigate(`/server/${guildId}/${route}`);
+            }
+          },
           showNotification: (message: string, type: string) => {
             console.log(`[LegacyNotification][${type}] ${message}`);
           },

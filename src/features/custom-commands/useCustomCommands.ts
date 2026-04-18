@@ -1,13 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
 
+export interface EmbedConfig {
+  title?: string | null;
+  description?: string | null;
+  color?: number | null;
+  thumbnail?: { url: string } | null;
+  image?: { url: string } | null;
+  footer?: { text: string } | null;
+}
+
 export interface CustomCommand {
   id: string;
   command: string;
   prefix: string;
   response_type: 'text' | 'embed';
-  response_text: string;
+  response_text?: string | null;
+  embed_config?: EmbedConfig | null;
   created_at?: string;
+}
+
+export interface CommandPayload {
+  command: string;
+  prefix: string;
+  response_type: 'text' | 'embed';
+  response_text?: string;
+  embed_config?: EmbedConfig;
 }
 
 export function useCustomCommands(guildId: string) {
@@ -26,7 +44,7 @@ export function useCustomCommands(guildId: string) {
   });
 
   const addMutation = useMutation({
-    mutationFn: (data: { command: string; prefix?: string; response_type: string; response_text: string }) =>
+    mutationFn: (data: CommandPayload) =>
       api.fetch<any>(`/api/guilds/${guildId}/custom-commands`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -37,7 +55,7 @@ export function useCustomCommands(guildId: string) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ commandId, data }: { commandId: string; data: Partial<CustomCommand> }) =>
+    mutationFn: ({ commandId, data }: { commandId: string; data: CommandPayload }) =>
       api.fetch<any>(`/api/guilds/${guildId}/custom-commands/${commandId}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -58,8 +76,8 @@ export function useCustomCommands(guildId: string) {
   });
 
   return {
-    commands: commandsQuery.data?.commands || [],
-    maxCommands: statsQuery.data?.stats?.max_commands || 25,
+    commands: (commandsQuery.data?.commands || []) as CustomCommand[],
+    maxCommands: (statsQuery.data?.stats?.max_commands || 25) as number,
     isLoading: commandsQuery.isLoading || statsQuery.isLoading,
     addCommand: addMutation.mutate,
     isAdding: addMutation.isPending,
