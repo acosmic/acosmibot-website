@@ -1,4 +1,5 @@
 import { api } from './client';
+import { configApi } from './config';
 import type { StreamPlatformConfig, UpdateStreamPlatformConfigRequest } from '@/types/features';
 
 export type Platform = 'twitch' | 'youtube' | 'kick';
@@ -18,19 +19,10 @@ export const streamingApi = {
   },
 
   updateConfig: async (guildId: string, platform: Platform, data: UpdateStreamPlatformConfigRequest): Promise<StreamPlatformConfig> => {
-    const current = await api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`);
-    const currentSettings = current?.data?.settings ?? {};
-    const updatedSettings = {
-      ...currentSettings,
-      [platform]: {
-        ...(currentSettings[platform] ?? {}),
-        ...data,
-      },
-    };
-    await api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`, {
-      method: 'POST',
-      body: JSON.stringify({ settings: updatedSettings }),
-    });
-    return { ...DEFAULT_CONFIG, ...updatedSettings[platform] };
+    const current = await configApi.getHybridConfig(guildId);
+    const currentPlatform = current?.data?.settings?.[platform] ?? {};
+    const nextPlatform = { ...currentPlatform, ...data };
+    await configApi.upsertHybridSections(guildId, { [platform]: nextPlatform });
+    return { ...DEFAULT_CONFIG, ...nextPlatform };
   },
 };

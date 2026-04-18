@@ -31,7 +31,6 @@ export function useSlotsConfig(guildId: string) {
   });
 
   const raw = query.data?.data?.settings?.games?.['slots-config'];
-  const allSettings = query.data?.data?.settings;
   const availableEmojis: GuildEmoji[] = query.data?.data?.available_emojis ?? [];
 
   const data = useMemo<SlotsConfig | undefined>(() => {
@@ -49,16 +48,17 @@ export function useSlotsConfig(guildId: string) {
 
   const mutation = useMutation({
     mutationFn: async (slots: SlotsConfig) => {
-      const currentGames = allSettings?.games ?? {};
-      const mergedSettings = {
-        ...(allSettings ?? {}),
+      // Fetch fresh games section to preserve any non-slots fields (e.g. games.enabled
+      // or sibling game configs) without clobbering whatever was saved elsewhere.
+      const fresh = await configApi.getHybridConfig(guildId);
+      const currentGames = fresh?.data?.settings?.games ?? {};
+      return configApi.upsertHybridSections(guildId, {
         games: {
           ...currentGames,
           enabled: currentGames.enabled !== false,
           'slots-config': slots,
         },
-      };
-      return configApi.updateHybridConfig(guildId, mergedSettings);
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
