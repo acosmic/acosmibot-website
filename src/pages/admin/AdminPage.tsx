@@ -23,9 +23,9 @@ interface Guild {
   owner_id: string;
   member_count: number;
   active: boolean;
-  created_at: string | null;
-  last_active: string | null;
-  settings_enabled: Record<string, boolean>;
+  joined_at: string | null;
+  subscription_tier: string;
+  settings: string | null;
 }
 
 function useAdminData<T>(url: string, token: string | null) {
@@ -148,6 +148,39 @@ function SortableTable<T extends Record<string, any>>({
   );
 }
 
+const TIER_COLORS: Record<string, string> = {
+  free: 'var(--text-muted)',
+  premium: '#a78bfa',
+  premium_plus_ai: '#f59e0b',
+};
+
+const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
+  const [open, setOpen] = useState(false);
+  if (!json) return <span className="text-muted">—</span>;
+  let pretty = json;
+  try { pretty = JSON.stringify(JSON.parse(json), null, 2); } catch {}
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{ background: 'none', border: '1px solid var(--border-light)', borderRadius: 4, padding: '2px 8px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
+      >
+        {open ? 'Hide' : 'View'}
+      </button>
+      {open && (
+        <pre style={{
+          marginTop: 8, padding: 12, background: 'var(--bg-primary)', border: '1px solid var(--border-light)',
+          borderRadius: 6, fontSize: '0.72rem', maxHeight: 400, overflowY: 'auto',
+          whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--text-primary)',
+          position: 'absolute', zIndex: 100, minWidth: 360, maxWidth: 600,
+        }}>
+          {pretty}
+        </pre>
+      )}
+    </div>
+  );
+};
+
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { token, user } = useAuthStore();
@@ -192,7 +225,9 @@ export const AdminPage: React.FC = () => {
     { key: 'owner_id', label: 'Owner ID' },
     { key: 'member_count', label: 'Members', render: (r: Guild) => r.member_count?.toLocaleString() ?? '—' },
     { key: 'active', label: 'Active', render: (r: Guild) => r.active ? <span style={{ color: '#4ade80' }}>Yes</span> : <span style={{ color: '#f87171' }}>No</span> },
-    { key: 'last_active', label: 'Last Active', render: (r: Guild) => r.last_active ? new Date(r.last_active).toLocaleDateString() : '—' },
+    { key: 'subscription_tier', label: 'Tier', render: (r: Guild) => <span style={{ color: TIER_COLORS[r.subscription_tier] ?? 'inherit', fontWeight: 600, textTransform: 'capitalize' }}>{r.subscription_tier?.replace(/_/g, ' ') ?? '—'}</span> },
+    { key: 'joined_at', label: 'Date Joined', render: (r: Guild) => r.joined_at ? new Date(r.joined_at).toLocaleDateString() : '—' },
+    { key: 'settings', label: 'Settings', render: (r: Guild) => <SettingsCell json={r.settings} /> },
   ];
 
   return (
