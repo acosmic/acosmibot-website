@@ -183,6 +183,9 @@ export const HomePage: React.FC = () => {
               {isAuthenticated && (
                 <li><a href="/servers">Dashboard</a></li>
               )}
+              {user?.id === '110637665128325120' && (
+                <li><a href="/admin" style={{ color: 'var(--color-warning, #f59e0b)' }}>Admin</a></li>
+              )}
             </ul>
 
             {/* Hamburger */}

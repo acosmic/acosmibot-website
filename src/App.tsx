@@ -15,6 +15,7 @@ import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
 import { DocsPage } from './pages/docs/DocsPage';
 import { useAuthStore } from './store/auth';
+import { AdminPage } from './pages/admin/AdminPage';
 
 /** Catches the ?token= param from the API OAuth redirect and saves it, then sends to /servers */
 const AuthCallback = () => {
@@ -81,6 +82,7 @@ function App() {
         <Route path=":feature" element={<FeatureOutlet />} />
         <Route index element={<Navigate to="overview" replace />} />
       </Route>
+      <Route path="/admin" element={<AdminPage />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/docs/:page" element={<DocsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
