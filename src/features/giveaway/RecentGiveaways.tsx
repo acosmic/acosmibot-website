@@ -138,11 +138,11 @@ export const RecentGiveaways: React.FC<Props> = ({ giveaways }) => {
                 {/* Compact row */}
                 <button
                   className="w-100 text-start border-0 p-3"
-                  style={{ background: 'transparent', cursor: 'pointer' }}
+                  style={{ background: 'transparent', cursor: 'pointer', color: 'inherit' }}
                   onClick={() => setExpandedId(isOpen ? null : g.id)}
                 >
                   <div className="d-flex justify-content-between align-items-center">
-                    <span className="fw-semibold" style={{ fontSize: '0.95rem' }}>{g.prize}</span>
+                    <span className="fw-semibold" style={{ fontSize: '0.95rem', color: 'var(--text-primary, #fff)' }}>{g.prize}</span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                       {isOpen ? '▲' : '▼'}
                     </span>
