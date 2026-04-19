@@ -2,6 +2,7 @@ export interface GiveawayConfig {
   enabled: boolean;
   defaultEmoji: string;
   winnerLogChannelId: string | null;
+  eventLogChannelId: string | null;
   dmWinner: boolean;
   recentWinnerLockoutCount: number;
   boosterMultiplierEnabled: boolean;

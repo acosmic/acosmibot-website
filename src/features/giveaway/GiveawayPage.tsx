@@ -106,6 +106,15 @@ export const GiveawayPage: React.FC = () => {
           placeholder="No log channel selected"
         />
 
+        <ChannelSelect
+          guildId={guildId!}
+          value={form.eventLogChannelId}
+          onChange={(v) => setForm({ eventLogChannelId: v })}
+          label="Event Log Channel"
+          placeholder="No event log channel selected"
+        />
+        <div className="small text-muted mt-1 mb-3">Posts an embed when a giveaway ends or is cancelled.</div>
+
         <div className="row">
           <div className="col-md-4 mb-3">
             <label className="form-label mb-2 d-block">Default Emoji</label>

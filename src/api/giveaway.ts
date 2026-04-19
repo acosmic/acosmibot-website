@@ -6,6 +6,7 @@ function fromSettings(raw: any): GiveawayConfig {
     enabled: raw?.enabled ?? false,
     defaultEmoji: raw?.default_emoji ?? '🎉',
     winnerLogChannelId: raw?.winner_log_channel_id ?? null,
+    eventLogChannelId: raw?.event_log_channel_id ?? null,
     dmWinner: raw?.dm_winner ?? true,
     recentWinnerLockoutCount: raw?.recent_winner_lockout_count ?? 0,
     boosterMultiplierEnabled: raw?.booster_multiplier_enabled ?? false,
@@ -24,6 +25,7 @@ function toSettings(data: UpdateGiveawayConfigRequest, existing: any = {}): any 
   if ('enabled' in data) out.enabled = data.enabled;
   if ('defaultEmoji' in data) out.default_emoji = data.defaultEmoji;
   if ('winnerLogChannelId' in data) out.winner_log_channel_id = data.winnerLogChannelId;
+  if ('eventLogChannelId' in data) out.event_log_channel_id = data.eventLogChannelId;
   if ('dmWinner' in data) out.dm_winner = data.dmWinner;
   if ('recentWinnerLockoutCount' in data) out.recent_winner_lockout_count = data.recentWinnerLockoutCount;
   if ('boosterMultiplierEnabled' in data) out.booster_multiplier_enabled = data.boosterMultiplierEnabled;
