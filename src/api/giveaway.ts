@@ -58,7 +58,7 @@ export const giveawayApi = {
       .then(r => r?.data ?? []),
 
   getRecentGiveaways: (guildId: string) =>
-    api.fetch<any>(`/api/guilds/${guildId}/giveaways?status=ended&limit=10`)
+    api.fetch<any>(`/api/guilds/${guildId}/giveaways?status=ended`)
       .then(r => r?.data ?? []),
 
   cancelGiveaway: (guildId: string, giveawayId: number) =>

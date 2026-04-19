@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGiveawayConfig } from './useGiveawayConfig';
+import { RecentGiveaways } from './RecentGiveaways';
 import { useQuery } from '@tanstack/react-query';
 import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
@@ -357,29 +358,7 @@ export const GiveawayPage: React.FC = () => {
       </CollapsibleSection>
 
       <CollapsibleSection title="Recent Giveaways">
-        {!recentGiveaways?.length ? (
-          <p className="text-muted small">No recent giveaways.</p>
-        ) : (
-          <div className="d-flex flex-column gap-3">
-            {recentGiveaways.map((g: any) => (
-              <div key={g.id} className="card p-3" style={{ background: 'var(--bg-tertiary)' }}>
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <span className="fw-bold">{g.prize}</span>
-                  <span className="badge bg-secondary">Ended</span>
-                </div>
-                {g.description && <p className="small text-muted mb-2">{g.description}</p>}
-                <div className="d-flex gap-3 small text-muted">
-                  <span>🎟️ {(g.entry_count || 0).toLocaleString()} entries</span>
-                  {g.winner_id && g.winner_id !== 0
-                    ? <span>🏆 Winner: {g.winner_id}</span>
-                    : <span>No winner</span>
-                  }
-                  <span>📅 {new Date(g.end_time).toLocaleDateString()}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <RecentGiveaways giveaways={recentGiveaways ?? []} />
       </CollapsibleSection>
 
       <SaveBar
