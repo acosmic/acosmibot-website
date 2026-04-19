@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth';
+import { RagTab } from './RagTab';
 
 const OWNER_ID = '110637665128325120';
 
@@ -198,7 +199,7 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { token, user } = useAuthStore();
-  const [tab, setTab] = useState<'signins' | 'servers'>('signins');
+  const [tab, setTab] = useState<'signins' | 'servers' | 'rag'>('signins');
   const [authChecked, setAuthChecked] = useState(false);
 
   const signinResult = useAdminData<{ logs: SigninLog[] }>('/api/admin/signin-logs?limit=1000', token);
@@ -266,7 +267,7 @@ export const AdminPage: React.FC = () => {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid var(--border-light)', paddingBottom: 0 }}>
-          {(['signins', 'servers'] as const).map(t => (
+          {(['signins', 'servers', 'rag'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -282,7 +283,7 @@ export const AdminPage: React.FC = () => {
                 marginBottom: -1,
               }}
             >
-              {t === 'signins' ? 'Sign-In Log' : 'Servers'}
+              {t === 'signins' ? 'Sign-In Log' : t === 'servers' ? 'Servers' : 'RAG Docs'}
             </button>
           ))}
         </div>
@@ -314,6 +315,9 @@ export const AdminPage: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* RAG Docs */}
+        {tab === 'rag' && <RagTab token={token} />}
       </div>
     </div>
   );
