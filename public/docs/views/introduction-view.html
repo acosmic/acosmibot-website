@@ -9,19 +9,94 @@
     <h2>Welcome to the Acosmibot Documentation</h2>
     <p>
       These modules walk you through setting up and using Acosmibot features to improve and customize your Discord server.
+      Acosmibot is a feature-rich Discord bot covering server engagement, economy, moderation, streaming alerts, games, and AI.
     </p>
   </section>
 
   <!-- Key Features -->
   <section class="docs-section">
     <h2>Key Features</h2>
-    <div class="feature-links">
-      <a href="/docs/leveling" onclick="event.preventDefault(); window.DocsRouter.navigate('leveling')">Leveling System</a>
-      <a href="/docs/economy" onclick="event.preventDefault(); window.DocsRouter.navigate('economy')">Economy and Banking</a>
-      <a href="/docs/twitch" onclick="event.preventDefault(); window.DocsRouter.navigate('twitch')">Social Alerts</a>
-      <a href="/docs/slots" onclick="event.preventDefault(); window.DocsRouter.navigate('slots')">Games and Gambling</a>
-      <a href="/docs/moderation" onclick="event.preventDefault(); window.DocsRouter.navigate('moderation')">Moderation Tools</a>
-      <a href="/docs/ai" onclick="event.preventDefault(); window.DocsRouter.navigate('ai')">AI Integration</a>
+    <p>Acosmibot includes the following major features and commands:</p>
+
+    <div class="info-card">
+      <h3>Leveling System</h3>
+      <p>
+        Reward server activity with XP and automatic role progression. Members earn experience points by sending messages
+        and level up over time. Supports customizable XP formulas (linear, quadratic, exponential), role rewards at
+        milestones, level-up announcements, daily leaderboards, streak tracking, and XP multipliers.
+        Commands: <code>/rank</code>, <code>/leaderboard</code>, <code>/setlevel</code>, <code>/addxp</code>.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Economy and Banking</h3>
+      <p>
+        A virtual currency system using credits. Members earn credits through daily rewards, gambling games, and transfers.
+        The global bank lets members deposit and protect their credits. Includes streak bonuses for consecutive daily claims,
+        transaction history, and richest-member leaderboards.
+        Commands: <code>/balance</code>, <code>/daily</code>, <code>/transfer</code>, <code>/deposit</code>, <code>/withdraw</code>, <code>/richest</code>.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Social Alerts — Twitch, YouTube, Kick</h3>
+      <p>
+        Real-time streaming notifications when your favorite streamers go live. Supports Twitch (EventSub webhooks),
+        YouTube (PubSubHubbub), and Kick. Each platform supports customizable announcement messages, role mentions
+        (@everyone, @here, or specific roles), and per-streamer configuration.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Games and Gambling</h3>
+      <p>
+        A suite of credit-based gambling games integrated with the economy system:
+        Slots (3-reel machine with customizable symbols and payouts),
+        Lottery (server-wide jackpot drawings),
+        Blackjack (classic card game vs the dealer),
+        Coinflip (50/50 heads or tails),
+        Deathroll (high-stakes dice duels between members).
+        Commands: <code>/slots</code>, <code>/lottery</code>, <code>/blackjack</code>, <code>/coinflip</code>, <code>/deathroll</code>.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Moderation Tools</h3>
+      <p>
+        Keep your server safe with a full moderation suite including warnings, mutes, kicks, bans, and a jail system.
+        Supports auto-moderation rules, configurable punishment escalation, mod-log channels, and detailed audit trails.
+        Commands: <code>/warn</code>, <code>/mute</code>, <code>/kick</code>, <code>/ban</code>, <code>/jail</code>.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>AI Integration</h3>
+      <p>
+        Connects Acosmibot to an AI model so members can have natural conversations by mentioning the bot.
+        Maintains context for the last 15 messages per channel, supports a custom system prompt to define the AI's
+        personality, configurable daily usage limits, channel restrictions, and swappable AI models.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Utilities</h3>
+      <p>
+        Additional tools to enhance your server:
+        Reaction Roles (assign roles via emoji reactions),
+        Custom Commands (create your own slash commands with custom responses),
+        Better Embeds (rich embedded message builder),
+        Reminders (scheduled personal or server reminders).
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Chaos Features</h3>
+      <p>
+        Advanced and experimental features:
+        Cross-Server Portals (link channels across different Discord servers),
+        Polymorph (temporarily change member nicknames and avatars),
+        Jail System (restrict members to a designated channel as punishment).
+      </p>
     </div>
   </section>
 
