@@ -18,12 +18,12 @@
     <div class="info-card info-card-info">
       <h3>Key Features</h3>
       <ul>
-        <li>Daily credit rewards with streak bonuses</li>
-        <li>Credit transfers between members</li>
-        <li>Global bank for deposits and withdrawals</li>
-        <li>Integration with gambling games</li>
-        <li>Transaction history tracking</li>
-        <li>Leaderboards for richest members</li>
+        <li>Credit wallet per server — earn by playing games and receiving transfers</li>
+        <li>Global bank for safe cross-server storage with deposit and withdrawal history</li>
+        <li>Give credits to other members with <code>/give</code></li>
+        <li>Server guild bank vault viewable with <code>/guildbank</code></li>
+        <li>Integration with all gambling games (slots, blackjack, coinflip, deathroll)</li>
+        <li>Leaderboards for Currency, XP, and Level via <code>/leaderboard</code></li>
       </ul>
     </div>
   </section>
@@ -37,10 +37,9 @@
         Credits are the virtual currency in Acosmibot. Members start with 0 credits and can earn them through:
       </p>
       <ul>
-        <li><strong>Daily Rewards:</strong> Claim free credits every 24 hours</li>
-        <li><strong>Gambling Games:</strong> Win credits by playing slots, lottery, blackjack, etc.</li>
-        <li><strong>Transfers:</strong> Receive credits from other members</li>
-        <li><strong>Admin Grants:</strong> Server admins can give credits as rewards</li>
+        <li><strong>Gambling Games:</strong> Win credits by playing slots, blackjack, coinflip, deathroll, etc.</li>
+        <li><strong>Transfers:</strong> Receive credits from other members via <code>/give</code></li>
+        <li><strong>Lottery Winnings:</strong> Win credits from server-run lottery events</li>
       </ul>
     </div>
 
@@ -75,31 +74,20 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/daily</div>
+        <div class="command-signature">/give &lt;member&gt; &lt;amount&gt;</div>
         <div class="command-description">
-          Claim your daily credit reward. Build up streaks by claiming daily without missing a day for bonus rewards.
+          Send credits from your wallet to another member. The amount is deducted from your server balance.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/daily</code>
-        </div>
-      </div>
-
-      <div class="command-card">
-        <div class="command-signature">/transfer &lt;member&gt; &lt;amount&gt;</div>
-        <div class="command-description">
-          Send credits to another member. The amount is deducted from your balance and added to theirs.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/transfer @username 500</code>
+          <code>/give @username 500</code>
         </div>
       </div>
 
       <div class="command-card">
         <div class="command-signature">/deposit &lt;amount&gt;</div>
         <div class="command-description">
-          Deposit credits from your wallet into the bank for safe keeping.
+          Deposit credits from your server wallet into the global bank for safe keeping. Use <code>all</code> to deposit everything. A small fee may apply depending on server settings.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
@@ -111,7 +99,7 @@
       <div class="command-card">
         <div class="command-signature">/withdraw &lt;amount&gt;</div>
         <div class="command-description">
-          Withdraw credits from the bank to your wallet for spending.
+          Withdraw credits from the global bank back to your server wallet. Use <code>all</code> to withdraw everything.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
@@ -121,110 +109,67 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/richest [scope]</div>
+        <div class="command-signature">/bank</div>
         <div class="command-description">
-          View the richest members leaderboard. Choose between server-only or global rankings.
+          View your global bank balance, total deposited, total withdrawn, and account statistics.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/bank</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/bank-history</div>
+        <div class="command-description">
+          View your recent bank transaction history, including deposits, withdrawals, fees, and dates.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/bank-history</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/guildbank</div>
+        <div class="command-description">
+          Check the current credit balance of this server's shared guild vault. The guild vault funds server-wide events like the lottery.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/guildbank</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/leaderboard &lt;stat&gt;</div>
+        <div class="command-description">
+          View the top 10 members for a chosen stat. Available stats: <code>Currency</code>, <code>Exp</code>, <code>Level</code>, <code>Global Currency</code>, <code>Global Exp</code>, <code>Global Level</code>.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
-          <code>/richest</code>
-          <code>/richest server</code>
-          <code>/richest global</code>
-        </div>
-      </div>
-
-      <div class="command-card">
-        <div class="command-signature">/givecredits &lt;member&gt; &lt;amount&gt;</div>
-        <div class="command-description">
-          Grant credits to a member. Requires administrator permissions. Use for events, contests, or rewards.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/givecredits @winner 10000</code>
-        </div>
-      </div>
-
-      <div class="command-card">
-        <div class="command-signature">/removecredits &lt;member&gt; &lt;amount&gt;</div>
-        <div class="command-description">
-          Remove credits from a member. Requires administrator permissions. Use for penalties or corrections.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/removecredits @username 500</code>
+          <code>/leaderboard Currency</code>
+          <code>/leaderboard Global Currency</code>
         </div>
       </div>
     </div>
   </section>
 
   <section class="docs-section">
-    <h2>Daily Rewards & Streaks</h2>
-
-    <div class="info-card info-card-success">
-      <h3>How Daily Rewards Work</h3>
-      <p>
-        Members can claim free credits once every 24 hours using <code>/daily</code>. The base reward is 100 credits, but this can be increased with:
-      </p>
-      <ul>
-        <li><strong>Consecutive Days Streak:</strong> Claim daily without missing a day to build streaks</li>
-        <li><strong>Streak Bonuses:</strong> Higher streaks = bigger rewards</li>
-        <li><strong>Streak Reset:</strong> Missing a day resets your streak to 1</li>
-      </ul>
-    </div>
-
-    <div class="example-card">
-      <h3>Example Streak Progression</h3>
-      <table class="docs-table">
-        <thead>
-          <tr>
-            <th>Streak Days</th>
-            <th>Bonus Multiplier</th>
-            <th>Total Reward</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1 day</td>
-            <td>1.0x</td>
-            <td>100 credits</td>
-          </tr>
-          <tr>
-            <td>7 days</td>
-            <td>1.5x</td>
-            <td>150 credits</td>
-          </tr>
-          <tr>
-            <td>14 days</td>
-            <td>2.0x</td>
-            <td>200 credits</td>
-          </tr>
-          <tr>
-            <td>30 days</td>
-            <td>3.0x</td>
-            <td>300 credits</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="docs-section">
-    <h2>Transaction History</h2>
+    <h2>Bank Transaction History</h2>
     <p>
-      All credit transactions are tracked in the database, including:
+      All bank transactions are tracked and viewable with <code>/bank-history</code>, including:
     </p>
     <ul>
-      <li>Daily reward claims</li>
-      <li>Transfers between members</li>
-      <li>Bank deposits and withdrawals</li>
-      <li>Gambling wins and losses</li>
-      <li>Admin grants and removals</li>
+      <li>Deposits and the fee charged (if any)</li>
+      <li>Withdrawals and timestamps</li>
+      <li>Running balance after each transaction</li>
     </ul>
 
     <div class="info-card">
       <h3>📊 Viewing Your History</h3>
       <p>
-        Transaction history can be viewed through your user dashboard at <a href="/dashboard" target="_blank">/dashboard</a>. This shows recent transactions and your balance over time.
+        Use <code>/bank-history</code> in Discord to see your recent transactions. Your user dashboard at <a href="/dashboard" target="_blank">/dashboard</a> also shows balance history over time.
       </p>
     </div>
   </section>
@@ -284,11 +229,11 @@
     <div class="info-card info-card-success">
       <h3>💡 Tips for Server Owners</h3>
       <ul>
-        <li>Grant starting credits to new members to encourage participation</li>
-        <li>Host events and giveaways using <code>/givecredits</code></li>
-        <li>Monitor the richest leaderboard to ensure healthy economy balance</li>
-        <li>Set gambling limits to prevent members from losing everything</li>
-        <li>Encourage banking to promote saving behavior</li>
+        <li>Run lotteries via <code>/admin-start-lotto</code> to recirculate guild vault credits back into the economy</li>
+        <li>Monitor the <code>/leaderboard Currency</code> to keep an eye on balance distribution</li>
+        <li>Set gambling limits in the dashboard to prevent runaway losses</li>
+        <li>Encourage banking — banked credits can't be lost in gambling games</li>
+        <li>Use giveaways to reward active members with credits</li>
       </ul>
     </div>
 
@@ -307,23 +252,23 @@
     <h2>Troubleshooting</h2>
 
     <div class="faq-item">
-      <h4>Q: I can't claim my daily reward</h4>
-      <p>A: You can only claim <code>/daily</code> once every 24 hours. Check when you last claimed it.</p>
-    </div>
-
-    <div class="faq-item">
-      <h4>Q: My streak reset but I didn't miss a day</h4>
-      <p>A: Streaks require claiming within 24 hours of your last claim. If you claim at 11pm one day and 1am the next, you have a very short window the following day.</p>
-    </div>
-
-    <div class="faq-item">
       <h4>Q: Can I transfer credits between servers?</h4>
-      <p>A: No, credits are server-specific. However, your global balance (total across all servers) is tracked for leaderboards.</p>
+      <p>A: Server wallet credits are server-specific. However, the global bank is shared across all servers — you can deposit in one server and withdraw in another.</p>
     </div>
 
     <div class="faq-item">
       <h4>Q: What happens if I go into negative credits?</h4>
-      <p>A: You cannot go negative. Gambling games will prevent bets if you don't have enough credits.</p>
+      <p>A: You cannot go negative. Gambling games and <code>/give</code> will block the action if you don't have enough credits.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: My deposit failed</h4>
+      <p>A: Make sure the bank system is enabled on this server (check with an admin). There may also be a minimum deposit amount configured. The error message will tell you the exact requirement.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Where does the guild vault come from?</h4>
+      <p>A: The guild vault accumulates credits from server economy activity. Admins can run lotteries that pay out from the vault to reward community members.</p>
     </div>
   </section>
 

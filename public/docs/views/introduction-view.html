@@ -23,18 +23,18 @@
       <p>
         Reward server activity with XP and automatic role progression. Members earn experience points by sending messages
         and level up over time. Supports customizable XP formulas (linear, quadratic, exponential), role rewards at
-        milestones, level-up announcements, daily leaderboards, streak tracking, and XP multipliers.
-        Commands: <code>/rank</code>, <code>/leaderboard</code>, <code>/setlevel</code>, <code>/addxp</code>.
+        milestones, level-up announcements, daily leaderboards, and XP multipliers.
+        Commands: <code>/rank</code>, <code>/leaderboard</code>, <code>/stats</code>.
       </p>
     </div>
 
     <div class="info-card">
       <h3>Economy and Banking</h3>
       <p>
-        A virtual currency system using credits. Members earn credits through daily rewards, gambling games, and transfers.
-        The global bank lets members deposit and protect their credits. Includes streak bonuses for consecutive daily claims,
-        transaction history, and richest-member leaderboards.
-        Commands: <code>/balance</code>, <code>/daily</code>, <code>/transfer</code>, <code>/deposit</code>, <code>/withdraw</code>, <code>/richest</code>.
+        A virtual currency system using credits. Members earn credits through gambling games, lotteries, and credit transfers.
+        The global bank lets members deposit and protect their credits across all servers.
+        Transaction history and leaderboards track wealth over time.
+        Commands: <code>/balance</code>, <code>/give</code>, <code>/deposit</code>, <code>/withdraw</code>, <code>/bank</code>, <code>/bank-history</code>, <code>/guildbank</code>, <code>/leaderboard</code>.
       </p>
     </div>
 
@@ -56,16 +56,17 @@
         Blackjack (classic card game vs the dealer),
         Coinflip (50/50 heads or tails),
         Deathroll (high-stakes dice duels between members).
-        Commands: <code>/slots</code>, <code>/lottery</code>, <code>/blackjack</code>, <code>/coinflip</code>, <code>/deathroll</code>.
+        Commands: <code>/slots</code>, <code>/blackjack</code>, <code>/coinflip</code>, <code>/deathroll</code>, <code>/rockpaperscissors</code>, <code>/8ball</code>. Server-wide lottery events run via <code>/admin-start-lotto</code>.
       </p>
     </div>
 
     <div class="info-card">
-      <h3>Moderation Tools</h3>
+      <h3>Moderation Logs</h3>
       <p>
-        Keep your server safe with a full moderation suite including warnings, mutes, kicks, bans, and a jail system.
-        Supports auto-moderation rules, configurable punishment escalation, mod-log channels, and detailed audit trails.
-        Commands: <code>/warn</code>, <code>/mute</code>, <code>/kick</code>, <code>/ban</code>, <code>/jail</code>.
+        Automatic logging of key server events to your designated mod channels. Captures member joins and leaves
+        (distinguishing kicks and bans from voluntary departures), deleted messages with original content, and
+        edited messages showing before and after. Each event type can be routed to a separate channel and toggled independently.
+        Configured through the server dashboard — no slash commands required.
       </p>
     </div>
 
@@ -73,8 +74,10 @@
       <h3>AI Integration</h3>
       <p>
         Connects Acosmibot to an AI model so members can have natural conversations by mentioning the bot.
-        Maintains context for the last 15 messages per channel, supports a custom system prompt to define the AI's
-        personality, configurable daily usage limits, channel restrictions, and swappable AI models.
+        Maintains context for the last 15 messages per channel, supports a custom system prompt (configured in the dashboard)
+        to define the AI's personality, configurable daily usage limits, and channel restrictions.
+        Premium servers also get <code>/generate-image</code> (DALL-E 3) and <code>/analyze-image</code> (GPT-4 Vision).
+        Admin commands: <code>/ai-enable</code>, <code>/ai-disable</code>, <code>/ai-status</code>, <code>/ai-clear</code>.
       </p>
     </div>
 

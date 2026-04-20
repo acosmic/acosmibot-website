@@ -185,35 +185,27 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/leaderboard</div>
+        <div class="command-signature">/leaderboard &lt;stat&gt;</div>
         <div class="command-description">
-          Display the server's XP leaderboard showing top members by level and experience points.
+          Display the top 10 members for a given stat. Use <code>Exp</code> or <code>Level</code> for server rankings, or <code>Global Exp</code> / <code>Global Level</code> for cross-server rankings.
         </div>
         <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/leaderboard</code>
+          <h4>Examples:</h4>
+          <code>/leaderboard Level</code>
+          <code>/leaderboard Exp</code>
+          <code>/leaderboard Global Level</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/setlevel &lt;member&gt; &lt;level&gt;</div>
+        <div class="command-signature">/stats [member]</div>
         <div class="command-description">
-          Manually set a member's level. Requires administrator permissions.
+          View detailed stats for yourself or another member — level, XP, currency, and game statistics.
         </div>
         <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/setlevel @username 10</code>
-        </div>
-      </div>
-
-      <div class="command-card">
-        <div class="command-signature">/addxp &lt;member&gt; &lt;amount&gt;</div>
-        <div class="command-description">
-          Grant XP to a member. Requires administrator permissions.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/addxp @username 500</code>
+          <h4>Examples:</h4>
+          <code>/stats</code>
+          <code>/stats @username</code>
         </div>
       </div>
     </div>
@@ -285,7 +277,7 @@
 
     <div class="faq-item">
       <h4>Q: How do I reset all levels?</h4>
-      <p>A: Contact support for bulk level resets. Individual resets can be done with <code>/setlevel</code>.</p>
+      <p>A: Contact support via the <a href="https://discord.gg/hrj7WhCyEv" target="_blank">support server</a> for level resets.</p>
     </div>
   </section>
 

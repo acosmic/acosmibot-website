@@ -54,7 +54,7 @@
         <div class="step-number">3</div>
         <div class="step-content">
           <h3>Context is Maintained Automatically</h3>
-          <p>The bot tracks the last 15 messages in each channel as conversation context. If a channel goes quiet for more than 6 hours, the history is cleared automatically so the next conversation starts fresh. Members can also clear their own session with <code>/reset-ai-thread</code>.</p>
+          <p>The bot tracks the last 15 messages in each channel as conversation context. If a channel goes quiet for more than 6 hours, the history is cleared automatically so the next conversation starts fresh. Admins can clear a channel's history anytime with <code>/ai-clear</code>.</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@
         <div class="step-number">4</div>
         <div class="step-content">
           <h3>Rate Limits Keep Things Running Smoothly</h3>
-          <p>A built-in 3-second cooldown per user prevents rapid-fire spam. Admins can also set a server-wide daily interaction cap with <code>/ai-limit</code> to keep API costs predictable.</p>
+          <p>A built-in 3-second cooldown per user prevents rapid-fire spam. Admins can configure a server-wide daily interaction cap through the <a href="/server" target="_blank">server dashboard</a> to keep API costs predictable.</p>
         </div>
       </div>
     </div>
@@ -106,43 +106,9 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/ai-limit &lt;number&gt;</div>
-        <div class="command-description">
-          Set the maximum number of AI interactions allowed across the entire server per day. Once the limit is reached, the bot will stop responding until the counter resets at midnight. Set to 0 to remove the limit.
-        </div>
-        <div class="command-examples">
-          <h4>Examples:</h4>
-          <code>/ai-limit 100</code>
-          <code>/ai-limit 0</code>
-        </div>
-      </div>
-
-      <div class="command-card">
-        <div class="command-signature">/ai-model &lt;model&gt;</div>
-        <div class="command-description">
-          Change which AI model the bot uses for responses. Different models vary in capability, speed, and cost. Check <code>/ai-status</code> to see the currently active model.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/ai-model gpt-4o-mini</code>
-        </div>
-      </div>
-
-      <div class="command-card">
-        <div class="command-signature">/ai-instructions &lt;prompt&gt;</div>
-        <div class="command-description">
-          Set a custom system prompt that shapes how the AI behaves — its personality, tone, areas of focus, things it should never do, and any server-specific context. This is how you make the AI feel like it belongs to your community.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/ai-instructions You are Cosmo, a friendly assistant for the Acosmibot gaming community. Keep answers concise and always stay on topic.</code>
-        </div>
-      </div>
-
-      <div class="command-card">
         <div class="command-signature">/ai-clear</div>
         <div class="command-description">
-          Clear the conversation history for the current channel. Useful when a conversation has gone off the rails or you want the AI to start fresh without waiting for the 6-hour auto-clear.
+          Clear the conversation history for the current channel. Requires administrator permissions. Useful when a conversation has gone off the rails or you want the AI to start fresh without waiting for the 6-hour auto-clear.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -151,13 +117,24 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/reset-ai-thread</div>
+        <div class="command-signature">/generate-image &lt;prompt&gt;</div>
         <div class="command-description">
-          Reset your personal AI session. Any member can use this to clear their own conversation context without affecting others in the channel.
+          Generate an image using DALL-E 3 based on your text prompt. <strong>Premium feature</strong> — requires a premium server subscription.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/reset-ai-thread</code>
+          <code>/generate-image a futuristic city at night with neon lights</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/analyze-image &lt;image&gt;</div>
+        <div class="command-description">
+          Analyze an attached image using GPT-4 Vision and receive a detailed description or answer questions about it. <strong>Premium feature</strong> — requires a premium server subscription.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/analyze-image [attach an image]</code>
         </div>
       </div>
     </div>
@@ -182,7 +159,7 @@
 
   <section class="docs-section">
     <h2>Writing a Good System Prompt</h2>
-    <p>The system prompt set with <code>/ai-instructions</code> is the most powerful tool for customizing your AI's behavior. Here are some examples of what you can define:</p>
+    <p>The system prompt is the most powerful tool for customizing your AI's behavior. It is configured through the <a href="/server" target="_blank">server dashboard</a> under AI settings. Here are some examples of what you can define:</p>
 
     <div class="code-block">
       <code>You are a helpful assistant for [Server Name]. You only answer questions related to [your topic]. Keep responses under 3 sentences. Always be friendly and encouraging. Never discuss competitor products.</code>
@@ -220,12 +197,12 @@
 
     <div class="faq-item">
       <h4>Q: The bot says the daily limit has been reached</h4>
-      <p>A: The server-wide interaction counter resets at midnight. You can raise or remove the limit with <code>/ai-limit</code> if the current cap is too low for your server's activity.</p>
+      <p>A: The server-wide interaction counter resets at midnight. Admins can raise or remove the limit in the <a href="/server" target="_blank">server dashboard</a> under AI settings.</p>
     </div>
 
     <div class="faq-item">
-      <h4>Q: Can members change the AI model or system prompt?</h4>
-      <p>A: No. The <code>/ai-model</code> and <code>/ai-instructions</code> commands require administrator permissions. Only admins can change the model or system prompt.</p>
+      <h4>Q: Can members clear the AI conversation history?</h4>
+      <p>A: The <code>/ai-clear</code> command requires administrator permissions. The history auto-clears after 6 hours of inactivity in that channel.</p>
     </div>
   </section>
 

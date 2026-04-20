@@ -40,7 +40,7 @@
       <tbody>
         <tr>
           <td><code>/slots &lt;bet&gt;</code></td>
-          <td>Spin the slot machine and bet credits on the outcome</td>
+          <td>Spin the slot machine (100–25,000 credit bets)</td>
         </tr>
         <tr>
           <td><code>/blackjack &lt;bet&gt;</code></td>
@@ -55,7 +55,7 @@
           <td>Challenge another member to a high-stakes dice duel</td>
         </tr>
         <tr>
-          <td><code>/rps &lt;choice&gt;</code></td>
+          <td><code>/rockpaperscissors &lt;choice&gt;</code></td>
           <td>Play Rock Paper Scissors against the bot</td>
         </tr>
         <tr>
@@ -63,19 +63,19 @@
           <td>Ask the magic 8-ball for a mystical answer</td>
         </tr>
         <tr>
-          <td><code>/lottery buy &lt;tickets&gt;</code></td>
-          <td>Purchase lottery tickets for the next server drawing</td>
+          <td><code>/giphy &lt;search term&gt;</code></td>
+          <td>Search for and post a GIF from Giphy</td>
         </tr>
         <tr>
-          <td><code>/lottery info</code></td>
-          <td>View the current jackpot and next drawing time</td>
+          <td><code>/define &lt;word&gt;</code></td>
+          <td>Look up the definition of a word</td>
         </tr>
       </tbody>
     </table>
   </section>
 
   <section class="docs-section">
-    <h2>Page 2 — Banking &amp; Portals</h2>
+    <h2>Page 2 — Economy &amp; Portals</h2>
     <p>Economy management and cross-server portal commands.</p>
 
     <table class="docs-table">
@@ -91,32 +91,36 @@
           <td>Check your wallet and bank balance, or view another member's</td>
         </tr>
         <tr>
-          <td><code>/daily</code></td>
-          <td>Claim your daily credit reward and build your streak</td>
-        </tr>
-        <tr>
-          <td><code>/transfer &lt;member&gt; &lt;amount&gt;</code></td>
+          <td><code>/give &lt;member&gt; &lt;amount&gt;</code></td>
           <td>Send credits from your wallet to another member</td>
         </tr>
         <tr>
-          <td><code>/deposit &lt;amount&gt;</code></td>
-          <td>Deposit credits into the bank for safe keeping</td>
+          <td><code>/deposit &lt;amount|all&gt;</code></td>
+          <td>Deposit credits into the global bank for safe keeping</td>
         </tr>
         <tr>
-          <td><code>/withdraw &lt;amount&gt;</code></td>
-          <td>Withdraw credits from the bank to your wallet</td>
+          <td><code>/withdraw &lt;amount|all&gt;</code></td>
+          <td>Withdraw credits from the global bank to your wallet</td>
         </tr>
         <tr>
-          <td><code>/richest [scope]</code></td>
-          <td>View the richest members leaderboard (server or global)</td>
+          <td><code>/bank</code></td>
+          <td>View your global bank balance and account statistics</td>
         </tr>
         <tr>
-          <td><code>/portal-search &lt;query&gt;</code></td>
+          <td><code>/bank-history</code></td>
+          <td>View your recent bank transaction history</td>
+        </tr>
+        <tr>
+          <td><code>/guildbank</code></td>
+          <td>Check this server's shared guild vault balance</td>
+        </tr>
+        <tr>
+          <td><code>/portal-search</code></td>
           <td>Search the public portal directory for other servers</td>
         </tr>
         <tr>
           <td><code>/portal-open &lt;server id&gt;</code></td>
-          <td>Open a two-minute portal to another server (costs credits)</td>
+          <td>Open a portal to another server (costs credits)</td>
         </tr>
         <tr>
           <td><code>/portal-send &lt;message&gt;</code></td>
@@ -148,19 +152,19 @@
       <tbody>
         <tr>
           <td><code>/rank [member]</code></td>
-          <td>View your current level, XP, and rank card, or check another member's</td>
+          <td>View your current level, XP, and rank, or check another member's</td>
         </tr>
         <tr>
-          <td><code>/leaderboard [scope]</code></td>
-          <td>View the top members by XP for this server or globally</td>
+          <td><code>/leaderboard &lt;stat&gt;</code></td>
+          <td>Top 10 by stat: Currency, Exp, Level, Global Currency, Global Exp, or Global Level</td>
         </tr>
         <tr>
           <td><code>/stats [member]</code></td>
-          <td>See detailed activity stats including messages, voice time, and more</td>
+          <td>View detailed stats for yourself or another member</td>
         </tr>
         <tr>
-          <td><code>/season</code></td>
-          <td>View info about the current season including end date and rewards</td>
+          <td><code>/stats-games [member]</code></td>
+          <td>View game-specific stats (slots wins, blackjack record, etc.)</td>
         </tr>
       </tbody>
     </table>
@@ -168,7 +172,7 @@
 
   <section class="docs-section">
     <h2>Page 4 — Utility &amp; Admin</h2>
-    <p>General utility commands, moderation tools, and admin-only controls.</p>
+    <p>General utility commands and admin-only controls.</p>
 
     <table class="docs-table">
       <thead>
@@ -203,40 +207,40 @@
           <td>Check the bot's current response latency</td>
         </tr>
         <tr>
-          <td><code>/weather &lt;location&gt;</code></td>
-          <td>Get the current weather for any city or location</td>
+          <td><code>/apod</code></td>
+          <td>Return NASA's Astronomy Picture of the Day</td>
         </tr>
         <tr>
-          <td><code>/ai &lt;prompt&gt;</code></td>
-          <td>Send a prompt to the bot's AI and get a response in chat</td>
+          <td><code>/help</code></td>
+          <td>Get info about Acosmibot and its features (AI-powered with RAG)</td>
         </tr>
         <tr>
-          <td><code>/jail &lt;user&gt; &lt;duration&gt;</code></td>
-          <td>Restrict a member to the jail channel (Moderator+)</td>
+          <td><code>/ai-enable</code></td>
+          <td>Enable AI responses for this server (Administrator)</td>
         </tr>
         <tr>
-          <td><code>/unjail &lt;user&gt;</code></td>
-          <td>Release a jailed member before their sentence expires (Moderator+)</td>
+          <td><code>/ai-disable</code></td>
+          <td>Disable AI responses for this server (Administrator)</td>
         </tr>
         <tr>
-          <td><code>/kick &lt;user&gt; [reason]</code></td>
-          <td>Kick a member from the server (Moderator+)</td>
+          <td><code>/ai-status</code></td>
+          <td>Check AI status, model, usage today, and channel restrictions (Administrator)</td>
         </tr>
         <tr>
-          <td><code>/ban &lt;user&gt; [reason]</code></td>
-          <td>Ban a member from the server (Administrator+)</td>
+          <td><code>/ai-clear</code></td>
+          <td>Clear conversation history for the current channel (Administrator)</td>
         </tr>
         <tr>
-          <td><code>/warn &lt;user&gt; &lt;reason&gt;</code></td>
-          <td>Issue a formal warning to a member (Moderator+)</td>
+          <td><code>/generate-image &lt;prompt&gt;</code></td>
+          <td>Generate an image using DALL-E 3 (Premium)</td>
         </tr>
         <tr>
-          <td><code>/givecredits &lt;member&gt; &lt;amount&gt;</code></td>
-          <td>Grant credits to a member (Administrator+)</td>
+          <td><code>/analyze-image</code></td>
+          <td>Analyze an attached image using GPT-4 Vision (Premium)</td>
         </tr>
         <tr>
-          <td><code>/removecredits &lt;member&gt; &lt;amount&gt;</code></td>
-          <td>Remove credits from a member (Administrator+)</td>
+          <td><code>/admin-start-lotto &lt;hours&gt; &lt;channel&gt;</code></td>
+          <td>Start a server lottery — members enter by reacting (Administrator)</td>
         </tr>
       </tbody>
     </table>
@@ -248,17 +252,17 @@
     <div class="info-card info-card-info">
       <h3>Who Can Use What</h3>
       <ul>
-        <li><strong>Everyone</strong> — Games, balance, daily, reminders, rank, stats, utility (ping, avatar, weather, AI, polymorph)</li>
-        <li><strong>Moderator+</strong> — Jail, unjail, kick, warn, and other moderation tools</li>
-        <li><strong>Administrator+</strong> — Ban, givecredits, removecredits, and all admin configuration commands</li>
+        <li><strong>Everyone</strong> — Games, economy, bank, reminders, rank, stats, utility (ping, avatar, apod, polymorph)</li>
+        <li><strong>Administrator</strong> — AI controls (enable, disable, status, clear), lottery admin, server dashboard settings</li>
+        <li><strong>Premium servers</strong> — Image generation and analysis, extended custom commands limit</li>
         <li><strong>Server Owner</strong> — Full access to all commands and dashboard settings</li>
       </ul>
     </div>
 
-    <div class="info-card info-card-warning">
-      <h3>Note on Moderator Role</h3>
+    <div class="info-card info-card-info">
+      <h3>AI — Mention-Based Interaction</h3>
       <p>
-        Moderation commands require that the user either holds the Discord "Administrator" permission or has been assigned the designated Moderator role configured in your server dashboard. The exact role can be set under Moderation settings in <a href="/server" target="_blank">/server</a>.
+        The AI feature does not use a slash command. Members interact with the bot by mentioning it: <code>@Acosmibot what is the leveling system?</code>. The bot must be enabled by an admin first using <code>/ai-enable</code>.
       </p>
     </div>
   </section>
