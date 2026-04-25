@@ -1,35 +1,39 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-interface PerformanceWindow {
-  messages_processed: number;
-  xp_grants: number;
-  level_ups: number;
-  cache_hits: number;
-  cache_misses: number;
-  cache_hit_rate_pct: number;
-  daily_rewards: number;
-  daily_checks_performed: number;
-  daily_checks_skipped: number;
-}
-
 interface PerformanceTotals {
   messages_processed: number;
+  messages_per_min: number;
   xp_grants: number;
+  xp_pct_of_messages: number;
   level_ups: number;
+  daily_rewards: number;
+  games_played: number;
+  currency_updates: number;
+  cache_hit_rate_pct: number;
   cache_hits: number;
   cache_misses: number;
-  cache_hit_rate_pct: number;
-  daily_rewards: number;
+  daily_skip_rate_pct: number;
+  daily_checks_skipped: number;
+  daily_checks_performed: number;
+  xp_writes_saved: number;
+  total_db_writes_saved: number;
+}
+
+interface SessionStats {
+  available: boolean;
+  active: number;
+  dirty: number;
+  currency_pending: number;
 }
 
 interface BotReport {
   generated_at: string;
   uptime_seconds: number;
+  uptime_minutes: number;
   guild_count: number;
   latency_ms: number | null;
-  window_minutes: number;
-  window: PerformanceWindow;
   totals: PerformanceTotals;
+  sessions: SessionStats;
 }
 
 interface LogEntry {
@@ -65,19 +69,18 @@ const LEVEL_BADGE: Record<string, { bg: string; color: string }> = {
   DEBUG:    { bg: 'var(--bg-secondary)', color: 'var(--text-muted)' },
 };
 
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+function StatRow({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
   return (
     <div style={{
-      background: 'var(--bg-secondary)',
-      border: '1px solid var(--border-light)',
-      borderRadius: 8,
-      padding: '16px 20px',
-      flex: '1 1 160px',
-      minWidth: 140,
+      display: 'grid',
+      gridTemplateColumns: '180px 1fr 1fr',
+      alignItems: 'baseline',
+      padding: '7px 0',
+      borderBottom: '1px solid rgba(255,255,255,0.05)',
     }}>
-      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-      <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{sub}</div>}
+      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+      <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{value}</span>
+      {detail && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{detail}</span>}
     </div>
   );
 }
@@ -194,32 +197,36 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       </div>
 
       {report && (
-        <>
-          {/* ── 5-min window ── */}
-          <h5 style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
-            Last 5 minutes
-          </h5>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
-            <StatCard label="Messages" value={report.window.messages_processed} />
-            <StatCard label="XP Grants" value={report.window.xp_grants} />
-            <StatCard label="Level-ups" value={report.window.level_ups} />
-            <StatCard label="Cache Hit Rate" value={`${report.window.cache_hit_rate_pct}%`} sub={`${report.window.cache_hits} hits / ${report.window.cache_misses} misses`} />
-            <StatCard label="Daily Rewards" value={report.window.daily_rewards} />
-            <StatCard label="Daily Checks" value={report.window.daily_checks_performed} sub={`${report.window.daily_checks_skipped} skipped`} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px', marginBottom: 36 }}>
+          {/* ── Left column: activity ── */}
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              Activity
+            </div>
+            <StatRow label="Messages" value={report.totals.messages_processed.toLocaleString()} detail={`${report.totals.messages_per_min}/min`} />
+            <StatRow label="XP Grants" value={report.totals.xp_grants.toLocaleString()} detail={`${report.totals.xp_pct_of_messages}% of messages`} />
+            <StatRow label="Level-ups" value={report.totals.level_ups.toLocaleString()} />
+            <StatRow label="Daily Rewards" value={report.totals.daily_rewards.toLocaleString()} />
+            <StatRow label="Games Played" value={report.totals.games_played.toLocaleString()} />
+            <StatRow label="Currency Updates" value={report.totals.currency_updates.toLocaleString()} />
           </div>
 
-          {/* ── All-time totals ── */}
-          <h5 style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
-            Since last restart
-          </h5>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 36 }}>
-            <StatCard label="Messages" value={report.totals.messages_processed.toLocaleString()} />
-            <StatCard label="XP Grants" value={report.totals.xp_grants.toLocaleString()} />
-            <StatCard label="Level-ups" value={report.totals.level_ups.toLocaleString()} />
-            <StatCard label="Cache Hit Rate" value={`${report.totals.cache_hit_rate_pct}%`} sub={`${report.totals.cache_hits.toLocaleString()} hits`} />
-            <StatCard label="Daily Rewards" value={report.totals.daily_rewards.toLocaleString()} />
+          {/* ── Right column: efficiency ── */}
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              Efficiency
+            </div>
+            <StatRow label="Config Cache" value={`${report.totals.cache_hit_rate_pct}%`} detail={`${report.totals.cache_hits.toLocaleString()} DB reads saved`} />
+            <StatRow label="Daily Cache" value={`${report.totals.daily_skip_rate_pct}%`} detail={`${report.totals.daily_checks_skipped.toLocaleString()} checks skipped`} />
+            <StatRow label="DB Writes Saved" value={report.totals.total_db_writes_saved.toLocaleString()} detail="XP + games + currency" />
+            <StatRow
+              label="Sessions"
+              value={report.sessions.available ? `${report.sessions.active} active` : 'Unavailable'}
+              detail={report.sessions.dirty > 0 ? `${report.sessions.dirty} pending flush` : undefined}
+            />
+            <StatRow label="Currency Queued" value={report.sessions.currency_pending} />
           </div>
-        </>
+        </div>
       )}
 
       {/* ── Logs ── */}
