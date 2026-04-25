@@ -139,6 +139,9 @@ export const HomePage: React.FC = () => {
           {isAuthenticated && (
             <li><a href="/servers" onClick={() => setMobileNavOpen(false)}>Dashboard</a></li>
           )}
+          {user?.id === '110637665128325120' && (
+            <li><a href="/admin" style={{ color: '#f59e0b' }} onClick={() => setMobileNavOpen(false)}>Admin</a></li>
+          )}
         </ul>
         <div className="mobile-nav-divider" />
         <div className="mobile-nav-footer">
@@ -215,6 +218,9 @@ export const HomePage: React.FC = () => {
                       <div className="user-name">{user.username}</div>
                     </div>
                     <a href="/servers">Dashboard</a>
+                    {user.id === '110637665128325120' && (
+                      <a href="/admin" style={{ color: '#f59e0b' }}>Admin</a>
+                    )}
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '5px 0' }} />
                     <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
                   </div>
