@@ -203,12 +203,12 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               Activity
             </div>
-            <StatRow label="Messages" value={report.totals.messages_processed.toLocaleString()} detail={`${report.totals.messages_per_min}/min`} />
-            <StatRow label="XP Grants" value={report.totals.xp_grants.toLocaleString()} detail={`${report.totals.xp_pct_of_messages}% of messages`} />
-            <StatRow label="Level-ups" value={report.totals.level_ups.toLocaleString()} />
-            <StatRow label="Daily Rewards" value={report.totals.daily_rewards.toLocaleString()} />
-            <StatRow label="Games Played" value={report.totals.games_played.toLocaleString()} />
-            <StatRow label="Currency Updates" value={report.totals.currency_updates.toLocaleString()} />
+            <StatRow label="Messages" value={(report.totals?.messages_processed ?? 0).toLocaleString()} detail={report.totals?.messages_per_min != null ? `${report.totals.messages_per_min}/min` : undefined} />
+            <StatRow label="XP Grants" value={(report.totals?.xp_grants ?? 0).toLocaleString()} detail={report.totals?.xp_pct_of_messages != null ? `${report.totals.xp_pct_of_messages}% of messages` : undefined} />
+            <StatRow label="Level-ups" value={(report.totals?.level_ups ?? 0).toLocaleString()} />
+            <StatRow label="Daily Rewards" value={(report.totals?.daily_rewards ?? 0).toLocaleString()} />
+            <StatRow label="Games Played" value={(report.totals?.games_played ?? 0).toLocaleString()} />
+            <StatRow label="Currency Updates" value={(report.totals?.currency_updates ?? 0).toLocaleString()} />
           </div>
 
           {/* ── Right column: efficiency ── */}
@@ -216,15 +216,15 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               Efficiency
             </div>
-            <StatRow label="Config Cache" value={`${report.totals.cache_hit_rate_pct}%`} detail={`${report.totals.cache_hits.toLocaleString()} DB reads saved`} />
-            <StatRow label="Daily Cache" value={`${report.totals.daily_skip_rate_pct}%`} detail={`${report.totals.daily_checks_skipped.toLocaleString()} checks skipped`} />
-            <StatRow label="DB Writes Saved" value={report.totals.total_db_writes_saved.toLocaleString()} detail="XP + games + currency" />
+            <StatRow label="Config Cache" value={`${report.totals?.cache_hit_rate_pct ?? 0}%`} detail={`${(report.totals?.cache_hits ?? 0).toLocaleString()} DB reads saved`} />
+            <StatRow label="Daily Cache" value={`${report.totals?.daily_skip_rate_pct ?? 0}%`} detail={`${(report.totals?.daily_checks_skipped ?? 0).toLocaleString()} checks skipped`} />
+            <StatRow label="DB Writes Saved" value={(report.totals?.total_db_writes_saved ?? 0).toLocaleString()} detail="XP + games + currency" />
             <StatRow
               label="Sessions"
-              value={report.sessions.available ? `${report.sessions.active} active` : 'Unavailable'}
-              detail={report.sessions.dirty > 0 ? `${report.sessions.dirty} pending flush` : undefined}
+              value={report.sessions?.available ? `${report.sessions.active} active` : (report.sessions ? 'Unavailable' : '—')}
+              detail={(report.sessions?.dirty ?? 0) > 0 ? `${report.sessions!.dirty} pending flush` : undefined}
             />
-            <StatRow label="Currency Queued" value={report.sessions.currency_pending} />
+            <StatRow label="Currency Queued" value={report.sessions?.currency_pending ?? '—'} />
           </div>
         </div>
       )}
