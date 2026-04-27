@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Guild icons */}
         <div className="guild-icon-list">
-          {guilds.map(guild => (
+          {guilds.filter(g => g.owner || g.permissions?.includes('administrator')).map(guild => (
             <div
               key={guild.id}
               className={`guild-icon ${guild.id === guildId ? 'active' : ''}`}
