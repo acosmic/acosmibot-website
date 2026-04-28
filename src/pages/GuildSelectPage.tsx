@@ -208,26 +208,35 @@ export const GuildSelectPage: React.FC = () => {
                     )}
 
                     {/* Role badge */}
-                    {(isOwner || isAdmin) && (
-                      <span style={{
-                        fontSize: '11px', fontWeight: 600, padding: '2px 10px', borderRadius: '12px',
-                        background: isOwner ? 'rgba(0,217,255,0.15)' : 'rgba(255,255,255,0.08)',
-                        color: isOwner ? 'var(--primary-color)' : 'var(--text-secondary)',
-                        border: `1px solid ${isOwner ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-                        textTransform: 'uppercase', letterSpacing: '0.5px',
-                      }}>
-                        {isOwner ? 'Owner' : 'Admin'}
-                      </span>
-                    )}
-
-                    {/* Manage button */}
-                    <button style={{
-                      background: 'var(--primary-color)', color: '#000', border: 'none',
-                      borderRadius: '8px', padding: '8px 20px', fontSize: '13px',
-                      fontWeight: 700, cursor: 'pointer', width: '100%', marginTop: '4px',
+                    <span style={{
+                      fontSize: '11px', fontWeight: 600, padding: '2px 10px', borderRadius: '12px',
+                      background: isOwner ? 'rgba(0,217,255,0.15)' : 'rgba(255,255,255,0.08)',
+                      color: isOwner ? 'var(--primary-color)' : 'var(--text-secondary)',
+                      border: `1px solid ${isOwner ? 'var(--border-cyan)' : 'var(--border-light)'}`,
+                      textTransform: 'uppercase', letterSpacing: '0.5px',
                     }}>
-                      Manage
-                    </button>
+                      {isOwner ? 'Owner' : isAdmin ? 'Admin' : 'Member'}
+                    </span>
+
+                    {/* Action button */}
+                    {(isOwner || isAdmin) ? (
+                      <button style={{
+                        background: 'var(--primary-color)', color: '#000', border: 'none',
+                        borderRadius: '8px', padding: '8px 20px', fontSize: '13px',
+                        fontWeight: 700, cursor: 'pointer', width: '100%', marginTop: '4px',
+                      }}>
+                        Manage
+                      </button>
+                    ) : (
+                      <button style={{
+                        background: 'transparent', color: 'var(--text-primary)',
+                        border: '1px solid var(--border-light)',
+                        borderRadius: '8px', padding: '8px 20px', fontSize: '13px',
+                        fontWeight: 600, cursor: 'pointer', width: '100%', marginTop: '4px',
+                      }}>
+                        View Stats
+                      </button>
+                    )}
                   </div>
                 );
               })}
