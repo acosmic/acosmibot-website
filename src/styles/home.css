@@ -179,6 +179,9 @@ body.home-body {
 
 .home-page .user-menu .logout-btn {
     color: #ff6b6b;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* ── Hamburger / Mobile Nav ─────────────────────────────────── */
@@ -382,6 +385,8 @@ body.home-body {
 .home-page .hero .btn-primary:hover { box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3); }
 .home-page .hero .btn-secondary:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
+.home-page .hero .btn svg { display: block; }
+
 /* ── Features Section ───────────────────────────────────────── */
 .home-page .features {
     padding: 100px 0;
@@ -414,47 +419,92 @@ body.home-body {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-light);
-    border-radius: 20px;
-    padding: 40px;
-    transition: all 0.3s ease;
+    border-radius: 16px;
+    padding: 32px;
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
     position: relative;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.home-page .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
 .home-page .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 217, 255, 0.15);
+    transform: translateY(-3px);
     border-color: var(--border-cyan);
     background: var(--bg-card-hover);
 }
 
-.home-page .feature-icon { font-size: 3rem; margin-bottom: 20px; display: block; }
+.home-page .feature-card:hover::before { opacity: 0.6; }
+
+.home-page .feature-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(0, 217, 255, 0.08);
+    border: 1px solid rgba(0, 217, 255, 0.2);
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.home-page .feature-icon-wrapper svg { width: 24px; height: 24px; }
+
+.home-page .feature-card:hover .feature-icon-wrapper {
+    background: rgba(0, 217, 255, 0.14);
+    border-color: rgba(0, 217, 255, 0.35);
+}
 
 .home-page .feature-card h3 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    margin-bottom: 15px;
-    color: var(--primary-color);
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
 }
 
 .home-page .feature-card p {
     line-height: 1.6;
     margin-bottom: 20px;
     color: var(--text-secondary);
+    font-size: 0.95rem;
 }
 
 .home-page .feature-list { list-style: none; padding: 0; margin: 0; }
 
 .home-page .feature-list li {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     font-size: 0.9rem;
     color: var(--text-secondary);
+    line-height: 1.5;
 }
 
-.home-page .feature-list li::before { content: '✨'; margin-right: 8px; }
+.home-page .feature-list li::before {
+    content: '';
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-right: 10px;
+    margin-top: 4px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300D9FF' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
 
 /* ── Footer ─────────────────────────────────────────────────── */
 .home-page footer {
@@ -569,7 +619,8 @@ body.home-body {
 .donation-option:hover { background: var(--bg-overlay-hover); border-color: var(--border-cyan); transform: translateY(-3px); }
 
 .method-header { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
-.method-icon { font-size: 1.5rem; }
+.method-icon { display: inline-flex; align-items: center; color: var(--primary-color); }
+.method-icon svg { width: 22px; height: 22px; }
 .method-name { color: var(--text-primary); font-weight: 600; font-size: 1.1rem; }
 .method-description { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 15px; }
 
@@ -611,7 +662,9 @@ body.home-body {
     animation: slideIn 0.3s ease;
 }
 
-.bitcoin-popup h4 { color: var(--primary-color); text-align: center; margin-bottom: 15px; font-size: 1.3rem; }
+.bitcoin-popup h4 { color: var(--primary-color); text-align: center; margin-bottom: 15px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.bitcoin-popup-icon { display: inline-flex; align-items: center; }
+.bitcoin-popup-icon svg { width: 20px; height: 20px; }
 .bitcoin-popup p { color: var(--text-secondary); text-align: center; margin-bottom: 15px; }
 
 .crypto-address { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -640,6 +693,7 @@ body.home-body {
 }
 
 .copy-btn:hover { background: var(--primary-color); color: #000; }
+.copy-btn { display: inline-flex; align-items: center; gap: 6px; }
 .popup-note { color: var(--text-muted); font-size: 0.85rem; text-align: center; margin: 0; }
 
 /* Premium Modal */
@@ -659,6 +713,20 @@ body.home-body {
 .premium-modal-content h2 { color: #FFD700; margin-bottom: 15px; }
 .premium-modal-content p { color: #ccc; margin-bottom: 10px; line-height: 1.5; }
 .premium-modal-content .p-small { color: #aaa; font-size: 0.875rem; margin-bottom: 25px; }
+
+.premium-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: #FFD700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.premium-modal-icon svg { width: 32px; height: 32px; }
 
 .premium-got-it-btn {
     background: linear-gradient(135deg, #FFD700, #FFA500);
