@@ -4,7 +4,6 @@ import { configApi } from '@/api/config';
 
 export interface AiConfig {
   enabled: boolean;
-  model: string;
   instructions: string;
   channel_mode: 'all' | 'exclude' | 'include';
   excluded_channels: string[];
@@ -13,7 +12,6 @@ export interface AiConfig {
 
 const DEFAULT_AI: AiConfig = {
   enabled: false,
-  model: 'gpt-4o-mini',
   instructions: '',
   channel_mode: 'all',
   excluded_channels: [],

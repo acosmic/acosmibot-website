@@ -7,12 +7,6 @@ import { useGuildChannels } from '@/hooks/useGuildChannels';
 
 const INSTRUCTIONS_MAX = 2000;
 
-const MODEL_OPTIONS = [
-  { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Efficient)' },
-  { value: 'gpt-4o', label: 'GPT-4o (Balanced)' },
-  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (Advanced)' },
-];
-
 export const AiPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { data, hasAccess, tier, isLoading, save, isSaving, saveError } = useAiConfig(guildId!);
@@ -64,21 +58,6 @@ export const AiPage: React.FC = () => {
         onChange={(v) => setForm({ enabled: v })}
         description="Enable AI chat and image generation for this server."
       />
-
-      {/* Model Selection */}
-      <CollapsibleSection title="AI Model" defaultOpen={true}>
-        <label className="form-label mb-2 d-block">Model</label>
-        <select
-          className="form-control"
-          value={form.model || 'gpt-4o-mini'}
-          onChange={(e) => setForm({ model: e.target.value })}
-        >
-          {MODEL_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-        <p className="text-muted small mt-2">Choose which AI model powers your bot's responses.</p>
-      </CollapsibleSection>
 
       {/* Instructions */}
       <CollapsibleSection title="Instructions / Personality" defaultOpen={true}>
