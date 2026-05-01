@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, AdminAiSettings } from '@/api/admin';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'daily_limit' | 'monthly_limit'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'daily_limit' | 'monthly_limit'>;
 
 export const AiSettingsTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -16,8 +16,8 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, model, daily_limit, monthly_limit } = query.data.data;
-      setForm({ enabled, model, daily_limit, monthly_limit });
+      const { enabled, model, polymorph_model, daily_limit, monthly_limit } = query.data.data;
+      setForm({ enabled, model, polymorph_model, daily_limit, monthly_limit });
     }
   }, [query.data]);
 
@@ -80,6 +80,21 @@ export const AiSettingsTab: React.FC = () => {
             ))}
           </select>
           <p className="text-muted small mt-2 mb-0">OpenAI chat model used by every server.</p>
+        </div>
+
+        <div className="mb-4">
+          <label className="form-label mb-2 d-block">Polymorph Model</label>
+          <select
+            className="form-control"
+            value={form.polymorph_model}
+            onChange={(e) => setForm({ ...form, polymorph_model: e.target.value })}
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+          >
+            {availableModels.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+          <p className="text-muted small mt-2 mb-0">OpenAI chat model used when Polymorph generates a nickname.</p>
         </div>
 
         <div className="mb-4">

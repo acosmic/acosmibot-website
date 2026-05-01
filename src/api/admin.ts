@@ -3,6 +3,7 @@ import { api } from './client';
 export interface AdminAiSettings {
   enabled: boolean;
   model: string;
+  polymorph_model: string;
   daily_limit: number;
   monthly_limit: number;
   available_models: string[];

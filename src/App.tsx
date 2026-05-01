@@ -10,6 +10,7 @@ import { CustomCommandsPage } from './features/custom-commands/CustomCommandsPag
 import { ModerationPage } from './features/moderation/ModerationPage';
 import { AiPage } from './features/ai/AiPage';
 import { SlotsPage } from './features/slots/SlotsPage';
+import { PolymorphPage } from './features/polymorph/PolymorphPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
@@ -67,6 +68,10 @@ const FeatureOutlet = () => {
 
   if (feature === 'slots') {
     return <SlotsPage />;
+  }
+
+  if (feature === 'polymorph') {
+    return <PolymorphPage />;
   }
 
   return <LegacyFeatureView feature={feature || 'overview'} />;

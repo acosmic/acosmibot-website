@@ -93,3 +93,12 @@ export interface SlotsConfig {
   enabled: boolean;
   tier_emojis: Record<SlotsTier, string[]>;
 }
+
+export type PolymorphMode = 'manual' | 'ai_random';
+
+export interface PolymorphConfig {
+  enabled: boolean;
+  cost: number;
+  duration_minutes: number;
+  mode: PolymorphMode;
+}
