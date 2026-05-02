@@ -38,10 +38,20 @@ interface BotReport {
 
 interface LogEntry {
   timestamp: string;
+  source: 'bot' | 'api';
   level: 'ERROR' | 'WARNING' | 'CRITICAL' | 'INFO' | 'DEBUG';
   logger: string;
   message: string;
+  guild_id: string;
+  user_id: string;
+  channel_id: string;
+  ip: string;
+  method: string;
+  path: string;
 }
+
+type LogSource = 'bot' | 'api';
+type LogLevel = 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
 
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
@@ -109,6 +119,10 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
   const [loading, setLoading] = useState(true);
   const [lastFetch, setLastFetch] = useState<Date | null>(null);
   const [logLimit, setLogLimit] = useState(50);
+  const [logSource, setLogSource] = useState<LogSource>('bot');
+  const [logLevel, setLogLevel] = useState<LogLevel>('WARNING');
+  const [logSearch, setLogSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -118,9 +132,16 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
   const fetchAll = useCallback(async () => {
     if (!token) return;
     try {
+      const params = new URLSearchParams({
+        source: logSource,
+        level: logLevel,
+        limit: String(logLimit),
+      });
+      if (debouncedSearch) params.set('search', debouncedSearch);
+
       const [statsRes, logsRes] = await Promise.all([
         fetch(`${apiBase}/api/admin/bot/stats`, { headers }),
-        fetch(`${apiBase}/api/admin/bot/logs?limit=${logLimit}&level=WARNING`, { headers }),
+        fetch(`${apiBase}/api/admin/logs?${params.toString()}`, { headers }),
       ]);
       const statsData = await statsRes.json();
       const logsData = await logsRes.json();
@@ -128,8 +149,14 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       if (statsData.success) setReport(statsData.report);
       else setReportError(statsData.error ?? 'Unknown error');
 
-      if (logsData.success) setLogs(logsData.entries ?? []);
-      else setLogsError(logsData.error ?? 'Unknown error');
+      if (logsData.success) {
+        setLogs(logsData.entries ?? []);
+        setLogsError(null);
+        setExpandedRows(new Set());
+      } else {
+        setLogs([]);
+        setLogsError(logsData.error ?? 'Unknown error');
+      }
 
       setLastFetch(new Date());
     } catch (e) {
@@ -137,7 +164,12 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, logLimit, apiBase]);
+  }, [token, logSource, logLevel, logLimit, debouncedSearch, apiBase]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(logSearch.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [logSearch]);
 
   useEffect(() => {
     setLoading(true);
@@ -230,10 +262,27 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       )}
 
       {/* ── Logs ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
         <h5 style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
-          Error / Warning Log
+          Runtime Logs
         </h5>
+        <select
+          value={logSource}
+          onChange={e => setLogSource(e.target.value as LogSource)}
+          style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
+        >
+          <option value="bot">Bot</option>
+          <option value="api">API</option>
+        </select>
+        <select
+          value={logLevel}
+          onChange={e => setLogLevel(e.target.value as LogLevel)}
+          style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
+        >
+          {(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] as LogLevel[]).map(level => (
+            <option key={level} value={level}>{level}+</option>
+          ))}
+        </select>
         <select
           value={logLimit}
           onChange={e => setLogLimit(Number(e.target.value))}
@@ -241,20 +290,29 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
         >
           {[50, 100, 200, 500].map(n => <option key={n} value={n}>Last {n}</option>)}
         </select>
+        <input
+          value={logSearch}
+          onChange={e => setLogSearch(e.target.value)}
+          placeholder="Search logs..."
+          style={{ minWidth: 220, background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '3px 8px', fontSize: '0.78rem' }}
+        />
         <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{logs.length} entries</span>
       </div>
 
       {logsError ? (
         <p style={{ color: '#f87171', fontSize: '0.85rem' }}>{logsError}</p>
       ) : logs.length === 0 ? (
-        <p className="text-muted" style={{ fontSize: '0.85rem' }}>No warnings or errors found.</p>
+        <p className="text-muted" style={{ fontSize: '0.85rem' }}>No matching log entries found.</p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="table table-dark table-hover" style={{ fontSize: '0.82rem' }}>
             <thead>
               <tr>
                 <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Timestamp</th>
+                <th style={{ borderColor: 'var(--border-light)', width: 70 }}>Source</th>
                 <th style={{ borderColor: 'var(--border-light)', width: 90 }}>Level</th>
+                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Guild ID</th>
+                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>User ID</th>
                 <th style={{ borderColor: 'var(--border-light)' }}>Logger</th>
                 <th style={{ borderColor: 'var(--border-light)' }}>Message</th>
               </tr>
@@ -272,6 +330,9 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                     <td style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
                       {entry.timestamp}
                     </td>
+                    <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      {entry.source ?? logSource}
+                    </td>
                     <td style={{ borderColor: 'var(--border-light)' }}>
                       <span style={{
                         background: style.bg,
@@ -284,8 +345,19 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                         {entry.level}
                       </span>
                     </td>
+                    <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                      {entry.guild_id || '—'}
+                    </td>
+                    <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                      {entry.user_id || '—'}
+                    </td>
                     <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {entry.logger}
+                      {entry.source === 'api' && entry.path && entry.path !== '-' && (
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                          {entry.method !== '-' ? `${entry.method} ` : ''}{entry.path}
+                        </div>
+                      )}
                     </td>
                     <td style={{ borderColor: 'var(--border-light)', maxWidth: 600 }}>
                       <pre style={{
