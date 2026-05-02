@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { FeatureToggle, LoadingSpinner, SaveBar } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
-import { PolymorphConfig, PolymorphMode } from '@/types/features';
+import { PolymorphConfig } from '@/types/features';
 import { usePolymorphConfig } from './usePolymorphConfig';
 
 export const PolymorphPage: React.FC = () => {
@@ -16,10 +16,6 @@ export const PolymorphPage: React.FC = () => {
   const updateNumber = (field: 'cost' | 'duration_minutes', value: string) => {
     const parsed = parseInt(value, 10);
     setForm({ [field]: Number.isFinite(parsed) ? parsed : 0 });
-  };
-
-  const setMode = (mode: PolymorphMode) => {
-    setForm({ mode });
   };
 
   return (
@@ -64,39 +60,24 @@ export const PolymorphPage: React.FC = () => {
       </div>
 
       <div className="card p-4 mb-4">
-        <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Nickname Mode</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-          <button
-            type="button"
-            onClick={() => setMode('manual')}
-            className="btn"
-            style={{
-              textAlign: 'left',
-              padding: 16,
-              border: `1px solid ${form.mode === 'manual' ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-              background: form.mode === 'manual' ? 'var(--bg-overlay)' : 'var(--bg-card)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            <strong>User typed nickname</strong>
-            <span className="d-block text-muted small mt-1">Members provide the new nickname in the command.</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode('ai_random')}
-            className="btn"
-            style={{
-              textAlign: 'left',
-              padding: 16,
-              border: `1px solid ${form.mode === 'ai_random' ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-              background: form.mode === 'ai_random' ? 'var(--bg-overlay)' : 'var(--bg-card)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            <strong>AI chooses nickname</strong>
-            <span className="d-block text-muted small mt-1">Uses recent channel context to generate one nickname.</span>
-          </button>
-        </div>
+        <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>AI Random Names</h3>
+        <label className="d-flex align-items-start gap-3" style={{ cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            className="form-check-input mt-1"
+            checked={form.allow_ai_random_names}
+            onChange={(e) => setForm({
+              allow_ai_random_names: e.target.checked,
+              mode: e.target.checked ? 'ai_random' : 'manual',
+            })}
+          />
+          <span>
+            <strong>Allow blank nicknames to use AI</strong>
+            <span className="d-block text-muted small mt-1">
+              Members can still type a specific nickname. When this is enabled, leaving the nickname blank lets AI generate one from recent channel context.
+            </span>
+          </span>
+        </label>
       </div>
 
       <SaveBar
@@ -105,6 +86,7 @@ export const PolymorphPage: React.FC = () => {
           ...form,
           cost: Math.max(0, Math.floor(form.cost || 0)),
           duration_minutes: Math.max(1, Math.floor(form.duration_minutes || 1)),
+          mode: form.allow_ai_random_names ? 'ai_random' : 'manual',
         })}
         onDiscard={resetForm}
         isSaving={isSaving}

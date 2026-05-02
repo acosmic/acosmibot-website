@@ -34,7 +34,7 @@
       <div class="command-card">
         <div class="command-signature">/polymorph &lt;user&gt; [new nickname]</div>
         <div class="command-description">
-          Change the target member's server display name. In typed mode, provide the new nickname. In AI mode, the bot generates the nickname from recent channel conversation history. The nickname is restored after the configured duration.
+          Change the target member's server display name. Provide a nickname to choose it yourself. If admins allow AI random names, you can leave the nickname blank and the bot generates one from recent channel conversation history. The nickname is restored after the configured duration.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
@@ -108,7 +108,7 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h3>Choose your target</h3>
-          <p>Run <code>/polymorph @member "nickname"</code> in typed mode, or <code>/polymorph @member</code> in AI mode.</p>
+          <p>Run <code>/polymorph @member "nickname"</code> to choose a name, or <code>/polymorph @member</code> to use AI random names when admins have enabled them.</p>
         </div>
       </div>
       <div class="step">
@@ -154,8 +154,8 @@
     </div>
 
     <div class="faq-item">
-      <h4>Q: How does AI mode choose a nickname?</h4>
-      <p>A: AI mode sends recent messages from the command channel to the configured Polymorph model and asks for one nickname that fits Discord's length limit.</p>
+      <h4>Q: How does AI choose a nickname?</h4>
+      <p>A: When AI random names are enabled and the command nickname is blank, Polymorph sends recent messages from the command channel to the configured Polymorph model and asks for one nickname that fits Discord's length limit.</p>
     </div>
 
     <div class="faq-item">

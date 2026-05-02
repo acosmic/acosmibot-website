@@ -19,8 +19,7 @@
       <h3>Key Features</h3>
       <ul>
         <li>Responds to any message that mentions the bot</li>
-        <li>Maintains context for the last 15 messages per channel</li>
-        <li>Conversation history auto-clears after 6 hours of inactivity</li>
+        <li>Uses recent Discord channel history for context</li>
         <li>Built-in 3-second per-user cooldown to prevent spam</li>
         <li>Configurable daily usage limit for the entire server</li>
         <li>Custom system prompt to define the AI's personality and rules</li>
@@ -54,7 +53,7 @@
         <div class="step-number">3</div>
         <div class="step-content">
           <h3>Context is Maintained Automatically</h3>
-          <p>The bot tracks the last 15 messages in each channel as conversation context. If a channel goes quiet for more than 6 hours, the history is cleared automatically so the next conversation starts fresh. Admins can clear a channel's history anytime with <code>/ai-clear</code>.</p>
+          <p>The bot reads recent Discord channel history when it is mentioned, then sends the relevant recent messages as conversation context.</p>
         </div>
       </div>
 
@@ -102,17 +101,6 @@
         <div class="command-examples">
           <h4>Example:</h4>
           <code>/ai-status</code>
-        </div>
-      </div>
-
-      <div class="command-card">
-        <div class="command-signature">/ai-clear</div>
-        <div class="command-description">
-          Clear the conversation history for the current channel. Requires administrator permissions. Useful when a conversation has gone off the rails or you want the AI to start fresh without waiting for the 6-hour auto-clear.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/ai-clear</code>
         </div>
       </div>
 
@@ -187,7 +175,7 @@
 
     <div class="faq-item">
       <h4>Q: The AI seems to have forgotten our earlier conversation</h4>
-      <p>A: Context is limited to the last 15 messages per channel and clears automatically after 6 hours of inactivity. If the conversation was long or old, the earlier context is no longer available.</p>
+      <p>A: Context comes from recent channel messages. If the conversation has moved on or the relevant details are outside the recent message window, mention the details again.</p>
     </div>
 
     <div class="faq-item">
@@ -200,10 +188,6 @@
       <p>A: The server-wide interaction counter resets at midnight. Admins can raise or remove the limit in the <a href="/server" target="_blank">server dashboard</a> under AI settings.</p>
     </div>
 
-    <div class="faq-item">
-      <h4>Q: Can members clear the AI conversation history?</h4>
-      <p>A: The <code>/ai-clear</code> command requires administrator permissions. The history auto-clears after 6 hours of inactivity in that channel.</p>
-    </div>
   </section>
 
   <!-- Navigation -->

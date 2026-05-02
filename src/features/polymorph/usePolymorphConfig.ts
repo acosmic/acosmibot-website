@@ -8,6 +8,7 @@ const DEFAULT_POLYMORPH: PolymorphConfig = {
   cost: 10000,
   duration_minutes: 60,
   mode: 'manual',
+  allow_ai_random_names: false,
 };
 
 export function usePolymorphConfig(guildId: string) {
@@ -30,6 +31,7 @@ export function usePolymorphConfig(guildId: string) {
       cost: Number(raw?.cost ?? DEFAULT_POLYMORPH.cost),
       duration_minutes: Number(raw?.duration_minutes ?? DEFAULT_POLYMORPH.duration_minutes),
       mode: raw?.mode === 'ai_random' ? 'ai_random' : 'manual',
+      allow_ai_random_names: raw?.allow_ai_random_names === true || raw?.mode === 'ai_random',
     };
   }, [query.data, raw]);
 
