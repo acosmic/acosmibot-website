@@ -135,45 +135,26 @@ export const AiPage: React.FC = () => {
       />
 
       <CollapsibleSection title="Personalities" defaultOpen={true}>
-        <div className="d-flex justify-content-between align-items-center gap-3 mb-3 flex-wrap">
-          <div>
+        <div className="d-flex justify-content-between align-items-end gap-3 mb-4 flex-wrap">
+          <div style={{ flex: '0 1 420px', minWidth: '260px' }}>
             <label className="form-label mb-1 d-block">Active Personality</label>
-            <p className="text-muted small mb-0">Slash command switching uses this same saved list.</p>
-          </div>
-          <button className="btn primary" type="button" onClick={addPersonality}>
-            New Personality
-          </button>
-        </div>
-
-        <div className="d-flex flex-wrap gap-2 mb-4">
-          {form.personalities.map(personality => (
-            <button
-              key={personality.id}
-              type="button"
-              className={`btn ${personality.id === activePersonality.id ? 'primary' : ''}`}
-              onClick={() => selectPersonality(personality.id)}
-              style={{
-                minHeight: '38px',
-                borderColor: personality.id === activePersonality.id ? 'var(--primary-color)' : 'var(--border-light)',
-              }}
-            >
-              {personality.name}
-            </button>
-          ))}
-        </div>
-
-        <div className="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
-          <div style={{ flex: '1 1 280px' }}>
-            <label className="form-label mb-2 d-block">Personality Name</label>
-            <input
+            <select
               className="form-control"
-              value={activePersonality.name}
-              disabled={activePersonality.built_in}
-              maxLength={NAME_MAX}
-              onChange={(e) => updateActivePersonality({ name: e.target.value })}
-            />
+              value={activePersonality.id}
+              onChange={(e) => selectPersonality(e.target.value)}
+              style={{ maxWidth: '420px' }}
+            >
+              {form.personalities.map(personality => (
+                <option key={personality.id} value={personality.id}>
+                  {personality.name}{personality.built_in ? ' (Built-in)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="d-flex gap-2 mt-4">
+          <div className="d-flex gap-2 flex-wrap">
+            <button className="btn primary" type="button" onClick={addPersonality}>
+              New Personality
+            </button>
             {activePersonality.built_in ? (
               <button className="btn" type="button" onClick={copyBuiltIn}>
                 Copy
@@ -189,6 +170,17 @@ export const AiPage: React.FC = () => {
               </button>
             )}
           </div>
+        </div>
+
+        <div className="mb-3" style={{ maxWidth: '420px' }}>
+          <label className="form-label mb-2 d-block">Personality Name</label>
+          <input
+            className="form-control"
+            value={activePersonality.name}
+            disabled={activePersonality.built_in}
+            maxLength={NAME_MAX}
+            onChange={(e) => updateActivePersonality({ name: e.target.value })}
+          />
         </div>
 
         <label className="form-label mb-2 d-block">System Instructions</label>
