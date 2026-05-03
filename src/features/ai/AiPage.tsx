@@ -1,11 +1,26 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAiConfig, AiConfig } from './useAiConfig';
+import { useAiConfig, AiConfig, AiPersonality } from './useAiConfig';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 
 const INSTRUCTIONS_MAX = 2000;
+const NAME_MAX = 48;
+
+const createPersonalityId = () => `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+
+const uniqueName = (baseName: string, personalities: AiPersonality[]) => {
+  const existingNames = new Set(personalities.map(p => p.name.toLowerCase()));
+  let name = baseName.slice(0, NAME_MAX);
+  let index = 2;
+  while (existingNames.has(name.toLowerCase())) {
+    const suffix = ` ${index}`;
+    name = `${baseName.slice(0, NAME_MAX - suffix.length)}${suffix}`;
+    index += 1;
+  }
+  return name;
+};
 
 export const AiPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -36,7 +51,67 @@ export const AiPage: React.FC = () => {
 
   if (!form) return <div>No data found.</div>;
 
-  const charCount = (form.instructions || '').length;
+  const activePersonality = form.personalities.find(p => p.id === form.active_personality_id) || form.personalities[0];
+  if (!activePersonality) return <div>No AI personalities found.</div>;
+
+  const charCount = (activePersonality?.instructions || '').length;
+  const customPersonalities = form.personalities.filter(p => !p.built_in);
+
+  const updatePersonalities = (personalities: AiPersonality[], activeId = form.active_personality_id) => {
+    const active = personalities.find(p => p.id === activeId) || personalities[0];
+    setForm({
+      personalities,
+      active_personality_id: active.id,
+      instructions: active.instructions,
+    });
+  };
+
+  const selectPersonality = (personalityId: string) => {
+    updatePersonalities(form.personalities, personalityId);
+  };
+
+  const updateActivePersonality = (updates: Partial<AiPersonality>) => {
+    const next = form.personalities.map(p =>
+      p.id === activePersonality.id ? { ...p, ...updates } : p
+    );
+    updatePersonalities(next, activePersonality.id);
+  };
+
+  const addPersonality = () => {
+    const nextPersonality: AiPersonality = {
+      id: createPersonalityId(),
+      name: uniqueName('Custom Personality', form.personalities),
+      instructions: activePersonality?.instructions || '',
+      built_in: false,
+    };
+    updatePersonalities([...form.personalities, nextPersonality], nextPersonality.id);
+  };
+
+  const copyBuiltIn = () => {
+    if (!activePersonality) return;
+    const copy: AiPersonality = {
+      id: createPersonalityId(),
+      name: uniqueName(`${activePersonality.name} Copy`, form.personalities),
+      instructions: activePersonality.instructions,
+      built_in: false,
+    };
+    updatePersonalities([...form.personalities, copy], copy.id);
+  };
+
+  const deleteActivePersonality = () => {
+    if (!activePersonality || activePersonality.built_in) return;
+    const next = form.personalities.filter(p => p.id !== activePersonality.id);
+    updatePersonalities(next, 'default');
+  };
+
+  const saveAiConfig = () => {
+    if (!activePersonality) return;
+    save({
+      ...form,
+      active_personality_id: activePersonality.id,
+      instructions: activePersonality.instructions,
+    });
+  };
 
   const toggleChannel = (channelId: string, listKey: 'excluded_channels' | 'allowed_channels') => {
     const current = form[listKey] || [];
@@ -59,17 +134,73 @@ export const AiPage: React.FC = () => {
         description="Enable AI chat and image generation for this server."
       />
 
-      {/* Instructions */}
-      <CollapsibleSection title="Instructions / Personality" defaultOpen={true}>
+      <CollapsibleSection title="Personalities" defaultOpen={true}>
+        <div className="d-flex justify-content-between align-items-center gap-3 mb-3 flex-wrap">
+          <div>
+            <label className="form-label mb-1 d-block">Active Personality</label>
+            <p className="text-muted small mb-0">Slash command switching uses this same saved list.</p>
+          </div>
+          <button className="btn primary" type="button" onClick={addPersonality}>
+            New Personality
+          </button>
+        </div>
+
+        <div className="d-flex flex-wrap gap-2 mb-4">
+          {form.personalities.map(personality => (
+            <button
+              key={personality.id}
+              type="button"
+              className={`btn ${personality.id === activePersonality.id ? 'primary' : ''}`}
+              onClick={() => selectPersonality(personality.id)}
+              style={{
+                minHeight: '38px',
+                borderColor: personality.id === activePersonality.id ? 'var(--primary-color)' : 'var(--border-light)',
+              }}
+            >
+              {personality.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
+          <div style={{ flex: '1 1 280px' }}>
+            <label className="form-label mb-2 d-block">Personality Name</label>
+            <input
+              className="form-control"
+              value={activePersonality.name}
+              disabled={activePersonality.built_in}
+              maxLength={NAME_MAX}
+              onChange={(e) => updateActivePersonality({ name: e.target.value })}
+            />
+          </div>
+          <div className="d-flex gap-2 mt-4">
+            {activePersonality.built_in ? (
+              <button className="btn" type="button" onClick={copyBuiltIn}>
+                Copy
+              </button>
+            ) : (
+              <button
+                className="btn"
+                type="button"
+                onClick={deleteActivePersonality}
+                disabled={customPersonalities.length === 0}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </div>
+
         <label className="form-label mb-2 d-block">System Instructions</label>
         <textarea
           className="form-control"
           rows={8}
-          value={form.instructions || ''}
+          value={activePersonality.instructions || ''}
+          disabled={activePersonality.built_in}
           onChange={(e) => {
             const text = e.target.value;
             if (text.length <= INSTRUCTIONS_MAX) {
-              setForm({ instructions: text });
+              updateActivePersonality({ instructions: text });
             }
           }}
           placeholder="Describe how the AI should act (e.g., 'helpful assistant', 'grumpy robot', 'friendly tour guide')..."
@@ -84,13 +215,16 @@ export const AiPage: React.FC = () => {
             {charCount} / {INSTRUCTIONS_MAX}
           </span>
         </div>
+        {activePersonality.built_in && (
+          <p className="text-muted small mt-3 mb-0">Built-in personalities cannot be edited. Copy one to customize it.</p>
+        )}
       </CollapsibleSection>
 
       {/* Channel Restrictions */}
       <CollapsibleSection title="Channel Restrictions" defaultOpen={false}>
         <label className="form-label mb-2 d-block">Channel Mode</label>
         <div className="d-flex gap-3 mb-3">
-          {(['all', 'exclude', 'include'] as const).map(mode => (
+          {(['all', 'exclude', 'specific'] as const).map(mode => (
             <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input
                 type="radio"
@@ -131,7 +265,7 @@ export const AiPage: React.FC = () => {
           </div>
         )}
 
-        {form.channel_mode === 'include' && (
+        {form.channel_mode === 'specific' && (
           <div>
             <p className="text-muted small mb-3">The AI will <strong>only</strong> respond in the channels selected below.</p>
             <div style={{ maxHeight: '240px', overflowY: 'auto', borderRadius: '8px', border: '1px solid var(--border-light)', padding: '8px' }}>
@@ -163,7 +297,7 @@ export const AiPage: React.FC = () => {
 
       <SaveBar
         isDirty={isDirty}
-        onSave={() => save(form)}
+        onSave={saveAiConfig}
         onDiscard={resetForm}
         isSaving={isSaving}
         saveError={saveError}
