@@ -88,6 +88,8 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
 
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteAllConfirm, setDeleteAllConfirm] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   const [queryText, setQueryText] = useState('');
   const [queryLoading, setQueryLoading] = useState(false);
@@ -193,6 +195,35 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
     setDeleting(null);
   };
 
+  const handleDeleteAll = async () => {
+    if (!deleteAllConfirm) { setDeleteAllConfirm(true); return; }
+    setDeletingAll(true);
+    setDeleteAllConfirm(false);
+    setRefreshMsg(null);
+    setRefreshResults(null);
+    try {
+      const r = await fetch(`${apiBase}/api/admin/rag/documents`, {
+        method: 'DELETE',
+        headers: authHeaders,
+      });
+      const d = await r.json();
+      setRefreshMsg({ text: d.message ?? (d.success ? 'Deleted all documents' : d.error), ok: d.success });
+      if (d.success) {
+        setDocuments([]);
+        setExpandedDocs(new Set());
+        setChunkCache({});
+        fetchHealth();
+      } else {
+        fetchDocuments();
+        fetchHealth();
+      }
+    } catch (e) {
+      setRefreshMsg({ text: String(e), ok: false });
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+
   const handleQuery = async () => {
     if (!queryText.trim()) return;
     setQueryLoading(true);
@@ -231,21 +262,37 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
             <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Checking...</span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <button
             onClick={() => handleRefresh(false)}
-            disabled={refreshing}
+            disabled={refreshing || deletingAll}
             className="btn btn-sm btn-outline-secondary"
           >
             {refreshing ? 'Refreshing...' : '↻ Refresh Help Docs'}
           </button>
           <button
             onClick={() => handleRefresh(true)}
-            disabled={refreshing}
+            disabled={refreshing || deletingAll}
             className="btn btn-sm btn-outline-warning"
           >
             Force Re-ingest Help
           </button>
+          <button
+            onClick={handleDeleteAll}
+            disabled={refreshing || deletingAll || documents.length === 0}
+            className="btn btn-sm btn-outline-danger"
+          >
+            {deletingAll ? 'Deleting...' : deleteAllConfirm ? 'Confirm Delete All?' : 'Delete All'}
+          </button>
+          {deleteAllConfirm && (
+            <button
+              onClick={() => setDeleteAllConfirm(false)}
+              disabled={deletingAll}
+              className="btn btn-sm btn-outline-secondary"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </div>
 
