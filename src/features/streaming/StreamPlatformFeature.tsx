@@ -25,6 +25,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
   const streamerLabel = platform === 'youtube' ? 'Youtuber' : 'Streamer';
   const trackedTitle = platform === 'youtube' ? 'Tracked Youtubers' : 'Tracked Streamers';
   const emptyLabel = platform === 'youtube' ? 'No youtubers tracked yet.' : 'No streamers tracked yet.';
+  const limitLabel = platform === 'youtube' ? 'youtubers' : 'streamers';
   const streamers = form.tracked_streamers || [];
   
   const addStreamer = () => {
@@ -173,7 +174,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
             </div>
             
             <div className="mt-3 text-muted small">
-              Limit: {streamers.length} of 5 streamers
+              Limit: {streamers.length} of 5 {limitLabel}
             </div>
           </div>
 
