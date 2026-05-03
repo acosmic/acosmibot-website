@@ -237,14 +237,14 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
             disabled={refreshing}
             className="btn btn-sm btn-outline-secondary"
           >
-            {refreshing ? 'Refreshing...' : '↻ Refresh Docs'}
+            {refreshing ? 'Refreshing...' : '↻ Refresh Help Docs'}
           </button>
           <button
             onClick={() => handleRefresh(true)}
             disabled={refreshing}
             className="btn btn-sm btn-outline-warning"
           >
-            Force Re-ingest
+            Force Re-ingest Help
           </button>
         </div>
       </div>
@@ -275,7 +275,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
         ) : docsError ? (
           <p style={{ color: '#f87171' }}>{docsError}</p>
         ) : documents.length === 0 ? (
-          <p className="text-muted">No documents indexed yet. Click "Refresh Docs" to ingest.</p>
+          <p className="text-muted">No documents indexed yet. Click "Refresh Help Docs" to ingest bot Markdown help docs.</p>
         ) : (
           <div>
             {documents.map(doc => {
@@ -362,7 +362,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
           <input
             className="form-control"
             style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
-            placeholder="e.g. how do I enable leveling?"
+            placeholder="e.g. what can you do?"
             value={queryText}
             onChange={e => setQueryText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleQuery()}
