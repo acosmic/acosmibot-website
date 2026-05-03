@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useStreamPlatformConfig } from './useStreamPlatformConfig';
 import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
-import { Platform } from '@/api/streaming';
+import { Platform, streamingApi } from '@/api/streaming';
 import { Streamer } from '@/types/features';
 
 interface StreamPlatformFeatureProps {
@@ -15,11 +15,16 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
   const { data, isLoading, save, isSaving, saveError } = useStreamPlatformConfig(guildId!, platform);
   const { form, setForm, isDirty, resetForm } = useDirtyState(data);
   const [selectedStreamerIndex, setSelectedStreamerIndex] = useState<number | null>(null);
+  const [validatingIndex, setValidatingIndex] = useState<number | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
 
   if (isLoading) return <LoadingSpinner />;
   if (!form) return <div>No data found.</div>;
 
   const platformTitle = platform.charAt(0).toUpperCase() + platform.slice(1);
+  const streamerLabel = platform === 'youtube' ? 'Youtuber' : 'Streamer';
+  const trackedTitle = platform === 'youtube' ? 'Tracked Youtubers' : 'Tracked Streamers';
+  const emptyLabel = platform === 'youtube' ? 'No youtubers tracked yet.' : 'No streamers tracked yet.';
   const streamers = form.tracked_streamers || [];
   
   const addStreamer = () => {
@@ -54,7 +59,61 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
     setForm({ tracked_streamers: newStreamers });
   };
 
+  const handleUsernameChange = (index: number, username: string) => {
+    updateStreamer(index, {
+      username,
+      isValid: false,
+      channel_id: platform === 'youtube' ? null : streamers[index]?.channel_id,
+    });
+    setValidationErrors((current) => {
+      const next = { ...current };
+      delete next[index];
+      return next;
+    });
+  };
+
+  const validateStreamer = async (index: number) => {
+    const streamer = streamers[index];
+    const username = streamer?.username?.trim();
+
+    if (!username) return;
+
+    setValidatingIndex(index);
+    setValidationErrors((current) => {
+      const next = { ...current };
+      delete next[index];
+      return next;
+    });
+
+    try {
+      const result = await streamingApi.validateStreamer(platform, username);
+
+      if (result.success && result.valid) {
+        updateStreamer(index, {
+          username,
+          isValid: true,
+          channel_id: platform === 'youtube' ? result.channel_id ?? streamer.channel_id ?? null : streamer.channel_id,
+        });
+      } else {
+        updateStreamer(index, { isValid: false });
+        setValidationErrors((current) => ({
+          ...current,
+          [index]: result.message || `${streamerLabel} was not found.`,
+        }));
+      }
+    } catch (error) {
+      updateStreamer(index, { isValid: false });
+      setValidationErrors((current) => ({
+        ...current,
+        [index]: error instanceof Error ? error.message : `Failed to validate ${streamerLabel.toLowerCase()}.`,
+      }));
+    } finally {
+      setValidatingIndex((current) => (current === index ? null : current));
+    }
+  };
+
   const selectedStreamer = selectedStreamerIndex !== null ? streamers[selectedStreamerIndex] : null;
+  const selectedValidationError = selectedStreamerIndex !== null ? validationErrors[selectedStreamerIndex] : null;
 
   return (
     <div className="feature-page">
@@ -73,7 +132,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
         <div className="col-lg-5">
           <div className="card p-4 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h3 className="mb-0">Tracked Streamers</h3>
+              <h3 className="mb-0">{trackedTitle}</h3>
               <button 
                 className="btn primary py-2 px-3" 
                 onClick={addStreamer}
@@ -86,7 +145,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
             <div className="streamers-list">
               {streamers.length === 0 && (
                 <div className="text-center p-4 text-muted">
-                  No streamers tracked yet.
+                  {emptyLabel}
                 </div>
               )}
               {streamers.map((streamer, index) => (
@@ -98,7 +157,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
                 >
                   <div className="d-flex align-items-center gap-3 overflow-hidden">
                     <div className={`status-dot ${streamer.isValid ? 'bg-success' : 'bg-secondary'}`} style={{ width: '10px', height: '10px', borderRadius: '50%' }}></div>
-                    <span className="text-truncate fw-bold">{streamer.username || 'New Streamer'}</span>
+                    <span className="text-truncate fw-bold">{streamer.username || `New ${streamerLabel}`}</span>
                   </div>
                   <div className="d-flex gap-2">
                     <button 
@@ -144,7 +203,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
         <div className="col-lg-7">
           {selectedStreamerIndex !== null && selectedStreamer ? (
             <div className="card p-4 fade-in">
-              <h3 className="mb-4">Streamer: {selectedStreamer.username || 'New'}</h3>
+              <h3 className="mb-4">{streamerLabel}: {selectedStreamer.username || 'New'}</h3>
               
               <div className="mb-4">
                 <label className="form-label mb-2 d-block">Username / URL</label>
@@ -153,13 +212,23 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
                     type="text" 
                     className="form-control" 
                     value={selectedStreamer.username} 
-                    onChange={(e) => updateStreamer(selectedStreamerIndex, { username: e.target.value })}
-                    placeholder="Enter username..."
+                    onChange={(e) => handleUsernameChange(selectedStreamerIndex, e.target.value)}
+                    onBlur={() => validateStreamer(selectedStreamerIndex)}
+                    placeholder={platform === 'youtube' ? 'Enter channel, handle, or URL...' : 'Enter username...'}
                   />
-                  {!selectedStreamer.isValid && selectedStreamer.username && (
+                  {validatingIndex === selectedStreamerIndex && (
+                    <span className="input-group-text bg-info text-dark small">Checking...</span>
+                  )}
+                  {validatingIndex !== selectedStreamerIndex && selectedStreamer.isValid && selectedStreamer.username && (
+                    <span className="input-group-text bg-success text-light small">✓</span>
+                  )}
+                  {validatingIndex !== selectedStreamerIndex && !selectedStreamer.isValid && selectedStreamer.username && (
                     <span className="input-group-text bg-warning text-dark small">Unverified</span>
                   )}
                 </div>
+                {selectedValidationError && (
+                  <div className="text-danger small mt-2">{selectedValidationError}</div>
+                )}
               </div>
 
               <CollapsibleSection title="Pings & Notifications" defaultOpen={true}>
@@ -221,7 +290,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
           ) : (
             <div className="card p-5 text-center text-muted d-flex flex-column align-items-center justify-content-center h-100">
               <div style={{ fontSize: '3rem' }}>📺</div>
-              <p className="mt-3">Select a streamer from the left to configure alerts.</p>
+              <p className="mt-3">Select a {streamerLabel.toLowerCase()} from the left to configure alerts.</p>
             </div>
           )}
         </div>

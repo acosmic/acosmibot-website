@@ -4,6 +4,16 @@ import type { StreamPlatformConfig, UpdateStreamPlatformConfigRequest } from '@/
 
 export type Platform = 'twitch' | 'youtube' | 'kick';
 
+export interface StreamerValidationResult {
+  success: boolean;
+  valid: boolean;
+  message?: string;
+  channel_id?: string | null;
+  channel_info?: {
+    title?: string;
+  };
+}
+
 const DEFAULT_CONFIG: StreamPlatformConfig = {
   enabled: false,
   announcement_channel_id: null,
@@ -24,5 +34,21 @@ export const streamingApi = {
     const nextPlatform = { ...currentPlatform, ...data };
     await configApi.upsertHybridSections(guildId, { [platform]: nextPlatform });
     return { ...DEFAULT_CONFIG, ...nextPlatform };
+  },
+
+  validateStreamer: async (platform: Platform, identifier: string): Promise<StreamerValidationResult> => {
+    const value = identifier.trim();
+
+    if (platform === 'youtube') {
+      return api.fetch<StreamerValidationResult>('/api/youtube/validate-channel', {
+        method: 'POST',
+        body: JSON.stringify({ identifier: value }),
+      });
+    }
+
+    return api.fetch<StreamerValidationResult>(`/api/${platform}/validate-username`, {
+      method: 'POST',
+      body: JSON.stringify({ username: value }),
+    });
   },
 };

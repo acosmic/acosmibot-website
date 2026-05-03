@@ -54,6 +54,7 @@ export interface StreamPlatformConfig {
 export interface Streamer {
   platform: string;
   username: string;
+  channel_id?: string | null;
   isValid: boolean;
   mention_role_ids: string[];
   mention_everyone: boolean;
