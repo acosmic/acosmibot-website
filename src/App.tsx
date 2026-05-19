@@ -8,6 +8,7 @@ import { StreamPlatformFeature } from './features/streaming/StreamPlatformFeatur
 import { OverviewPage } from './features/overview/OverviewPage';
 import { CustomCommandsPage } from './features/custom-commands/CustomCommandsPage';
 import { ModerationPage } from './features/moderation/ModerationPage';
+import { BannedUsersPage } from './features/banned-users/BannedUsersPage';
 import { AiPage } from './features/ai/AiPage';
 import { SlotsPage } from './features/slots/SlotsPage';
 import { PolymorphPage } from './features/polymorph/PolymorphPage';
@@ -60,6 +61,10 @@ const FeatureOutlet = () => {
   
   if (feature === 'moderation') {
     return <ModerationPage />;
+  }
+
+  if (feature === 'banned-users') {
+    return <BannedUsersPage />;
   }
   
   if (feature === 'ai') {

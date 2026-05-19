@@ -147,6 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavItem to={`/server/${guildId}/activity-monitor`} icon="activitymonitor" label="Activity Monitor" indicator onClick={onClose} />
                 <NavItem to={`/server/${guildId}/custom-commands`} icon="customcommands" label="Custom Commands" indicator onClick={onClose} />
                 <NavItem to={`/server/${guildId}/moderation`} icon="moderation" label="Moderation" indicator onClick={onClose} />
+                <NavItem to={`/server/${guildId}/banned-users`} icon="bannedusers" label="Banned Users" indicator onClick={onClose} />
                 <NavItem to={`/server/${guildId}/ai`} icon="ai" label="AI Customization" indicator onClick={onClose} />
               </NavSection>
 
