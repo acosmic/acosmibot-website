@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { bannedUsersApi, MemberSearchResult } from '@/api/bannedUsers';
 
 interface MemberSearchInputProps {
@@ -19,8 +19,10 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
+  const [dropdownRect, setDropdownRect] = useState({ top: 0, left: 0, width: 0 });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const search = useCallback(
     async (q: string) => {
@@ -64,6 +66,22 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useLayoutEffect(() => {
+    if (!isOpen || !inputRef.current) return;
+    const update = () => {
+      if (!inputRef.current) return;
+      const r = inputRef.current.getBoundingClientRect();
+      setDropdownRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [isOpen]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
     if (e.key === 'ArrowDown') {
@@ -93,6 +111,7 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
       <input
+        ref={inputRef}
         type="text"
         className="form-control"
         placeholder={placeholder}
@@ -108,11 +127,11 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
       {isOpen && results.length > 0 && (
         <div
           style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            zIndex: 1000,
+            position: 'fixed',
+            top: dropdownRect.top,
+            left: dropdownRect.left,
+            width: dropdownRect.width,
+            zIndex: 9999,
             background: 'var(--bg-secondary)',
             border: '1px solid var(--border-color)',
             borderRadius: 6,
