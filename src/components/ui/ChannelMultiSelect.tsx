@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 
 interface ChannelMultiSelectProps {
@@ -18,6 +19,7 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
 }) => {
   const { data: channels, isLoading } = useGuildChannels(guildId);
   const [open, setOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +32,25 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const handleOpen = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+        maxHeight: '200px',
+        overflowY: 'auto',
+        background: 'var(--bg-tertiary)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '4px',
+      });
+    }
+    setOpen(o => !o);
+  };
+
   const toggle = (id: string) =>
     onChange(value.includes(id) ? value.filter(v => v !== id) : [...value, id]);
 
@@ -39,7 +60,7 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
       <div
         className="form-control"
         style={{ height: 'auto', minHeight: '42px', display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '8px', cursor: 'pointer' }}
-        onClick={() => setOpen(o => !o)}
+        onClick={handleOpen}
       >
         {value.length === 0 && (
           <span className="text-muted">{isLoading ? 'Loading channels...' : placeholder}</span>
@@ -61,22 +82,8 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
           );
         })}
       </div>
-      {open && channels && channels.length > 0 && (
-        <div
-          className="p-2 rounded"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            zIndex: 100,
-            maxHeight: '200px',
-            overflowY: 'auto',
-            background: 'var(--bg-tertiary)',
-            border: '1px solid var(--border-light)',
-            marginTop: '4px',
-          }}
-        >
+      {open && channels && channels.length > 0 && createPortal(
+        <div className="p-2" style={dropdownStyle}>
           {channels.map(ch => (
             <div
               key={ch.id}
@@ -88,7 +95,8 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
               <span>#{ch.name}</span>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
