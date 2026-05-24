@@ -4,6 +4,7 @@ import { DashboardShell } from './components/layout/DashboardShell';
 import { LegacyFeatureView } from './components/legacy/LegacyFeatureView';
 import { GiveawayPage } from './features/giveaway/GiveawayPage';
 import { LevelingPage } from './features/leveling/LevelingPage';
+import { GlobalLeaderboardPage } from './features/leaderboards/GlobalLeaderboardPage';
 import { StreamPlatformFeature } from './features/streaming/StreamPlatformFeature';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { CustomCommandsPage } from './features/custom-commands/CustomCommandsPage';
@@ -49,6 +50,10 @@ const FeatureOutlet = () => {
   
   if (feature === 'leveling') {
     return <LevelingPage />;
+  }
+
+  if (feature === 'leaderboard') {
+    return <GlobalLeaderboardPage />;
   }
   
   if (feature === 'twitch' || feature === 'youtube' || feature === 'kick') {

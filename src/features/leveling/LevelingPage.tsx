@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { useLevelingConfig, LevelingConfig, RolesConfig } from './useLevelingConfig';
+import { useLevelingConfig, LevelingConfig, RolesConfig, XP_RATE_BOUNDS } from './useLevelingConfig';
 import { ChannelSelect, FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
@@ -60,6 +60,12 @@ export const LevelingPage: React.FC = () => {
     setRoleForm({ role_mappings: mappings });
   };
 
+  const clampRate = (raw: string, bounds: { min: number; max: number }): number => {
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n)) return bounds.min;
+    return Math.max(bounds.min, Math.min(bounds.max, n));
+  };
+
   const sortedLevels = Object.keys(roleForm.role_mappings).sort((a, b) => parseInt(a) - parseInt(b));
 
   return (
@@ -74,6 +80,97 @@ export const LevelingPage: React.FC = () => {
         onChange={(v) => setLevelForm({ enabled: v })}
         description="Enable XP, levels, and role rewards."
       />
+
+      {/* XP Rates */}
+      <CollapsibleSection title="XP Rates" defaultOpen={true}>
+        <p className="text-muted small mb-3">
+          Control how much XP your members earn in this server. These rates affect your
+          server's own levels only — the global leaderboard uses fixed, server-independent
+          rates so rankings stay fair across servers.
+        </p>
+
+        <div className="mb-3">
+          <label className="form-label mb-2 d-block">XP per Message</label>
+          <input
+            type="number"
+            className="form-control"
+            style={{ maxWidth: '160px' }}
+            value={levelForm.exp_per_message}
+            min={XP_RATE_BOUNDS.exp_per_message.min}
+            max={XP_RATE_BOUNDS.exp_per_message.max}
+            onChange={(e) => setLevelForm({
+              exp_per_message: clampRate(e.target.value, XP_RATE_BOUNDS.exp_per_message),
+            })}
+          />
+          <p className="text-muted small mt-1">
+            {XP_RATE_BOUNDS.exp_per_message.min}–{XP_RATE_BOUNDS.exp_per_message.max} XP. Subject to the anti-spam cooldown.
+          </p>
+        </div>
+
+        <div className="mb-3" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Award XP for Reactions</label>
+          <div className="form-check form-switch mb-0">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              checked={levelForm.reaction_xp_enabled}
+              onChange={(e) => setLevelForm({ reaction_xp_enabled: e.target.checked })}
+              style={{ width: '3em', height: '1.5em', cursor: 'pointer' }}
+            />
+          </div>
+        </div>
+        {levelForm.reaction_xp_enabled && (
+          <div className="mb-3">
+            <label className="form-label mb-2 d-block">XP per Reaction</label>
+            <input
+              type="number"
+              className="form-control"
+              style={{ maxWidth: '160px' }}
+              value={levelForm.exp_per_reaction}
+              min={XP_RATE_BOUNDS.exp_per_reaction.min}
+              max={XP_RATE_BOUNDS.exp_per_reaction.max}
+              onChange={(e) => setLevelForm({
+                exp_per_reaction: clampRate(e.target.value, XP_RATE_BOUNDS.exp_per_reaction),
+              })}
+            />
+            <p className="text-muted small mt-1">
+              {XP_RATE_BOUNDS.exp_per_reaction.min}–{XP_RATE_BOUNDS.exp_per_reaction.max} XP per reaction added.
+            </p>
+          </div>
+        )}
+
+        <div className="mb-3" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Award XP for Commands</label>
+          <div className="form-check form-switch mb-0">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              checked={levelForm.command_xp_enabled}
+              onChange={(e) => setLevelForm({ command_xp_enabled: e.target.checked })}
+              style={{ width: '3em', height: '1.5em', cursor: 'pointer' }}
+            />
+          </div>
+        </div>
+        {levelForm.command_xp_enabled && (
+          <div className="mb-3">
+            <label className="form-label mb-2 d-block">XP per Command</label>
+            <input
+              type="number"
+              className="form-control"
+              style={{ maxWidth: '160px' }}
+              value={levelForm.exp_per_command}
+              min={XP_RATE_BOUNDS.exp_per_command.min}
+              max={XP_RATE_BOUNDS.exp_per_command.max}
+              onChange={(e) => setLevelForm({
+                exp_per_command: clampRate(e.target.value, XP_RATE_BOUNDS.exp_per_command),
+              })}
+            />
+            <p className="text-muted small mt-1">
+              {XP_RATE_BOUNDS.exp_per_command.min}–{XP_RATE_BOUNDS.exp_per_command.max} XP each time a slash command is used.
+            </p>
+          </div>
+        )}
+      </CollapsibleSection>
 
       {/* Level-Up Announcements */}
       <CollapsibleSection title="Level-Up Announcements" defaultOpen={true}>

@@ -4,6 +4,11 @@ import { configApi } from '@/api/config';
 
 export interface LevelingConfig {
   enabled: boolean;
+  exp_per_message: number;
+  exp_per_reaction: number;
+  exp_per_command: number;
+  reaction_xp_enabled: boolean;
+  command_xp_enabled: boolean;
   level_up_announcements: boolean;
   announcement_channel_id: string | null;
   level_up_message: string;
@@ -13,6 +18,14 @@ export interface LevelingConfig {
   daily_announcement_message: string;
   daily_announcement_message_with_streak: string;
 }
+
+// Allowed ranges for per-guild XP rates. Mirrors GUILD_XP_RATE_BOUNDS in
+// acosmibot-core; the API clamps to these server-side as well.
+export const XP_RATE_BOUNDS = {
+  exp_per_message: { min: 1, max: 100 },
+  exp_per_reaction: { min: 0, max: 50 },
+  exp_per_command: { min: 0, max: 100 },
+} as const;
 
 export interface RolesConfig {
   enabled: boolean;
@@ -25,6 +38,11 @@ export interface RolesConfig {
 
 const DEFAULT_LEVELING: LevelingConfig = {
   enabled: true,
+  exp_per_message: 10,
+  exp_per_reaction: 2,
+  exp_per_command: 5,
+  reaction_xp_enabled: true,
+  command_xp_enabled: true,
   level_up_announcements: true,
   announcement_channel_id: null,
   level_up_message: '{username}, you have reached level {level}!',

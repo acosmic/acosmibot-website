@@ -129,6 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <nav className="sidebar-nav">
           <NavSection title="GENERAL">
             <NavItem to={`/server/${guildId}/overview`} icon="overview" label="Overview" onClick={onClose} />
+            <NavItem to={`/server/${guildId}/leaderboard`} icon="leveling" label="Leaderboard" indicator onClick={onClose} />
             <NavItem to="#" icon="membership" label="Membership" comingSoon />
             <NavItem to="#" icon="premium" label="Premium" comingSoon />
           </NavSection>
