@@ -77,8 +77,8 @@ export interface ModerationConfig {
   events: {
     on_member_join?: { enabled: boolean; channel_id: string | null };
     on_member_remove?: { enabled: boolean; channel_id: string | null };
-    on_message_edit?: { enabled: boolean; channel_id: string | null };
-    on_message_delete?: { enabled: boolean; channel_id: string | null };
+    on_message_edit?: { enabled: boolean; channel_id: string | null; ignored_channel_ids: string[] };
+    on_message_delete?: { enabled: boolean; channel_id: string | null; ignored_channel_ids: string[] };
     on_audit_log_entry?: Record<string, { enabled: boolean; channel_id: string | null }>;
     on_member_update?: Record<string, { enabled: boolean; channel_id: string | null }>;
   };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useModerationConfig } from './useModerationConfig';
-import { ChannelSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
+import { ChannelSelect, ChannelMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { ModerationConfig } from '@/types/features';
 
@@ -13,7 +13,7 @@ export const ModerationPage: React.FC = () => {
   if (isLoading) return <LoadingSpinner />;
   if (!form) return <div>No data found.</div>;
 
-  const updateEvent = (category: string, eventName: string | null, updates: { enabled?: boolean; channel_id?: string | null }) => {
+  const updateEvent = (category: string, eventName: string | null, updates: { enabled?: boolean; channel_id?: string | null; ignored_channel_ids?: string[] }) => {
     const newEvents = { ...form.events };
     
     if (category === 'on_audit_log_entry') {
@@ -117,6 +117,13 @@ export const ModerationPage: React.FC = () => {
                   value={(form.events as any)[event]?.channel_id || null}
                   onChange={(v) => updateEvent(event, null, { channel_id: v })}
                   placeholder="Use master log channel"
+                />
+                <ChannelMultiSelect
+                  guildId={guildId!}
+                  value={(form.events as any)[event]?.ignored_channel_ids || []}
+                  onChange={(v) => updateEvent(event, null, { ignored_channel_ids: v })}
+                  label="Ignore Channels"
+                  placeholder="No channels ignored..."
                 />
               </div>
             </div>

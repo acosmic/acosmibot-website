@@ -1,4 +1,5 @@
 export * from './ChannelSelect';
+export * from './ChannelMultiSelect';
 export * from './RoleSelect';
 export * from './RoleMultiSelect';
 export * from './FeatureToggle';
