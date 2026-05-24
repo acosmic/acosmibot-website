@@ -164,38 +164,99 @@ body {
 }
 
 /* ============================================
-   COMING SOON PLACEHOLDER
+   LEADERBOARD TABLE
    ============================================ */
 
-.coming-soon-placeholder {
+.leaderboard-table {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.leaderboard-header,
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 100px 140px;
+    align-items: center;
+    padding: 14px 20px;
+    gap: 12px;
+}
+
+.leaderboard-header {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.leaderboard-row {
+    border-bottom: 1px solid var(--border-light);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.leaderboard-row:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-row:hover {
+    background: var(--bg-card);
+}
+
+.rank-badge {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.rank-badge.rank-1 { color: #f5c518; }
+.rank-badge.rank-2 { color: #c0c7d1; }
+.rank-badge.rank-3 { color: #cd7f32; }
+
+.member-col {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.lb-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lb-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg-card);
+    flex-shrink: 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 120px 40px;
-    text-align: center;
-    background: var(--bg-overlay);
-    border-radius: 12px;
-    border: 2px dashed var(--border-light);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
 }
 
-.coming-soon-icon {
-    font-size: 80px;
-    margin-bottom: 24px;
-    line-height: 1;
+.xp-col,
+.level-col {
+    font-variant-numeric: tabular-nums;
 }
 
-.coming-soon-placeholder h2 {
-    font-size: 32px;
-    color: var(--text-primary);
-    margin-bottom: 16px;
-}
-
-.coming-soon-placeholder p {
-    font-size: 16px;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    line-height: 1.6;
+@media (max-width: 768px) {
+    .leaderboard-header,
+    .leaderboard-row {
+        grid-template-columns: 52px 1fr 56px 84px;
+        padding: 12px;
+        gap: 8px;
+        font-size: 13px;
+    }
 }
 
 /* ============================================
@@ -251,18 +312,6 @@ body {
 
     .top-nav-right {
         width: 60px;
-    }
-
-    .coming-soon-placeholder {
-        padding: 80px 24px;
-    }
-
-    .coming-soon-icon {
-        font-size: 60px;
-    }
-
-    .coming-soon-placeholder h2 {
-        font-size: 24px;
     }
 
     .overview-header h1 {
