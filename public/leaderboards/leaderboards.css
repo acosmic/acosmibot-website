@@ -19,7 +19,7 @@ body {
 
 /* Dashboard container uses guild-dashboard-new.css styles */
 .dashboard-container {
-    margin-top: 0 !important;
+    margin-top: 56px !important;
 }
 
 /* ============================================
@@ -85,6 +85,23 @@ body {
 .notification-btn:hover {
     background: var(--bg-overlay);
     color: var(--text-primary);
+}
+
+.top-nav-profile-avatar {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-light);
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.top-nav-profile-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 /* ============================================
@@ -264,23 +281,25 @@ body {
    ============================================ */
 
 @media (max-width: 768px) {
-    /* Collapse sidebars on mobile */
-    .guild-selector-sidebar,
+    .guild-selector-sidebar {
+        display: none;
+    }
+
     .navigation-sidebar {
         position: fixed;
+        left: 0;
+        top: 56px;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
         z-index: 1001;
         height: calc(100vh - 56px);
+        width: min(320px, calc(100vw - 32px));
+        min-width: 0;
+        max-width: none;
     }
 
-    .guild-selector-sidebar.open,
     .navigation-sidebar.open {
         transform: translateX(0);
-    }
-
-    .navigation-sidebar {
-        left: 72px;
     }
 
     /* Main content takes full width on mobile */
@@ -297,7 +316,12 @@ body {
     /* Hamburger menu */
     .top-nav-left {
         cursor: pointer;
-        padding: 16px;
+        padding: 0;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .top-nav-left::before {
@@ -308,13 +332,30 @@ body {
 
     .top-nav {
         padding: 0 16px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
     }
 
     .top-nav-right {
-        width: 60px;
+        width: 44px;
     }
 
     .overview-header h1 {
         font-size: 24px;
+    }
+
+    .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.62);
+        z-index: 999;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-backdrop.open {
+        display: block;
     }
 }

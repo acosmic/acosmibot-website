@@ -19,12 +19,41 @@ async function initializeOverviewLayout(user, activePage) {
 
   // Render user avatar at top of guild selector
   renderGuildSelectorAvatar(user);
+  renderTopNavAvatar(user);
 
   // Load and render guild icons
   await loadAndRenderGuildIcons();
 
   // Render navigation sidebar
   renderNavigation(activePage);
+}
+
+function getAvatarUrl(user) {
+  if (user.avatar) {
+    return user.avatar.startsWith('http')
+      ? user.avatar
+      : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+  }
+  const defaultAvatarIndex = (parseInt(user.id) >> 22) % 6;
+  return `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
+}
+
+function renderTopNavAvatar(user) {
+  const topNavRight = document.querySelector('.top-nav-right');
+  if (!topNavRight || document.getElementById('topNavProfileAvatar')) return;
+
+  const button = document.createElement('button');
+  button.id = 'topNavProfileAvatar';
+  button.className = 'top-nav-profile-avatar';
+  button.title = 'Profile';
+  button.setAttribute('aria-label', 'Profile');
+  button.style.backgroundImage = `url('${getAvatarUrl(user)}')`;
+  button.addEventListener('click', () => {
+    window.location.href = '/profile';
+  });
+
+  topNavRight.innerHTML = '';
+  topNavRight.appendChild(button);
 }
 
 /**
@@ -38,19 +67,8 @@ function renderGuildSelectorAvatar(user) {
     return;
   }
 
-  if (user.avatar) {
-    const avatarUrl = user.avatar.startsWith('http')
-      ? user.avatar
-      : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
-    avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
-    avatarElement.textContent = '';
-  } else {
-    // Fallback: Discord default avatar
-    const defaultAvatarIndex = (parseInt(user.id) >> 22) % 6;
-    const defaultAvatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
-    avatarElement.style.backgroundImage = `url('${defaultAvatarUrl}')`;
-    avatarElement.textContent = '';
-  }
+  avatarElement.style.backgroundImage = `url('${getAvatarUrl(user)}')`;
+  avatarElement.textContent = '';
 
   avatarElement.title = 'Profile';
 
@@ -281,6 +299,7 @@ function escapeHtml(text) {
 // Make functions globally accessible
 window.initializeOverviewLayout = initializeOverviewLayout;
 window.renderGuildSelectorAvatar = renderGuildSelectorAvatar;
+window.renderTopNavAvatar = renderTopNavAvatar;
 window.loadAndRenderGuildIcons = loadAndRenderGuildIcons;
 window.renderGuildIcons = renderGuildIcons;
 window.renderNavigation = renderNavigation;
