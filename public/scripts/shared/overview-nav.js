@@ -42,18 +42,59 @@ function renderTopNavAvatar(user) {
   const topNavRight = document.querySelector('.top-nav-right');
   if (!topNavRight || document.getElementById('topNavProfileAvatar')) return;
 
+  const wrapper = document.createElement('div');
+  wrapper.className = 'top-nav-profile-wrap';
+
   const button = document.createElement('button');
   button.id = 'topNavProfileAvatar';
   button.className = 'top-nav-profile-avatar';
-  button.title = 'Profile';
-  button.setAttribute('aria-label', 'Profile');
+  button.title = 'Account menu';
+  button.setAttribute('aria-label', 'Account menu');
+  button.setAttribute('aria-expanded', 'false');
   button.style.backgroundImage = `url('${getAvatarUrl(user)}')`;
-  button.addEventListener('click', () => {
-    window.location.href = '/profile';
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const existingMenu = wrapper.querySelector('.user-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+      button.setAttribute('aria-expanded', 'false');
+      return;
+    }
+
+    const menu = document.createElement('div');
+    menu.className = 'user-menu';
+    menu.innerHTML = `
+      <div class="user-info">
+        <div class="user-name">${escapeHtml(user.global_name || user.username || 'User')}</div>
+      </div>
+      <a href="/servers">Servers</a>
+      <a href="/profile">Profile</a>
+      ${user.id === '110637665128325120' ? '<a href="/admin" style="color:#f59e0b;">Admin</a>' : ''}
+      <div style="border-top: 1px solid var(--border-light); margin: 5px 0;"></div>
+      <a href="#" class="logout-btn" id="topNavLogoutLink">Logout</a>
+    `;
+    wrapper.appendChild(menu);
+    button.setAttribute('aria-expanded', 'true');
+
+    menu.querySelector('#topNavLogoutLink')?.addEventListener('click', (logoutEvent) => {
+      logoutEvent.preventDefault();
+      logout();
+    });
+
+    setTimeout(() => {
+      document.addEventListener('click', function closeMenu(closeEvent) {
+        if (!wrapper.contains(closeEvent.target)) {
+          menu.remove();
+          button.setAttribute('aria-expanded', 'false');
+          document.removeEventListener('click', closeMenu);
+        }
+      });
+    }, 0);
   });
 
   topNavRight.innerHTML = '';
-  topNavRight.appendChild(button);
+  wrapper.appendChild(button);
+  topNavRight.appendChild(wrapper);
 }
 
 /**

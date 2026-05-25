@@ -90,6 +90,11 @@ body {
     color: var(--text-primary);
 }
 
+.top-nav-profile-wrap {
+    position: relative;
+    display: flex;
+}
+
 .top-nav-profile-avatar {
     width: 36px;
     height: 36px;
