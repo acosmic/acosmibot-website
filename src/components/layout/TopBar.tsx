@@ -14,6 +14,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
   const { currentGuild, guilds, setSelectedGuildId } = useGuildStore();
   const { user } = useAuthStore();
 
+  const activeGuild = currentGuild || guilds.find(guild => guild.id === guildId) || null;
   const manageableGuilds = guilds.filter(g => g.owner || g.permissions?.includes('administrator'));
 
   const handleGuildChange = (id: string) => {
@@ -22,8 +23,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
     navigate(`/server/${id}/overview`);
   };
 
-  const guildIconUrl = currentGuild?.icon
-    ? `https://cdn.discordapp.com/icons/${currentGuild.id}/${currentGuild.icon}.png`
+  const guildIconUrl = activeGuild?.icon
+    ? `https://cdn.discordapp.com/icons/${activeGuild.id}/${activeGuild.icon}.png`
     : '/images/acosmibot-logo.png';
 
   return (
@@ -40,11 +41,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
           <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
             <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
           </Link>
-          {currentGuild && (
+          {activeGuild && (
             <div className="desktop-current-guild">
               <span style={{ color: 'var(--border-light)' }}>|</span>
-              <img src={guildIconUrl} alt={currentGuild.name} />
-              <h2 className="mb-0 fs-5">{currentGuild.name}</h2>
+              <img src={guildIconUrl} alt={activeGuild.name} />
+              <h2 className="mb-0 fs-5">{activeGuild.name}</h2>
             </div>
           )}
         </div>
@@ -62,22 +63,24 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
         )}
       </header>
 
-      {currentGuild && manageableGuilds.length > 0 && (
+      {activeGuild && (
         <div className="mobile-guild-bar">
           <div className="mobile-current-guild">
             <img src={guildIconUrl} alt="" />
-            <span>{currentGuild.name}</span>
+            <span>{activeGuild.name}</span>
           </div>
-          <select
-            className="mobile-guild-select"
-            aria-label="Switch server"
-            value={guildId || currentGuild.id}
-            onChange={(event) => handleGuildChange(event.target.value)}
-          >
-            {manageableGuilds.map(guild => (
-              <option key={guild.id} value={guild.id}>{guild.name}</option>
-            ))}
-          </select>
+          {manageableGuilds.length > 0 && (
+            <select
+              className="mobile-guild-select"
+              aria-label="Switch server"
+              value={guildId || activeGuild.id}
+              onChange={(event) => handleGuildChange(event.target.value)}
+            >
+              {manageableGuilds.map(guild => (
+                <option key={guild.id} value={guild.id}>{guild.name}</option>
+              ))}
+            </select>
+          )}
         </div>
       )}
     </div>
