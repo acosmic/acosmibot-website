@@ -129,9 +129,9 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
         description={`Enable or disable ${platformTitle} notifications.`}
       />
 
-      <div className="row">
-        <div className="col-lg-5">
-          <div className="card p-4 mb-4">
+      <div className="stream-config-layout">
+        <div>
+          <div className="card p-4 mb-4 stream-list-card">
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h3 className="mb-0">{trackedTitle}</h3>
               <button 
@@ -200,19 +200,27 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="col-lg-7">
-          {selectedStreamerIndex !== null && selectedStreamer ? (
-            <div className="card p-4 fade-in">
-              <h3 className="mb-4">{streamerLabel}: {selectedStreamer.username || 'New'}</h3>
-              
+      {selectedStreamerIndex !== null && selectedStreamer && (
+        <div className="stream-editor-backdrop" onClick={() => setSelectedStreamerIndex(null)}>
+          <aside className="stream-editor-panel fade-in" role="dialog" aria-modal="true" aria-label={`${streamerLabel} settings`} onClick={(event) => event.stopPropagation()}>
+            <div className="stream-editor-header">
+              <div>
+                <h3>{streamerLabel}: {selectedStreamer.username || 'New'}</h3>
+                <p>{platformTitle} alert settings</p>
+              </div>
+              <button onClick={() => setSelectedStreamerIndex(null)} aria-label="Close editor">×</button>
+            </div>
+
+            <div className="stream-editor-body">
               <div className="mb-4">
                 <label className="form-label mb-2 d-block">Username / URL</label>
                 <div className="input-group">
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    value={selectedStreamer.username} 
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={selectedStreamer.username}
                     onChange={(e) => handleUsernameChange(selectedStreamerIndex, e.target.value)}
                     onBlur={() => validateStreamer(selectedStreamerIndex)}
                     placeholder={platform === 'youtube' ? 'Enter channel, handle, or URL...' : 'Enter username...'}
@@ -233,26 +241,26 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
               </div>
 
               <CollapsibleSection title="Pings & Notifications" defaultOpen={true}>
-                <div className="mb-3 d-flex gap-4">
+                <div className="mb-3 d-flex gap-4 flex-wrap">
                   <div className="form-check">
-                    <input 
-                      type="checkbox" 
-                      className="form-check-input" 
-                      id="pingEveryone" 
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id={`pingEveryone-${platform}`}
                       checked={selectedStreamer.mention_everyone}
                       onChange={(e) => updateStreamer(selectedStreamerIndex, { mention_everyone: e.target.checked })}
                     />
-                    <label className="form-check-label" htmlFor="pingEveryone">@everyone</label>
+                    <label className="form-check-label" htmlFor={`pingEveryone-${platform}`}>@everyone</label>
                   </div>
                   <div className="form-check">
-                    <input 
-                      type="checkbox" 
-                      className="form-check-input" 
-                      id="pingHere" 
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id={`pingHere-${platform}`}
                       checked={selectedStreamer.mention_here}
                       onChange={(e) => updateStreamer(selectedStreamerIndex, { mention_here: e.target.checked })}
                     />
-                    <label className="form-check-label" htmlFor="pingHere">@here</label>
+                    <label className="form-check-label" htmlFor={`pingHere-${platform}`}>@here</label>
                   </div>
                 </div>
 
@@ -268,34 +276,34 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
               <CollapsibleSection title="Custom Override">
                 <div className="mb-3">
                   <label className="form-label mb-2 d-block">Custom Message (Optional)</label>
-                  <textarea 
-                    className="form-control" 
-                    rows={2} 
-                    value={selectedStreamer.custom_message || ''} 
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value={selectedStreamer.custom_message || ''}
                     onChange={(e) => updateStreamer(selectedStreamerIndex, { custom_message: e.target.value || null })}
                     placeholder="Overrides the global default message..."
                   />
                 </div>
                 <div className="form-check mb-2">
-                  <input 
-                    type="checkbox" 
-                    className="form-check-input" 
-                    id="skipVod" 
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id={`skipVod-${platform}`}
                     checked={selectedStreamer.skip_vod_check}
                     onChange={(e) => updateStreamer(selectedStreamerIndex, { skip_vod_check: e.target.checked })}
                   />
-                  <label className="form-check-label" htmlFor="skipVod">Skip VOD check / edits</label>
+                  <label className="form-check-label" htmlFor={`skipVod-${platform}`}>Skip VOD check / edits</label>
                 </div>
               </CollapsibleSection>
             </div>
-          ) : (
-            <div className="card p-5 text-center text-muted d-flex flex-column align-items-center justify-content-center h-100">
-              <div style={{ fontSize: '3rem' }}>📺</div>
-              <p className="mt-3">Select a {streamerLabel.toLowerCase()} from the left to configure alerts.</p>
+
+            <div className="stream-editor-actions">
+              <button className="btn" onClick={() => removeStreamer(selectedStreamerIndex)}>Delete</button>
+              <button className="btn primary" onClick={() => setSelectedStreamerIndex(null)}>Done</button>
             </div>
-          )}
+          </aside>
         </div>
-      </div>
+      )}
 
       <SaveBar
         isDirty={isDirty}

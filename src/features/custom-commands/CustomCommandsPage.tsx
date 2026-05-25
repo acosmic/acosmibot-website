@@ -362,7 +362,8 @@ export const CustomCommandsPage: React.FC = () => {
               No custom commands yet. Click "Add Command" to create one.
             </div>
           ) : (
-            <div className="table-responsive">
+            <>
+            <div className="admin-table-desktop">
               <table className="table table-dark table-hover mb-0" style={{ background: 'transparent' }}>
                 <thead>
                   <tr>
@@ -411,6 +412,43 @@ export const CustomCommandsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            <div className="admin-card-list p-3">
+              {commands.map(cmd => (
+                <div key={cmd.id} className="admin-mobile-row">
+                  <div className="admin-mobile-field primary">
+                    <span className="admin-mobile-label">Trigger</span>
+                    <span className="admin-mobile-value fw-bold text-primary">{cmd.prefix}{cmd.command}</span>
+                  </div>
+                  <div className="admin-mobile-field">
+                    <span className="admin-mobile-label">Type</span>
+                    <span className="admin-mobile-value">{cmd.response_type}</span>
+                  </div>
+                  <div className="admin-mobile-field">
+                    <span className="admin-mobile-label">Response</span>
+                    <span className="admin-mobile-value">
+                      {cmd.response_type === 'embed'
+                        ? embedPreview(cmd.embed_config)
+                        : cmd.response_text}
+                    </span>
+                  </div>
+                  <div className="d-flex gap-2 mt-2">
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => editingId === cmd.id ? closeForm() : openEdit(cmd)}
+                    >
+                      {editingId === cmd.id ? 'Cancel' : 'Edit'}
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => { if (confirm('Delete this command?')) deleteCommand(cmd.id); }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            </>
           )}
         </div>
       </div>

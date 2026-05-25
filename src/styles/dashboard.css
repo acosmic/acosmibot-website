@@ -442,6 +442,19 @@
   transform: translateY(-7px) rotate(-45deg);
 }
 
+.mobile-guild-select {
+  display: none;
+  max-width: 44vw;
+  min-width: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 7px 28px 7px 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Backdrop — rendered in DashboardShell when sidebar is open */
 .sidebar-backdrop {
   display: none;
@@ -464,6 +477,12 @@
   .mobile-sidebar-toggle { display: flex; }
 
   .guild-selector-sidebar { display: none; }
+
+  .mobile-guild-select { display: block; }
+
+  header .fs-5 {
+    display: none;
+  }
 
   .navigation-sidebar {
     left: 0;

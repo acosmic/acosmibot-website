@@ -52,11 +52,11 @@ function renderGuildSelectorAvatar(user) {
     avatarElement.textContent = '';
   }
 
-  avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Dashboard`;
+  avatarElement.title = 'Profile';
 
-  // Make it clickable to navigate to /dashboard
+  // Make it clickable to navigate to /profile
   avatarElement.addEventListener('click', () => {
-    window.location.href = '/dashboard';
+    window.location.href = '/profile';
   });
   avatarElement.style.cursor = 'pointer';
 }

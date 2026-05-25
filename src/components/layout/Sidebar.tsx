@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {user && (
           <div
             className="guild-selector-user-avatar"
-            title={user.global_name || user.username}
+            title="Profile"
             onClick={() => { window.location.href = '/profile'; }}
             style={{
               backgroundImage: user.avatar ? `url(${user.avatar})` : 'none',

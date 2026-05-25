@@ -144,11 +144,11 @@ class DashboardCore {
       avatarElement.textContent = '';
     }
 
-    avatarElement.title = `${user.global_name || user.username || 'User'} - Go to Dashboard`;
+    avatarElement.title = 'Profile';
 
-    // Make it link to /dashboard on click
+    // Make it link to /profile on click
     avatarElement.addEventListener('click', () => {
-      window.location.href = '/dashboard';
+      window.location.href = '/profile';
     });
     avatarElement.style.cursor = 'pointer';
   }

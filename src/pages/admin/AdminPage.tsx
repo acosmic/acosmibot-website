@@ -122,7 +122,7 @@ function SortableTable<T extends Record<string, any>>({
         </select>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
+      <div className="admin-table-desktop">
         <table className="table table-dark table-hover" style={{ fontSize: '0.85rem' }}>
           <thead>
             <tr>
@@ -151,6 +151,21 @@ function SortableTable<T extends Record<string, any>>({
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="admin-card-list">
+        {pageRows.length === 0 ? (
+          <div className="admin-mobile-row text-muted">No results</div>
+        ) : pageRows.map((row, i) => (
+          <div className="admin-mobile-row" key={i}>
+            {columns.map((c, columnIndex) => (
+              <div className={columnIndex === 0 ? 'admin-mobile-field primary' : 'admin-mobile-field'} key={c.key}>
+                <span className="admin-mobile-label">{c.label}</span>
+                <span className="admin-mobile-value">{c.render ? c.render(row) : String(row[c.key] ?? '—')}</span>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
 
       {totalPages > 1 && (
@@ -186,14 +201,15 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
         {open ? 'Hide' : 'View'}
       </button>
       {open && (
-        <pre style={{
-          marginTop: 8, padding: 12, background: 'var(--bg-primary)', border: '1px solid var(--border-light)',
-          borderRadius: 6, fontSize: '0.72rem', maxHeight: 400, overflowY: 'auto',
-          whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--text-primary)',
-          position: 'absolute', zIndex: 100, minWidth: 360, maxWidth: 600,
-        }}>
-          {pretty}
-        </pre>
+        <div className="admin-detail-backdrop" onClick={() => setOpen(false)}>
+          <div className="admin-detail-panel" role="dialog" aria-modal="true" aria-label="Server settings" onClick={(event) => event.stopPropagation()}>
+            <div className="admin-detail-header">
+              <h4>Server Settings</h4>
+              <button onClick={() => setOpen(false)} aria-label="Close settings">×</button>
+            </div>
+            <pre>{pretty}</pre>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -269,7 +285,7 @@ export const AdminPage: React.FC = () => {
         <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>Site-wide oversight</p>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid var(--border-light)', paddingBottom: 0 }}>
+        <div className="admin-tabs" style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid var(--border-light)', paddingBottom: 0 }}>
           {(['signins', 'servers', 'rag', 'botstats', 'ai', 'economy'] as const).map(t => (
             <button
               key={t}

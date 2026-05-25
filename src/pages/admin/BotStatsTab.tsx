@@ -81,13 +81,7 @@ const LEVEL_BADGE: Record<string, { bg: string; color: string }> = {
 
 function StatRow({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '180px 1fr 1fr',
-      alignItems: 'baseline',
-      padding: '7px 0',
-      borderBottom: '1px solid rgba(255,255,255,0.05)',
-    }}>
+    <div className="admin-stat-row">
       <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
       <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{value}</span>
       {detail && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{detail}</span>}
@@ -123,7 +117,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
   const [logLevel, setLogLevel] = useState<LogLevel>('WARNING');
   const [logSearch, setLogSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [detailLog, setDetailLog] = useState<LogEntry | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
@@ -152,7 +146,6 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       if (logsData.success) {
         setLogs(logsData.entries ?? []);
         setLogsError(null);
-        setExpandedRows(new Set());
       } else {
         setLogs([]);
         setLogsError(logsData.error ?? 'Unknown error');
@@ -177,14 +170,6 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
     intervalRef.current = setInterval(fetchAll, 60_000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [fetchAll]);
-
-  const toggleRow = (i: number) => {
-    setExpandedRows(prev => {
-      const next = new Set(prev);
-      next.has(i) ? next.delete(i) : next.add(i);
-      return next;
-    });
-  };
 
   if (loading) return <div className="text-muted p-4">Loading bot stats...</div>;
 
@@ -229,7 +214,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       </div>
 
       {report && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px', marginBottom: 36 }}>
+        <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px', marginBottom: 36 }}>
           {/* ── Left column: activity ── */}
           <div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -304,7 +289,8 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       ) : logs.length === 0 ? (
         <p className="text-muted" style={{ fontSize: '0.85rem' }}>No matching log entries found.</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <>
+        <div className="admin-table-desktop">
           <table className="table table-dark table-hover" style={{ fontSize: '0.82rem' }}>
             <thead>
               <tr>
@@ -321,10 +307,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
               {logs.map((entry, i) => {
                 const style = LEVEL_BADGE[entry.level] ?? LEVEL_BADGE.DEBUG;
                 const isMultiline = entry.message.includes('\n');
-                const isExpanded = expandedRows.has(i);
-                const displayMsg = isExpanded || !isMultiline
-                  ? entry.message
-                  : entry.message.split('\n')[0];
+                const displayMsg = entry.message.split('\n')[0];
                 return (
                   <tr key={i}>
                     <td style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
@@ -364,8 +347,8 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                         margin: 0,
                         fontFamily: 'inherit',
                         fontSize: 'inherit',
-                        whiteSpace: isExpanded ? 'pre-wrap' : 'nowrap',
-                        overflow: isExpanded ? 'visible' : 'hidden',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         color: 'var(--text-primary)',
                       }}>
@@ -373,10 +356,10 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                       </pre>
                       {isMultiline && (
                         <button
-                          onClick={() => toggleRow(i)}
+                          onClick={() => setDetailLog(entry)}
                           style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.72rem', padding: '2px 0' }}
                         >
-                          {isExpanded ? 'collapse' : 'show traceback'}
+                          open traceback
                         </button>
                       )}
                     </td>
@@ -385,6 +368,67 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
               })}
             </tbody>
           </table>
+        </div>
+        <div className="admin-card-list">
+          {logs.map((entry, i) => {
+            const style = LEVEL_BADGE[entry.level] ?? LEVEL_BADGE.DEBUG;
+            const firstLine = entry.message.split('\n')[0];
+            const isMultiline = entry.message.includes('\n');
+            return (
+              <div className="admin-mobile-row" key={i}>
+                <div className="admin-mobile-row-header">
+                  <span style={{
+                    background: style.bg,
+                    color: style.color,
+                    borderRadius: 4,
+                    padding: '1px 6px',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                  }}>
+                    {entry.level}
+                  </span>
+                  <span className="text-muted">{entry.timestamp}</span>
+                </div>
+                <div className="admin-mobile-field primary">
+                  <span className="admin-mobile-label">Message</span>
+                  <span className="admin-mobile-value">{firstLine}</span>
+                </div>
+                <div className="admin-mobile-field">
+                  <span className="admin-mobile-label">Logger</span>
+                  <span className="admin-mobile-value">{entry.logger || '—'}</span>
+                </div>
+                <div className="admin-mobile-field">
+                  <span className="admin-mobile-label">Source</span>
+                  <span className="admin-mobile-value">{entry.source ?? logSource}</span>
+                </div>
+                {isMultiline && (
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => setDetailLog(entry)}
+                    style={{ justifySelf: 'start', marginTop: 8 }}
+                  >
+                    Open traceback
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        </>
+      )}
+      {detailLog && (
+        <div className="admin-detail-backdrop" onClick={() => setDetailLog(null)}>
+          <div className="admin-detail-panel admin-log-detail" role="dialog" aria-modal="true" aria-label="Runtime log detail" onClick={(event) => event.stopPropagation()}>
+            <div className="admin-detail-header">
+              <h4>{detailLog.level} Log</h4>
+              <button onClick={() => setDetailLog(null)} aria-label="Close log detail">×</button>
+            </div>
+            <div className="admin-log-meta">
+              <span>{detailLog.timestamp}</span>
+              <span>{detailLog.logger}</span>
+            </div>
+            <pre>{detailLog.message}</pre>
+          </div>
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 
 interface TopBarProps {
@@ -8,7 +8,17 @@ interface TopBarProps {
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
-  const { currentGuild } = useGuildStore();
+  const navigate = useNavigate();
+  const { guildId } = useParams<{ guildId: string }>();
+  const { currentGuild, guilds, setSelectedGuildId } = useGuildStore();
+
+  const manageableGuilds = guilds.filter(g => g.owner || g.permissions?.includes('administrator'));
+
+  const handleGuildChange = (id: string) => {
+    if (!id || id === guildId) return;
+    setSelectedGuildId(id);
+    navigate(`/server/${id}/overview`);
+  };
 
   return (
     <header style={{
@@ -49,6 +59,18 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
           </>
         )}
       </div>
+      {currentGuild && manageableGuilds.length > 0 && (
+        <select
+          className="mobile-guild-select"
+          aria-label="Switch server"
+          value={guildId || currentGuild.id}
+          onChange={(event) => handleGuildChange(event.target.value)}
+        >
+          {manageableGuilds.map(guild => (
+            <option key={guild.id} value={guild.id}>{guild.name}</option>
+          ))}
+        </select>
+      )}
     </header>
   );
 };
