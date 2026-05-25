@@ -494,6 +494,69 @@
   flex: 0 0 auto;
 }
 
+.topbar-user-menu-wrap {
+  position: relative;
+  display: flex;
+}
+
+.topbar-user-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  z-index: 1100;
+}
+
+.topbar-user-menu .user-info {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 6px;
+}
+
+.topbar-user-menu .user-name {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.topbar-user-menu a,
+.topbar-user-menu button {
+  width: 100%;
+  display: block;
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.topbar-user-menu a:hover,
+.topbar-user-menu button:hover {
+  background: var(--bg-overlay);
+}
+
+.topbar-user-menu .admin-link {
+  color: #f59e0b;
+}
+
+.topbar-user-menu .logout-btn {
+  color: #ff6b6b;
+  border-top: 1px solid var(--border-light);
+  border-radius: 0 0 7px 7px;
+  margin-top: 6px;
+}
+
 .mobile-guild-bar {
   display: none;
 }

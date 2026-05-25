@@ -87,7 +87,11 @@ async function updateNavForLoggedIn() {
     // Show navigation links
     const dashboardLink = document.getElementById('userDashboardLink');
 
-    if (dashboardLink) dashboardLink.style.display = 'block';
+    if (dashboardLink) {
+        dashboardLink.style.display = 'block';
+        dashboardLink.href = '/servers';
+        dashboardLink.textContent = 'Servers';
+    }
 
     // Update mobile drawer
     updateMobileDrawerAuth(true);
@@ -189,8 +193,8 @@ function setupMobileNav() {
             <li><a href="/#features">Features</a></li>
             <li><a href="#" onclick="showPremiumComingSoon(event)">Premium</a></li>
             <li><a href="/docs/introduction">Documentation</a></li>
-            <li id="mobileDrawerDashboardItem" style="display:none;"><a href="/dashboard">Dashboard</a></li>
-            <li id="mobileDrawerServerItem" style="display:none;"><a href="/guild-selector">Server Management</a></li>
+            <li id="mobileDrawerDashboardItem" style="display:none;"><a href="/servers">Servers</a></li>
+            <li id="mobileDrawerProfileItem" style="display:none;"><a href="/profile">Profile</a></li>
         </ul>
         <div class="mobile-nav-divider"></div>
         <div class="mobile-nav-footer">
@@ -251,11 +255,11 @@ function setupMobileNav() {
 // Update mobile drawer auth state
 function updateMobileDrawerAuth(isLoggedIn) {
     const dashItem = document.getElementById('mobileDrawerDashboardItem');
-    const serverItem = document.getElementById('mobileDrawerServerItem');
+    const profileItem = document.getElementById('mobileDrawerProfileItem');
     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
 
     if (dashItem) dashItem.style.display = isLoggedIn ? 'block' : 'none';
-    if (serverItem) serverItem.style.display = isLoggedIn ? 'block' : 'none';
+    if (profileItem) profileItem.style.display = isLoggedIn ? 'block' : 'none';
 
     if (mobileLoginBtn && isLoggedIn && currentUser) {
         mobileLoginBtn.innerHTML = `
@@ -306,8 +310,8 @@ function showUserMenu() {
             <div class="user-name">${currentUser.username}</div>
             <div class="user-stats">Level ${currentUser.level || 1} • ${currentUser.currency || 0} Credits</div>
         </div>
-        <a href="/dashboard">Dashboard</a>
-        <a href="#" onclick="showProfile()">Profile</a>
+        <a href="/servers">Servers</a>
+        <a href="/profile">Profile</a>
         <div style="border-top: 1px solid rgba(255,255,255,0.2); margin: 5px 0;"></div>
         <a href="#" onclick="logout()" class="logout-btn">🚪 Logout</a>
     `;
@@ -330,9 +334,9 @@ function showUserMenu() {
     }
 }
 
-// Profile placeholder
+// Profile page
 function showProfile() {
-    showNotification('Profile page coming soon!', 'info');
+    window.location.href = '/profile';
 }
 
 // Logout

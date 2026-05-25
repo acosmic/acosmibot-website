@@ -206,7 +206,10 @@ export const HomePage: React.FC = () => {
           <li><button onClick={() => { setMobileNavOpen(false); setShowPremiumModal(true); }}>Premium</button></li>
           <li><a href="/docs/introduction" onClick={() => setMobileNavOpen(false)}>Documentation</a></li>
           {isAuthenticated && (
-            <li><a href="/servers" onClick={() => setMobileNavOpen(false)}>Dashboard</a></li>
+            <>
+              <li><a href="/servers" onClick={() => setMobileNavOpen(false)}>Servers</a></li>
+              <li><a href="/profile" onClick={() => setMobileNavOpen(false)}>Profile</a></li>
+            </>
           )}
           {user?.id === '110637665128325120' && (
             <li><a href="/admin" style={{ color: '#f59e0b' }} onClick={() => setMobileNavOpen(false)}>Admin</a></li>
@@ -253,7 +256,7 @@ export const HomePage: React.FC = () => {
               </li>
               <li><a href="/docs/introduction">Documentation</a></li>
               {isAuthenticated && (
-                <li><a href="/servers">Dashboard</a></li>
+                <li><a href="/servers">Servers</a></li>
               )}
               {user?.id === '110637665128325120' && (
                 <li><a href="/admin" style={{ color: 'var(--color-warning, #f59e0b)' }}>Admin</a></li>
@@ -286,7 +289,8 @@ export const HomePage: React.FC = () => {
                     <div className="user-info">
                       <div className="user-name">{user.username}</div>
                     </div>
-                    <a href="/servers">Dashboard</a>
+                    <a href="/servers">Servers</a>
+                    <a href="/profile">Profile</a>
                     {user.id === '110637665128325120' && (
                       <a href="/admin" style={{ color: '#f59e0b' }}>Admin</a>
                     )}

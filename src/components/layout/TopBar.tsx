@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 import { useAuthStore } from '@/store/auth';
@@ -12,7 +12,9 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
   const navigate = useNavigate();
   const { guildId } = useParams<{ guildId: string }>();
   const { currentGuild, guilds, setSelectedGuildId } = useGuildStore();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const activeGuild = currentGuild || guilds.find(guild => guild.id === guildId) || null;
   const manageableGuilds = guilds.filter(g => g.owner || g.permissions?.includes('administrator'));
@@ -21,6 +23,21 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
     if (!id || id === guildId) return;
     setSelectedGuildId(id);
     navigate(`/server/${id}/overview`);
+  };
+
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   const guildIconUrl = activeGuild?.icon
@@ -51,15 +68,31 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
         </div>
 
         {user && (
-          <button
-            className="topbar-user-avatar"
-            title="Profile"
-            aria-label="Profile"
-            onClick={() => { window.location.href = '/profile'; }}
-            style={{ backgroundImage: user.avatar ? `url(${user.avatar})` : undefined }}
-          >
-            {!user.avatar && (user.global_name || user.username).charAt(0).toUpperCase()}
-          </button>
+          <div className="topbar-user-menu-wrap" ref={userMenuRef}>
+            <button
+              className="topbar-user-avatar"
+              title="Account menu"
+              aria-label="Account menu"
+              aria-expanded={showUserMenu}
+              onClick={() => setShowUserMenu(open => !open)}
+              style={{ backgroundImage: user.avatar ? `url(${user.avatar})` : undefined }}
+            >
+              {!user.avatar && (user.global_name || user.username).charAt(0).toUpperCase()}
+            </button>
+            {showUserMenu && (
+              <div className="topbar-user-menu">
+                <div className="user-info">
+                  <div className="user-name">{user.global_name || user.username}</div>
+                </div>
+                <a href="/servers">Servers</a>
+                <a href="/profile">Profile</a>
+                {user.id === '110637665128325120' && (
+                  <a href="/admin" className="admin-link">Admin</a>
+                )}
+                <button className="logout-btn" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
+          </div>
         )}
       </header>
 

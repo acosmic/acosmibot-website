@@ -127,30 +127,49 @@ class DashboardCore {
 
   renderUserAvatar(user) {
     const avatarElement = document.getElementById('guildSelectorAvatar');
-    if (!avatarElement) return;
-
-    if (user.avatar) {
-      // Check if avatar is already a full URL or just a hash
-      const avatarUrl = user.avatar.startsWith('http')
+    const avatarUrl = user.avatar
+      ? (user.avatar.startsWith('http')
         ? user.avatar
-        : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+        : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`)
+      : `https://cdn.discordapp.com/embed/avatars/${(parseInt(user.id) >> 22) % 6}.png`;
+
+    if (avatarElement) {
       avatarElement.style.backgroundImage = `url('${avatarUrl}')`;
       avatarElement.textContent = '';
-    } else {
-      // Fallback: Discord default avatar
-      const defaultAvatarIndex = (parseInt(user.id) >> 22) % 6;
-      const defaultAvatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
-      avatarElement.style.backgroundImage = `url('${defaultAvatarUrl}')`;
-      avatarElement.textContent = '';
+      avatarElement.title = 'Profile';
+
+      // Make it link to /profile on click
+      avatarElement.addEventListener('click', () => {
+        window.location.href = '/profile';
+      });
+      avatarElement.style.cursor = 'pointer';
     }
 
-    avatarElement.title = 'Profile';
-
-    // Make it link to /profile on click
-    avatarElement.addEventListener('click', () => {
-      window.location.href = '/profile';
-    });
-    avatarElement.style.cursor = 'pointer';
+    const topNavRight = document.querySelector('.top-nav-right');
+    if (topNavRight && !document.getElementById('userAvatarNav')) {
+      topNavRight.innerHTML = `
+        <div
+          id="userAvatarNav"
+          class="user-avatar-nav"
+          role="button"
+          tabindex="0"
+          title="Account menu"
+          aria-label="Account menu"
+          style="background-image: url('${avatarUrl}')"
+        ></div>
+      `;
+      const topAvatar = document.getElementById('userAvatarNav');
+      topAvatar?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.showUserMenu();
+      });
+      topAvatar?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          this.showUserMenu();
+        }
+      });
+    }
   }
 
   updateNotificationIcon() {
@@ -979,8 +998,9 @@ class DashboardCore {
         <div class="user-name">${user.global_name || user.username || 'User'}</div>
         <div class="user-stats">Level ${user.level || 1} • ${this.formatNumber(user.currency || 0)} Credits</div>
       </div>
-      <a href="/overview">Overview</a>
-      <a href="#" onclick="window.DashboardCore.showProfile(); return false;">Profile</a>
+      <a href="/servers">Servers</a>
+      <a href="/profile">Profile</a>
+      ${user.id === '110637665128325120' ? '<a href="/admin" style="color:#f59e0b;">Admin</a>' : ''}
       <div style="border-top: 1px solid var(--border-light); margin: 5px 0;"></div>
       <a href="#" onclick="window.DashboardCore.logout(); return false;" class="logout-btn">🚪 Logout</a>
     `;
