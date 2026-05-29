@@ -5,6 +5,7 @@ import { RagTab } from './RagTab';
 import { BotStatsTab } from './BotStatsTab';
 import { AiSettingsTab } from './AiSettingsTab';
 import { EconomySettingsTab } from './EconomySettingsTab';
+import '@/styles/admin.css';
 
 const OWNER_ID = '110637665128325120';
 

@@ -248,11 +248,11 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
   return (
     <div>
       {/* Header: health badge + refresh */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="rag-header">
+        <div className="rag-heading">
           <h3 style={{ margin: 0 }}>RAG Knowledge Base</h3>
           {health ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', color: health.chromadb === 'ok' ? '#4ade80' : '#f87171' }}>
+            <span className="rag-health" style={{ color: health.chromadb === 'ok' ? '#4ade80' : '#f87171' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: health.chromadb === 'ok' ? '#4ade80' : '#f87171', display: 'inline-block' }} />
               ChromaDB {health.chromadb === 'ok' ? 'OK' : 'Error'} &middot; {health.vector_count.toLocaleString()} vectors
             </span>
@@ -262,7 +262,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
             <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Checking...</span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <div className="rag-actions">
           <button
             onClick={() => handleRefresh(false)}
             disabled={refreshing || deletingAll}
@@ -312,7 +312,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
       )}
 
       {/* Documents */}
-      <div style={cardStyle}>
+      <div className="rag-card" style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h5 style={{ margin: 0 }}>Documents ({documents.length})</h5>
         </div>
@@ -334,60 +334,54 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
 
               return (
                 <div key={doc.document_id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                  <div
-                    style={{ display: 'flex', alignItems: 'center', padding: '10px 4px', gap: 12, cursor: 'pointer' }}
-                    onClick={() => toggleDoc(doc.document_id)}
-                  >
-                    <span style={{ width: 16, color: 'var(--text-muted)', fontSize: '0.8rem', flexShrink: 0 }}>
+                  <div className="rag-doc-row" onClick={() => toggleDoc(doc.document_id)}>
+                    <span className="rag-doc-toggle">
                       {expanded ? '▼' : '▶'}
                     </span>
-                    <span style={{ flex: 1, fontWeight: 500 }}>{doc.title}</span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', flexShrink: 0 }}>{doc.total_chunks} chunks</span>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: STATUS_COLORS[doc.embedding_status] ?? 'inherit', flexShrink: 0 }}>
+                    <span className="rag-doc-title">{doc.title}</span>
+                    <span className="rag-doc-meta">{doc.total_chunks} chunks</span>
+                    <span className="rag-doc-status" style={{ color: STATUS_COLORS[doc.embedding_status] ?? 'inherit' }}>
                       {doc.embedding_status}
                     </span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', flexShrink: 0 }}>
+                    <span className="rag-doc-date">
                       {doc.indexed_at ? new Date(doc.indexed_at).toLocaleDateString() : '—'}
                     </span>
-                    <button
-                      onClick={e => { e.stopPropagation(); handleDelete(doc.document_id); }}
-                      disabled={isDeletingThis}
-                      style={{
-                        background: 'none',
-                        border: `1px solid ${confirmingDelete ? '#f87171' : 'var(--border-light)'}`,
-                        borderRadius: 4,
-                        padding: '2px 8px',
-                        color: confirmingDelete ? '#f87171' : 'var(--text-muted)',
-                        cursor: 'pointer',
-                        fontSize: '0.75rem',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {isDeletingThis ? '...' : confirmingDelete ? 'Confirm?' : 'Delete'}
-                    </button>
-                    {confirmingDelete && (
+                    <span className="rag-doc-actions">
                       <button
-                        onClick={e => { e.stopPropagation(); setDeleteConfirm(null); }}
-                        style={{ background: 'none', border: '1px solid var(--border-light)', borderRadius: 4, padding: '2px 8px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', flexShrink: 0 }}
+                        onClick={e => { e.stopPropagation(); handleDelete(doc.document_id); }}
+                        disabled={isDeletingThis}
+                        className="rag-doc-button"
+                        style={{
+                          borderColor: confirmingDelete ? '#f87171' : 'var(--border-light)',
+                          color: confirmingDelete ? '#f87171' : 'var(--text-muted)',
+                        }}
                       >
-                        Cancel
+                        {isDeletingThis ? '...' : confirmingDelete ? 'Confirm?' : 'Delete'}
                       </button>
-                    )}
+                      {confirmingDelete && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setDeleteConfirm(null); }}
+                          className="rag-doc-button"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </span>
                   </div>
 
                   {expanded && (
-                    <div style={{ paddingLeft: 28, paddingBottom: 8 }}>
+                    <div className="rag-chunks">
                       {loadingChunks ? (
                         <p className="text-muted" style={{ fontSize: '0.8rem' }}>Loading chunks...</p>
                       ) : chunks ? (
                         chunks.map(chunk => (
-                          <div key={chunk.chunk_id} style={{ display: 'flex', gap: 12, padding: '5px 0', borderBottom: '1px solid var(--border-light)', fontSize: '0.8rem', alignItems: 'flex-start' }}>
-                            <span style={{ color: 'var(--text-muted)', flexShrink: 0, width: 28 }}>#{chunk.chunk_index}</span>
-                            <span style={{ color: 'var(--text-muted)', flexShrink: 0, width: 60 }}>{chunk.token_count} tok</span>
-                            <span style={{ color: '#60a5fa', flexShrink: 0, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div key={chunk.chunk_id} className="rag-chunk-row">
+                            <span className="rag-chunk-index">#{chunk.chunk_index}</span>
+                            <span className="rag-chunk-tokens">{chunk.token_count} tok</span>
+                            <span className="rag-chunk-section">
                               {chunk.section_title ?? '—'}
                             </span>
-                            <span style={{ color: 'var(--text-primary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span className="rag-chunk-content">
                               {chunk.content.slice(0, 120)}{chunk.content.length > 120 ? '…' : ''}
                             </span>
                           </div>
@@ -403,9 +397,9 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
       </div>
 
       {/* Test Query */}
-      <div style={cardStyle}>
+      <div className="rag-card" style={cardStyle}>
         <h5 style={{ marginBottom: 16 }}>Test Query</h5>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <div className="rag-query-form">
           <input
             className="form-control"
             style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
@@ -455,7 +449,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
       </div>
 
       {/* Query Logs */}
-      <div style={cardStyle}>
+      <div className="rag-card" style={cardStyle}>
         <h5 style={{ marginBottom: 16 }}>Recent /help Queries</h5>
         {logsLoading ? (
           <p className="text-muted">Loading...</p>
