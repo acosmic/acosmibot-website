@@ -130,7 +130,11 @@ export const DocsPage: React.FC = () => {
       {/* ── Top Bar ─────────────────────────────────────────── */}
       <header className="docs-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="docs-mobile-toggle" onClick={() => setSidebar(v => !v)} aria-label="Toggle sidebar">
+          <button
+            className={`docs-mobile-toggle${sidebarOpen ? ' open' : ''}`}
+            onClick={() => setSidebar(v => !v)}
+            aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          >
             <span /><span /><span />
           </button>
           <Link to="/" className="docs-topbar-logo">

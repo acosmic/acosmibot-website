@@ -266,8 +266,8 @@ export const HomePage: React.FC = () => {
             {/* Hamburger */}
             <button
               className={`hamburger-btn${mobileNavOpen ? ' open' : ''}`}
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="Open menu"
+              onClick={() => setMobileNavOpen(open => !open)}
+              aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
             >
               <span /><span /><span />
             </button>

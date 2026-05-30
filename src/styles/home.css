@@ -744,6 +744,65 @@ body.home-body {
 @media (max-width: 768px) {
     .home-page .hamburger-btn { display: flex; }
     .home-page .nav-links { display: none; }
+    .home-page .home-container { padding: 0 12px; }
+
+    .home-page nav {
+        z-index: 1200;
+    }
+
+    .home-page .nav-content {
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    .home-page .hamburger-btn {
+        order: 1;
+        flex-shrink: 0;
+    }
+
+    .home-page .logo {
+        order: 2;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .home-page .logo img {
+        height: 32px;
+        max-width: min(230px, 100%);
+        object-fit: contain;
+    }
+
+    .home-page .nav-content > .login-btn {
+        order: 3;
+        width: 44px;
+        height: 44px;
+        justify-content: center;
+        flex-shrink: 0;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 0;
+        gap: 0;
+    }
+
+    .home-page .nav-content > .login-btn .discord-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .home-page .mobile-nav-backdrop {
+        top: 75px;
+        z-index: 1090;
+    }
+
+    .home-page .mobile-nav-drawer {
+        top: 75px;
+        height: calc(100vh - 75px);
+        z-index: 1100;
+    }
+
+    .home-page .mobile-nav-header {
+        display: none;
+    }
 
     .home-page .hero-content { text-align: center; margin: 0 auto; }
     .home-page .hero h1 { font-size: 2.5rem; }
