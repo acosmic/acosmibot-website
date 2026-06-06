@@ -208,7 +208,7 @@ export const HomePage: React.FC = () => {
           {isAuthenticated && (
             <>
               <li><a href="/servers" onClick={() => setMobileNavOpen(false)}>Servers</a></li>
-              <li><a href="/profile" onClick={() => setMobileNavOpen(false)}>Profile</a></li>
+              <li><a href="/me" onClick={() => setMobileNavOpen(false)}>Profile</a></li>
             </>
           )}
           {user?.id === '110637665128325120' && (
@@ -290,7 +290,7 @@ export const HomePage: React.FC = () => {
                       <div className="user-name">{user.username}</div>
                     </div>
                     <a href="/servers">Servers</a>
-                    <a href="/profile">Profile</a>
+                    <a href="/me">Profile</a>
                     {user.id === '110637665128325120' && (
                       <a href="/admin" style={{ color: '#f59e0b' }}>Admin</a>
                     )}

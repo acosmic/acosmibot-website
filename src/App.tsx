@@ -125,6 +125,8 @@ function App() {
       <Route path="/servers" element={<GuildSelectPage />} />
       <Route path="/u/:identifier" element={<ProfilePage />} />
       <Route path="/me" element={<MeRedirect />} />
+      {/* Legacy /profile retired → resolve to the owner's public profile. */}
+      <Route path="/profile" element={<MeRedirect />} />
       <Route path="/server/:guildId" element={<DashboardShell />}>
         <Route path=":feature" element={<FeatureOutlet />} />
         <Route index element={<Navigate to="overview" replace />} />

@@ -85,7 +85,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
                   <div className="user-name">{user.global_name || user.username}</div>
                 </div>
                 <a href="/servers">Servers</a>
-                <a href="/profile">Profile</a>
+                <a href="/me">Profile</a>
                 {user.id === '110637665128325120' && (
                   <a href="/admin" className="admin-link">Admin</a>
                 )}
