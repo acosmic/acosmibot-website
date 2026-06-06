@@ -8,13 +8,19 @@ import {
   type GuildEntry,
 } from '@/api/leaderboard';
 import { profileApi } from '@/api/profile';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { ProfileNav, DiscordLogo } from '@/components/profile/ProfileNav';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
 const PAGE = 50;
 const fmt = (n: number | null | undefined): string =>
   n === null || n === undefined ? '—' : n.toLocaleString();
+
+// Signed-out masking: reveal the first 2 chars of the display name, hide the
+// rest; fully mask the @account name. Bullet counts are fixed so we don't leak
+// the real length.
+const maskName = (s: string): string => (s.length <= 2 ? s : `${s.slice(0, 2)}•••••`);
+const MASKED_HANDLE = '•••••';
 
 export const LeaderboardPage: React.FC = () => {
   const { guildId } = useParams<{ guildId?: string }>();
@@ -54,6 +60,8 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
     <>
       <Header title="Leaderboards" subtitle="Where you stand across every server." />
 
+      {!isAuthed && <SignInBanner />}
+
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         <Tab active={metric === 'xp'} onClick={() => { setMetric('xp'); setLimit(PAGE); }}>Global XP</Tab>
         <Tab active={metric === 'economy'} onClick={() => { setMetric('economy'); setLimit(PAGE); }}>Economy</Tab>
@@ -76,7 +84,7 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
               value={metric === 'economy' ? `${fmt((e as GlobalEntry).total_currency)} credits` : `${fmt((e as GlobalEntry).global_exp)} XP`}
               sub={`Lvl ${fmt(e.global_level)}`}
               isMe={!!meId && meId === e.user_id}
-              showAvatar={isAuthed}
+              masked={!isAuthed}
             />
           ))}
           {entries.length === 0 && <Centered emoji="🏆" title="No entries yet" />}
@@ -86,8 +94,6 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
       {entries.length >= limit && (
         <LoadMore onClick={() => setLimit((l) => l + PAGE)} />
       )}
-
-      {!isAuthed && entries.length > 0 && <SignInHint />}
     </>
   );
 };
@@ -146,7 +152,7 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
               value={`Lvl ${fmt((e as GuildEntry).level)}`}
               sub={`${fmt((e as GuildEntry).exp)} XP`}
               isMe={!!meId && meId === e.user_id}
-              showAvatar
+              masked={false}
             />
           ))}
           {entries.length === 0 && <Centered emoji="🏆" title="No entries yet" />}
@@ -188,9 +194,10 @@ const ServerSelector: React.FC = () => {
 // ── Shared bits ───────────────────────────────────────────────────────────
 const Row: React.FC<{
   rank: number; avatarUrl: string | null; name: string; username: string | null;
-  userId: string; value: string; sub: string; isMe?: boolean; showAvatar?: boolean;
-}> = ({ rank, avatarUrl, name, username, userId, value, sub, isMe, showAvatar }) => {
+  userId: string; value: string; sub: string; isMe?: boolean; masked?: boolean;
+}> = ({ rank, avatarUrl, name, username, userId, value, sub, isMe, masked }) => {
   const medal = rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : 'var(--text-muted)';
+  const shownName = masked ? maskName(name) : name;
   return (
     <Link
       to={`/u/${encodeURIComponent(username || userId)}`}
@@ -204,20 +211,30 @@ const Row: React.FC<{
       <div style={{ width: '32px', textAlign: 'center', fontWeight: 800, fontSize: '15px', color: medal, flexShrink: 0 }}>
         {rank}
       </div>
+      {/* Ring stays crisp; the avatar inside is blurred for signed-out visitors. */}
       <div style={{
-        width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+        width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
         border: '1px solid var(--border-light)', backgroundColor: 'var(--bg-tertiary)',
-        backgroundImage: showAvatar && avatarUrl ? `url(${avatarUrl})` : undefined,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-      }} />
+      }}>
+        {avatarUrl && (
+          <div style={{
+            width: '100%', height: '100%',
+            backgroundImage: `url(${avatarUrl})`, backgroundSize: 'cover', backgroundPosition: 'center',
+            filter: masked ? 'blur(8px)' : undefined,
+            transform: masked ? 'scale(1.3)' : undefined,
+          }} />
+        )}
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
-          {name}{isMe && <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}> · you</span>}
+          {shownName}{isMe && <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}> · you</span>}
         </div>
-        {username && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>@{username}</div>}
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+          @{masked ? MASKED_HANDLE : (username || userId)}
+        </div>
       </div>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</div>
@@ -262,11 +279,22 @@ const LoadMore: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </div>
 );
 
-const SignInHint: React.FC = () => (
-  <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-muted)' }}>
-    <button onClick={startLogin} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-      Sign in
-    </button>{' '}to reveal avatars and claim your own profile.
+const SignInBanner: React.FC = () => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
+    background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
+    borderRadius: '14px', padding: '14px 16px', marginBottom: '16px',
+  }}>
+    <button onClick={startLogin} style={{
+      display: 'flex', alignItems: 'center', gap: '8px',
+      background: 'var(--primary-color)', color: '#000', border: 'none', cursor: 'pointer',
+      fontWeight: 700, fontSize: '14px', borderRadius: '10px', padding: '10px 20px', flexShrink: 0,
+    }}>
+      <DiscordLogo /> Login
+    </button>
+    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+      to reveal the leaderboard and claim your own profile.
+    </span>
   </div>
 );
 
