@@ -15,6 +15,7 @@ import { PolymorphPage } from './features/polymorph/PolymorphPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { DocsPage } from './pages/docs/DocsPage';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/admin/AdminPage';
@@ -32,6 +33,30 @@ const AuthCallback = () => {
     }
     navigate('/servers', { replace: true });
   }, []);
+
+  return null;
+};
+
+/** /me → redirect to the logged-in user's public profile (/u/<username>). */
+const MeRedirect = () => {
+  const navigate = useNavigate();
+  const { user, token } = useAuthStore();
+
+  useEffect(() => {
+    if (user?.username) {
+      navigate(`/u/${user.username}`, { replace: true });
+      return;
+    }
+    if (!token) {
+      navigate('/', { replace: true });
+      return;
+    }
+    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+    fetch(`${apiBase}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((data) => navigate(`/u/${data.username}`, { replace: true }))
+      .catch(() => navigate('/', { replace: true }));
+  }, [user, token, navigate]);
 
   return null;
 };
@@ -88,6 +113,8 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/dashboard" element={<AuthCallback />} />
       <Route path="/servers" element={<GuildSelectPage />} />
+      <Route path="/u/:identifier" element={<ProfilePage />} />
+      <Route path="/me" element={<MeRedirect />} />
       <Route path="/server/:guildId" element={<DashboardShell />}>
         <Route path=":feature" element={<FeatureOutlet />} />
         <Route index element={<Navigate to="overview" replace />} />
