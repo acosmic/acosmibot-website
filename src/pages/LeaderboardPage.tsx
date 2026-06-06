@@ -16,9 +16,9 @@ const PAGE = 50;
 const fmt = (n: number | null | undefined): string =>
   n === null || n === undefined ? '—' : n.toLocaleString();
 
-// Signed-out masking: reveal the first 2 chars of the display name, hide the
-// rest; fully mask the @account name. Bullet counts are fixed so we don't leak
-// the real length.
+// Masking: reveal the first 2 chars of the display name, hide the rest with
+// bullets; fully mask the @account name. Bullet counts are fixed so we don't
+// leak the real length.
 const maskName = (s: string): string => (s.length <= 2 ? s : `${s.slice(0, 2)}•••••`);
 const MASKED_HANDLE = '•••••';
 
