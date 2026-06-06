@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { profileApi, type PublicProfile } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
+import { DailyReward } from '@/components/profile/DailyReward';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -75,6 +76,7 @@ export const ProfilePage: React.FC = () => {
               <>
                 <GlobalStats profile={profile} />
                 {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
+                {isOwner && <DailyReward />}
                 {isOwner && <OwnerShortcuts />}
               </>
             ) : (

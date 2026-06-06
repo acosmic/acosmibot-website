@@ -1,0 +1,58 @@
+/* Daily reward claim animation */
+
+@keyframes dr-card-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.035); box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes dr-reward-pop {
+  0%   { transform: scale(0.5) translateY(6px); opacity: 0; }
+  55%  { transform: scale(1.18) translateY(0); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes dr-emoji-bounce {
+  0%   { transform: scale(0.6) rotate(-12deg); }
+  45%  { transform: scale(1.35) rotate(8deg); }
+  70%  { transform: scale(0.92) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* Idle nudge so a claimable reward draws the eye */
+@keyframes dr-gift-idle {
+  0%, 88%, 100% { transform: rotate(0) scale(1); }
+  92%  { transform: rotate(-10deg) scale(1.08); }
+  96%  { transform: rotate(10deg) scale(1.08); }
+}
+
+@keyframes dr-confetti {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--dr-dx, 0), var(--dr-dy, 80px)) rotate(var(--dr-rot, 360deg)); opacity: 0; }
+}
+
+.dr-card--claimed { animation: dr-card-pop 0.55s ease; }
+.dr-reward-pop    { animation: dr-reward-pop 0.5s ease both; display: inline-block; }
+.dr-emoji--pop    { animation: dr-emoji-bounce 0.6s ease; }
+.dr-gift--idle    { animation: dr-gift-idle 3.2s ease-in-out infinite; transform-origin: 50% 60%; }
+
+.dr-confetti-layer {
+  position: absolute;
+  left: 28px;            /* roughly over the emoji */
+  top: 50%;
+  width: 0; height: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.dr-confetti-piece {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  animation: dr-confetti 0.9s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dr-card--claimed, .dr-reward-pop, .dr-emoji--pop, .dr-gift--idle, .dr-confetti-piece {
+    animation: none !important;
+  }
+}
