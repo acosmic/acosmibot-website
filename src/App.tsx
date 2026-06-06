@@ -16,6 +16,7 @@ import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
 import { DocsPage } from './pages/docs/DocsPage';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/admin/AdminPage';
@@ -124,6 +125,7 @@ function App() {
       <Route path="/dashboard" element={<AuthCallback />} />
       <Route path="/servers" element={<GuildSelectPage />} />
       <Route path="/u/:identifier" element={<ProfilePage />} />
+      <Route path="/settings" element={<SettingsPage />} />
       <Route path="/me" element={<MeRedirect />} />
       {/* Legacy /profile retired → resolve to the owner's public profile. */}
       <Route path="/profile" element={<MeRedirect />} />

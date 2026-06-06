@@ -1,24 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, type PublicProfile, type PrivacySettings } from '@/api/profile';
-import { OwnerSettings } from '@/components/profile/OwnerSettings';
+import { useQuery } from '@tanstack/react-query';
+import { profileApi, type PublicProfile } from '@/api/profile';
+import { ProfileNav } from '@/components/profile/ProfileNav';
+import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
 const DOCS_URL = '/docs/introduction';
 const SUPPORT_URL = 'https://discord.gg/hrj7WhCyEv';
-
-const apiBase = (): string =>
-  (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-
-/** Kick off Discord OAuth, remembering the current page so the callback can
- *  return the user here (instead of the default server selector). */
-const startLogin = (): void => {
-  try {
-    localStorage.setItem('postLoginRedirect', window.location.pathname + window.location.search);
-  } catch { /* ignore storage errors */ }
-  window.location.href = `${apiBase()}/auth/login`;
-};
 
 const fmt = (n: number | null | undefined): string =>
   n === null || n === undefined ? '—' : n.toLocaleString();
@@ -31,22 +20,12 @@ const ordinal = (n: number | null | undefined): string =>
 export const ProfilePage: React.FC = () => {
   const { identifier = '' } = useParams<{ identifier: string }>();
   const authUser = useAuthStore((s) => s.user);
-  const setUser = useAuthStore((s) => s.setUser);
   const token = useAuthStore((s) => s.token);
   const isAuthed = !!token;
-  const queryClient = useQueryClient();
 
-  // This route isn't wrapped in DashboardShell, so the logged-in user object
-  // isn't hydrated on a direct visit to /u/<name> — only the token is. Without
-  // it we can't tell the owner apart from a visitor, so the settings panel never
-  // shows. Fetch /auth/me once to populate it (mirrors DashboardShell).
-  useEffect(() => {
-    if (!token || authUser) return;
-    fetch(`${apiBase()}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (data) setUser(data); })
-      .catch(() => { /* non-fatal — just no owner panel */ });
-  }, [token, authUser, setUser]);
+  // /u/<name> isn't wrapped in DashboardShell, so hydrate the logged-in user
+  // from /auth/me — otherwise we can't tell the owner apart from a visitor.
+  useHydrateAuthUser();
 
   // Is the signed-in user looking at their own profile? (username or id match)
   const viewingOwn =
@@ -55,24 +34,18 @@ export const ProfilePage: React.FC = () => {
       authUser.id === identifier);
 
   const { data: profile, isLoading, isError, error } = useQuery<PublicProfile>({
-    // viewingOwn is part of the key so the query refetches the *private* payload
-    // (full stats + hidden_guilds for the panel) once auth hydrates.
+    // viewingOwn is part of the key so the query refetches the *private* owner
+    // payload (full stats + all servers) once auth hydrates.
     queryKey: ['profile', identifier, viewingOwn],
     queryFn: async () => {
-      // Owner view: /api/profile/me returns the un-gated payload the settings
-      // panel needs (every stat, per-server hidden flags, hidden_guilds list).
+      // Owner view: /api/profile/me returns the un-gated payload (every stat,
+      // including servers the owner has hidden from the public).
       if (viewingOwn) {
         return await profileApi.getMyProfile();
       }
       return await profileApi.getPublicProfile(identifier);
     },
     enabled: identifier.length > 0,
-  });
-
-  const privacyMutation = useMutation({
-    mutationFn: (updates: Partial<PrivacySettings>) => profileApi.updateMyPrivacy(updates),
-    // Prefix match invalidates ['profile', identifier, *].
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile', identifier] }),
   });
 
   const isOwner =
@@ -102,25 +75,7 @@ export const ProfilePage: React.FC = () => {
               <>
                 <GlobalStats profile={profile} />
                 {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
-                {isOwner && (
-                  <>
-                    <OwnerShortcuts />
-                    <OwnerSettings
-                      privacy={profile.privacy}
-                      guilds={profile.guilds}
-                      saving={privacyMutation.isPending}
-                      onToggle={(key, value) =>
-                        privacyMutation.mutate({ [key]: value } as Partial<PrivacySettings>)}
-                      onToggleGuild={(guildId, hidden) => {
-                        const current = profile.privacy.hidden_guilds ?? [];
-                        const next = hidden
-                          ? [...current.filter((g) => g !== guildId), guildId]
-                          : current.filter((g) => g !== guildId);
-                        privacyMutation.mutate({ hidden_guilds: next });
-                      }}
-                    />
-                  </>
-                )}
+                {isOwner && <OwnerShortcuts />}
               </>
             ) : (
               <LockedTeaser profile={profile} />
@@ -131,93 +86,6 @@ export const ProfilePage: React.FC = () => {
     </div>
   );
 };
-
-type NavUser = { id: string; username: string; avatar: string | null; global_name: string | null };
-
-const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const logout = useAuthStore((s) => s.logout);
-
-  // Close the dropdown on any outside click (matches the home-screen menu).
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  return (
-    <nav style={{
-      height: '56px', background: 'rgba(26,26,26,0.95)', backdropFilter: 'blur(20px)',
-      borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center',
-      justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100,
-    }}>
-      <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-        <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
-      </a>
-
-      {user ? (
-        <div ref={ref} style={{ position: 'relative' }}>
-          <button
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Account menu"
-            style={{
-              width: '34px', height: '34px', borderRadius: '50%', padding: 0, cursor: 'pointer',
-              border: '2px solid var(--border-cyan)', overflow: 'hidden',
-              background: user.avatar ? `url(${user.avatar}) center/cover` : 'var(--bg-tertiary)',
-            }}
-          />
-          {open && (
-            <div style={{
-              position: 'absolute', top: 'calc(100% + 8px)', right: 0, minWidth: '180px',
-              background: 'var(--bg-card)', border: '1px solid var(--border-light)',
-              borderRadius: '12px', padding: '8px', boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-              display: 'flex', flexDirection: 'column', gap: '2px', zIndex: 200,
-            }}>
-              <div style={{
-                padding: '6px 10px 8px', fontSize: '13px', fontWeight: 700,
-                color: 'var(--text-primary)', borderBottom: '1px solid var(--border-light)',
-                marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {user.global_name || user.username}
-              </div>
-              <NavMenuLink href={`/u/${user.username}`}>My Profile</NavMenuLink>
-              <NavMenuLink href="/servers">Servers</NavMenuLink>
-              <button
-                onClick={() => { logout(); window.location.href = '/'; }}
-                style={{
-                  textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: '#ff6b6b', fontSize: '13px', padding: '8px 10px', borderRadius: '8px',
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <button onClick={startLogin} style={{
-          background: 'var(--primary-color)', color: '#000', fontSize: '13px', fontWeight: 700,
-          border: 'none', cursor: 'pointer', borderRadius: '8px', padding: '7px 16px',
-        }}>
-          Log In to Claim Yours
-        </button>
-      )}
-    </nav>
-  );
-};
-
-const NavMenuLink: React.FC<{ href: string; children: React.ReactNode }> = ({ href, children }) => (
-  <a href={href} style={{
-    color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none',
-    padding: '8px 10px', borderRadius: '8px',
-  }}>
-    {children}
-  </a>
-);
 
 const IdentityHeader: React.FC<{ profile: PublicProfile; blurAvatar?: boolean }> = ({ profile, blurAvatar }) => (
   <div style={{
@@ -392,7 +260,8 @@ const Chip: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ ch
  *  "Quick Links" so the consolidated profile is also the account jumping-off
  *  point. These are navigation (not settings) and stay on the profile. */
 const OwnerShortcuts: React.FC = () => {
-  const links: Array<{ label: string; desc: string; href: string; external?: boolean }> = [
+  const links: Array<{ label: string; desc: string; href: string; external?: boolean; primary?: boolean }> = [
+    { label: '⚙ Profile Settings', desc: 'Privacy & what others can see', href: '/settings', primary: true },
     { label: 'Manage Servers', desc: 'Configure the bot in your servers', href: '/servers' },
     { label: 'Documentation', desc: 'Learn how to use the bot', href: DOCS_URL },
     { label: 'Support', desc: 'Join our Discord server', href: SUPPORT_URL, external: true },
@@ -408,11 +277,12 @@ const OwnerShortcuts: React.FC = () => {
           href={l.href}
           {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border-light)',
+            background: 'var(--bg-card)',
+            border: `1px solid ${l.primary ? 'var(--border-cyan)' : 'var(--border-light)'}`,
             borderRadius: '14px', padding: '16px', textDecoration: 'none', display: 'block',
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{l.label}</div>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: l.primary ? 'var(--primary-color)' : 'var(--text-primary)' }}>{l.label}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{l.desc}</div>
         </a>
       ))}
