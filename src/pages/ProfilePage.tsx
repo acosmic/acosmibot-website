@@ -18,6 +18,8 @@ const ordinal = (n: number | null | undefined): string =>
 export const ProfilePage: React.FC = () => {
   const { identifier = '' } = useParams<{ identifier: string }>();
   const authUser = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const isAuthed = !!token;
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading, isError, error } = useQuery<PublicProfile>({
@@ -68,14 +70,20 @@ export const ProfilePage: React.FC = () => {
         {profile && (
           <>
             <IdentityHeader profile={profile} />
-            <GlobalStats profile={profile} />
-            {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
-            {isOwner && (
-              <OwnerPanel
-                privacy={profile.privacy}
-                saving={privacyMutation.isPending}
-                onToggle={(key, value) => privacyMutation.mutate({ [key]: value })}
-              />
+            {isAuthed ? (
+              <>
+                <GlobalStats profile={profile} />
+                {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
+                {isOwner && (
+                  <OwnerPanel
+                    privacy={profile.privacy}
+                    saving={privacyMutation.isPending}
+                    onToggle={(key, value) => privacyMutation.mutate({ [key]: value })}
+                  />
+                )}
+              </>
+            ) : (
+              <LockedTeaser profile={profile} />
             )}
           </>
         )}
@@ -176,6 +184,46 @@ const GlobalStats: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{label}</div>
         </div>
       ))}
+    </div>
+  );
+};
+
+/** Signed-out view: the identity header stays visible (the share hook), but
+ *  the detailed stats are blurred behind a "sign in with Discord" wall to
+ *  convert visitors into users. */
+const LockedTeaser: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
+  const name = profile.global_name || profile.username;
+  return (
+    <div style={{ position: 'relative' }}>
+      <div aria-hidden style={{ filter: 'blur(7px)', pointerEvents: 'none', userSelect: 'none' }}>
+        <GlobalStats profile={profile} />
+        {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex',
+        alignItems: 'center', justifyContent: 'center', padding: '20px',
+      }}>
+        <div style={{
+          background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
+          borderRadius: '20px', padding: '32px', maxWidth: '420px', textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>🔒</div>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
+            See {name}’s full profile
+          </h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 20px' }}>
+            Sign in with Discord to unlock full stats, server ranks &amp; streaks — and claim your own profile.
+          </p>
+          <a href={`${apiBase()}/auth/login`} style={{
+            display: 'inline-block', background: 'var(--primary-color)', color: '#000',
+            fontWeight: 700, fontSize: '15px', textDecoration: 'none',
+            borderRadius: '10px', padding: '12px 28px',
+          }}>
+            Sign in with Discord
+          </a>
+        </div>
+      </div>
     </div>
   );
 };
