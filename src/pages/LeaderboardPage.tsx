@@ -198,16 +198,17 @@ const Row: React.FC<{
 }> = ({ rank, avatarUrl, name, username, userId, value, sub, isMe, masked }) => {
   const medal = rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : 'var(--text-muted)';
   const shownName = masked ? maskName(name) : name;
-  return (
-    <Link
-      to={`/u/${encodeURIComponent(username || userId)}`}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '14px', textDecoration: 'none',
-        background: isMe ? 'rgba(0,217,255,0.08)' : 'var(--bg-card)',
-        border: `1px solid ${isMe ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-        borderRadius: '14px', padding: '12px 16px',
-      }}
-    >
+  // Masked people can't be viewed, so their row doesn't link anywhere (and the
+  // API doesn't even send their handle).
+  const wrapperStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: '14px', textDecoration: 'none',
+    background: isMe ? 'rgba(0,217,255,0.08)' : 'var(--bg-card)',
+    border: `1px solid ${isMe ? 'var(--border-cyan)' : 'var(--border-light)'}`,
+    borderRadius: '14px', padding: '12px 16px',
+    cursor: masked ? 'default' : 'pointer',
+  };
+  const inner = (
+    <>
       <div style={{ width: '32px', textAlign: 'center', fontWeight: 800, fontSize: '15px', color: medal, flexShrink: 0 }}>
         {rank}
       </div>
@@ -240,6 +241,15 @@ const Row: React.FC<{
         <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{sub}</div>
       </div>
+    </>
+  );
+
+  if (masked) {
+    return <div style={wrapperStyle}>{inner}</div>;
+  }
+  return (
+    <Link to={`/u/${encodeURIComponent(username || userId)}`} style={wrapperStyle}>
+      {inner}
     </Link>
   );
 };
