@@ -69,7 +69,7 @@ export const ProfilePage: React.FC = () => {
 
         {profile && (
           <>
-            <IdentityHeader profile={profile} />
+            <IdentityHeader profile={profile} blurAvatar={!isAuthed} />
             {isAuthed ? (
               <>
                 <GlobalStats profile={profile} />
@@ -119,18 +119,26 @@ const ProfileNav: React.FC<{ authed: boolean; authUsername?: string }> = ({ auth
   </nav>
 );
 
-const IdentityHeader: React.FC<{ profile: PublicProfile }> = ({ profile }) => (
+const IdentityHeader: React.FC<{ profile: PublicProfile; blurAvatar?: boolean }> = ({ profile, blurAvatar }) => (
   <div style={{
     display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap',
     background: 'var(--bg-card)', border: '1px solid var(--border-light)',
     borderRadius: '20px', padding: '28px', marginBottom: '20px',
   }}>
+    {/* Ring stays crisp; the image inside is blurred for signed-out visitors so
+        we don't expose someone's avatar before they opt in. */}
     <div style={{
-      width: '96px', height: '96px', borderRadius: '50%',
-      backgroundImage: `url(${profile.avatar_url})`, backgroundSize: 'cover',
-      backgroundColor: 'var(--bg-tertiary)', flexShrink: 0,
-      border: '3px solid var(--border-cyan)',
-    }} />
+      width: '96px', height: '96px', borderRadius: '50%', flexShrink: 0,
+      border: '3px solid var(--border-cyan)', overflow: 'hidden',
+      backgroundColor: 'var(--bg-tertiary)',
+    }}>
+      <div style={{
+        width: '100%', height: '100%',
+        backgroundImage: `url(${profile.avatar_url})`, backgroundSize: 'cover',
+        filter: blurAvatar ? 'blur(14px)' : undefined,
+        transform: blurAvatar ? 'scale(1.25)' : undefined,
+      }} />
+    </div>
     <div style={{ flex: 1, minWidth: '200px' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
         {profile.global_name || profile.username}
