@@ -63,10 +63,10 @@ export const DailyReward: React.FC = () => {
         <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
           {justClaimed ? (
             <span className="dr-reward-pop" style={{ color: 'var(--primary-color)', fontWeight: 700 }}>
-              +{claim.data!.reward.toLocaleString()} credits claimed! Come back tomorrow.
+              +{claim.data!.reward.toLocaleString()} credits added to your bank — withdraw in any server!
             </span>
           ) : data.can_claim
-            ? `Claim +${data.next_reward.toLocaleString()} credits (day ${data.next_streak.toLocaleString()}). Resets in ${resetIn}.`
+            ? `Claim +${data.next_reward.toLocaleString()} credits to your bank (day ${data.next_streak.toLocaleString()}). Resets in ${resetIn}.`
             : `Claimed today. Next reward in ${resetIn}.`}
         </div>
       </div>

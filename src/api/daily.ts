@@ -13,7 +13,7 @@ export interface DailyClaim {
   claimed: boolean;
   reward: number;
   streak: number;
-  new_balance: number;
+  new_bank_balance: number;
   seconds_until_reset: number;
 }
 
