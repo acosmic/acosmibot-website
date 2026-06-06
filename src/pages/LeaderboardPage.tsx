@@ -1,0 +1,287 @@
+import React, { useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import {
+  leaderboardApi,
+  type GlobalMetric,
+  type GlobalEntry,
+  type GuildEntry,
+} from '@/api/leaderboard';
+import { profileApi } from '@/api/profile';
+import { ProfileNav } from '@/components/profile/ProfileNav';
+import { startLogin, useHydrateAuthUser } from '@/lib/auth';
+import { useAuthStore } from '@/store/auth';
+
+const PAGE = 50;
+const fmt = (n: number | null | undefined): string =>
+  n === null || n === undefined ? '—' : n.toLocaleString();
+
+export const LeaderboardPage: React.FC = () => {
+  const { guildId } = useParams<{ guildId?: string }>();
+  const authUser = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const isAuthed = !!token;
+  useHydrateAuthUser();
+
+  return (
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <ProfileNav user={authUser} />
+      <div style={{ flex: 1, padding: '40px 24px', maxWidth: '760px', margin: '0 auto', width: '100%' }}>
+        {guildId ? (
+          <GuildBoard guildId={guildId} isAuthed={isAuthed} meId={authUser?.id} />
+        ) : (
+          <GlobalBoard isAuthed={isAuthed} meId={authUser?.id} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ── Global (public, tabbed) ──────────────────────────────────────────────
+const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed, meId }) => {
+  const [metric, setMetric] = useState<GlobalMetric>('xp');
+  const [limit, setLimit] = useState(PAGE);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['leaderboard', 'global', metric, limit],
+    queryFn: () => leaderboardApi.getGlobal(metric, 0, limit),
+    placeholderData: keepPreviousData,
+  });
+
+  const entries = data?.entries ?? [];
+
+  return (
+    <>
+      <Header title="Leaderboards" subtitle="Where you stand across every server." />
+
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <Tab active={metric === 'xp'} onClick={() => { setMetric('xp'); setLimit(PAGE); }}>Global XP</Tab>
+        <Tab active={metric === 'economy'} onClick={() => { setMetric('economy'); setLimit(PAGE); }}>Economy</Tab>
+        {isAuthed && <ServerSelector />}
+      </div>
+
+      {isLoading && <Centered emoji="⏳" title="Loading…" />}
+      {isError && <Centered emoji="⚠️" title="Couldn’t load the leaderboard" />}
+
+      {!isLoading && !isError && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {entries.map((e) => (
+            <Row
+              key={e.user_id}
+              rank={e.rank}
+              avatarUrl={e.avatar_url}
+              name={e.global_name || e.discord_username || `User ${e.user_id}`}
+              username={e.discord_username}
+              userId={e.user_id}
+              value={metric === 'economy' ? `${fmt((e as GlobalEntry).total_currency)} credits` : `${fmt((e as GlobalEntry).global_exp)} XP`}
+              sub={`Lvl ${fmt(e.global_level)}`}
+              isMe={!!meId && meId === e.user_id}
+              showAvatar={isAuthed}
+            />
+          ))}
+          {entries.length === 0 && <Centered emoji="🏆" title="No entries yet" />}
+        </div>
+      )}
+
+      {entries.length >= limit && (
+        <LoadMore onClick={() => setLimit((l) => l + PAGE)} />
+      )}
+
+      {!isAuthed && entries.length > 0 && <SignInHint />}
+    </>
+  );
+};
+
+// ── Per-server (members only) ────────────────────────────────────────────
+const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }> = ({ guildId, isAuthed, meId }) => {
+  const [limit, setLimit] = useState(PAGE);
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['leaderboard', 'guild', guildId, limit],
+    queryFn: () => leaderboardApi.getGuild(guildId, 0, limit),
+    enabled: isAuthed,
+    placeholderData: keepPreviousData,
+  });
+
+  if (!isAuthed) {
+    return (
+      <>
+        <BackLink />
+        <Centered emoji="🔒" title="Sign in to view this server’s leaderboard" />
+        <div style={{ textAlign: 'center' }}>
+          <PrimaryButton onClick={startLogin}>Sign in with Discord</PrimaryButton>
+        </div>
+      </>
+    );
+  }
+
+  const is403 = (error as Error)?.message?.includes('403') || (error as Error)?.message?.toLowerCase().includes('member');
+  const entries = data?.entries ?? [];
+
+  return (
+    <>
+      <BackLink />
+      <Header
+        title={data?.guild.name ? `${data.guild.name}` : 'Server Leaderboard'}
+        subtitle="Top members by level in this server."
+      />
+
+      {isLoading && <Centered emoji="⏳" title="Loading…" />}
+      {isError && (
+        <Centered
+          emoji={is403 ? '🚫' : '⚠️'}
+          title={is403 ? 'You’re not a member of this server' : 'Couldn’t load this leaderboard'}
+        />
+      )}
+
+      {!isLoading && !isError && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {entries.map((e) => (
+            <Row
+              key={e.user_id}
+              rank={e.rank}
+              avatarUrl={e.avatar_url}
+              name={e.display_name || e.discord_username || `User ${e.user_id}`}
+              username={e.discord_username}
+              userId={e.user_id}
+              value={`Lvl ${fmt((e as GuildEntry).level)}`}
+              sub={`${fmt((e as GuildEntry).exp)} XP`}
+              isMe={!!meId && meId === e.user_id}
+              showAvatar
+            />
+          ))}
+          {entries.length === 0 && <Centered emoji="🏆" title="No entries yet" />}
+        </div>
+      )}
+
+      {!isError && entries.length >= limit && <LoadMore onClick={() => setLimit((l) => l + PAGE)} />}
+    </>
+  );
+};
+
+// ── Signed-in server picker (jumps to /leaderboard/<guildId>) ─────────────
+const ServerSelector: React.FC = () => {
+  const navigate = useNavigate();
+  const { data } = useQuery({
+    queryKey: ['profile', 'me'],
+    queryFn: () => profileApi.getMyProfile(),
+  });
+  const guilds = data?.guilds ?? [];
+  if (guilds.length === 0) return null;
+  return (
+    <select
+      defaultValue=""
+      onChange={(ev) => { if (ev.target.value) navigate(`/leaderboard/${ev.target.value}`); }}
+      style={{
+        marginLeft: 'auto', background: 'var(--bg-tertiary)', color: 'var(--text-primary)',
+        border: '1px solid var(--border-light)', borderRadius: '10px', padding: '8px 12px',
+        fontSize: '13px', cursor: 'pointer',
+      }}
+    >
+      <option value="">View a server…</option>
+      {guilds.map((g) => (
+        <option key={g.guild_id} value={g.guild_id}>{g.guild_name || 'Unknown Server'}</option>
+      ))}
+    </select>
+  );
+};
+
+// ── Shared bits ───────────────────────────────────────────────────────────
+const Row: React.FC<{
+  rank: number; avatarUrl: string | null; name: string; username: string | null;
+  userId: string; value: string; sub: string; isMe?: boolean; showAvatar?: boolean;
+}> = ({ rank, avatarUrl, name, username, userId, value, sub, isMe, showAvatar }) => {
+  const medal = rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : 'var(--text-muted)';
+  return (
+    <Link
+      to={`/u/${encodeURIComponent(username || userId)}`}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '14px', textDecoration: 'none',
+        background: isMe ? 'rgba(0,217,255,0.08)' : 'var(--bg-card)',
+        border: `1px solid ${isMe ? 'var(--border-cyan)' : 'var(--border-light)'}`,
+        borderRadius: '14px', padding: '12px 16px',
+      }}
+    >
+      <div style={{ width: '32px', textAlign: 'center', fontWeight: 800, fontSize: '15px', color: medal, flexShrink: 0 }}>
+        {rank}
+      </div>
+      <div style={{
+        width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+        border: '1px solid var(--border-light)', backgroundColor: 'var(--bg-tertiary)',
+        backgroundImage: showAvatar && avatarUrl ? `url(${avatarUrl})` : undefined,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+      }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          {name}{isMe && <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}> · you</span>}
+        </div>
+        {username && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>@{username}</div>}
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{sub}</div>
+      </div>
+    </Link>
+  );
+};
+
+const Tab: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
+  <button onClick={onClick} style={{
+    background: active ? 'var(--primary-color)' : 'var(--bg-card)',
+    color: active ? '#000' : 'var(--text-secondary)', fontWeight: 700, fontSize: '13px',
+    border: `1px solid ${active ? 'var(--primary-color)' : 'var(--border-light)'}`,
+    borderRadius: '10px', padding: '8px 16px', cursor: 'pointer',
+  }}>
+    {children}
+  </button>
+);
+
+const Header: React.FC<{ title: string; subtitle?: string }> = ({ title, subtitle }) => (
+  <header style={{ marginBottom: '16px' }}>
+    <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{title}</h1>
+    {subtitle && <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '6px 0 0' }}>{subtitle}</p>}
+  </header>
+);
+
+const BackLink: React.FC = () => (
+  <Link to="/leaderboard" style={{ fontSize: '13px', color: 'var(--primary-color)', textDecoration: 'none', display: 'inline-block', marginBottom: '12px' }}>
+    ← All leaderboards
+  </Link>
+);
+
+const LoadMore: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <div style={{ textAlign: 'center', marginTop: '16px' }}>
+    <button onClick={onClick} style={{
+      background: 'var(--bg-card)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600,
+      border: '1px solid var(--border-light)', borderRadius: '10px', padding: '10px 24px', cursor: 'pointer',
+    }}>
+      Load more
+    </button>
+  </div>
+);
+
+const SignInHint: React.FC = () => (
+  <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-muted)' }}>
+    <button onClick={startLogin} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+      Sign in
+    </button>{' '}to reveal avatars and claim your own profile.
+  </div>
+);
+
+const PrimaryButton: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({ onClick, children }) => (
+  <button onClick={onClick} style={{
+    background: 'var(--primary-color)', color: '#000', border: 'none', cursor: 'pointer',
+    fontWeight: 700, fontSize: '15px', borderRadius: '10px', padding: '12px 28px', marginTop: '12px',
+  }}>
+    {children}
+  </button>
+);
+
+const Centered: React.FC<{ emoji: string; title: string }> = ({ emoji, title }) => (
+  <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+    <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{emoji}</div>
+    <h2 style={{ color: 'var(--text-primary)', fontSize: '18px' }}>{title}</h2>
+  </div>
+);

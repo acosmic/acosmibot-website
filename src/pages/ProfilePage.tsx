@@ -223,9 +223,9 @@ const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) =
     </h2>
     <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
       {visible.map((gu) => (
-        <div key={gu.guild_id} style={{
-          flexShrink: 0, minWidth: '160px', background: 'var(--bg-tertiary)',
-          border: '1px solid var(--border-light)', borderRadius: '12px', padding: '14px',
+        <a key={gu.guild_id} href={`/leaderboard/${gu.guild_id}`} title="View this server's leaderboard" style={{
+          flexShrink: 0, minWidth: '160px', background: 'var(--bg-tertiary)', textDecoration: 'none',
+          border: '1px solid var(--border-light)', borderRadius: '12px', padding: '14px', display: 'block',
         }}>
           <div style={{
             fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)',
@@ -238,7 +238,7 @@ const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) =
             <Chip highlight>{ordinal(gu.rank)}</Chip>
             {gu.streak > 0 && <Chip>🔥 {fmt(gu.streak)}</Chip>}
           </div>
-        </div>
+        </a>
       ))}
     </div>
   </div>

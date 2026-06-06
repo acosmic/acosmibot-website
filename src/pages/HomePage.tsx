@@ -205,6 +205,7 @@ export const HomePage: React.FC = () => {
           <li><a href="#features" onClick={() => setMobileNavOpen(false)}>Features</a></li>
           <li><button onClick={() => { setMobileNavOpen(false); setShowPremiumModal(true); }}>Premium</button></li>
           <li><a href="/docs/introduction" onClick={() => setMobileNavOpen(false)}>Documentation</a></li>
+          <li><a href="/leaderboard" onClick={() => setMobileNavOpen(false)}>Leaderboards</a></li>
           {isAuthenticated && (
             <>
               <li><a href="/servers" onClick={() => setMobileNavOpen(false)}>Servers</a></li>
@@ -255,6 +256,7 @@ export const HomePage: React.FC = () => {
                 </a>
               </li>
               <li><a href="/docs/introduction">Documentation</a></li>
+              <li><a href="/leaderboard">Leaderboards</a></li>
               {isAuthenticated && (
                 <li><a href="/servers">Servers</a></li>
               )}

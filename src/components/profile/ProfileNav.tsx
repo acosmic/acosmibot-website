@@ -60,6 +60,7 @@ export const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
                 {user.global_name || user.username}
               </div>
               <NavMenuLink href={`/u/${user.username}`}>My Profile</NavMenuLink>
+              <NavMenuLink href="/leaderboard">Leaderboards</NavMenuLink>
               <NavMenuLink href="/settings">Settings</NavMenuLink>
               <NavMenuLink href="/servers">Servers</NavMenuLink>
               <button
