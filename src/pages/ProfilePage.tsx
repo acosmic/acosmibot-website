@@ -70,7 +70,7 @@ export const ProfilePage: React.FC = () => {
 
         {profile && (
           <>
-            <IdentityHeader profile={profile} blurAvatar={!isAuthed} />
+            <IdentityHeader profile={profile} blurAvatar={profile.avatar_masked ?? !isAuthed} />
             {isAuthed ? (
               <>
                 <GlobalStats profile={profile} />

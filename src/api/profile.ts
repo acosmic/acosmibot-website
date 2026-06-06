@@ -9,6 +9,8 @@ export interface PrivacySettings {
   show_commands: boolean;
   show_economy: boolean;
   show_guilds: boolean;
+  // Opt-in: show name & avatar unmasked to people who don't share a server.
+  public_identity: boolean;
   // Owner view only — guild IDs the user has opted to hide.
   hidden_guilds?: string[];
 }
@@ -43,6 +45,9 @@ export interface PublicProfile {
   username: string;
   global_name: string | null;
   avatar_url: string;
+  // True when the viewer is a stranger (not owner / not opted-public / no shared
+  // server) — the client blurs the avatar.
+  avatar_masked?: boolean;
   member_since: string | null;
   account_created: string | null;
   global: ProfileGlobal;

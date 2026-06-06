@@ -84,7 +84,7 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
               value={metric === 'economy' ? `${fmt((e as GlobalEntry).total_currency)} credits` : `${fmt((e as GlobalEntry).global_exp)} XP`}
               sub={`Lvl ${fmt(e.global_level)}`}
               isMe={!!meId && meId === e.user_id}
-              masked={!isAuthed}
+              masked={e.masked ?? !isAuthed}
             />
           ))}
           {entries.length === 0 && <Centered emoji="🏆" title="No entries yet" />}

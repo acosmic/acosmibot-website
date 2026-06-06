@@ -12,6 +12,9 @@ export interface GlobalEntry {
   global_exp?: number;
   // Present on the economy board.
   total_currency?: number;
+  // Server-decided: true when this person should be masked from the viewer
+  // (not them, not opted-public, no shared server).
+  masked?: boolean;
 }
 
 /** A row on a per-server leaderboard. */
