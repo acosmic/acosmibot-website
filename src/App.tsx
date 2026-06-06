@@ -20,7 +20,9 @@ import { DocsPage } from './pages/docs/DocsPage';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/admin/AdminPage';
 
-/** Catches the ?token= param from the API OAuth redirect and saves it, then sends to /servers */
+/** Catches the ?token= param from the API OAuth redirect and saves it, then
+ *  returns the user to wherever they started login (e.g. a /u/<name> profile),
+ *  falling back to the server selector. */
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -31,7 +33,15 @@ const AuthCallback = () => {
     if (token) {
       setToken(token);
     }
-    navigate('/servers', { replace: true });
+    let dest = '/servers';
+    try {
+      const saved = localStorage.getItem('postLoginRedirect');
+      if (saved) {
+        dest = saved;
+        localStorage.removeItem('postLoginRedirect');
+      }
+    } catch { /* ignore storage errors */ }
+    navigate(dest, { replace: true });
   }, []);
 
   return null;

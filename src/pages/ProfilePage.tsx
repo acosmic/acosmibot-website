@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi, type PublicProfile, type PrivacySettings } from '@/api/profile';
@@ -6,6 +6,15 @@ import { useAuthStore } from '@/store/auth';
 
 const apiBase = (): string =>
   (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+
+/** Kick off Discord OAuth, remembering the current page so the callback can
+ *  return the user here (instead of the default server selector). */
+const startLogin = (): void => {
+  try {
+    localStorage.setItem('postLoginRedirect', window.location.pathname + window.location.search);
+  } catch { /* ignore storage errors */ }
+  window.location.href = `${apiBase()}/auth/login`;
+};
 
 const fmt = (n: number | null | undefined): string =>
   n === null || n === undefined ? '—' : n.toLocaleString();
@@ -18,32 +27,47 @@ const ordinal = (n: number | null | undefined): string =>
 export const ProfilePage: React.FC = () => {
   const { identifier = '' } = useParams<{ identifier: string }>();
   const authUser = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const token = useAuthStore((s) => s.token);
   const isAuthed = !!token;
   const queryClient = useQueryClient();
 
+  // This route isn't wrapped in DashboardShell, so the logged-in user object
+  // isn't hydrated on a direct visit to /u/<name> — only the token is. Without
+  // it we can't tell the owner apart from a visitor, so the settings panel never
+  // shows. Fetch /auth/me once to populate it (mirrors DashboardShell).
+  useEffect(() => {
+    if (!token || authUser) return;
+    fetch(`${apiBase()}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setUser(data); })
+      .catch(() => { /* non-fatal — just no owner panel */ });
+  }, [token, authUser, setUser]);
+
+  // Is the signed-in user looking at their own profile? (username or id match)
+  const viewingOwn =
+    !!authUser &&
+    (authUser.username?.toLowerCase() === identifier.toLowerCase() ||
+      authUser.id === identifier);
+
   const { data: profile, isLoading, isError, error } = useQuery<PublicProfile>({
-    queryKey: ['profile', identifier],
+    // viewingOwn is part of the key so the query refetches the *private* payload
+    // (full stats + hidden_guilds for the panel) once auth hydrates.
+    queryKey: ['profile', identifier, viewingOwn],
     queryFn: async () => {
-      try {
-        return await profileApi.getPublicProfile(identifier);
-      } catch (e) {
-        // Owners can always view (and un-hide) their own profile.
-        const me = useAuthStore.getState().user;
-        const isOwner =
-          !!me &&
-          (me.username?.toLowerCase() === identifier.toLowerCase() || me.id === identifier);
-        if (isOwner) {
-          return await profileApi.getMyProfile();
-        }
-        throw e;
+      // Owner view: /api/profile/me returns the un-gated payload the settings
+      // panel needs (every stat, per-server hidden flags, hidden_guilds list).
+      if (viewingOwn) {
+        return await profileApi.getMyProfile();
       }
+      return await profileApi.getPublicProfile(identifier);
     },
     enabled: identifier.length > 0,
   });
 
   const privacyMutation = useMutation({
     mutationFn: (updates: Partial<PrivacySettings>) => profileApi.updateMyPrivacy(updates),
+    // Prefix match invalidates ['profile', identifier, *].
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile', identifier] }),
   });
 
@@ -52,7 +76,7 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav authed={!!authUser} authUsername={authUser?.username} />
+      <ProfileNav user={authUser} />
 
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
         {isLoading && <CenteredMessage emoji="⏳" title="Loading profile…" />}
@@ -101,31 +125,91 @@ export const ProfilePage: React.FC = () => {
   );
 };
 
-const ProfileNav: React.FC<{ authed: boolean; authUsername?: string }> = ({ authed, authUsername }) => (
-  <nav style={{
-    height: '56px', background: 'rgba(26,26,26,0.95)', backdropFilter: 'blur(20px)',
-    borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100,
+type NavUser = { id: string; username: string; avatar: string | null; global_name: string | null };
+
+const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const logout = useAuthStore((s) => s.logout);
+
+  // Close the dropdown on any outside click (matches the home-screen menu).
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <nav style={{
+      height: '56px', background: 'rgba(26,26,26,0.95)', backdropFilter: 'blur(20px)',
+      borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100,
+    }}>
+      <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+        <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
+      </a>
+
+      {user ? (
+        <div ref={ref} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Account menu"
+            style={{
+              width: '34px', height: '34px', borderRadius: '50%', padding: 0, cursor: 'pointer',
+              border: '2px solid var(--border-cyan)', overflow: 'hidden',
+              background: user.avatar ? `url(${user.avatar}) center/cover` : 'var(--bg-tertiary)',
+            }}
+          />
+          {open && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 8px)', right: 0, minWidth: '180px',
+              background: 'var(--bg-card)', border: '1px solid var(--border-light)',
+              borderRadius: '12px', padding: '8px', boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+              display: 'flex', flexDirection: 'column', gap: '2px', zIndex: 200,
+            }}>
+              <div style={{
+                padding: '6px 10px 8px', fontSize: '13px', fontWeight: 700,
+                color: 'var(--text-primary)', borderBottom: '1px solid var(--border-light)',
+                marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {user.global_name || user.username}
+              </div>
+              <NavMenuLink href={`/u/${user.username}`}>My Profile</NavMenuLink>
+              <NavMenuLink href="/servers">Servers</NavMenuLink>
+              <button
+                onClick={() => { logout(); window.location.href = '/'; }}
+                style={{
+                  textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer',
+                  color: '#ff6b6b', fontSize: '13px', padding: '8px 10px', borderRadius: '8px',
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button onClick={startLogin} style={{
+          background: 'var(--primary-color)', color: '#000', fontSize: '13px', fontWeight: 700,
+          border: 'none', cursor: 'pointer', borderRadius: '8px', padding: '7px 16px',
+        }}>
+          Log In to Claim Yours
+        </button>
+      )}
+    </nav>
+  );
+};
+
+const NavMenuLink: React.FC<{ href: string; children: React.ReactNode }> = ({ href, children }) => (
+  <a href={href} style={{
+    color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none',
+    padding: '8px 10px', borderRadius: '8px',
   }}>
-    <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-      <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
-    </a>
-    {authed ? (
-      <a href={authUsername ? `/u/${authUsername}` : '/servers'} style={{
-        color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none',
-        border: '1px solid var(--border-light)', borderRadius: '8px', padding: '6px 14px',
-      }}>
-        My Profile
-      </a>
-    ) : (
-      <a href={`${apiBase()}/auth/login`} style={{
-        background: 'var(--primary-color)', color: '#000', fontSize: '13px', fontWeight: 700,
-        textDecoration: 'none', borderRadius: '8px', padding: '7px 16px',
-      }}>
-        Log In to Claim Yours
-      </a>
-    )}
-  </nav>
+    {children}
+  </a>
 );
 
 const IdentityHeader: React.FC<{ profile: PublicProfile; blurAvatar?: boolean }> = ({ profile, blurAvatar }) => (
@@ -237,13 +321,12 @@ const LockedTeaser: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 20px' }}>
             Sign in with Discord to unlock full stats, server ranks &amp; streaks — and claim your own profile.
           </p>
-          <a href={`${apiBase()}/auth/login`} style={{
-            display: 'inline-block', background: 'var(--primary-color)', color: '#000',
-            fontWeight: 700, fontSize: '15px', textDecoration: 'none',
-            borderRadius: '10px', padding: '12px 28px',
+          <button onClick={startLogin} style={{
+            background: 'var(--primary-color)', color: '#000', border: 'none', cursor: 'pointer',
+            fontWeight: 700, fontSize: '15px', borderRadius: '10px', padding: '12px 28px',
           }}>
             Sign in with Discord
-          </a>
+          </button>
         </div>
       </div>
     </div>
