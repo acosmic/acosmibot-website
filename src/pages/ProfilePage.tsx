@@ -77,8 +77,17 @@ export const ProfilePage: React.FC = () => {
                 {isOwner && (
                   <OwnerPanel
                     privacy={profile.privacy}
+                    guilds={profile.guilds}
                     saving={privacyMutation.isPending}
-                    onToggle={(key, value) => privacyMutation.mutate({ [key]: value })}
+                    onToggle={(key, value) =>
+                      privacyMutation.mutate({ [key]: value } as Partial<PrivacySettings>)}
+                    onToggleGuild={(guildId, hidden) => {
+                      const current = profile.privacy.hidden_guilds ?? [];
+                      const next = hidden
+                        ? [...current.filter((g) => g !== guildId), guildId]
+                        : current.filter((g) => g !== guildId);
+                      privacyMutation.mutate({ hidden_guilds: next });
+                    }}
                   />
                 )}
               </>
@@ -165,18 +174,23 @@ const IdentityHeader: React.FC<{ profile: PublicProfile; blurAvatar?: boolean }>
 
 const GlobalStats: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
   const g = profile.global;
-  const cards: Array<[string, string]> = [
-    ['Global Rank', ordinal(g.exp_rank)],
-    ['Global XP', fmt(g.exp)],
-    ['Messages', fmt(g.total_messages)],
-    ['Reactions', fmt(g.total_reactions)],
-    ['Commands', fmt(g.total_commands)],
-  ];
+  // Each stat is only present when its privacy toggle is on; hidden ones simply
+  // don't render. Level lives in the identity header and is always shown.
+  const cards: Array<[string, string]> = [];
+  if (g.exp !== undefined) {
+    cards.push(['Global Rank', ordinal(g.exp_rank)]);
+    cards.push(['Global XP', fmt(g.exp)]);
+  }
+  if (g.total_messages !== undefined) cards.push(['Messages', fmt(g.total_messages)]);
+  if (g.total_reactions !== undefined) cards.push(['Reactions', fmt(g.total_reactions)]);
+  if (g.total_commands !== undefined) cards.push(['Commands', fmt(g.total_commands)]);
   if (g.currency !== undefined) {
     cards.push(['Currency', fmt(g.currency)]);
     cards.push(['Currency Rank', ordinal(g.currency_rank)]);
     cards.push(['Bank', fmt(g.bank_balance)]);
   }
+
+  if (cards.length === 0) return null;
 
   return (
     <div style={{
@@ -236,7 +250,12 @@ const LockedTeaser: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
   );
 };
 
-const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) => (
+const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) => {
+  // Owner payloads include hidden servers (for the toggle panel); the public
+  // strip should only show the ones that are actually visible.
+  const visible = (guilds ?? []).filter((gu) => !gu.hidden);
+  if (visible.length === 0) return null;
+  return (
   <div style={{
     background: 'var(--bg-card)', border: '1px solid var(--border-light)',
     borderRadius: '16px', padding: '20px', marginBottom: '20px',
@@ -245,7 +264,7 @@ const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) =
       Server Identity
     </h2>
     <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
-      {guilds!.map((gu) => (
+      {visible.map((gu) => (
         <div key={gu.guild_id} style={{
           flexShrink: 0, minWidth: '160px', background: 'var(--bg-tertiary)',
           border: '1px solid var(--border-light)', borderRadius: '12px', padding: '14px',
@@ -265,7 +284,8 @@ const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) =
       ))}
     </div>
   </div>
-);
+  );
+};
 
 const Chip: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ children, highlight }) => (
   <span style={{
@@ -278,11 +298,16 @@ const Chip: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ ch
   </span>
 );
 
+/** Boolean privacy keys (everything except the hidden_guilds list). */
+type BoolPrivacyKey = Exclude<keyof PrivacySettings, 'hidden_guilds'>;
+
 const OwnerPanel: React.FC<{
   privacy: PrivacySettings;
+  guilds: PublicProfile['guilds'];
   saving: boolean;
-  onToggle: (key: keyof PrivacySettings, value: boolean) => void;
-}> = ({ privacy, saving, onToggle }) => (
+  onToggle: (key: BoolPrivacyKey, value: boolean) => void;
+  onToggleGuild: (guildId: string, hidden: boolean) => void;
+}> = ({ privacy, guilds, saving, onToggle, onToggleGuild }) => (
   <div style={{
     background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
     borderRadius: '16px', padding: '20px', marginBottom: '20px',
@@ -291,19 +316,60 @@ const OwnerPanel: React.FC<{
       This is you ✨
     </h2>
     <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
-      Your profile is public so others can find you. Control what’s visible below.
+      Your profile is public so others can find you. Your name &amp; global level always
+      show — toggle everything else below.
     </p>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <Toggle label="Public profile" hint="Anyone can view this page"
         checked={privacy.profile_public} disabled={saving}
         onChange={(v) => onToggle('profile_public', v)} />
-      <Toggle label="Show economy" hint="Currency, bank balance & ranks"
+      <Toggle label="Avatar" hint="Show your Discord avatar (vs anonymous)"
+        checked={privacy.show_avatar} disabled={saving}
+        onChange={(v) => onToggle('show_avatar', v)} />
+      <Toggle label="XP & global rank" hint="Your global XP and leaderboard rank"
+        checked={privacy.show_xp} disabled={saving}
+        onChange={(v) => onToggle('show_xp', v)} />
+      <Toggle label="Messages" hint="Total messages sent"
+        checked={privacy.show_messages} disabled={saving}
+        onChange={(v) => onToggle('show_messages', v)} />
+      <Toggle label="Reactions" hint="Total reactions given"
+        checked={privacy.show_reactions} disabled={saving}
+        onChange={(v) => onToggle('show_reactions', v)} />
+      <Toggle label="Commands" hint="Total commands used"
+        checked={privacy.show_commands} disabled={saving}
+        onChange={(v) => onToggle('show_commands', v)} />
+      <Toggle label="Economy" hint="Currency, bank balance & ranks"
         checked={privacy.show_economy} disabled={saving}
         onChange={(v) => onToggle('show_economy', v)} />
       <Toggle label="Show servers" hint="Your per-server levels & ranks"
         checked={privacy.show_guilds} disabled={saving}
         onChange={(v) => onToggle('show_guilds', v)} />
     </div>
+
+    {/* Per-server visibility: choose exactly which servers appear. */}
+    {privacy.show_guilds && guilds && guilds.length > 0 && (
+      <div style={{ marginTop: '18px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+          Which servers show
+        </div>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+          Hide individual servers while keeping the rest visible.
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {guilds.map((gu) => (
+            <Toggle
+              key={gu.guild_id}
+              label={gu.guild_name || 'Unknown Server'}
+              hint={`Lvl ${fmt(gu.level)} · ${ordinal(gu.rank)}`}
+              checked={!gu.hidden}
+              disabled={saving}
+              onChange={(visible) => onToggleGuild(gu.guild_id, !visible)}
+            />
+          ))}
+        </div>
+      </div>
+    )}
+
     <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
       🎨 Rank card customization coming soon.
     </div>

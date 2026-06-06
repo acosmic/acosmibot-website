@@ -2,8 +2,15 @@ import { api } from './client';
 
 export interface PrivacySettings {
   profile_public: boolean;
+  show_avatar: boolean;
+  show_xp: boolean;
+  show_messages: boolean;
+  show_reactions: boolean;
+  show_commands: boolean;
   show_economy: boolean;
   show_guilds: boolean;
+  // Owner view only — guild IDs the user has opted to hide.
+  hidden_guilds?: string[];
 }
 
 export interface ProfileGuild {
@@ -13,15 +20,18 @@ export interface ProfileGuild {
   exp: number;
   rank: number | null;
   streak: number;
+  // Owner view only — whether this server is currently hidden from the public.
+  hidden?: boolean;
 }
 
 export interface ProfileGlobal {
   level: number;
-  exp: number;
-  exp_rank: number | null;
-  total_messages: number;
-  total_reactions: number;
-  total_commands: number;
+  // Each field is present only when its privacy toggle is on (level is always sent).
+  exp?: number;
+  exp_rank?: number | null;
+  total_messages?: number;
+  total_reactions?: number;
+  total_commands?: number;
   // Present only when the economy section is visible.
   currency?: number;
   bank_balance?: number;
