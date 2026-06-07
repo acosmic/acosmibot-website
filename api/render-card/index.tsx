@@ -165,34 +165,7 @@ export async function run(context: any, req: any): Promise<void> {
 
   const data = parseBody(req);
   if (!isValid(data)) {
-    // TEMP DIAGNOSTIC — reveals how Azure delivers the body in production.
-    // Remove once the parsing path is confirmed.
-    const previewOf = (v: any) =>
-      typeof v === 'string'
-        ? v.slice(0, 300)
-        : Buffer.isBuffer(v)
-          ? `<Buffer ${v.length}b> ${v.toString('utf8').slice(0, 300)}`
-          : v && typeof v === 'object'
-            ? Object.keys(v).slice(0, 25)
-            : String(v);
-    context.res = {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-      body: {
-        error: 'Invalid rank card payload',
-        debug: {
-          bodyType: typeof req.body,
-          bodyIsBuffer: Buffer.isBuffer(req.body),
-          bodyPreview: previewOf(req.body),
-          hasRawBody: req.rawBody != null,
-          rawBodyType: typeof req.rawBody,
-          rawBodyPreview: previewOf(req.rawBody),
-          contentType: req.headers?.['content-type'],
-          parsedType: typeof data,
-          parsedKeys: data && typeof data === 'object' ? Object.keys(data as any) : null,
-        },
-      },
-    };
+    context.res = { status: 400, body: 'Invalid rank card payload' };
     return;
   }
 
