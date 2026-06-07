@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { achievementsApi, type AchievementCatalogEntry } from '@/api/achievements';
 import { ProfileNav } from '@/components/profile/ProfileNav';
@@ -46,6 +47,16 @@ export const AchievementsPage: React.FC = () => {
       <ProfileNav user={authUser} />
 
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: 960, margin: '0 auto', width: '100%' }}>
+        <nav style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '14px' }}>
+          {authUser?.username && (
+            <Link to={`/u/${authUser.username}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
+              ← Back to profile
+            </Link>
+          )}
+          <Link to="/settings" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+            Settings
+          </Link>
+        </nav>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <h1 style={{ color: 'var(--text-primary)', margin: 0 }}>🏆 Achievements</h1>
           {token && <span style={{ color: 'var(--text-muted)' }}>{unlocked} / {total} unlocked</span>}

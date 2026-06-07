@@ -13,6 +13,7 @@ import {
 } from '@/api/cosmetics';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
 import { buildRankCardData } from '@/cards/buildRankCardData';
+import { OG_FRAME_DATA_URI } from '@/cards/ogOrnament';
 import type { RankCardData } from '@/cards/types';
 
 /**
@@ -317,7 +318,21 @@ const Swatch: React.FC<{
         cursor: 'pointer',
       }}
     >
-      <div style={{ ...swatchStyle, height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+      {cosmetic.achievement_key === 'og_member' ? (
+        // Preview the OG card's actual ornamentation: gold gradient + filigree
+        // frame (scaled to the tile) + a small embossed "OG".
+        <div style={{ ...swatchStyle, position: 'relative', height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+          <span style={{
+            position: 'absolute', right: '8px', top: '50%',
+            transform: 'translateY(-50%) rotate(-10deg)', transformOrigin: 'center',
+            fontFamily: 'Urbanist, sans-serif', fontWeight: 800, fontSize: '30px', lineHeight: 1,
+            color: '#b98e1f', opacity: 0.55, textShadow: '-1px -1px 0 rgba(255,240,176,0.6), 1px 1px 0 rgba(20,14,0,0.7)',
+          }}>OG</span>
+          <img src={OG_FRAME_DATA_URI} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+        </div>
+      ) : (
+        <div style={{ ...swatchStyle, height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
         <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{cosmetic.name}</span>
         {cosmetic.owned && selected && (

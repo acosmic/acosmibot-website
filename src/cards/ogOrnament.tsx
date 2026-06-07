@@ -52,7 +52,9 @@ function b64(s: string): string {
   return B ? B.from(s, 'utf8').toString('base64') : s;
 }
 
-const FRAME_DATA_URI = `data:image/svg+xml;base64,${b64(FRAME_SVG)}`;
+/** The gold filigree frame as an SVG data URI — also reused by the Card Studio
+ * swatch to preview the OG card. */
+export const OG_FRAME_DATA_URI = `data:image/svg+xml;base64,${b64(FRAME_SVG)}`;
 
 /**
  * Giant tilted "OG" pressed into the gold (highlight + shadow + face stack).
@@ -79,9 +81,13 @@ export function OgMonogram() {
         display: 'flex',
         transform: 'rotate(-13deg)',
         opacity: 0.46,
+        overflow: 'visible',
       }}
     >
-      <div style={{ position: 'relative', display: 'flex', width: SIZE * 1.35, height: SIZE }}>
+      {/* Generous box + overflow:visible so Satori doesn't clip the glyphs (it
+          clips flex children to a fixed-height box; the browser doesn't). Only
+          the card's own overflow:hidden should crop the monogram. */}
+      <div style={{ position: 'relative', display: 'flex', width: SIZE * 1.5, height: SIZE * 1.5, overflow: 'visible' }}>
         {/* deep shadow (bottom-right) — recessed rim under a top-left light */}
         <div style={{ ...layer, color: '#140e00', transform: 'translate(8px, 9px)' }}>OG</div>
         {/* mid shadow softens the step */}
@@ -100,7 +106,7 @@ export function OgFrame() {
   return (
     // eslint-disable-next-line jsx-a11y/alt-text
     <img
-      src={FRAME_DATA_URI}
+      src={OG_FRAME_DATA_URI}
       width={800}
       height={250}
       style={{ position: 'absolute', left: 0, top: 0, width: 800, height: 250 }}
