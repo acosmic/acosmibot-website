@@ -1,0 +1,206 @@
+import type { RankCardData } from './types';
+
+/**
+ * Canonical rank-card layout — a pure, stateless component.
+ *
+ * Rendered live in the browser for the Card Studio preview AND run through
+ * Satori in the `render-card` Azure function to produce the PNG the bot shows.
+ * Because both paths use THIS component, the Discord card and the website
+ * preview cannot drift.
+ *
+ * This reproduces the legacy PIL design in `acosmibot/Cogs/Rank.py`
+ * (`create_rank_card`). Only CSS that Satori supports is used: flexbox,
+ * absolute positioning, borderRadius, border, gradients — no `filter: blur()`.
+ *
+ * Coordinates/colors mirror the PIL implementation 1:1 so the two can be
+ * compared side-by-side and tuned to parity.
+ */
+
+export const CARD_WIDTH = 800;
+export const CARD_HEIGHT = 250;
+
+const COLORS = {
+  background: '#18191c', //  (24, 25, 28)
+  username: '#ffffff',
+  guild: '#969696', //      (150, 150, 150)
+  global: 'rgba(255, 165, 0, 0.7)', // subtle orange
+  rank: '#ffffff',
+  accent: '#00ffff', //     cyan — level text + XP bar fill
+  xpText: '#c8c8c8', //     (200, 200, 200)
+  xpTrack: '#323232', //    (50, 50, 50)
+  outline: '#000000',
+} as const;
+
+const FONT_STACK = 'Urbanist, sans-serif';
+
+/** Deterministic thousands separators (avoid Node/browser locale drift). */
+const fmt = (n: number): string => n.toLocaleString('en-US');
+
+export function RankCard({ data }: { data: RankCardData }) {
+  const {
+    displayName,
+    avatarUrl,
+    guildName,
+    rank,
+    level,
+    globalLevel,
+    currentExp,
+    expProgress,
+    expNeeded,
+  } = data;
+
+  // XP bar fill: clamp 0..1, enforce an 8% minimum sliver (matches PIL).
+  const ratio = expNeeded > 0 ? expProgress / expNeeded : 1;
+  const clamped = Math.max(0, Math.min(1, ratio));
+  const fillPct = Math.max(0.08, clamped) * 100;
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        display: 'flex',
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+        backgroundColor: COLORS.background,
+        fontFamily: FONT_STACK,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Avatar — 140px circle with a thin black ring, vertically centered.
+          Falls back to a plain gray circle when no avatar is available
+          (mirrors the PIL path, which simply omits a missing avatar). */}
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          width={140}
+          height={140}
+          style={{
+            position: 'absolute',
+            left: 25,
+            top: 55,
+            width: 140,
+            height: 140,
+            borderRadius: '50%',
+            border: `2px solid ${COLORS.outline}`,
+            boxSizing: 'border-box',
+            objectFit: 'cover',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            position: 'absolute',
+            left: 25,
+            top: 55,
+            width: 140,
+            height: 140,
+            borderRadius: '50%',
+            border: `2px solid ${COLORS.outline}`,
+            boxSizing: 'border-box',
+            backgroundColor: '#2b2d31',
+          }}
+        />
+      )}
+
+      {/* Guild label (top-left). */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 180,
+          top: 20,
+          fontSize: 18,
+          fontWeight: 400,
+          color: COLORS.guild,
+        }}
+      >
+        {`in ${guildName}`}
+      </div>
+
+      {/* Global level (top-right). */}
+      <div
+        style={{
+          position: 'absolute',
+          right: 20,
+          top: 20,
+          fontSize: 16,
+          fontWeight: 400,
+          color: COLORS.global,
+        }}
+      >
+        {`Global Lvl ${globalLevel}`}
+      </div>
+
+      {/* Username (large). */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 180,
+          top: 50,
+          fontSize: 48,
+          fontWeight: 700,
+          color: COLORS.username,
+        }}
+      >
+        {displayName}
+      </div>
+
+      {/* Rank + Level on one row (dynamic spacing via flex gap). */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 180,
+          top: 110,
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 25,
+          fontSize: 32,
+          fontWeight: 700,
+        }}
+      >
+        <span style={{ color: COLORS.rank }}>{`RANK  #${rank}`}</span>
+        <span style={{ color: COLORS.accent }}>{`LVL  ${level}`}</span>
+      </div>
+
+      {/* XP label. */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 180,
+          top: 150,
+          fontSize: 24,
+          fontWeight: 400,
+          color: COLORS.xpText,
+        }}
+      >
+        {`${fmt(currentExp)} XP (${fmt(expProgress)} / ${fmt(expNeeded)})`}
+      </div>
+
+      {/* XP bar — 530x30 track, 3px outline, cyan fill. */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 180,
+          top: 180,
+          display: 'flex',
+          width: 530,
+          height: 30,
+          boxSizing: 'content-box',
+          border: `3px solid ${COLORS.outline}`,
+          borderRadius: 18,
+          backgroundColor: COLORS.xpTrack,
+        }}
+      >
+        <div
+          style={{
+            width: `${fillPct}%`,
+            height: '100%',
+            backgroundColor: COLORS.accent,
+            borderRadius: 15,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default RankCard;

@@ -1,0 +1,5 @@
+# Installed at build time (Oryx runs `npm install` during SWA deploy)
+node_modules/
+
+# Bundled by `npm run build` (esbuild) during SWA deploy
+render-card/index.js
