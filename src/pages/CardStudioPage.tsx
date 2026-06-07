@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { useHydrateAuthUser } from '@/lib/auth';
@@ -11,7 +11,8 @@ import {
   type CosmeticCatalog,
   type CosmeticType,
 } from '@/api/cosmetics';
-import { RankCard, CARD_WIDTH, CARD_HEIGHT } from '@/cards/RankCard';
+import { ScaledRankCard } from '@/cards/ScaledRankCard';
+import { buildRankCardData } from '@/cards/buildRankCardData';
 import type { RankCardData } from '@/cards/types';
 
 /**
@@ -20,10 +21,6 @@ import type { RankCardData } from '@/cards/types';
  * (accent / background / ring) and equip one loadout; the same `<RankCard>`
  * the Discord `/rank` card renders is shown live as they configure it.
  */
-
-// Mirrors the bot's leveling math (exp_for_level = level^2 * 100) so the preview
-// XP bar reflects the user's real progress within their current level.
-const expForLevel = (level: number): number => level * level * 100;
 
 const SLOT_LABELS: Record<CosmeticType, string> = {
   accent: 'Accent',
@@ -40,31 +37,11 @@ function buildPreview(
   profile: PublicProfile | undefined,
   selected: Record<CosmeticType, Cosmetic | null>,
 ): RankCardData {
-  const top = profile?.guilds?.[0] ?? null;
-  const level = top?.level ?? profile?.global.level ?? 1;
-  const totalExp = top?.exp ?? profile?.global.exp ?? 0;
-  const rank = top?.rank ?? 1;
-
-  const currentLevelExp = expForLevel(level);
-  const nextLevelExp = expForLevel(level + 1);
-
-  return {
-    username: profile?.username ?? 'you',
-    displayName: profile?.global_name || profile?.username || 'You',
-    avatarUrl: profile?.avatar_url ?? '',
-    guildName: top?.guild_name ?? 'your servers',
-    rank,
-    level,
-    globalLevel: profile?.global.level ?? 0,
-    currentExp: totalExp,
-    expProgress: Math.max(0, totalExp - currentLevelExp),
-    expNeeded: Math.max(1, nextLevelExp - currentLevelExp),
-    loadout: {
-      accentColor: selected.accent?.value,
-      background: selected.background?.value,
-      ringColor: selected.ring?.value,
-    },
-  };
+  return buildRankCardData(profile, {
+    accentColor: selected.accent?.value,
+    background: selected.background?.value,
+    ringColor: selected.ring?.value,
+  });
 }
 
 export const CardStudioPage: React.FC = () => {
@@ -182,6 +159,16 @@ export const CardStudioPage: React.FC = () => {
 
       <div style={{ flex: 1, padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
         <header style={{ marginBottom: '24px' }}>
+          <nav style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '14px' }}>
+            {authUser?.username && (
+              <Link to={`/u/${authUser.username}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
+                ← Back to profile
+              </Link>
+            )}
+            <Link to="/settings" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
+              Settings
+            </Link>
+          </nav>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
             Card Studio
           </h1>
@@ -214,7 +201,7 @@ export const CardStudioPage: React.FC = () => {
             {/* Right — live preview (sticky on tall viewports) */}
             <div style={{ position: 'sticky', top: '24px' }}>
               <SectionTitle>Live Preview</SectionTitle>
-              <CardPreview data={preview} />
+              <ScaledRankCard data={preview} />
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
                 Click any tile to preview it here. Owned items equip instantly;
                 locked items are a try-on until you buy them.
@@ -394,30 +381,6 @@ const ModalButton: React.FC<{ variant: 'primary' | 'ghost'; onClick: () => void;
     {children}
   </button>
 );
-
-/** Scales the fixed-size 800×250 RankCard down to fit the preview column. */
-const CardPreview: React.FC<{ data: RankCardData }> = ({ data }) => {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const update = () => setScale(Math.min(1, el.clientWidth / CARD_WIDTH));
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  return (
-    <div ref={wrapRef} style={{ width: '100%', height: CARD_HEIGHT * scale, overflow: 'hidden' }}>
-      <div style={{ width: CARD_WIDTH, height: CARD_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-        <RankCard data={data} />
-      </div>
-    </div>
-  );
-};
 
 const Centered: React.FC<{ emoji: string; title: string; subtitle?: string }> = ({ emoji, title, subtitle }) => (
   <div style={{ textAlign: 'center', padding: '80px 20px' }}>

@@ -54,6 +54,13 @@ export interface PublicProfile {
   guilds: ProfileGuild[] | null;
   privacy: PrivacySettings;
   is_owner?: boolean;
+  // Resolved CSS values for the user's equipped rank-card cosmetics (decorative
+  // only). Absent fields fall back to the card's defaults.
+  loadout?: {
+    accentColor?: string;
+    background?: string;
+    ringColor?: string;
+  };
 }
 
 export const profileApi = {

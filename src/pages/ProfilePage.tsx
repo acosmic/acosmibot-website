@@ -1,9 +1,11 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { profileApi, type PublicProfile } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { DailyReward } from '@/components/profile/DailyReward';
+import { ScaledRankCard } from '@/cards/ScaledRankCard';
+import { buildRankCardData } from '@/cards/buildRankCardData';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -72,6 +74,7 @@ export const ProfilePage: React.FC = () => {
         {profile && (
           <>
             <IdentityHeader profile={profile} blurAvatar={profile.avatar_masked ?? !isAuthed} />
+            <RankCardShowcase profile={profile} isOwner={isOwner} />
             {isAuthed ? (
               <>
                 <GlobalStats profile={profile} />
@@ -132,6 +135,37 @@ const IdentityHeader: React.FC<{ profile: PublicProfile; blurAvatar?: boolean }>
     </div>
   </div>
 );
+
+/** The user's rank card, rendered with their equipped cosmetics. Reuses the
+ *  exact <RankCard> the Discord /rank card renders. Owners get a "Customize"
+ *  shortcut into the Card Studio. */
+const RankCardShowcase: React.FC<{ profile: PublicProfile; isOwner: boolean }> = ({ profile, isOwner }) => {
+  // Only render when we have real stats to show — otherwise the card would
+  // fall back to placeholder numbers (rank #1, 0 XP). When a viewer has hidden
+  // their XP and servers, we respect that by omitting the card entirely.
+  const hasStats = (profile.guilds && profile.guilds.length > 0) || profile.global.exp !== undefined;
+  if (!hasStats) return null;
+
+  const data = buildRankCardData(profile, profile.loadout);
+  return (
+    <div style={{
+      background: 'var(--bg-card)', border: '1px solid var(--border-light)',
+      borderRadius: '20px', padding: '20px', marginBottom: '20px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Rank Card
+        </span>
+        {isOwner && (
+          <Link to="/card-studio" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-color)', textDecoration: 'none' }}>
+            🎨 Customize
+          </Link>
+        )}
+      </div>
+      <ScaledRankCard data={data} />
+    </div>
+  );
+};
 
 const GlobalStats: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
   const g = profile.global;
