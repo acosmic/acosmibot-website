@@ -1,4 +1,5 @@
 import type { RankCardData } from './types';
+import { OgMonogram, OgFrame } from './ogOrnament';
 
 /**
  * Canonical rank-card layout — a pure, stateless component.
@@ -60,6 +61,8 @@ export function RankCard({ data }: { data: RankCardData }) {
   // A `background` value may be either a solid color or a CSS gradient string;
   // the shorthand `background` property accepts both.
   const isGradient = /gradient/i.test(background);
+  // The achievement-granted OG card carries extra ornamentation.
+  const isOgCard = loadout?.backgroundKey === 'og_member';
 
   // XP bar fill: clamp 0..1, enforce an 8% minimum sliver (matches PIL).
   const ratio = expNeeded > 0 ? expProgress / expNeeded : 1;
@@ -80,6 +83,9 @@ export function RankCard({ data }: { data: RankCardData }) {
         overflow: 'hidden',
       }}
     >
+      {/* OG embossed monogram — behind all content so text stays legible. */}
+      {isOgCard && <OgMonogram />}
+
       {/* Avatar — 140px circle with a thin black ring, vertically centered.
           Falls back to a plain gray circle when no avatar is available
           (mirrors the PIL path, which simply omits a missing avatar). */}
@@ -218,6 +224,9 @@ export function RankCard({ data }: { data: RankCardData }) {
           }}
         />
       </div>
+
+      {/* OG gold filigree frame — on top of everything. */}
+      {isOgCard && <OgFrame />}
     </div>
   );
 }

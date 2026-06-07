@@ -63,6 +63,7 @@ export interface PublicProfile {
     accentColor?: string;
     background?: string;
     ringColor?: string;
+    backgroundKey?: string;
   };
   // Unlocked achievements for the trophy case (null when hidden by privacy).
   achievements?: UnlockedAchievement[] | null;

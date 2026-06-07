@@ -12,6 +12,8 @@ export interface Cosmetic {
   price: number;
   /** Raw CSS value: a hex color or a gradient string. */
   value: string;
+  /** Achievement key when granted by one (e.g. 'og_member'); else null. */
+  achievement_key?: string | null;
   owned: boolean;
   equipped: boolean;
 }

@@ -47,6 +47,12 @@ export interface RankCardData {
     accentColor?: string;
     background?: string;
     ringColor?: string;
+    /**
+     * Key of the equipped background cosmetic, when it's a special one whose
+     * card carries extra ornamentation (e.g. 'og_member' → gold filigree frame
+     * + embossed OG monogram). Absent for ordinary backgrounds.
+     */
+    backgroundKey?: string;
   };
   /**
    * Website-only overrides (the bot never sets these, so the Discord/Satori

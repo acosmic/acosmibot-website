@@ -41,6 +41,7 @@ function buildPreview(
     accentColor: selected.accent?.value,
     background: selected.background?.value,
     ringColor: selected.ring?.value,
+    backgroundKey: selected.background?.achievement_key ?? undefined,
   });
 }
 
