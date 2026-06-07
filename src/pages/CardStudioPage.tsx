@@ -96,21 +96,31 @@ export const CardStudioPage: React.FC = () => {
     enabled: !!token,
   });
 
-  // Locally-selected cosmetic per slot, seeded from whatever is equipped.
+  // Locally-selected cosmetic per slot — drives the live preview. Includes
+  // "try-on" of unowned cosmetics so users can see them before buying.
   const [selected, setSelected] = useState<Record<CosmeticType, Cosmetic | null>>({
     accent: null,
     background: null,
     ring: null,
   });
 
-  // Seed selection from the catalog's `equipped` flags once it loads.
+  // A purchase confirmation pending the user's OK (custom modal), and a notice
+  // (error/info) message shown in its own modal.
+  const [pendingBuy, setPendingBuy] = useState<Cosmetic | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // Seed the selection from the catalog's `equipped` flags ONCE. After that the
+  // user's clicks drive `selected`, so a refetch (after equip/purchase) doesn't
+  // clobber an in-progress try-on of an unowned cosmetic.
+  const seededRef = useRef(false);
   useEffect(() => {
-    if (!catalog) return;
+    if (!catalog || seededRef.current) return;
     const next: Record<CosmeticType, Cosmetic | null> = { accent: null, background: null, ring: null };
     for (const c of catalog.cosmetics) {
       if (c.equipped) next[c.type] = c;
     }
     setSelected(next);
+    seededRef.current = true;
   }, [catalog]);
 
   const equipMutation = useMutation({
@@ -128,23 +138,33 @@ export const CardStudioPage: React.FC = () => {
     },
   });
 
-  const handleEquip = (c: Cosmetic) => {
-    // Toggle off if it's already the selected one; otherwise equip it.
+  // Clicking a tile previews it. Owned cosmetics also persist the equip (so the
+  // change reaches Discord); unowned ones are a local "try-on" only.
+  const handleTileClick = (c: Cosmetic) => {
     const isSelected = selected[c.type]?.id === c.id;
-    const nextId = isSelected ? null : c.id;
-    setSelected((s) => ({ ...s, [c.type]: isSelected ? null : c }));
-    equipMutation.mutate({ type: c.type, cosmeticId: nextId });
+    if (c.owned) {
+      // Toggle: re-clicking the equipped one clears the slot back to default.
+      const nextId = isSelected ? null : c.id;
+      setSelected((s) => ({ ...s, [c.type]: isSelected ? null : c }));
+      equipMutation.mutate({ type: c.type, cosmeticId: nextId });
+    } else {
+      // Try-on: preview locally without touching the server.
+      setSelected((s) => ({ ...s, [c.type]: c }));
+    }
   };
 
-  const handleBuy = async (c: Cosmetic) => {
-    if (!window.confirm(`Buy "${c.name}" for ${fmt(c.price)} credits?`)) return;
+  // The Buy button opens the confirmation modal; the actual purchase runs on OK.
+  const confirmBuy = async () => {
+    const c = pendingBuy;
+    setPendingBuy(null);
+    if (!c) return;
     try {
       await purchaseMutation.mutateAsync(c.id);
       // Auto-equip the freshly bought cosmetic.
       setSelected((s) => ({ ...s, [c.type]: c }));
       await equipMutation.mutateAsync({ type: c.type, cosmeticId: c.id });
     } catch (e) {
-      window.alert(e instanceof Error ? e.message : 'Purchase failed');
+      setNotice(e instanceof Error ? e.message : 'Purchase failed');
     }
   };
 
@@ -185,8 +205,8 @@ export const CardStudioPage: React.FC = () => {
                   items={byType[type]}
                   selectedId={selected[type]?.id ?? null}
                   busy={equipMutation.isPending || purchaseMutation.isPending}
-                  onEquip={handleEquip}
-                  onBuy={handleBuy}
+                  onTileClick={handleTileClick}
+                  onBuy={setPendingBuy}
                 />
               ))}
             </div>
@@ -195,10 +215,47 @@ export const CardStudioPage: React.FC = () => {
             <div style={{ position: 'sticky', top: '24px' }}>
               <SectionTitle>Live Preview</SectionTitle>
               <CardPreview data={preview} />
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
+                Click any tile to preview it here. Owned items equip instantly;
+                locked items are a try-on until you buy them.
+              </p>
             </div>
           </div>
         )}
       </div>
+
+      {/* Purchase confirmation */}
+      {pendingBuy && (
+        <Modal onClose={() => setPendingBuy(null)}>
+          <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
+            {pendingBuy.price === 0 ? 'Add to your collection' : 'Confirm purchase'}
+          </h3>
+          <p style={{ margin: '0 0 20px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+            {pendingBuy.price === 0
+              ? <>Get <strong>{pendingBuy.name}</strong> for free?</>
+              : <>Buy <strong>{pendingBuy.name}</strong> for <strong>{fmt(pendingBuy.price)}</strong> credits?</>}
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <ModalButton variant="ghost" onClick={() => setPendingBuy(null)}>Cancel</ModalButton>
+            <ModalButton variant="primary" onClick={confirmBuy}>
+              {pendingBuy.price === 0 ? 'Get it' : 'Buy'}
+            </ModalButton>
+          </div>
+        </Modal>
+      )}
+
+      {/* Error / info notice */}
+      {notice && (
+        <Modal onClose={() => setNotice(null)}>
+          <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
+            Something went wrong
+          </h3>
+          <p style={{ margin: '0 0 20px', color: 'var(--text-secondary)', fontSize: '14px' }}>{notice}</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <ModalButton variant="primary" onClick={() => setNotice(null)}>OK</ModalButton>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
@@ -224,27 +281,31 @@ const SlotSection: React.FC<{
   items: Cosmetic[];
   selectedId: number | null;
   busy: boolean;
-  onEquip: (c: Cosmetic) => void;
+  onTileClick: (c: Cosmetic) => void;
   onBuy: (c: Cosmetic) => void;
-}> = ({ title, items, selectedId, busy, onEquip, onBuy }) => (
+}> = ({ title, items, selectedId, busy, onTileClick, onBuy }) => (
   <div style={{ marginBottom: '24px' }}>
     <SectionTitle>{title}</SectionTitle>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '12px' }}>
       {items.map((c) => (
-        <Swatch key={c.id} cosmetic={c} selected={selectedId === c.id} busy={busy} onEquip={onEquip} onBuy={onBuy} />
+        <Swatch key={c.id} cosmetic={c} selected={selectedId === c.id} busy={busy} onTileClick={onTileClick} onBuy={onBuy} />
       ))}
     </div>
   </div>
 );
 
-/** A single cosmetic tile: owned items click-to-equip, locked items show price + Buy. */
+/**
+ * A single cosmetic tile. Clicking the tile previews it (owned items equip
+ * instantly; unowned ones are a local try-on). Locked items also show a Buy
+ * action that opens the purchase confirmation.
+ */
 const Swatch: React.FC<{
   cosmetic: Cosmetic;
   selected: boolean;
   busy: boolean;
-  onEquip: (c: Cosmetic) => void;
+  onTileClick: (c: Cosmetic) => void;
   onBuy: (c: Cosmetic) => void;
-}> = ({ cosmetic, selected, busy, onEquip, onBuy }) => {
+}> = ({ cosmetic, selected, busy, onTileClick, onBuy }) => {
   const swatchStyle: React.CSSProperties =
     cosmetic.type === 'background' && /gradient/i.test(cosmetic.value)
       ? { background: cosmetic.value }
@@ -252,38 +313,39 @@ const Swatch: React.FC<{
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onTileClick(cosmetic)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTileClick(cosmetic); } }}
       style={{
         background: 'var(--bg-card)',
         border: `1px solid ${selected ? 'var(--border-cyan)' : 'var(--border-light)'}`,
+        boxShadow: selected ? '0 0 0 1px var(--border-cyan)' : 'none',
         borderRadius: '12px',
         padding: '10px',
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
+        cursor: 'pointer',
       }}
     >
       <div style={{ ...swatchStyle, height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
-      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{cosmetic.name}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{cosmetic.name}</span>
+        {cosmetic.owned && selected && (
+          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary-color)' }}>Equipped ✓</span>
+        )}
+      </div>
 
       {cosmetic.owned ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onEquip(cosmetic)}
-          style={{
-            cursor: busy ? 'default' : 'pointer',
-            border: 'none', borderRadius: '8px', padding: '6px 10px', fontSize: '12px', fontWeight: 700,
-            color: selected ? '#001014' : 'var(--text-primary)',
-            background: selected ? 'var(--primary-color)' : 'var(--bg-tertiary)',
-          }}
-        >
-          {selected ? 'Equipped ✓' : 'Equip'}
-        </button>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+          {selected ? 'Click to remove' : 'Owned — click to equip'}
+        </div>
       ) : (
         <button
           type="button"
           disabled={busy}
-          onClick={() => onBuy(cosmetic)}
+          onClick={(e) => { e.stopPropagation(); onBuy(cosmetic); }}
           style={{
             cursor: busy ? 'default' : 'pointer',
             border: '1px solid var(--border-cyan)', borderRadius: '8px', padding: '6px 10px',
@@ -296,6 +358,42 @@ const Swatch: React.FC<{
     </div>
   );
 };
+
+/** A lightweight centered modal with a dimmed backdrop (click-out to close). */
+const Modal: React.FC<{ onClose: () => void; children: React.ReactNode }> = ({ onClose, children }) => (
+  <div
+    onClick={onClose}
+    style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1000,
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        background: 'var(--bg-card)', border: '1px solid var(--border-cyan)', borderRadius: '16px',
+        padding: '24px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+      }}
+    >
+      {children}
+    </div>
+  </div>
+);
+
+const ModalButton: React.FC<{ variant: 'primary' | 'ghost'; onClick: () => void; children: React.ReactNode }> = ({ variant, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    style={{
+      cursor: 'pointer', borderRadius: '10px', padding: '8px 18px', fontSize: '14px', fontWeight: 700,
+      ...(variant === 'primary'
+        ? { border: 'none', background: 'var(--primary-color)', color: '#001014' }
+        : { border: '1px solid var(--border-light)', background: 'transparent', color: 'var(--text-primary)' }),
+    }}
+  >
+    {children}
+  </button>
+);
 
 /** Scales the fixed-size 800×250 RankCard down to fit the preview column. */
 const CardPreview: React.FC<{ data: RankCardData }> = ({ data }) => {
