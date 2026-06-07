@@ -17,6 +17,7 @@ import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CardStudioPage } from './pages/CardStudioPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { DocsPage } from './pages/docs/DocsPage';
 import { useAuthStore } from './store/auth';
@@ -127,6 +128,7 @@ function App() {
       <Route path="/servers" element={<GuildSelectPage />} />
       <Route path="/u/:identifier" element={<ProfilePage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/card-studio" element={<CardStudioPage />} />
       <Route path="/leaderboard" element={<LeaderboardPage />} />
       <Route path="/leaderboard/:guildId" element={<LeaderboardPage />} />
       <Route path="/me" element={<MeRedirect />} />

@@ -264,6 +264,7 @@ const Chip: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ ch
 const OwnerShortcuts: React.FC = () => {
   const links: Array<{ label: string; desc: string; href: string; external?: boolean; primary?: boolean }> = [
     { label: '⚙ Profile Settings', desc: 'Privacy & what others can see', href: '/settings', primary: true },
+    { label: '🎨 Customize your card', desc: 'Shop cosmetics & style your rank card', href: '/card-studio', primary: true },
     { label: 'Manage Servers', desc: 'Configure the bot in your servers', href: '/servers' },
     { label: 'Documentation', desc: 'Learn how to use the bot', href: DOCS_URL },
     { label: 'Support', desc: 'Join our Discord server', href: SUPPORT_URL, external: true },

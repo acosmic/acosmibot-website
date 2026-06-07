@@ -47,7 +47,17 @@ export function RankCard({ data }: { data: RankCardData }) {
     currentExp,
     expProgress,
     expNeeded,
+    loadout,
   } = data;
+
+  // Resolve the cosmetic loadout, falling back to the legacy hardcoded defaults
+  // so the card looks identical when no loadout is equipped.
+  const accent = loadout?.accentColor || COLORS.accent;
+  const background = loadout?.background || COLORS.background;
+  const ringColor = loadout?.ringColor || COLORS.outline;
+  // A `background` value may be either a solid color or a CSS gradient string;
+  // the shorthand `background` property accepts both.
+  const isGradient = /gradient/i.test(background);
 
   // XP bar fill: clamp 0..1, enforce an 8% minimum sliver (matches PIL).
   const ratio = expNeeded > 0 ? expProgress / expNeeded : 1;
@@ -61,7 +71,9 @@ export function RankCard({ data }: { data: RankCardData }) {
         display: 'flex',
         width: CARD_WIDTH,
         height: CARD_HEIGHT,
-        backgroundColor: COLORS.background,
+        // `background` shorthand carries either a solid color or a gradient;
+        // fall back to backgroundColor for the solid case to stay explicit.
+        ...(isGradient ? { background } : { backgroundColor: background }),
         fontFamily: FONT_STACK,
         overflow: 'hidden',
       }}
@@ -81,7 +93,8 @@ export function RankCard({ data }: { data: RankCardData }) {
             width: 140,
             height: 140,
             borderRadius: '50%',
-            border: `2px solid ${COLORS.outline}`,
+            border: `2px solid ${ringColor}`,
+            boxShadow: `0 0 12px ${ringColor}`,
             boxSizing: 'border-box',
             objectFit: 'cover',
           }}
@@ -95,7 +108,8 @@ export function RankCard({ data }: { data: RankCardData }) {
             width: 140,
             height: 140,
             borderRadius: '50%',
-            border: `2px solid ${COLORS.outline}`,
+            border: `2px solid ${ringColor}`,
+            boxShadow: `0 0 12px ${ringColor}`,
             boxSizing: 'border-box',
             backgroundColor: '#2b2d31',
           }}
@@ -158,7 +172,7 @@ export function RankCard({ data }: { data: RankCardData }) {
         }}
       >
         <span style={{ color: COLORS.rank }}>{`RANK  #${rank}`}</span>
-        <span style={{ color: COLORS.accent }}>{`LVL  ${level}`}</span>
+        <span style={{ color: accent }}>{`LVL  ${level}`}</span>
       </div>
 
       {/* XP label. */}
@@ -194,7 +208,7 @@ export function RankCard({ data }: { data: RankCardData }) {
           style={{
             width: `${fillPct}%`,
             height: '100%',
-            backgroundColor: COLORS.accent,
+            backgroundColor: accent,
             borderRadius: 15,
           }}
         />

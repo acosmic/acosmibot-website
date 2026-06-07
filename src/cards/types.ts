@@ -33,4 +33,19 @@ export interface RankCardData {
   expProgress: number;
   /** XP needed to advance from the current level to the next. */
   expNeeded: number;
+  /**
+   * Optional cosmetic loadout — resolved CSS values from the user's equipped
+   * cosmetics. Any field that is absent falls back to the card's hardcoded
+   * default, so the card renders identically with no loadout at all.
+   *
+   *  - accentColor: level text + XP-bar fill (default cyan)
+   *  - background:  root background — a hex color or a CSS gradient string
+   *                 (default #18191c)
+   *  - ringColor:   avatar border + subtle glow (default black)
+   */
+  loadout?: {
+    accentColor?: string;
+    background?: string;
+    ringColor?: string;
+  };
 }
