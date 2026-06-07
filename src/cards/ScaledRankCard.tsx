@@ -3,9 +3,10 @@ import { RankCard, CARD_WIDTH, CARD_HEIGHT } from './RankCard';
 import type { RankCardData } from './types';
 
 /**
- * Renders the fixed-size 800×250 <RankCard> scaled down to fit its container
- * width (never scaled up past 1:1). Shared by the Card Studio preview and the
- * profile page so the scaling behavior stays consistent.
+ * Renders the fixed-size 800×250 <RankCard> scaled to exactly fill its
+ * container width — scaling up as well as down so the card always spans the
+ * full column and the rounded corners clip cleanly. Shared by the Card Studio
+ * preview and the profile page so the scaling behavior stays consistent.
  */
 export const ScaledRankCard: React.FC<{ data: RankCardData }> = ({ data }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -14,7 +15,7 @@ export const ScaledRankCard: React.FC<{ data: RankCardData }> = ({ data }) => {
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const update = () => setScale(Math.min(1, el.clientWidth / CARD_WIDTH));
+    const update = () => { if (el.clientWidth) setScale(el.clientWidth / CARD_WIDTH); };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
