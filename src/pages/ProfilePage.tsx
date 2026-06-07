@@ -5,7 +5,7 @@ import { profileApi, type PublicProfile } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { DailyReward } from '@/components/profile/DailyReward';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
-import { buildRankCardData } from '@/cards/buildRankCardData';
+import { buildGlobalRankCardData } from '@/cards/buildRankCardData';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -96,7 +96,9 @@ export const ProfilePage: React.FC = () => {
  *  "member since" line beneath it. Falls back to a plain identity line when
  *  there are no stats to render a card from (e.g. a viewer who hid XP & servers). */
 const RankCardHeader: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
-  const hasStats = (profile.guilds && profile.guilds.length > 0) || profile.global.exp !== undefined;
+  // The global card is driven by global XP; if the viewer hid it, fall back to
+  // the plain identity line rather than rendering a card with placeholder XP.
+  const hasStats = profile.global.exp !== undefined;
 
   if (!hasStats) {
     return (
@@ -116,7 +118,7 @@ const RankCardHeader: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
     );
   }
 
-  const data = buildRankCardData(profile, profile.loadout);
+  const data = buildGlobalRankCardData(profile, profile.loadout);
   return (
     <div style={{ marginBottom: '20px' }}>
       <ScaledRankCard data={data} />

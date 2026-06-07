@@ -48,6 +48,8 @@ export function RankCard({ data }: { data: RankCardData }) {
     expProgress,
     expNeeded,
     loadout,
+    topLeftLabel,
+    hideGlobalLevel,
   } = data;
 
   // Resolve the cosmetic loadout, falling back to the legacy hardcoded defaults
@@ -127,22 +129,25 @@ export function RankCard({ data }: { data: RankCardData }) {
           color: COLORS.guild,
         }}
       >
-        {`in ${guildName}`}
+        {topLeftLabel ?? `in ${guildName}`}
       </div>
 
-      {/* Global level (top-right). */}
-      <div
-        style={{
-          position: 'absolute',
-          right: 20,
-          top: 20,
-          fontSize: 16,
-          fontWeight: 400,
-          color: COLORS.global,
-        }}
-      >
-        {`Global Lvl ${globalLevel}`}
-      </div>
+      {/* Global level (top-right). Hidden on the global card variant, where the
+          main LVL already shows the global level. */}
+      {!hideGlobalLevel && (
+        <div
+          style={{
+            position: 'absolute',
+            right: 20,
+            top: 20,
+            fontSize: 16,
+            fontWeight: 400,
+            color: COLORS.global,
+          }}
+        >
+          {`Global Lvl ${globalLevel}`}
+        </div>
+      )}
 
       {/* Username (large). */}
       <div

@@ -39,3 +39,38 @@ export function buildRankCardData(
     loadout,
   };
 }
+
+/**
+ * Build the "global" card variant for the profile: same styling as the rank
+ * card, but driven by cross-server (global) stats — global level, global rank
+ * and global XP. The top-left label reads "Acosmibot" instead of "in {server}",
+ * and the redundant top-right Global Level is hidden. Global level uses the
+ * same `level^2 * 100` curve as guild levels (Leveling.calculate_level_from_exp).
+ */
+export function buildGlobalRankCardData(
+  profile: ProfileLike | undefined,
+  loadout: RankCardData['loadout'],
+): RankCardData {
+  const level = profile?.global.level ?? 1;
+  const exp = profile?.global.exp ?? 0;
+  const rank = profile?.global.exp_rank ?? 0;
+
+  const currentLevelExp = expForLevel(level);
+  const nextLevelExp = expForLevel(level + 1);
+
+  return {
+    username: profile?.username ?? 'you',
+    displayName: profile?.global_name || profile?.username || 'You',
+    avatarUrl: profile?.avatar_url ?? '',
+    guildName: 'Acosmibot',
+    topLeftLabel: 'Acosmibot',
+    hideGlobalLevel: true,
+    rank,
+    level,
+    globalLevel: level,
+    currentExp: exp,
+    expProgress: Math.max(0, exp - currentLevelExp),
+    expNeeded: Math.max(1, nextLevelExp - currentLevelExp),
+    loadout,
+  };
+}

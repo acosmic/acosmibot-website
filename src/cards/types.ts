@@ -48,4 +48,14 @@ export interface RankCardData {
     background?: string;
     ringColor?: string;
   };
+  /**
+   * Website-only overrides (the bot never sets these, so the Discord/Satori
+   * card is unaffected). They let the same component render a "global" variant
+   * on the profile:
+   *  - topLeftLabel: replaces the "in {guildName}" label verbatim (no "in").
+   *  - hideGlobalLevel: hides the top-right "Global Lvl N" (redundant when the
+   *    main LVL already shows the global level).
+   */
+  topLeftLabel?: string;
+  hideGlobalLevel?: boolean;
 }
