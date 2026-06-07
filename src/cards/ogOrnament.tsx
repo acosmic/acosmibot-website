@@ -61,7 +61,7 @@ export const OG_FRAME_DATA_URI = `data:image/svg+xml;base64,${b64(FRAME_SVG)}`;
  * Rendered BEHIND the card content (low z) so the username/stats stay legible.
  */
 export function OgMonogram() {
-  const SIZE = 340;
+  const SIZE = 230;
   const layer: React.CSSProperties = {
     position: 'absolute',
     left: 0,
@@ -69,20 +69,19 @@ export function OgMonogram() {
     fontFamily: 'Urbanist, sans-serif',
     fontWeight: 700,
     fontSize: SIZE,
-    // Extra line-height headroom so Satori doesn't clip the glyph bottom to the
-    // line box (it does at lineHeight:1; the browser overflows instead). The
-    // wrapper's `top` compensates for the added half-leading.
-    lineHeight: 1.5,
+    // Headroom so Satori doesn't clip the glyph to its line box (it does at
+    // lineHeight:1; the browser overflows instead).
+    lineHeight: 1.4,
     whiteSpace: 'nowrap',
   };
   return (
     <div
       style={{
         position: 'absolute',
-        left: 312,
-        top: -79,
+        left: 470,
+        top: -48,
         display: 'flex',
-        transform: 'rotate(-13deg)',
+        transform: 'rotate(-8deg)',
         opacity: 0.46,
         overflow: 'visible',
       }}
