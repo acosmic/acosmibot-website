@@ -118,6 +118,22 @@ async function renderPng(data: RankCardData): Promise<Buffer> {
   return Buffer.from(resvg.render().asPng());
 }
 
+// Azure SWA managed functions may deliver the request body as a string (or a
+// Buffer), not a parsed object — normalize it here.
+function parseBody(req: any): unknown {
+  let b = req.body;
+  if (b == null && req.rawBody != null) b = req.rawBody;
+  if (Buffer.isBuffer(b)) b = b.toString('utf8');
+  if (typeof b === 'string') {
+    try {
+      return JSON.parse(b);
+    } catch {
+      return null;
+    }
+  }
+  return b;
+}
+
 function isValid(data: unknown): data is RankCardData {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
@@ -147,13 +163,14 @@ export async function run(context: any, req: any): Promise<void> {
     return;
   }
 
-  if (!isValid(req.body)) {
+  const data = parseBody(req);
+  if (!isValid(data)) {
     context.res = { status: 400, body: 'Invalid rank card payload' };
     return;
   }
 
   try {
-    const png = await renderPng(req.body);
+    const png = await renderPng(data);
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
