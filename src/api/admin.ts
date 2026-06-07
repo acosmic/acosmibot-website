@@ -98,7 +98,10 @@ export interface AdminAchievementsResponse {
 }
 
 /** Fields an admin can set when creating or editing an achievement. */
-export type AdminAchievementInput = Partial<Omit<AdminAchievement, never>>;
+export type AdminAchievementInput = Partial<Omit<AdminAchievement, never>> & {
+  /** On update only: rename the achievement's key (cascades server-side). */
+  new_key?: string;
+};
 
 export const adminApi = {
   getFeatureSettings: () =>

@@ -62,7 +62,7 @@ const AchievementFields: React.FC<{
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
       {showKey && (
-        <Field label="Key (immutable)">
+        <Field label="Key (letters, numbers, _ -)">
           <input className="form-control" style={inputStyle} value={draft.key ?? ''}
             placeholder="e.g. level_25"
             onChange={(e) => onChange({ ...draft, key: e.target.value })} />
@@ -253,7 +253,13 @@ export const AchievementsTab: React.FC = () => {
                     <span style={{ color: TIER_COLORS[a.tier], fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700 }}>{a.tier}</span>
                     <code style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{a.key}</code>
                   </div>
-                  <AchievementFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [a.key]: patch }))} metrics={metrics} cosmetics={cosmetics} />
+                  <AchievementFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [a.key]: patch }))} metrics={metrics} cosmetics={cosmetics} showKey />
+                  {d.key !== a.key && (
+                    <p style={{ color: '#fbbf24', fontSize: '0.78rem', marginTop: 8, marginBottom: 0 }}>
+                      Renaming key <code>{a.key}</code> → <code>{d.key}</code> on Save. This cascades to existing unlocks and rewards.
+                      {a.key === 'og_member' && ' Note: the bot grants OG by the key "og_member" — renaming it will stop OG grants until the bot code is updated.'}
+                    </p>
+                  )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, justifyContent: 'flex-end' }}>
                     {savedKey === a.key && !isDirty(a) && !updateMutation.isPending && (
                       <span style={{ color: '#4ade80', fontSize: '0.82rem' }}>Saved</span>
@@ -266,7 +272,7 @@ export const AchievementsTab: React.FC = () => {
                     </button>
                     <button type="button" className="btn btn-sm primary"
                       disabled={!isDirty(a) || updateMutation.isPending}
-                      onClick={() => updateMutation.mutate({ key: a.key, draft: d })}>
+                      onClick={() => updateMutation.mutate({ key: a.key, draft: { ...d, new_key: d.key } })}>
                       {updateMutation.isPending && updateMutation.variables?.key === a.key ? 'Saving...' : 'Save'}
                     </button>
                   </div>
