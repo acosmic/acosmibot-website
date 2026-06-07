@@ -33,7 +33,28 @@ export interface AdminEconomySettingsResponse {
   data: AdminEconomySettings;
 }
 
+export interface AdminFeatureSettings {
+  use_satori_rank_card: boolean;
+}
+
+export interface AdminFeatureSettingsResponse {
+  success: boolean;
+  data: AdminFeatureSettings;
+}
+
 export const adminApi = {
+  getFeatureSettings: () =>
+    api.fetch<AdminFeatureSettingsResponse>('/api/admin/feature-settings'),
+
+  updateFeatureSettings: (payload: Partial<AdminFeatureSettings>) =>
+    api.fetch<{ success: boolean; updated_count: number }>(
+      '/api/admin/feature-settings',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    ),
+
   getAiSettings: () =>
     api.fetch<AdminAiSettingsResponse>('/api/admin/ai-settings'),
 
