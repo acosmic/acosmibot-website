@@ -7,6 +7,7 @@ import { AiSettingsTab } from './AiSettingsTab';
 import { EconomySettingsTab } from './EconomySettingsTab';
 import { FeatureSettingsTab } from './FeatureSettingsTab';
 import { CosmeticsTab } from './CosmeticsTab';
+import { AchievementsTab } from './AchievementsTab';
 import '@/styles/admin.css';
 
 const OWNER_ID = '110637665128325120';
@@ -221,7 +222,7 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { token, user } = useAuthStore();
-  const [tab, setTab] = useState<'signins' | 'servers' | 'rag' | 'botstats' | 'ai' | 'economy' | 'features' | 'cosmetics'>('signins');
+  const [tab, setTab] = useState<'signins' | 'servers' | 'rag' | 'botstats' | 'ai' | 'economy' | 'features' | 'cosmetics' | 'achievements'>('signins');
   const [authChecked, setAuthChecked] = useState(false);
 
   const signinResult = useAdminData<{ logs: SigninLog[] }>('/api/admin/signin-logs?limit=1000', token);
@@ -289,7 +290,7 @@ export const AdminPage: React.FC = () => {
 
         {/* Tabs */}
         <div className="admin-tabs" style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid var(--border-light)', paddingBottom: 0 }}>
-          {(['signins', 'servers', 'rag', 'botstats', 'ai', 'economy', 'features', 'cosmetics'] as const).map(t => (
+          {(['signins', 'servers', 'rag', 'botstats', 'ai', 'economy', 'features', 'cosmetics', 'achievements'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -305,7 +306,7 @@ export const AdminPage: React.FC = () => {
                 marginBottom: -1,
               }}
             >
-              {t === 'signins' ? 'Sign-In Log' : t === 'servers' ? 'Servers' : t === 'rag' ? 'RAG Docs' : t === 'botstats' ? 'Bot Stats' : t === 'ai' ? 'AI Settings' : t === 'economy' ? 'Economy' : t === 'features' ? 'Feature Flags' : 'Cosmetics'}
+              {t === 'signins' ? 'Sign-In Log' : t === 'servers' ? 'Servers' : t === 'rag' ? 'RAG Docs' : t === 'botstats' ? 'Bot Stats' : t === 'ai' ? 'AI Settings' : t === 'economy' ? 'Economy' : t === 'features' ? 'Feature Flags' : t === 'cosmetics' ? 'Cosmetics' : 'Achievements'}
             </button>
           ))}
         </div>
@@ -374,6 +375,13 @@ export const AdminPage: React.FC = () => {
         {tab === 'cosmetics' && (
           <div className="card p-4">
             <CosmeticsTab />
+          </div>
+        )}
+
+        {/* Achievements */}
+        {tab === 'achievements' && (
+          <div className="card p-4">
+            <AchievementsTab />
           </div>
         )}
       </div>

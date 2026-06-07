@@ -19,6 +19,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CardStudioPage } from './pages/CardStudioPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
+import { AchievementsPage } from './pages/AchievementsPage';
 import { DocsPage } from './pages/docs/DocsPage';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/admin/AdminPage';
@@ -131,6 +132,7 @@ function App() {
       <Route path="/card-studio" element={<CardStudioPage />} />
       <Route path="/leaderboard" element={<LeaderboardPage />} />
       <Route path="/leaderboard/:guildId" element={<LeaderboardPage />} />
+      <Route path="/achievements" element={<AchievementsPage />} />
       <Route path="/me" element={<MeRedirect />} />
       {/* Legacy /profile retired → resolve to the owner's public profile. */}
       <Route path="/profile" element={<MeRedirect />} />

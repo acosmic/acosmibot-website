@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { profileApi, type PublicProfile } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { DailyReward } from '@/components/profile/DailyReward';
+import { NotificationList } from '@/components/profile/NotificationList';
+import { TrophyCase } from '@/components/profile/TrophyCase';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
 import { buildGlobalRankCardData } from '@/cards/buildRankCardData';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
@@ -74,10 +76,12 @@ export const ProfilePage: React.FC = () => {
         {profile && (
           <>
             <RankCardHeader profile={profile} />
+            {isOwner && <NotificationList />}
             {isAuthed ? (
               <>
                 <GlobalStats profile={profile} />
                 {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
+                <TrophyCase achievements={profile.achievements} isOwner={isOwner} />
                 {isOwner && <DailyReward />}
                 {isOwner && <OwnerShortcuts />}
               </>
@@ -263,6 +267,7 @@ const OwnerShortcuts: React.FC = () => {
   const links: Array<{ label: string; desc: string; href: string; external?: boolean; primary?: boolean }> = [
     { label: '⚙ Profile Settings', desc: 'Privacy & what others can see', href: '/settings', primary: true },
     { label: '🎨 Customize your card', desc: 'Shop cosmetics & style your rank card', href: '/card-studio', primary: true },
+    { label: '🏆 Achievements', desc: 'Track badges & rewards to earn', href: '/achievements', primary: true },
     { label: 'Manage Servers', desc: 'Configure the bot in your servers', href: '/servers' },
     { label: 'Documentation', desc: 'Learn how to use the bot', href: DOCS_URL },
     { label: 'Support', desc: 'Join our Discord server', href: SUPPORT_URL, external: true },

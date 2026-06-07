@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 import { useAuthStore } from '@/store/auth';
+import { NotificationBell } from '@/components/profile/NotificationBell';
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -68,6 +69,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
         </div>
 
         {user && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <NotificationBell username={user.username} />
           <div className="topbar-user-menu-wrap" ref={userMenuRef}>
             <button
               className="topbar-user-avatar"
@@ -92,6 +95,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
                 <button className="logout-btn" onClick={handleLogout}>Logout</button>
               </div>
             )}
+          </div>
           </div>
         )}
       </header>

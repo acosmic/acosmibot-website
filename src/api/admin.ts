@@ -64,6 +64,42 @@ export type AdminCosmeticUpdate = Partial<
   Pick<AdminCosmetic, 'price' | 'is_available' | 'name' | 'description' | 'rarity' | 'sort_order'>
 >;
 
+export interface AdminAchievement {
+  key: string;
+  name: string;
+  description: string;
+  category: string;
+  icon: string;
+  tier: 'bronze' | 'silver' | 'gold' | 'legendary';
+  condition_type: 'metric' | 'event';
+  metric: string | null;
+  threshold: number;
+  reward_credits: number;
+  reward_cosmetic_id: number | null;
+  is_secret: boolean;
+  is_available: boolean;
+  sort_order: number;
+  // ISO datetime cutoff after which the achievement can no longer be earned.
+  available_until: string | null;
+}
+
+/** A cosmetic option for the reward dropdown. */
+export interface AdminCosmeticOption {
+  id: number;
+  name: string;
+  type: string;
+}
+
+export interface AdminAchievementsResponse {
+  success: boolean;
+  data: AdminAchievement[];
+  cosmetics: AdminCosmeticOption[];
+  metrics: string[];
+}
+
+/** Fields an admin can set when creating or editing an achievement. */
+export type AdminAchievementInput = Partial<Omit<AdminAchievement, never>>;
+
 export const adminApi = {
   getFeatureSettings: () =>
     api.fetch<AdminFeatureSettingsResponse>('/api/admin/feature-settings'),
@@ -113,5 +149,29 @@ export const adminApi = {
         method: 'POST',
         body: JSON.stringify(payload),
       },
+    ),
+
+  getAchievements: () =>
+    api.fetch<AdminAchievementsResponse>('/api/admin/achievements'),
+
+  createAchievement: (payload: AdminAchievementInput) =>
+    api.fetch<{ success: boolean; message: string }>('/api/admin/achievements', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateAchievement: (key: string, payload: AdminAchievementInput) =>
+    api.fetch<{ success: boolean; message: string }>(
+      `/api/admin/achievements/${encodeURIComponent(key)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    ),
+
+  deleteAchievement: (key: string) =>
+    api.fetch<{ success: boolean; message: string }>(
+      `/api/admin/achievements/${encodeURIComponent(key)}`,
+      { method: 'DELETE' },
     ),
 };

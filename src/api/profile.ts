@@ -1,4 +1,5 @@
 import { api } from './client';
+import type { UnlockedAchievement } from './achievements';
 
 export interface PrivacySettings {
   profile_public: boolean;
@@ -9,6 +10,8 @@ export interface PrivacySettings {
   show_commands: boolean;
   show_economy: boolean;
   show_guilds: boolean;
+  // Unlocked-achievements trophy case.
+  show_achievements: boolean;
   // Opt-in: show name & avatar unmasked to people who don't share a server.
   public_identity: boolean;
   // Owner view only — guild IDs the user has opted to hide.
@@ -61,6 +64,8 @@ export interface PublicProfile {
     background?: string;
     ringColor?: string;
   };
+  // Unlocked achievements for the trophy case (null when hidden by privacy).
+  achievements?: UnlockedAchievement[] | null;
 }
 
 export const profileApi = {

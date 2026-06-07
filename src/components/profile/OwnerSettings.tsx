@@ -63,6 +63,9 @@ export const OwnerSettings: React.FC<{
       <Toggle label="Show servers" hint="Your per-server levels & ranks"
         checked={privacy.show_guilds} disabled={saving}
         onChange={(v) => onToggle('show_guilds', v)} />
+      <Toggle label="Achievements" hint="Your unlocked-achievements trophy case"
+        checked={privacy.show_achievements} disabled={saving}
+        onChange={(v) => onToggle('show_achievements', v)} />
       <Toggle label="Public identity" hint="Show your name & avatar to people who don’t share a server with you (leaderboards & profile). Off = they see you masked."
         checked={privacy.public_identity} disabled={saving}
         onChange={(v) => onToggle('public_identity', v)} />

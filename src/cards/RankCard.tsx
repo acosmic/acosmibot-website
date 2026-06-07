@@ -176,7 +176,7 @@ export function RankCard({ data }: { data: RankCardData }) {
           fontWeight: 700,
         }}
       >
-        <span style={{ color: COLORS.rank }}>{`RANK  #${rank}`}</span>
+        <span style={{ color: COLORS.rank }}>{rank > 0 ? `RANK  #${rank}` : 'RANK —'}</span>
         <span style={{ color: accent }}>{`LVL  ${level}`}</span>
       </div>
 

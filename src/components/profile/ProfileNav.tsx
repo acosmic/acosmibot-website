@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { startLogin } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
+import { NotificationBell } from './NotificationBell';
 
 export type NavUser = { id: string; username: string; avatar: string | null; global_name: string | null };
 
@@ -35,7 +36,9 @@ export const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
       </a>
 
       {user ? (
-        <div ref={ref} style={{ position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <NotificationBell username={user.username} />
+          <div ref={ref} style={{ position: 'relative' }}>
           <button
             onClick={() => setOpen((v) => !v)}
             aria-label="Account menu"
@@ -60,6 +63,7 @@ export const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
                 {user.global_name || user.username}
               </div>
               <NavMenuLink href={`/u/${user.username}`}>My Profile</NavMenuLink>
+              <NavMenuLink href="/achievements">Achievements</NavMenuLink>
               <NavMenuLink href="/leaderboard">Leaderboards</NavMenuLink>
               <NavMenuLink href="/settings">Settings</NavMenuLink>
               <NavMenuLink href="/servers">Servers</NavMenuLink>
@@ -74,6 +78,7 @@ export const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
               </button>
             </div>
           )}
+          </div>
         </div>
       ) : (
         <button onClick={startLogin} style={{
