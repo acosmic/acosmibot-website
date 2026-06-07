@@ -42,6 +42,28 @@ export interface AdminFeatureSettingsResponse {
   data: AdminFeatureSettings;
 }
 
+export interface AdminCosmetic {
+  id: number;
+  name: string;
+  description: string;
+  type: 'background' | 'ring' | 'accent';
+  rarity: string;
+  price: number;
+  value: string;
+  is_available: boolean;
+  sort_order: number;
+}
+
+export interface AdminCosmeticsResponse {
+  success: boolean;
+  data: AdminCosmetic[];
+}
+
+/** Editable subset of a cosmetic an admin can patch. */
+export type AdminCosmeticUpdate = Partial<
+  Pick<AdminCosmetic, 'price' | 'is_available' | 'name' | 'description' | 'rarity' | 'sort_order'>
+>;
+
 export const adminApi = {
   getFeatureSettings: () =>
     api.fetch<AdminFeatureSettingsResponse>('/api/admin/feature-settings'),
@@ -75,6 +97,18 @@ export const adminApi = {
   ) =>
     api.fetch<{ success: boolean; updated_count: number }>(
       '/api/admin/economy-settings',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    ),
+
+  getCosmetics: () =>
+    api.fetch<AdminCosmeticsResponse>('/api/admin/cosmetics'),
+
+  updateCosmetic: (id: number, payload: AdminCosmeticUpdate) =>
+    api.fetch<{ success: boolean; message: string }>(
+      `/api/admin/cosmetics/${id}`,
       {
         method: 'POST',
         body: JSON.stringify(payload),
