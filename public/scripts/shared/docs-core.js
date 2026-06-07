@@ -413,6 +413,10 @@ class DocsCore {
           <span class="nav-icon">🎰</span>
           <span class="nav-text">Slots</span>
         </div>
+        <div class="nav-item" data-section="mines">
+          <span class="nav-icon">💣</span>
+          <span class="nav-text">Mines</span>
+        </div>
         <div class="nav-item" data-section="lottery">
           <span class="nav-icon">🎫</span>
           <span class="nav-text">Lottery</span>

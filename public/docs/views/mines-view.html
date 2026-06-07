@@ -1,0 +1,40 @@
+<section class="docs-hero">
+  <div class="docs-hero-content">
+    <h1>Mines</h1>
+    <p>Reveal safe tiles, grow your multiplier, and cash out before you hit a mine.</p>
+  </div>
+</section>
+
+<section class="docs-section">
+  <h2>How Mines Works</h2>
+  <div class="docs-card">
+    <p>Start a game with <code>/mines &lt;bet&gt; &lt;mines&gt;</code>. Acosmibot creates a hidden 25-tile board with your chosen number of mines. Each safe reveal increases the cash-out value. Revealing a mine ends the game and loses the bet.</p>
+  </div>
+</section>
+
+<section class="docs-section">
+  <h2>Command</h2>
+  <div class="command-signature">/mines &lt;bet&gt; &lt;mines&gt;</div>
+  <div class="docs-card">
+    <p>Examples:</p>
+    <code>/mines 100 3</code>
+    <code>/mines 1000 10</code>
+    <code>/mines 25000 24</code>
+  </div>
+</section>
+
+<section class="docs-section">
+  <h2>Rules</h2>
+  <ul>
+    <li>Bets must be between <strong>100</strong> and <strong>25,000</strong> credits.</li>
+    <li>Mine count must be between <strong>1</strong> and <strong>24</strong>.</li>
+    <li>You can cash out after revealing at least one safe tile.</li>
+    <li>If the game times out after a safe reveal, Acosmibot automatically cashes out.</li>
+    <li>If the game times out before any reveal, the bet is forfeited.</li>
+  </ul>
+</section>
+
+<section class="docs-section">
+  <h2>Stats</h2>
+  <p>Mines results are included in <code>/stats-games</code>, including total games, wins, losses, wagered credits, net profit, and biggest win.</p>
+</section>

@@ -32,6 +32,7 @@ const NAV_SECTIONS = [
     category: 'Games & Gambling',
     items: [
       { slug: 'slots',     label: 'Slots' },
+      { slug: 'mines',     label: 'Mines' },
       { slug: 'lottery',   label: 'Lottery' },
       { slug: 'blackjack', label: 'Blackjack' },
       { slug: 'coinflip',  label: 'Coinflip' },

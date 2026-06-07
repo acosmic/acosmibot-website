@@ -145,6 +145,7 @@ class DocsSearch {
 
       // Games & Gambling
       { section: 'slots', title: 'Slots', keywords: 'slots slot machine gambling casino spin', category: 'Games & Gambling' },
+      { section: 'mines', title: 'Mines', keywords: 'mines minefield cash out reveal tile gambling casino', category: 'Games & Gambling' },
       { section: 'lottery', title: 'Lottery', keywords: 'lottery lotto ticket draw prize winning', category: 'Games & Gambling' },
       { section: 'blackjack', title: 'Blackjack', keywords: 'blackjack 21 card game casino gambling', category: 'Games & Gambling' },
       { section: 'coinflip', title: 'Coinflip', keywords: 'coinflip coin flip heads tails bet gambling', category: 'Games & Gambling' },
