@@ -69,7 +69,10 @@ export function OgMonogram() {
     fontFamily: 'Urbanist, sans-serif',
     fontWeight: 700,
     fontSize: SIZE,
-    lineHeight: 1,
+    // Extra line-height headroom so Satori doesn't clip the glyph bottom to the
+    // line box (it does at lineHeight:1; the browser overflows instead). The
+    // wrapper's `top` compensates for the added half-leading.
+    lineHeight: 1.5,
     whiteSpace: 'nowrap',
   };
   return (
@@ -77,7 +80,7 @@ export function OgMonogram() {
       style={{
         position: 'absolute',
         left: 312,
-        top: 6,
+        top: -79,
         display: 'flex',
         transform: 'rotate(-13deg)',
         opacity: 0.46,
