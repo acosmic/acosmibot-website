@@ -22,7 +22,7 @@ export const ScaledRankCard: React.FC<{ data: RankCardData }> = ({ data }) => {
   }, []);
 
   return (
-    <div ref={wrapRef} style={{ width: '100%', height: CARD_HEIGHT * scale, overflow: 'hidden' }}>
+    <div ref={wrapRef} style={{ width: '100%', height: CARD_HEIGHT * scale, overflow: 'hidden', borderRadius: 16 }}>
       <div style={{ width: CARD_WIDTH, height: CARD_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
         <RankCard data={data} />
       </div>

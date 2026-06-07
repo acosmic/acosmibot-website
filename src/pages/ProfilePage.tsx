@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { profileApi, type PublicProfile } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
@@ -73,8 +73,7 @@ export const ProfilePage: React.FC = () => {
 
         {profile && (
           <>
-            <IdentityHeader profile={profile} blurAvatar={profile.avatar_masked ?? !isAuthed} />
-            <RankCardShowcase profile={profile} isOwner={isOwner} />
+            <RankCardHeader profile={profile} />
             {isAuthed ? (
               <>
                 <GlobalStats profile={profile} />
@@ -92,77 +91,40 @@ export const ProfilePage: React.FC = () => {
   );
 };
 
-const IdentityHeader: React.FC<{ profile: PublicProfile; blurAvatar?: boolean }> = ({ profile, blurAvatar }) => (
-  <div style={{
-    display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap',
-    background: 'var(--bg-card)', border: '1px solid var(--border-light)',
-    borderRadius: '20px', padding: '28px', marginBottom: '20px',
-  }}>
-    {/* Ring stays crisp; the image inside is blurred for signed-out visitors so
-        we don't expose someone's avatar before they opt in. */}
-    <div style={{
-      width: '96px', height: '96px', borderRadius: '50%', flexShrink: 0,
-      border: '3px solid var(--border-cyan)', overflow: 'hidden',
-      backgroundColor: 'var(--bg-tertiary)',
-    }}>
-      <div style={{
-        width: '100%', height: '100%',
-        backgroundImage: `url(${profile.avatar_url})`, backgroundSize: 'cover',
-        filter: blurAvatar ? 'blur(14px)' : undefined,
-        transform: blurAvatar ? 'scale(1.25)' : undefined,
-      }} />
-    </div>
-    <div style={{ flex: 1, minWidth: '200px' }}>
-      <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-        {profile.global_name || profile.username}
-      </h1>
-      <div style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '2px' }}>
-        @{profile.username}
-      </div>
-      {profile.member_since && (
-        <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '10px' }}>
-          Member since {profile.member_since}
-        </div>
-      )}
-    </div>
-    <div style={{ textAlign: 'center', padding: '0 8px' }}>
-      <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary-color)' }}>
-        {fmt(profile.global.level)}
-      </div>
-      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        Global Level
-      </div>
-    </div>
-  </div>
-);
-
-/** The user's rank card, rendered with their equipped cosmetics. Reuses the
- *  exact <RankCard> the Discord /rank card renders. Owners get a "Customize"
- *  shortcut into the Card Studio. */
-const RankCardShowcase: React.FC<{ profile: PublicProfile; isOwner: boolean }> = ({ profile, isOwner }) => {
-  // Only render when we have real stats to show — otherwise the card would
-  // fall back to placeholder numbers (rank #1, 0 XP). When a viewer has hidden
-  // their XP and servers, we respect that by omitting the card entirely.
+/** Profile header: the user's rank card (rendered with their equipped
+ *  cosmetics — the exact <RankCard> the Discord /rank card uses), with the
+ *  "member since" line beneath it. Falls back to a plain identity line when
+ *  there are no stats to render a card from (e.g. a viewer who hid XP & servers). */
+const RankCardHeader: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
   const hasStats = (profile.guilds && profile.guilds.length > 0) || profile.global.exp !== undefined;
-  if (!hasStats) return null;
+
+  if (!hasStats) {
+    return (
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+          {profile.global_name || profile.username}
+        </h1>
+        <div style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '2px' }}>
+          @{profile.username}
+        </div>
+        {profile.member_since && (
+          <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '10px' }}>
+            Member since {profile.member_since}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const data = buildRankCardData(profile, profile.loadout);
   return (
-    <div style={{
-      background: 'var(--bg-card)', border: '1px solid var(--border-light)',
-      borderRadius: '20px', padding: '20px', marginBottom: '20px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Rank Card
-        </span>
-        {isOwner && (
-          <Link to="/card-studio" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-color)', textDecoration: 'none' }}>
-            🎨 Customize
-          </Link>
-        )}
-      </div>
+    <div style={{ marginBottom: '20px' }}>
       <ScaledRankCard data={data} />
+      {profile.member_since && (
+        <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '12px' }}>
+          Member since {profile.member_since}
+        </div>
+      )}
     </div>
   );
 };
