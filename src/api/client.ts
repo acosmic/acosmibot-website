@@ -17,8 +17,12 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message ?? `API error ${response.status}`);
+    const body = await response.json().catch(() => ({}));
+    // The API is inconsistent about the field name: most endpoints return the
+    // human-readable reason under `error`, some under `message`. Prefer whichever
+    // is present so callers (and users) see the real reason, not "API error 400".
+    const reason = body.error ?? body.message;
+    throw new Error(reason ?? `API error ${response.status}`);
   }
 
   return response.json() as Promise<T>;
