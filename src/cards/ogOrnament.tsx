@@ -74,8 +74,8 @@ export function OgMonogram() {
     <div
       style={{
         position: 'absolute',
-        left: 505,
-        top: 18,
+        left: 312,
+        top: 6,
         display: 'flex',
         transform: 'rotate(-13deg)',
         opacity: 0.46,

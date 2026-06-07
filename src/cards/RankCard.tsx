@@ -138,14 +138,16 @@ export function RankCard({ data }: { data: RankCardData }) {
         {topLeftLabel ?? `in ${guildName}`}
       </div>
 
-      {/* Global level (top-right). Hidden on the global card variant, where the
-          main LVL already shows the global level. */}
+      {/* Global level — sits just above the far-right end of the XP bar (the
+          bar spans left:180 + width:530 + 3px border = right edge x716, so a
+          right offset of 84 aligns the label's right edge to it). Hidden on the
+          global card variant, where the main LVL already shows the global level. */}
       {!hideGlobalLevel && (
         <div
           style={{
             position: 'absolute',
-            right: 20,
-            top: 20,
+            right: 84,
+            top: 156,
             fontSize: 16,
             fontWeight: 400,
             color: COLORS.global,
