@@ -6,6 +6,7 @@ import { ProfileNav } from '@/components/profile/ProfileNav';
 import { DailyReward } from '@/components/profile/DailyReward';
 import { NotificationList } from '@/components/profile/NotificationList';
 import { TrophyCase } from '@/components/profile/TrophyCase';
+import { InventorySection } from '@/components/profile/InventorySection';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
 import { buildGlobalRankCardData } from '@/cards/buildRankCardData';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
@@ -82,6 +83,7 @@ export const ProfilePage: React.FC = () => {
                 <GlobalStats profile={profile} />
                 {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
                 <TrophyCase achievements={profile.achievements} isOwner={isOwner} />
+                {isOwner && <InventorySection />}
                 {isOwner && <DailyReward />}
                 {isOwner && <OwnerShortcuts />}
               </>

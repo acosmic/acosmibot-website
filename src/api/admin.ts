@@ -103,6 +103,51 @@ export type AdminAchievementInput = Partial<Omit<AdminAchievement, never>> & {
   new_key?: string;
 };
 
+// --- Items -----------------------------------------------------------------
+/** One effect an item grants when used (additive bonus fraction). */
+export interface AdminItemEffect {
+  type: string;
+  scope: 'global' | 'guild';
+  magnitude: number;
+  duration_seconds: number | null;
+}
+
+export interface AdminItem {
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+  item_type: string;
+  effects: AdminItemEffect[];
+  is_consumable: boolean;
+  max_stack: number;
+  is_giftable: boolean;
+  is_tradeable: boolean;
+  price_credits: number | null;
+  price_usd_cents: number | null;
+  is_purchasable: boolean;
+  is_available: boolean;
+  sort_order: number;
+  available_until: string | null;
+}
+
+export interface AdminItemsResponse {
+  success: boolean;
+  data: AdminItem[];
+  effect_types: string[];
+  effect_scopes: string[];
+  rarities: string[];
+  item_types: string[];
+}
+
+/** Fields an admin can set when creating or editing an item. */
+export type AdminItemInput = Partial<Omit<AdminItem, 'id'>> & {
+  /** On update only: rename the item's slug. */
+  new_slug?: string;
+};
+
 export const adminApi = {
   getFeatureSettings: () =>
     api.fetch<AdminFeatureSettingsResponse>('/api/admin/feature-settings'),
@@ -177,4 +222,33 @@ export const adminApi = {
       `/api/admin/achievements/${encodeURIComponent(key)}`,
       { method: 'DELETE' },
     ),
+
+  getItems: () => api.fetch<AdminItemsResponse>('/api/admin/items'),
+
+  createItem: (payload: AdminItemInput) =>
+    api.fetch<{ success: boolean; message: string; id?: number }>('/api/admin/items', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateItem: (slug: string, payload: AdminItemInput) =>
+    api.fetch<{ success: boolean; message: string; slug?: string }>(
+      `/api/admin/items/${encodeURIComponent(slug)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    ),
+
+  deleteItem: (slug: string) =>
+    api.fetch<{ success: boolean; message: string }>(
+      `/api/admin/items/${encodeURIComponent(slug)}`,
+      { method: 'DELETE' },
+    ),
+
+  grantItem: (payload: { user_id: string; slug: string; quantity: number }) =>
+    api.fetch<{ success: boolean; message: string }>('/api/admin/items/grant', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 };
