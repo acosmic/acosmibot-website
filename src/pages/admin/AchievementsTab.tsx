@@ -5,6 +5,7 @@ import {
   type AdminAchievement,
   type AdminAchievementInput,
   type AdminCosmeticOption,
+  type AdminItemOption,
 } from '@/api/admin';
 
 /**
@@ -38,6 +39,7 @@ const emptyDraft = (): Draft => ({
   threshold: 0,
   reward_credits: 0,
   reward_cosmetic_id: null,
+  reward_item_id: null,
   is_secret: false,
   is_available: true,
   sort_order: 0,
@@ -56,8 +58,9 @@ const AchievementFields: React.FC<{
   onChange: (patch: Draft) => void;
   metrics: string[];
   cosmetics: AdminCosmeticOption[];
+  items: AdminItemOption[];
   showKey?: boolean;
-}> = ({ draft, onChange, metrics, cosmetics, showKey }) => {
+}> = ({ draft, onChange, metrics, cosmetics, items, showKey }) => {
   const isMetric = (draft.condition_type ?? 'metric') === 'metric';
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
@@ -121,6 +124,14 @@ const AchievementFields: React.FC<{
           {cosmetics.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.type})</option>)}
         </select>
       </Field>
+      <Field label="Reward item">
+        <select className="form-select" style={inputStyle}
+          value={draft.reward_item_id == null ? '' : String(draft.reward_item_id)}
+          onChange={(e) => onChange({ ...draft, reward_item_id: e.target.value ? Number(e.target.value) : null })}>
+          <option value="">None</option>
+          {items.map((it) => <option key={it.id} value={it.id}>{it.name}</option>)}
+        </select>
+      </Field>
       <Field label="Sort order">
         <input type="number" className="form-control" style={inputStyle} value={draft.sort_order ?? 0}
           onChange={(e) => onChange({ ...draft, sort_order: Number(e.target.value) })} />
@@ -166,6 +177,7 @@ export const AchievementsTab: React.FC = () => {
 
   const metrics = query.data?.metrics ?? [];
   const cosmetics = query.data?.cosmetics ?? [];
+  const items = query.data?.items ?? [];
 
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [createDraft, setCreateDraft] = useState<Draft>(emptyDraft());
@@ -228,7 +240,7 @@ export const AchievementsTab: React.FC = () => {
       {showCreate && (
         <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', borderRadius: 10, padding: 16, marginBottom: 24 }}>
           <h5 style={{ color: 'var(--text-primary)', marginBottom: 12 }}>New Achievement</h5>
-          <AchievementFields draft={createDraft} onChange={setCreateDraft} metrics={metrics} cosmetics={cosmetics} showKey />
+          <AchievementFields draft={createDraft} onChange={setCreateDraft} metrics={metrics} cosmetics={cosmetics} items={items} showKey />
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
             <button type="button" className="btn btn-sm primary"
               disabled={!createDraft.key || !createDraft.name || createMutation.isPending}
@@ -253,7 +265,7 @@ export const AchievementsTab: React.FC = () => {
                     <span style={{ color: TIER_COLORS[a.tier], fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700 }}>{a.tier}</span>
                     <code style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{a.key}</code>
                   </div>
-                  <AchievementFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [a.key]: patch }))} metrics={metrics} cosmetics={cosmetics} showKey />
+                  <AchievementFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [a.key]: patch }))} metrics={metrics} cosmetics={cosmetics} items={items} showKey />
                   {d.key !== a.key && (
                     <p style={{ color: '#fbbf24', fontSize: '0.78rem', marginTop: 8, marginBottom: 0 }}>
                       Renaming key <code>{a.key}</code> → <code>{d.key}</code> on Save. This cascades to existing unlocks and rewards.

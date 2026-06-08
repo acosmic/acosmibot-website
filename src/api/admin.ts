@@ -76,6 +76,7 @@ export interface AdminAchievement {
   threshold: number;
   reward_credits: number;
   reward_cosmetic_id: number | null;
+  reward_item_id: number | null;
   is_secret: boolean;
   is_available: boolean;
   sort_order: number;
@@ -90,10 +91,18 @@ export interface AdminCosmeticOption {
   type: string;
 }
 
+/** An item option for the reward dropdown. */
+export interface AdminItemOption {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export interface AdminAchievementsResponse {
   success: boolean;
   data: AdminAchievement[];
   cosmetics: AdminCosmeticOption[];
+  items: AdminItemOption[];
   metrics: string[];
 }
 
