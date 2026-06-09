@@ -21,6 +21,8 @@ export interface InventoryItem {
   is_consumable: boolean;
   is_giftable: boolean;
   is_tradeable: boolean;
+  is_equippable: boolean;
+  equip_slot: string | null;
   quantity: number;
   acquired_at: string | null;
   source: string;
@@ -29,6 +31,23 @@ export interface InventoryItem {
 export interface InventoryResponse {
   items: InventoryItem[];
   count: number;
+}
+
+/** An item the user currently has equipped, by slot. */
+export interface EquippedItem {
+  slot: string;
+  item_id: number;
+  slug: string;
+  name: string;
+  icon: string;
+  rarity: string;
+  item_type: string;
+  effects: ItemEffect[];
+  equipped_at: string | null;
+}
+
+export interface EquippedResponse {
+  equipped: EquippedItem[];
 }
 
 /** A live boost currently in force for the user. */
@@ -64,4 +83,15 @@ export const itemsApi = {
   getInventory: () => api.fetch<InventoryResponse>('/api/items/inventory'),
   getActiveEffects: () => api.fetch<ActiveEffectsResponse>('/api/items/active-effects'),
   getShop: () => api.fetch<ShopResponse>('/api/items/shop'),
+  getEquipped: () => api.fetch<EquippedResponse>('/api/items/equipped'),
+  equip: (slug: string) =>
+    api.fetch<{ success: boolean; message: string }>('/api/items/equip', {
+      method: 'POST',
+      body: JSON.stringify({ slug }),
+    }),
+  unequip: (slug: string) =>
+    api.fetch<{ success: boolean; message: string }>('/api/items/unequip', {
+      method: 'POST',
+      body: JSON.stringify({ slug }),
+    }),
 };

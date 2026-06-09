@@ -134,6 +134,8 @@ export interface AdminItem {
   max_stack: number;
   is_giftable: boolean;
   is_tradeable: boolean;
+  is_equippable: boolean;
+  equip_slot: string | null;
   price_credits: number | null;
   price_usd_cents: number | null;
   is_purchasable: boolean;

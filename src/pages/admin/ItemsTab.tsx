@@ -35,6 +35,8 @@ const emptyDraft = (): Draft => ({
   max_stack: 99,
   is_giftable: false,
   is_tradeable: false,
+  is_equippable: false,
+  equip_slot: null,
   price_credits: null,
   is_purchasable: false,
   is_available: false,
@@ -167,6 +169,11 @@ const ItemFields: React.FC<{
         value={draft.available_until ?? ''}
         onChange={(e) => onChange({ ...draft, available_until: e.target.value || null })} />
     </Field>
+    <Field label="Equip slot (if equippable, e.g. amulet)">
+      <input className="form-control" style={inputStyle} placeholder="blank = not equippable"
+        value={draft.equip_slot ?? ''}
+        onChange={(e) => onChange({ ...draft, equip_slot: e.target.value || null })} />
+    </Field>
     <Field label="Description">
       <input className="form-control" style={inputStyle} value={draft.description ?? ''}
         onChange={(e) => onChange({ ...draft, description: e.target.value })} />
@@ -178,6 +185,7 @@ const ItemFields: React.FC<{
         ['is_available', 'Available'],
         ['is_purchasable', 'Purchasable'],
         ['is_consumable', 'Consumable'],
+        ['is_equippable', 'Equippable'],
         ['is_giftable', 'Giftable'],
         ['is_tradeable', 'Tradeable'],
       ] as const).map(([key, label]) => (
