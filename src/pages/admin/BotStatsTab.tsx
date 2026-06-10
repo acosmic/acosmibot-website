@@ -71,6 +71,38 @@ function relativeTime(isoString: string): string {
   return `${Math.floor(diff / 3600)}h ago`;
 }
 
+// Log files are written by the server in naive UTC, e.g. "2026-06-10 19:08:20,747".
+// Parse as UTC and render in US Central (auto-handles CST/CDT).
+const CENTRAL_TZ = 'America/Chicago';
+const centralFmt = new Intl.DateTimeFormat('en-CA', {
+  timeZone: CENTRAL_TZ,
+  year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', second: '2-digit',
+  hour12: false, timeZoneName: 'short',
+});
+
+function parseLogTs(ts: string): Date | null {
+  if (!ts) return null;
+  const d = new Date(`${ts.replace(' ', 'T').replace(',', '.')}Z`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatCentral(ts: string): string {
+  const d = parseLogTs(ts);
+  if (!d) return ts;
+  return centralFmt.format(d).replace(',', '');
+}
+
+function relativeLogTime(ts: string): string {
+  const d = parseLogTs(ts);
+  if (!d) return '';
+  const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
 const LEVEL_BADGE: Record<string, { bg: string; color: string }> = {
   CRITICAL: { bg: '#7f1d1d', color: '#fca5a5' },
   ERROR:    { bg: '#450a0a', color: '#f87171' },
@@ -78,6 +110,43 @@ const LEVEL_BADGE: Record<string, { bg: string; color: string }> = {
   INFO:     { bg: '#1e3a5f', color: '#93c5fd' },
   DEBUG:    { bg: 'var(--bg-secondary)', color: 'var(--text-muted)' },
 };
+
+const BLANK = new Set(['', '-', '—']);
+
+function contextItems(entry: LogEntry): { label: string; value: string }[] {
+  const items: { label: string; value: string }[] = [];
+  const push = (label: string, value: string) => {
+    if (value && !BLANK.has(value)) items.push({ label, value });
+  };
+  push('guild', entry.guild_id);
+  push('user', entry.user_id);
+  push('channel', entry.channel_id);
+  push('ip', entry.ip);
+  if (entry.path && !BLANK.has(entry.path)) {
+    push('route', `${entry.method && !BLANK.has(entry.method) ? `${entry.method} ` : ''}${entry.path}`);
+  }
+  return items;
+}
+
+function ContextChips({ entry }: { entry: LogEntry }) {
+  const items = contextItems(entry);
+  if (items.length === 0) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      {items.map(({ label, value }) => (
+        <span key={label} style={{
+          display: 'inline-flex', gap: 4, alignItems: 'baseline',
+          background: 'var(--bg-secondary)', border: '1px solid var(--border-light)',
+          borderRadius: 4, padding: '1px 6px', fontSize: '0.72rem', fontFamily: 'monospace',
+          color: 'var(--text-muted)', whiteSpace: 'nowrap',
+        }}>
+          <span style={{ opacity: 0.6 }}>{label}</span>
+          <span style={{ color: 'var(--text-primary)' }}>{value}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function StatRow({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
   return (
@@ -294,13 +363,12 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           <table className="table table-dark table-hover" style={{ fontSize: '0.82rem' }}>
             <thead>
               <tr>
-                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Timestamp</th>
+                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Timestamp <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>(CT)</span></th>
                 <th style={{ borderColor: 'var(--border-light)', width: 70 }}>Source</th>
                 <th style={{ borderColor: 'var(--border-light)', width: 90 }}>Level</th>
-                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Guild ID</th>
-                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>User ID</th>
                 <th style={{ borderColor: 'var(--border-light)' }}>Logger</th>
                 <th style={{ borderColor: 'var(--border-light)' }}>Message</th>
+                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Context</th>
               </tr>
             </thead>
             <tbody>
@@ -309,9 +377,14 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                 const isMultiline = entry.message.includes('\n');
                 const displayMsg = entry.message.split('\n')[0];
                 return (
-                  <tr key={i}>
+                  <tr
+                    key={i}
+                    onClick={() => setDetailLog(entry)}
+                    style={{ cursor: 'pointer' }}
+                    title="Click to expand"
+                  >
                     <td style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
-                      {entry.timestamp}
+                      {formatCentral(entry.timestamp)}
                     </td>
                     <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       {entry.source ?? logSource}
@@ -328,40 +401,31 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                         {entry.level}
                       </span>
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-                      {entry.guild_id || '—'}
-                    </td>
-                    <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-                      {entry.user_id || '—'}
-                    </td>
                     <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {entry.logger}
-                      {entry.source === 'api' && entry.path && entry.path !== '-' && (
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                          {entry.method !== '-' ? `${entry.method} ` : ''}{entry.path}
-                        </div>
-                      )}
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)', maxWidth: 600 }}>
-                      <pre style={{
-                        margin: 0,
-                        fontFamily: 'inherit',
-                        fontSize: 'inherit',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        color: 'var(--text-primary)',
-                      }}>
-                        {displayMsg}
-                      </pre>
-                      {isMultiline && (
-                        <button
-                          onClick={() => setDetailLog(entry)}
-                          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.72rem', padding: '2px 0' }}
-                        >
-                          open traceback
-                        </button>
-                      )}
+                    <td style={{ borderColor: 'var(--border-light)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <pre style={{
+                          margin: 0,
+                          flex: 1,
+                          minWidth: 0,
+                          fontFamily: 'inherit',
+                          fontSize: 'inherit',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          color: 'var(--text-primary)',
+                        }}>
+                          {displayMsg}
+                        </pre>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                          {isMultiline ? 'open traceback ›' : '›'}
+                        </span>
+                      </div>
+                    </td>
+                    <td style={{ borderColor: 'var(--border-light)' }}>
+                      <ContextChips entry={entry} />
                     </td>
                   </tr>
                 );
@@ -374,8 +438,14 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
             const style = LEVEL_BADGE[entry.level] ?? LEVEL_BADGE.DEBUG;
             const firstLine = entry.message.split('\n')[0];
             const isMultiline = entry.message.includes('\n');
+            const ctx = contextItems(entry);
             return (
-              <div className="admin-mobile-row" key={i}>
+              <div
+                className="admin-mobile-row"
+                key={i}
+                onClick={() => setDetailLog(entry)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="admin-mobile-row-header">
                   <span style={{
                     background: style.bg,
@@ -387,7 +457,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                   }}>
                     {entry.level}
                   </span>
-                  <span className="text-muted">{entry.timestamp}</span>
+                  <span className="text-muted">{formatCentral(entry.timestamp)}</span>
                 </div>
                 <div className="admin-mobile-field primary">
                   <span className="admin-mobile-label">Message</span>
@@ -397,19 +467,15 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                   <span className="admin-mobile-label">Logger</span>
                   <span className="admin-mobile-value">{entry.logger || '—'}</span>
                 </div>
-                <div className="admin-mobile-field">
-                  <span className="admin-mobile-label">Source</span>
-                  <span className="admin-mobile-value">{entry.source ?? logSource}</span>
-                </div>
-                {isMultiline && (
-                  <button
-                    className="btn btn-sm"
-                    onClick={() => setDetailLog(entry)}
-                    style={{ justifySelf: 'start', marginTop: 8 }}
-                  >
-                    Open traceback
-                  </button>
+                {ctx.length > 0 && (
+                  <div className="admin-mobile-field">
+                    <span className="admin-mobile-label">Context</span>
+                    <span className="admin-mobile-value"><ContextChips entry={entry} /></span>
+                  </div>
                 )}
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: 8 }}>
+                  Tap to expand{isMultiline ? ' · traceback' : ''} ›
+                </span>
               </div>
             );
           })}
@@ -424,9 +490,16 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
               <button onClick={() => setDetailLog(null)} aria-label="Close log detail">×</button>
             </div>
             <div className="admin-log-meta">
-              <span>{detailLog.timestamp}</span>
+              <span>{formatCentral(detailLog.timestamp)}</span>
+              <span>{relativeLogTime(detailLog.timestamp)}</span>
+              <span style={{ textTransform: 'uppercase' }}>{detailLog.source ?? logSource}</span>
               <span>{detailLog.logger}</span>
             </div>
+            {contextItems(detailLog).length > 0 && (
+              <div style={{ margin: '4px 0 12px' }}>
+                <ContextChips entry={detailLog} />
+              </div>
+            )}
             <pre>{detailLog.message}</pre>
           </div>
         </div>
