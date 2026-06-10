@@ -9,6 +9,7 @@ import {
 } from '@/api/leaderboard';
 import { profileApi } from '@/api/profile';
 import { ProfileNav, DiscordLogo } from '@/components/profile/ProfileNav';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -39,6 +40,7 @@ export const LeaderboardPage: React.FC = () => {
           <GlobalBoard isAuthed={isAuthed} meId={authUser?.id} />
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 };

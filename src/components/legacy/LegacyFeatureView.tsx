@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { showToast } from '@/utils/toast';
 
 interface LegacyFeatureViewProps {
   feature: string;
@@ -76,7 +77,7 @@ export const LegacyFeatureView: React.FC<LegacyFeatureViewProps> = ({ feature })
             }
           },
           showNotification: (message: string, type: string) => {
-            console.log(`[LegacyNotification][${type}] ${message}`);
+            showToast(message, type);
           },
           showError: (message: string) => console.error(`[LegacyError] ${message}`),
           showLoading: () => {},

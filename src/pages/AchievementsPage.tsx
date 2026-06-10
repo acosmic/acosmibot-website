@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { achievementsApi, type AchievementCatalogEntry } from '@/api/achievements';
 import { ProfileNav } from '@/components/profile/ProfileNav';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -85,6 +86,7 @@ export const AchievementsPage: React.FC = () => {
           ))
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 };

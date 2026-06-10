@@ -235,7 +235,9 @@ export const AdminPage: React.FC = () => {
     fetch(`${apiBase}/api/admin/check`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => {
-        if (!d.is_admin) navigate('/');
+        // The panel and every /api/admin route require super-admin; a plain
+        // 'admin' row (or anyone else) is bounced here too.
+        if (!d.is_super_admin) navigate('/');
         else setAuthChecked(true);
       })
       .catch(() => navigate('/'));

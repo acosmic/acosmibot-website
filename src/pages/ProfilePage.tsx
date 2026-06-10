@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { profileApi, type PublicProfile } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { DailyReward } from '@/components/profile/DailyReward';
 import { NotificationList } from '@/components/profile/NotificationList';
 import { TrophyCase } from '@/components/profile/TrophyCase';
@@ -93,6 +94,7 @@ export const ProfilePage: React.FC = () => {
           </>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 };

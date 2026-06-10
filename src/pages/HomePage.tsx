@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth';
 import '@/styles/home.css';
 
@@ -196,24 +197,24 @@ export const HomePage: React.FC = () => {
       {/* ── Mobile Nav Drawer ───────────────────────────────── */}
       <div className={`mobile-nav-drawer${mobileNavOpen ? ' open' : ''}`}>
         <div className="mobile-nav-header">
-          <a href="/" className="mobile-nav-logo">
+          <Link to="/" className="mobile-nav-logo" onClick={() => setMobileNavOpen(false)}>
             <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" />
-          </a>
+          </Link>
           <button className="mobile-nav-close" onClick={() => setMobileNavOpen(false)}>×</button>
         </div>
         <ul className="mobile-nav-links">
           <li><a href="#features" onClick={() => setMobileNavOpen(false)}>Features</a></li>
           <li><button onClick={() => { setMobileNavOpen(false); setShowPremiumModal(true); }}>Premium</button></li>
-          <li><a href="/docs/introduction" onClick={() => setMobileNavOpen(false)}>Documentation</a></li>
-          <li><a href="/leaderboard" onClick={() => setMobileNavOpen(false)}>Leaderboards</a></li>
+          <li><Link to="/docs/introduction" onClick={() => setMobileNavOpen(false)}>Documentation</Link></li>
+          <li><Link to="/leaderboard" onClick={() => setMobileNavOpen(false)}>Leaderboards</Link></li>
           {isAuthenticated && (
             <>
-              <li><a href="/servers" onClick={() => setMobileNavOpen(false)}>Servers</a></li>
-              <li><a href="/me" onClick={() => setMobileNavOpen(false)}>Profile</a></li>
+              <li><Link to="/servers" onClick={() => setMobileNavOpen(false)}>Servers</Link></li>
+              <li><Link to="/me" onClick={() => setMobileNavOpen(false)}>Profile</Link></li>
             </>
           )}
-          {user?.id === '110637665128325120' && (
-            <li><a href="/admin" style={{ color: '#f59e0b' }} onClick={() => setMobileNavOpen(false)}>Admin</a></li>
+          {user?.is_admin && (
+            <li><Link to="/admin" style={{ color: '#f59e0b' }} onClick={() => setMobileNavOpen(false)}>Admin</Link></li>
           )}
         </ul>
         <div className="mobile-nav-divider" />
@@ -244,9 +245,9 @@ export const HomePage: React.FC = () => {
       <nav>
         <div className="home-container">
           <div className="nav-content">
-            <a href="/" className="logo">
+            <Link to="/" className="logo">
               <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" />
-            </a>
+            </Link>
 
             <ul className="nav-links">
               <li><a href="#features">Features</a></li>
@@ -255,13 +256,13 @@ export const HomePage: React.FC = () => {
                   Premium
                 </a>
               </li>
-              <li><a href="/docs/introduction">Documentation</a></li>
-              <li><a href="/leaderboard">Leaderboards</a></li>
+              <li><Link to="/docs/introduction">Documentation</Link></li>
+              <li><Link to="/leaderboard">Leaderboards</Link></li>
               {isAuthenticated && (
-                <li><a href="/servers">Servers</a></li>
+                <li><Link to="/servers">Servers</Link></li>
               )}
-              {user?.id === '110637665128325120' && (
-                <li><a href="/admin" style={{ color: 'var(--color-warning, #f59e0b)' }}>Admin</a></li>
+              {user?.is_admin && (
+                <li><Link to="/admin" style={{ color: 'var(--color-warning, #f59e0b)' }}>Admin</Link></li>
               )}
             </ul>
 
@@ -291,10 +292,14 @@ export const HomePage: React.FC = () => {
                     <div className="user-info">
                       <div className="user-name">{user.username}</div>
                     </div>
-                    <a href="/servers">Servers</a>
-                    <a href="/me">Profile</a>
-                    {user.id === '110637665128325120' && (
-                      <a href="/admin" style={{ color: '#f59e0b' }}>Admin</a>
+                    <Link to="/me">My Profile</Link>
+                    <Link to="/achievements">Achievements</Link>
+                    <Link to="/leaderboard">Leaderboards</Link>
+                    <Link to="/servers">Servers</Link>
+                    <Link to="/settings">Settings</Link>
+                    <Link to="/docs/introduction">Docs</Link>
+                    {user.is_admin && (
+                      <Link to="/admin" style={{ color: '#f59e0b' }}>Admin</Link>
                     )}
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '5px 0' }} />
                     <button className="logout-btn" onClick={handleLogout}><Icon.Logout /> Logout</button>

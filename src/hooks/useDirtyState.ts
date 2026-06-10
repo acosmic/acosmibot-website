@@ -16,6 +16,17 @@ export function useDirtyState<T>(initialState: T | undefined) {
     return JSON.stringify(initialState) !== JSON.stringify(form);
   }, [initialState, form]);
 
+  // Warn before the tab is closed/reloaded while there are unsaved changes.
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
   const resetForm = useCallback(() => {
     setFormState(initialState);
   }, [initialState]);

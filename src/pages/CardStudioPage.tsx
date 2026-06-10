@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ProfileNav } from '@/components/profile/ProfileNav';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 import { profileApi, type PublicProfile } from '@/api/profile';
@@ -255,6 +256,7 @@ export const CardStudioPage: React.FC = () => {
           </div>
         </Modal>
       )}
+      <SiteFooter />
     </div>
   );
 };

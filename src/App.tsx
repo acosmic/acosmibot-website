@@ -21,6 +21,7 @@ import { CardStudioPage } from './pages/CardStudioPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AchievementsPage } from './pages/AchievementsPage';
 import { DocsPage } from './pages/docs/DocsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/admin/AdminPage';
 
@@ -143,7 +144,7 @@ function App() {
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/docs/:page" element={<DocsPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

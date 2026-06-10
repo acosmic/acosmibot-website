@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi, type PublicProfile, type PrivacySettings } from '@/api/profile';
 import { OwnerSettings } from '@/components/profile/OwnerSettings';
 import { ProfileNav } from '@/components/profile/ProfileNav';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -84,6 +85,7 @@ export const SettingsPage: React.FC = () => {
           </>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 };

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { startLogin } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 import { NotificationBell } from './NotificationBell';
 
-export type NavUser = { id: string; username: string; avatar: string | null; global_name: string | null };
+export type NavUser = { id: string; username: string; avatar: string | null; global_name: string | null; is_admin?: boolean };
 
 /**
  * Shared top nav for the profile + settings routes (which aren't inside the
@@ -14,6 +15,7 @@ export const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
 
   // Close the dropdown on any outside click (matches the home-screen menu).
   useEffect(() => {
@@ -31,9 +33,9 @@ export const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
       borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center',
       justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100,
     }}>
-      <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
         <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
-      </a>
+      </Link>
 
       {user ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
@@ -62,13 +64,17 @@ export const ProfileNav: React.FC<{ user: NavUser | null }> = ({ user }) => {
               }}>
                 {user.global_name || user.username}
               </div>
-              <NavMenuLink href={`/u/${user.username}`}>My Profile</NavMenuLink>
-              <NavMenuLink href="/achievements">Achievements</NavMenuLink>
-              <NavMenuLink href="/leaderboard">Leaderboards</NavMenuLink>
-              <NavMenuLink href="/settings">Settings</NavMenuLink>
-              <NavMenuLink href="/servers">Servers</NavMenuLink>
+              <NavMenuLink to={`/u/${user.username}`} onClick={() => setOpen(false)}>My Profile</NavMenuLink>
+              <NavMenuLink to="/achievements" onClick={() => setOpen(false)}>Achievements</NavMenuLink>
+              <NavMenuLink to="/leaderboard" onClick={() => setOpen(false)}>Leaderboards</NavMenuLink>
+              <NavMenuLink to="/servers" onClick={() => setOpen(false)}>Servers</NavMenuLink>
+              <NavMenuLink to="/settings" onClick={() => setOpen(false)}>Settings</NavMenuLink>
+              <NavMenuLink to="/docs/introduction" onClick={() => setOpen(false)}>Docs</NavMenuLink>
+              {user.is_admin && (
+                <NavMenuLink to="/admin" onClick={() => setOpen(false)} color="#f59e0b">Admin</NavMenuLink>
+              )}
               <button
-                onClick={() => { logout(); window.location.href = '/'; }}
+                onClick={() => { logout(); navigate('/'); }}
                 style={{
                   textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer',
                   color: '#ff6b6b', fontSize: '13px', padding: '8px 10px', borderRadius: '8px',
@@ -100,11 +106,16 @@ export const DiscordLogo: React.FC<{ size?: number }> = ({ size = 16 }) => (
   </svg>
 );
 
-const NavMenuLink: React.FC<{ href: string; children: React.ReactNode }> = ({ href, children }) => (
-  <a href={href} style={{
-    color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none',
+const NavMenuLink: React.FC<{
+  to: string;
+  onClick?: () => void;
+  color?: string;
+  children: React.ReactNode;
+}> = ({ to, onClick, color, children }) => (
+  <Link to={to} onClick={onClick} style={{
+    color: color ?? 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none',
     padding: '8px 10px', borderRadius: '8px',
   }}>
     {children}
-  </a>
+  </Link>
 );

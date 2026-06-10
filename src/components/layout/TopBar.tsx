@@ -87,10 +87,14 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick, menuOpen }) => {
                 <div className="user-info">
                   <div className="user-name">{user.global_name || user.username}</div>
                 </div>
-                <a href="/servers">Servers</a>
-                <a href="/me">Profile</a>
-                {user.id === '110637665128325120' && (
-                  <a href="/admin" className="admin-link">Admin</a>
+                <Link to={`/u/${user.username}`} onClick={() => setShowUserMenu(false)}>My Profile</Link>
+                <Link to="/achievements" onClick={() => setShowUserMenu(false)}>Achievements</Link>
+                <Link to="/leaderboard" onClick={() => setShowUserMenu(false)}>Leaderboards</Link>
+                <Link to="/servers" onClick={() => setShowUserMenu(false)}>Servers</Link>
+                <Link to="/settings" onClick={() => setShowUserMenu(false)}>Settings</Link>
+                <Link to="/docs/introduction" onClick={() => setShowUserMenu(false)}>Docs</Link>
+                {user.is_admin && (
+                  <Link to="/admin" className="admin-link" onClick={() => setShowUserMenu(false)}>Admin</Link>
                 )}
                 <button className="logout-btn" onClick={handleLogout}>Logout</button>
               </div>

@@ -5,6 +5,7 @@ interface User {
   username: string;
   avatar: string | null;
   global_name: string | null;
+  is_admin?: boolean;
 }
 
 interface AuthState {

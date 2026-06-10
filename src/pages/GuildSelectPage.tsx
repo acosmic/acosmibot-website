@@ -3,13 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 import { useAuthStore } from '@/store/auth';
 import { guildApi } from '@/api/guilds';
+import { ProfileNav } from '@/components/profile/ProfileNav';
+import { SiteFooter } from '@/components/layout/SiteFooter';
+import { useHydrateAuthUser } from '@/lib/auth';
 
 const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 
 export const GuildSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const { guilds, setGuilds, setSelectedGuildId } = useGuildStore();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  useHydrateAuthUser();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -33,57 +37,7 @@ export const GuildSelectPage: React.FC = () => {
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Top nav */}
-      <nav style={{
-        height: '56px',
-        background: 'rgba(26,26,26,0.95)',
-        backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid var(--border-light)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 24px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-      }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: '32px' }} />
-        </a>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '50%',
-                backgroundImage: user.avatar ? `url(${user.avatar})` : 'none',
-                backgroundSize: 'cover',
-                backgroundColor: 'var(--bg-tertiary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '14px', fontWeight: 'bold', color: 'white',
-              }}>
-                {!user.avatar && (user.global_name || user.username).charAt(0).toUpperCase()}
-              </div>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                {user.global_name || user.username}
-              </span>
-            </div>
-          )}
-          <button
-            onClick={logout}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--border-light)',
-              color: 'var(--text-secondary)',
-              borderRadius: '8px',
-              padding: '6px 14px',
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
-          >
-            Log Out
-          </button>
-        </div>
-      </nav>
+      <ProfileNav user={user} />
 
       <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 
@@ -149,11 +103,17 @@ export const GuildSelectPage: React.FC = () => {
               {sorted.map(guild => {
                 const isOwner = guild.owner;
                 const isAdmin = guild.permissions?.includes('administrator');
+                const canManage = isOwner || isAdmin;
+                // Members can't use the admin dashboard — send them to the
+                // guild leaderboard instead.
+                const open = () => canManage
+                  ? handleManage(guild.id)
+                  : navigate(`/leaderboard/${guild.id}`);
 
                 return (
                   <div
                     key={guild.id}
-                    onClick={() => handleManage(guild.id)}
+                    onClick={open}
                     style={{
                       background: 'var(--bg-card)',
                       border: '1px solid var(--border-light)',
@@ -219,7 +179,7 @@ export const GuildSelectPage: React.FC = () => {
                     </span>
 
                     {/* Action button */}
-                    {(isOwner || isAdmin) ? (
+                    {canManage ? (
                       <button style={{
                         background: 'var(--primary-color)', color: '#000', border: 'none',
                         borderRadius: '8px', padding: '8px 20px', fontSize: '13px',
@@ -234,7 +194,7 @@ export const GuildSelectPage: React.FC = () => {
                         borderRadius: '8px', padding: '8px 20px', fontSize: '13px',
                         fontWeight: 600, cursor: 'pointer', width: '100%', marginTop: '4px',
                       }}>
-                        View Stats
+                        View Leaderboard
                       </button>
                     )}
                   </div>
@@ -277,6 +237,7 @@ export const GuildSelectPage: React.FC = () => {
           </>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 };
