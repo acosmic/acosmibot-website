@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { profileApi, type PublicProfile } from '@/api/profile';
+import { profileApi, type PublicProfile, type TopCommand, type TopReaction } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { DailyReward } from '@/components/profile/DailyReward';
@@ -82,6 +82,7 @@ export const ProfilePage: React.FC = () => {
             {isAuthed ? (
               <>
                 <GlobalStats profile={profile} />
+                <TopUsage profile={profile} />
                 {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
                 <TrophyCase achievements={profile.achievements} isOwner={isOwner} />
                 {isOwner && <InventorySection />}
@@ -173,6 +174,85 @@ const GlobalStats: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{label}</div>
         </div>
       ))}
+    </div>
+  );
+};
+
+/** Renders a custom Discord emoji from the CDN, or the unicode char directly. */
+const Emoji: React.FC<{ reaction: TopReaction }> = ({ reaction }) => {
+  if (reaction.emoji_id) {
+    const ext = reaction.animated ? 'gif' : 'png';
+    return (
+      <img
+        src={`https://cdn.discordapp.com/emojis/${reaction.emoji_id}.${ext}?size=32`}
+        alt={reaction.emoji_display}
+        title={`:${reaction.emoji_display}:`}
+        style={{ width: 20, height: 20, verticalAlign: 'middle' }}
+      />
+    );
+  }
+  return <span style={{ fontSize: '18px' }}>{reaction.emoji_display}</span>;
+};
+
+/** Two side-by-side "Top Commands" / "Top Reactions" ranked lists. Each section
+ *  renders only when its data is present (gated server-side by privacy toggles)
+ *  and non-empty, so brand-new users don't see empty boxes. */
+const TopUsage: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
+  const topCommands = profile.global.top_commands ?? [];
+  const topReactions = profile.global.top_reactions ?? [];
+  if (topCommands.length === 0 && topReactions.length === 0) return null;
+
+  const panel: React.CSSProperties = {
+    background: 'var(--bg-card)', border: '1px solid var(--border-light)',
+    borderRadius: '14px', padding: '18px', flex: '1 1 240px',
+  };
+  const heading: React.CSSProperties = {
+    fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase',
+    letterSpacing: '0.05em', marginBottom: '12px',
+  };
+  const row: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '6px 0',
+  };
+  const rankNum: React.CSSProperties = {
+    color: 'var(--text-muted)', fontSize: '13px', width: '20px', flexShrink: 0,
+  };
+  const count: React.CSSProperties = {
+    color: 'var(--text-muted)', fontSize: '13px', fontVariantNumeric: 'tabular-nums',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+      {topCommands.length > 0 && (
+        <div style={panel}>
+          <div style={heading}>Top Commands</div>
+          {topCommands.map((c: TopCommand, i: number) => (
+            <div key={c.name} style={row}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                <span style={rankNum}>{i + 1}</span>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  /{c.name}
+                </span>
+              </span>
+              <span style={count}>{c.count.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {topReactions.length > 0 && (
+        <div style={panel}>
+          <div style={heading}>Top Reactions</div>
+          {topReactions.map((r: TopReaction, i: number) => (
+            <div key={r.emoji_key} style={row}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={rankNum}>{i + 1}</span>
+                <Emoji reaction={r} />
+              </span>
+              <span style={count}>{r.count.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

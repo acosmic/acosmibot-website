@@ -12,6 +12,7 @@ import { BannedUsersPage } from './features/banned-users/BannedUsersPage';
 import { AiPage } from './features/ai/AiPage';
 import { SlotsPage } from './features/slots/SlotsPage';
 import { PolymorphPage } from './features/polymorph/PolymorphPage';
+import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
@@ -117,6 +118,10 @@ const FeatureOutlet = () => {
 
   if (feature === 'polymorph') {
     return <PolymorphPage />;
+  }
+
+  if (feature === 'analytics') {
+    return <GuildAnalyticsPage />;
   }
 
   return <LegacyFeatureView feature={feature || 'overview'} />;

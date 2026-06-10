@@ -29,6 +29,19 @@ export interface ProfileGuild {
   hidden?: boolean;
 }
 
+export interface TopCommand {
+  name: string;
+  count: number;
+}
+
+export interface TopReaction {
+  emoji_key: string;
+  emoji_display: string;
+  emoji_id: number | null;
+  animated: boolean;
+  count: number;
+}
+
 export interface ProfileGlobal {
   level: number;
   // Each field is present only when its privacy toggle is on (level is always sent).
@@ -37,6 +50,9 @@ export interface ProfileGlobal {
   total_messages?: number;
   total_reactions?: number;
   total_commands?: number;
+  // Granular breakdowns — present alongside total_commands / total_reactions.
+  top_commands?: TopCommand[];
+  top_reactions?: TopReaction[];
   // Present only when the economy section is visible.
   currency?: number;
   bank_balance?: number;

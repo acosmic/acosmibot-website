@@ -121,6 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <>
               <NavSection title="SYSTEMS">
                 <NavItem to={`/server/${guildId}/leveling`} icon="leveling" label="Leveling" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/analytics`} icon="activitymonitor" label="Analytics" onClick={onClose} />
               </NavSection>
 
               <NavSection title="UTILITIES">
