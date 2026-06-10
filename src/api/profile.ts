@@ -12,6 +12,8 @@ export interface PrivacySettings {
   show_guilds: boolean;
   // Unlocked-achievements trophy case.
   show_achievements: boolean;
+  // Notification preference (not a visibility flag): DM on achievement unlock.
+  dm_achievements: boolean;
   // Opt-in: show name & avatar unmasked to people who don't share a server.
   public_identity: boolean;
   // Owner view only — guild IDs the user has opted to hide.
@@ -37,7 +39,7 @@ export interface TopCommand {
 export interface TopReaction {
   emoji_key: string;
   emoji_display: string;
-  emoji_id: number | null;
+  emoji_id: string | null;
   animated: boolean;
   count: number;
 }

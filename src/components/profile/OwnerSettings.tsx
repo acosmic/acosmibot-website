@@ -69,6 +69,13 @@ export const OwnerSettings: React.FC<{
       <Toggle label="Public identity" hint="Show your name & avatar to people who don’t share a server with you (leaderboards & profile). Off = they see you masked."
         checked={privacy.public_identity} disabled={saving}
         onChange={(v) => onToggle('public_identity', v)} />
+
+      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 -2px' }}>
+        Notifications
+      </div>
+      <Toggle label="Achievement DMs" hint="Get a direct message when you unlock an achievement, so you can claim your reward"
+        checked={privacy.dm_achievements} disabled={saving}
+        onChange={(v) => onToggle('dm_achievements', v)} />
     </div>
 
     {/* Per-server visibility: choose exactly which servers appear. */}
