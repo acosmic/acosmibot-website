@@ -57,6 +57,45 @@ const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, 
   </label>
 );
 
+const ITEM_TYPE_META: Record<string, { title: string; description: string }> = {
+  consumable: {
+    title: 'Consumables',
+    description: 'One-use items that apply a timed or permanent effect when consumed.',
+  },
+  equipment: {
+    title: 'Equipment',
+    description: 'Items users equip into a slot for ongoing bonuses or cosmetic loadouts.',
+  },
+  permanent: {
+    title: 'Permanent',
+    description: 'Persistent unlocks or account-level items that are not consumed.',
+  },
+};
+
+const typeMeta = (type: string) => ITEM_TYPE_META[type] ?? {
+  title: `${type.charAt(0).toUpperCase()}${type.slice(1)} Items`,
+  description: 'Catalog items grouped by their configured item type.',
+};
+
+const typeOrder = (type: string) => {
+  const ordered = ['consumable', 'equipment', 'permanent'];
+  const index = ordered.indexOf(type);
+  return index === -1 ? ordered.length : index;
+};
+
+const formatCredits = (credits: number | null | undefined) =>
+  credits == null ? 'Not for sale' : `${credits.toLocaleString()} credits`;
+
+const summarizeEffects = (effects: AdminItemEffect[] | undefined) => {
+  if (!effects?.length) return 'No effects';
+  return effects.map((e) => {
+    const magnitude = `${Math.round((e.magnitude ?? 0) * 100)}%`;
+    const scope = e.scope === 'global' ? 'all servers' : 'this server';
+    const duration = e.duration_seconds == null ? 'permanent' : `${Math.round(e.duration_seconds / 3600)}h`;
+    return `${magnitude} ${e.type.replace(/_/g, ' ')} · ${scope} · ${duration}`;
+  }).join(', ');
+};
+
 /** Editor for the effects[] array of an item. Magnitude is shown as a percent. */
 const EffectsEditor: React.FC<{
   effects: AdminItemEffect[];
@@ -212,6 +251,7 @@ export const ItemsTab: React.FC = () => {
   const [createDraft, setCreateDraft] = useState<Draft>(emptyDraft());
   const [showCreate, setShowCreate] = useState(false);
   const [savedSlug, setSavedSlug] = useState<string | null>(null);
+  const [expandedSlugs, setExpandedSlugs] = useState<Set<string>>(() => new Set());
 
   // Grant tool state.
   const [grantUser, setGrantUser] = useState('');
@@ -257,14 +297,24 @@ export const ItemsTab: React.FC = () => {
 
   const isDirty = (it: AdminItem) => JSON.stringify(drafts[it.slug] ?? {}) !== JSON.stringify({ ...it });
   const anyError = createMutation.error || updateMutation.error || deleteMutation.error;
+  const toggleExpanded = (slug: string) => {
+    setExpandedSlugs((current) => {
+      const next = new Set(current);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  };
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <h3 className="mb-0">Items</h3>
-        <button type="button" className="btn btn-sm primary" onClick={() => setShowCreate((v) => !v)}>
-          {showCreate ? 'Cancel' : '＋ New Item'}
-        </button>
+        {!showCreate && (
+          <button type="button" className="btn btn-sm primary" onClick={() => setShowCreate(true)}>
+            ＋ New Item
+          </button>
+        )}
       </div>
       <p className="text-muted mb-4">
         Define what an item does via its effects (xp/credit boosts, every-server or one-server,
@@ -298,8 +348,18 @@ export const ItemsTab: React.FC = () => {
       </div>
 
       {showCreate && (
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', borderRadius: 10, padding: 16, marginBottom: 24 }}>
-          <h5 style={{ color: 'var(--text-primary)', marginBottom: 12 }}>New Item</h5>
+        <div className="admin-config-panel" style={{ marginBottom: 24 }}>
+          <div className="admin-config-panel-header">
+            <div>
+              <h5 style={{ color: 'var(--text-primary)', margin: 0 }}>New Item</h5>
+              <p style={{ color: 'var(--text-muted)', margin: '4px 0 0', fontSize: '0.82rem' }}>
+                Draft the catalog entry here, then make it available after the configuration is ready.
+              </p>
+            </div>
+            <button type="button" className="btn btn-sm" onClick={() => { setShowCreate(false); setCreateDraft(emptyDraft()); }}>
+              Cancel
+            </button>
+          </div>
           <ItemFields draft={createDraft} onChange={setCreateDraft} effectTypes={effectTypes}
             effectScopes={effectScopes} rarities={rarities} itemTypes={itemTypes} showSlug />
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
@@ -312,50 +372,76 @@ export const ItemsTab: React.FC = () => {
         </div>
       )}
 
-      {Object.keys(grouped).sort().map((type) => (
-        <div key={type} style={{ marginBottom: 28 }}>
-          <h5 style={{ color: 'var(--text-primary)', marginBottom: 12, textTransform: 'capitalize' }}>{type}</h5>
+      {Object.keys(grouped).sort((a, b) => typeOrder(a) - typeOrder(b) || a.localeCompare(b)).map((type) => {
+        const meta = typeMeta(type);
+        return (
+        <section key={type} className="admin-catalog-section">
+          <div className="admin-catalog-section-header">
+            <div>
+              <h5>{meta.title}</h5>
+              <p>{meta.description}</p>
+            </div>
+            <span>{grouped[type].length} {grouped[type].length === 1 ? 'item' : 'items'}</span>
+          </div>
           <div style={{ display: 'grid', gap: 14 }}>
             {grouped[type].map((it) => {
               const d = drafts[it.slug] ?? { ...it };
+              const dirty = isDirty(it);
+              const expanded = expandedSlugs.has(it.slug) || dirty;
               return (
-                <div key={it.slug} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', borderRadius: 10, padding: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 22 }}>{it.icon}</span>
-                    <strong style={{ color: 'var(--text-primary)' }}>{it.name}</strong>
-                    <span style={{ color: RARITY_COLORS[it.rarity], fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700 }}>{it.rarity}</span>
-                    <code style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{it.slug}</code>
-                    {!it.is_available && <span style={{ color: '#f87171', fontSize: '0.72rem' }}>disabled</span>}
-                  </div>
-                  <ItemFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [it.slug]: patch }))}
-                    effectTypes={effectTypes} effectScopes={effectScopes} rarities={rarities} itemTypes={itemTypes} showSlug />
-                  {d.slug !== it.slug && (
-                    <p style={{ color: '#fbbf24', fontSize: '0.78rem', marginTop: 8, marginBottom: 0 }}>
-                      Renaming slug <code>{it.slug}</code> → <code>{d.slug}</code> on Save.
-                    </p>
+                <div key={it.slug} className="admin-catalog-card">
+                  <button type="button" className="admin-catalog-row" onClick={() => toggleExpanded(it.slug)}
+                    aria-expanded={expanded}>
+                    <span className="admin-row-toggle">{expanded ? '−' : '+'}</span>
+                    <span className="admin-row-icon">{it.icon}</span>
+                    <span className="admin-row-main">
+                      <span className="admin-row-title">
+                        <strong>{it.name}</strong>
+                        <span style={{ color: RARITY_COLORS[it.rarity] }}>{it.rarity}</span>
+                        {!it.is_available && <span className="admin-status-danger">Disabled</span>}
+                        {dirty && <span className="admin-status-warning">Unsaved</span>}
+                      </span>
+                      <span className="admin-row-subtitle">
+                        <code>{it.slug}</code>
+                        <span>{formatCredits(it.price_credits)}</span>
+                        <span>{summarizeEffects(it.effects)}</span>
+                      </span>
+                    </span>
+                    <span className="admin-row-action">{expanded ? 'Hide config' : 'Configure'}</span>
+                  </button>
+                  {expanded && (
+                    <div className="admin-catalog-config">
+                      <ItemFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [it.slug]: patch }))}
+                        effectTypes={effectTypes} effectScopes={effectScopes} rarities={rarities} itemTypes={itemTypes} showSlug />
+                      {d.slug !== it.slug && (
+                        <p style={{ color: '#fbbf24', fontSize: '0.78rem', marginTop: 8, marginBottom: 0 }}>
+                          Renaming slug <code>{it.slug}</code> → <code>{d.slug}</code> on Save.
+                        </p>
+                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, justifyContent: 'flex-end' }}>
+                        {savedSlug === it.slug && !dirty && !updateMutation.isPending && (
+                          <span style={{ color: '#4ade80', fontSize: '0.82rem' }}>Saved</span>
+                        )}
+                        <button type="button" className="btn btn-sm"
+                          style={{ color: '#f87171', border: '1px solid #f87171', background: 'transparent' }}
+                          disabled={deleteMutation.isPending}
+                          onClick={() => { if (confirm(`Delete item "${it.name}"?`)) deleteMutation.mutate(it.slug); }}>
+                          Delete
+                        </button>
+                        <button type="button" className="btn btn-sm primary"
+                          disabled={!dirty || updateMutation.isPending}
+                          onClick={() => updateMutation.mutate({ slug: it.slug, draft: { ...d, new_slug: d.slug } })}>
+                          {updateMutation.isPending && updateMutation.variables?.slug === it.slug ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
                   )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, justifyContent: 'flex-end' }}>
-                    {savedSlug === it.slug && !isDirty(it) && !updateMutation.isPending && (
-                      <span style={{ color: '#4ade80', fontSize: '0.82rem' }}>Saved</span>
-                    )}
-                    <button type="button" className="btn btn-sm"
-                      style={{ color: '#f87171', border: '1px solid #f87171', background: 'transparent' }}
-                      disabled={deleteMutation.isPending}
-                      onClick={() => { if (confirm(`Delete item "${it.name}"?`)) deleteMutation.mutate(it.slug); }}>
-                      Delete
-                    </button>
-                    <button type="button" className="btn btn-sm primary"
-                      disabled={!isDirty(it) || updateMutation.isPending}
-                      onClick={() => updateMutation.mutate({ slug: it.slug, draft: { ...d, new_slug: d.slug } })}>
-                      {updateMutation.isPending && updateMutation.variables?.slug === it.slug ? 'Saving...' : 'Save'}
-                    </button>
-                  </div>
                 </div>
               );
             })}
           </div>
-        </div>
-      ))}
+        </section>
+      );})}
 
       {anyError && <p style={{ color: '#f87171' }}>Error: {String(anyError)}</p>}
     </div>

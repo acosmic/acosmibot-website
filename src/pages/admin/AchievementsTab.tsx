@@ -25,6 +25,36 @@ const TIER_COLORS: Record<string, string> = {
   legendary: '#a855f7',
 };
 
+const CATEGORY_META: Record<string, string> = {
+  leveling: 'Progression achievements based on level, XP, and message activity.',
+  social: 'Community participation and relationship achievements.',
+  economy: 'Currency, shop, and banking achievements.',
+  games: 'Achievements earned through game and minigame activity.',
+  special: 'Manual, event-driven, seasonal, or otherwise unique achievements.',
+};
+
+const categoryDescription = (category: string) =>
+  CATEGORY_META[category] ?? 'Achievements grouped by their configured category.';
+
+const categoryOrder = (category: string) => {
+  const index = CATEGORIES.indexOf(category);
+  return index === -1 ? CATEGORIES.length : index;
+};
+
+const summarizeRequirement = (a: AdminAchievement) => (
+  a.condition_type === 'event'
+    ? 'Bot-granted event'
+    : `${a.metric ?? 'metric'} >= ${a.threshold}`
+);
+
+const summarizeReward = (a: AdminAchievement) => {
+  const rewards = [];
+  if (a.reward_credits) rewards.push(`${a.reward_credits.toLocaleString()} credits`);
+  if (a.reward_cosmetic_id != null) rewards.push('cosmetic');
+  if (a.reward_item_id != null) rewards.push('item');
+  return rewards.length ? rewards.join(' + ') : 'No reward';
+};
+
 type Draft = AdminAchievementInput;
 
 const emptyDraft = (): Draft => ({
@@ -183,6 +213,7 @@ export const AchievementsTab: React.FC = () => {
   const [createDraft, setCreateDraft] = useState<Draft>(emptyDraft());
   const [showCreate, setShowCreate] = useState(false);
   const [savedKey, setSavedKey] = useState<string | null>(null);
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (!query.data?.data) return;
@@ -222,14 +253,24 @@ export const AchievementsTab: React.FC = () => {
   };
 
   const anyError = createMutation.error || updateMutation.error || deleteMutation.error;
+  const toggleExpanded = (key: string) => {
+    setExpandedKeys((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <h3 className="mb-0">Achievements</h3>
-        <button type="button" className="btn btn-sm primary" onClick={() => setShowCreate((v) => !v)}>
-          {showCreate ? 'Cancel' : '＋ New Achievement'}
-        </button>
+        {!showCreate && (
+          <button type="button" className="btn btn-sm primary" onClick={() => setShowCreate(true)}>
+            ＋ New Achievement
+          </button>
+        )}
       </div>
       <p className="text-muted mb-4">
         Define a requirement (a metric threshold, or an event the bot grants) and a reward
@@ -238,8 +279,18 @@ export const AchievementsTab: React.FC = () => {
       </p>
 
       {showCreate && (
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', borderRadius: 10, padding: 16, marginBottom: 24 }}>
-          <h5 style={{ color: 'var(--text-primary)', marginBottom: 12 }}>New Achievement</h5>
+        <div className="admin-config-panel" style={{ marginBottom: 24 }}>
+          <div className="admin-config-panel-header">
+            <div>
+              <h5 style={{ color: 'var(--text-primary)', margin: 0 }}>New Achievement</h5>
+              <p style={{ color: 'var(--text-muted)', margin: '4px 0 0', fontSize: '0.82rem' }}>
+                Define the unlock requirement and reward before adding it to the catalog.
+              </p>
+            </div>
+            <button type="button" className="btn btn-sm" onClick={() => { setShowCreate(false); setCreateDraft(emptyDraft()); }}>
+              Cancel
+            </button>
+          </div>
           <AchievementFields draft={createDraft} onChange={setCreateDraft} metrics={metrics} cosmetics={cosmetics} items={items} showKey />
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
             <button type="button" className="btn btn-sm primary"
@@ -251,48 +302,74 @@ export const AchievementsTab: React.FC = () => {
         </div>
       )}
 
-      {Object.keys(grouped).sort().map((category) => (
-        <div key={category} style={{ marginBottom: 28 }}>
-          <h5 style={{ color: 'var(--text-primary)', marginBottom: 12, textTransform: 'capitalize' }}>{category}</h5>
+      {Object.keys(grouped).sort((a, b) => categoryOrder(a) - categoryOrder(b) || a.localeCompare(b)).map((category) => (
+        <section key={category} className="admin-catalog-section">
+          <div className="admin-catalog-section-header">
+            <div>
+              <h5>{category}</h5>
+              <p>{categoryDescription(category)}</p>
+            </div>
+            <span>{grouped[category].length} {grouped[category].length === 1 ? 'achievement' : 'achievements'}</span>
+          </div>
           <div style={{ display: 'grid', gap: 14 }}>
             {grouped[category].map((a) => {
               const d = drafts[a.key] ?? { ...a };
+              const dirty = isDirty(a);
+              const expanded = expandedKeys.has(a.key) || dirty;
               return (
-                <div key={a.key} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', borderRadius: 10, padding: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 22 }}>{a.icon}</span>
-                    <strong style={{ color: 'var(--text-primary)' }}>{a.name}</strong>
-                    <span style={{ color: TIER_COLORS[a.tier], fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700 }}>{a.tier}</span>
-                    <code style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{a.key}</code>
-                  </div>
-                  <AchievementFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [a.key]: patch }))} metrics={metrics} cosmetics={cosmetics} items={items} showKey />
-                  {d.key !== a.key && (
-                    <p style={{ color: '#fbbf24', fontSize: '0.78rem', marginTop: 8, marginBottom: 0 }}>
-                      Renaming key <code>{a.key}</code> → <code>{d.key}</code> on Save. This cascades to existing unlocks and rewards.
-                      {a.key === 'og_member' && ' Note: the bot grants OG by the key "og_member" — renaming it will stop OG grants until the bot code is updated.'}
-                    </p>
+                <div key={a.key} className="admin-catalog-card">
+                  <button type="button" className="admin-catalog-row" onClick={() => toggleExpanded(a.key)}
+                    aria-expanded={expanded}>
+                    <span className="admin-row-toggle">{expanded ? '−' : '+'}</span>
+                    <span className="admin-row-icon">{a.icon}</span>
+                    <span className="admin-row-main">
+                      <span className="admin-row-title">
+                        <strong>{a.name}</strong>
+                        <span style={{ color: TIER_COLORS[a.tier] }}>{a.tier}</span>
+                        {!a.is_available && <span className="admin-status-danger">Disabled</span>}
+                        {a.is_secret && <span className="admin-status-muted">Secret</span>}
+                        {dirty && <span className="admin-status-warning">Unsaved</span>}
+                      </span>
+                      <span className="admin-row-subtitle">
+                        <code>{a.key}</code>
+                        <span>{summarizeRequirement(a)}</span>
+                        <span>{summarizeReward(a)}</span>
+                      </span>
+                    </span>
+                    <span className="admin-row-action">{expanded ? 'Hide config' : 'Configure'}</span>
+                  </button>
+                  {expanded && (
+                    <div className="admin-catalog-config">
+                      <AchievementFields draft={d} onChange={(patch) => setDrafts((s) => ({ ...s, [a.key]: patch }))} metrics={metrics} cosmetics={cosmetics} items={items} showKey />
+                      {d.key !== a.key && (
+                        <p style={{ color: '#fbbf24', fontSize: '0.78rem', marginTop: 8, marginBottom: 0 }}>
+                          Renaming key <code>{a.key}</code> → <code>{d.key}</code> on Save. This cascades to existing unlocks and rewards.
+                          {a.key === 'og_member' && ' Note: the bot grants OG by the key "og_member" — renaming it will stop OG grants until the bot code is updated.'}
+                        </p>
+                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, justifyContent: 'flex-end' }}>
+                        {savedKey === a.key && !dirty && !updateMutation.isPending && (
+                          <span style={{ color: '#4ade80', fontSize: '0.82rem' }}>Saved</span>
+                        )}
+                        <button type="button" className="btn btn-sm"
+                          style={{ color: '#f87171', border: '1px solid #f87171', background: 'transparent' }}
+                          disabled={deleteMutation.isPending}
+                          onClick={() => { if (confirm(`Delete achievement "${a.name}"?`)) deleteMutation.mutate(a.key); }}>
+                          Delete
+                        </button>
+                        <button type="button" className="btn btn-sm primary"
+                          disabled={!dirty || updateMutation.isPending}
+                          onClick={() => updateMutation.mutate({ key: a.key, draft: { ...d, new_key: d.key } })}>
+                          {updateMutation.isPending && updateMutation.variables?.key === a.key ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
                   )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, justifyContent: 'flex-end' }}>
-                    {savedKey === a.key && !isDirty(a) && !updateMutation.isPending && (
-                      <span style={{ color: '#4ade80', fontSize: '0.82rem' }}>Saved</span>
-                    )}
-                    <button type="button" className="btn btn-sm"
-                      style={{ color: '#f87171', border: '1px solid #f87171', background: 'transparent' }}
-                      disabled={deleteMutation.isPending}
-                      onClick={() => { if (confirm(`Delete achievement "${a.name}"?`)) deleteMutation.mutate(a.key); }}>
-                      Delete
-                    </button>
-                    <button type="button" className="btn btn-sm primary"
-                      disabled={!isDirty(a) || updateMutation.isPending}
-                      onClick={() => updateMutation.mutate({ key: a.key, draft: { ...d, new_key: d.key } })}>
-                      {updateMutation.isPending && updateMutation.variables?.key === a.key ? 'Saving...' : 'Save'}
-                    </button>
-                  </div>
                 </div>
               );
             })}
           </div>
-        </div>
+        </section>
       ))}
 
       {anyError && <p style={{ color: '#f87171' }}>Error: {String(anyError)}</p>}
