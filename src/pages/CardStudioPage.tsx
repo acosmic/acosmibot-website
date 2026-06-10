@@ -33,6 +33,10 @@ const SLOT_ORDER: CosmeticType[] = ['accent', 'background', 'ring'];
 
 const fmt = (n: number): string => n.toLocaleString('en-US');
 
+/** Price after the active shop discount (matches the backend's ceil rounding). */
+const discounted = (price: number, discount: number): number =>
+  discount > 0 ? Math.max(Math.ceil(price * (1 - discount)), 0) : price;
+
 /** Build the live preview payload from the user's real stats + selected loadout. */
 function buildPreview(
   profile: PublicProfile | undefined,
@@ -186,7 +190,7 @@ export const CardStudioPage: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '24px', alignItems: 'start' }}>
             {/* Left — configurator */}
             <div>
-              <BalanceBadge balance={catalog.bank_balance} />
+              <BalanceBadge balance={catalog.bank_balance} discount={catalog.shop_discount} />
               {SLOT_ORDER.map((type) => (
                 <SlotSection
                   key={type}
@@ -194,6 +198,7 @@ export const CardStudioPage: React.FC = () => {
                   items={byType[type]}
                   selectedId={selected[type]?.id ?? null}
                   busy={equipMutation.isPending || purchaseMutation.isPending}
+                  discount={catalog.shop_discount}
                   onTileClick={handleTileClick}
                   onBuy={setPendingBuy}
                 />
@@ -222,7 +227,12 @@ export const CardStudioPage: React.FC = () => {
           <p style={{ margin: '0 0 20px', color: 'var(--text-secondary)', fontSize: '14px' }}>
             {pendingBuy.price === 0
               ? <>Get <strong>{pendingBuy.name}</strong> for free?</>
-              : <>Buy <strong>{pendingBuy.name}</strong> for <strong>{fmt(pendingBuy.price)}</strong> credits?</>}
+              : (catalog?.shop_discount ?? 0) > 0
+                ? <>Buy <strong>{pendingBuy.name}</strong> for{' '}
+                    <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>{fmt(pendingBuy.price)}</span>{' '}
+                    <strong>{fmt(discounted(pendingBuy.price, catalog!.shop_discount))}</strong> credits?{' '}
+                    <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>({Math.round(catalog!.shop_discount * 100)}% off)</span></>
+                : <>Buy <strong>{pendingBuy.name}</strong> for <strong>{fmt(pendingBuy.price)}</strong> credits?</>}
           </p>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
             <ModalButton variant="ghost" onClick={() => setPendingBuy(null)}>Cancel</ModalButton>
@@ -249,15 +259,26 @@ export const CardStudioPage: React.FC = () => {
   );
 };
 
-const BalanceBadge: React.FC<{ balance: number }> = ({ balance }) => (
-  <div style={{
-    display: 'inline-flex', alignItems: 'baseline', gap: '8px',
-    background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
-    borderRadius: '12px', padding: '12px 16px', marginBottom: '20px',
-  }}>
-    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Bank balance</span>
-    <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary-color)' }}>{fmt(balance)}</span>
-    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>credits</span>
+const BalanceBadge: React.FC<{ balance: number; discount: number }> = ({ balance, discount }) => (
+  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+    <div style={{
+      display: 'inline-flex', alignItems: 'baseline', gap: '8px',
+      background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
+      borderRadius: '12px', padding: '12px 16px',
+    }}>
+      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Bank balance</span>
+      <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary-color)' }}>{fmt(balance)}</span>
+      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>credits</span>
+    </div>
+    {discount > 0 && (
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: '6px',
+        background: 'rgba(245,158,11,0.12)', border: '1px solid #f59e0b',
+        borderRadius: '12px', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: '#f59e0b',
+      }}>
+        🧿 {Math.round(discount * 100)}% shop discount active
+      </div>
+    )}
   </div>
 );
 
@@ -270,14 +291,15 @@ const SlotSection: React.FC<{
   items: Cosmetic[];
   selectedId: number | null;
   busy: boolean;
+  discount: number;
   onTileClick: (c: Cosmetic) => void;
   onBuy: (c: Cosmetic) => void;
-}> = ({ title, items, selectedId, busy, onTileClick, onBuy }) => (
+}> = ({ title, items, selectedId, busy, discount, onTileClick, onBuy }) => (
   <div style={{ marginBottom: '24px' }}>
     <SectionTitle>{title}</SectionTitle>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '12px' }}>
       {items.map((c) => (
-        <Swatch key={c.id} cosmetic={c} selected={selectedId === c.id} busy={busy} onTileClick={onTileClick} onBuy={onBuy} />
+        <Swatch key={c.id} cosmetic={c} selected={selectedId === c.id} busy={busy} discount={discount} onTileClick={onTileClick} onBuy={onBuy} />
       ))}
     </div>
   </div>
@@ -292,13 +314,17 @@ const Swatch: React.FC<{
   cosmetic: Cosmetic;
   selected: boolean;
   busy: boolean;
+  discount: number;
   onTileClick: (c: Cosmetic) => void;
   onBuy: (c: Cosmetic) => void;
-}> = ({ cosmetic, selected, busy, onTileClick, onBuy }) => {
+}> = ({ cosmetic, selected, busy, discount, onTileClick, onBuy }) => {
   const swatchStyle: React.CSSProperties =
     cosmetic.type === 'background' && /gradient/i.test(cosmetic.value)
       ? { background: cosmetic.value }
       : { backgroundColor: cosmetic.value };
+
+  const hasDiscount = discount > 0 && cosmetic.price > 0;
+  const finalPrice = discounted(cosmetic.price, discount);
 
   return (
     <div
@@ -331,7 +357,15 @@ const Swatch: React.FC<{
           <img src={OG_FRAME_DATA_URI} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
         </div>
       ) : (
-        <div style={{ ...swatchStyle, height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+        <div style={{ ...swatchStyle, position: 'relative', height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          {hasDiscount && !cosmetic.owned && (
+            <span style={{
+              position: 'absolute', top: '4px', right: '4px',
+              background: '#f59e0b', color: '#1a1a1a', borderRadius: '6px',
+              padding: '1px 6px', fontSize: '10px', fontWeight: 800,
+            }}>-{Math.round(discount * 100)}%</span>
+          )}
+        </div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
         <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{cosmetic.name}</span>
@@ -355,7 +389,13 @@ const Swatch: React.FC<{
             fontSize: '12px', fontWeight: 700, color: 'var(--primary-color)', background: 'transparent',
           }}
         >
-          {cosmetic.price === 0 ? 'Get — Free' : `Buy — ${fmt(cosmetic.price)}`}
+          {cosmetic.price === 0 ? (
+            'Get — Free'
+          ) : hasDiscount ? (
+            <>Buy — <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>{fmt(cosmetic.price)}</span> {fmt(finalPrice)}</>
+          ) : (
+            `Buy — ${fmt(cosmetic.price)}`
+          )}
         </button>
       )}
     </div>

@@ -21,6 +21,8 @@ export interface Cosmetic {
 export interface CosmeticCatalog {
   cosmetics: Cosmetic[];
   bank_balance: number;
+  /** Active shop-discount fraction (e.g. 0.2 from an equipped Merchant's Amulet). */
+  shop_discount: number;
 }
 
 /** Equipped cosmetic id per slot (null = card default). */
