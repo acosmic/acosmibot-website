@@ -15,6 +15,15 @@ type Tab = 'standard' | 'custom';
 const buildCustomEmojiValue = (e: GuildEmoji): string =>
   `<${e.animated ? 'a' : ''}:${e.name}:${e.id}>`;
 
+const FALLBACK_EXTS: Record<string, string[]> = {
+  gif: ['webp', 'png'],
+  webp: ['png', 'gif'],
+  png: ['webp', 'gif'],
+};
+
+const customEmojiUrl = (e: GuildEmoji, ext: string): string =>
+  `https://cdn.discordapp.com/emojis/${e.id}.${ext}${ext === 'webp' && e.animated ? '?animated=true' : ''}`;
+
 export const EmojiPicker: React.FC<EmojiPickerProps> = ({
   open, onClose, onSelect, serverEmojis, usedEmojis,
 }) => {
@@ -219,7 +228,23 @@ const ServerGrid: React.FC<ServerGridProps> = ({ emojis, usedSet, onSelect }) =>
             onMouseEnter={(ev) => { if (!used) ev.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
             onMouseLeave={(ev) => { ev.currentTarget.style.background = 'transparent'; }}
           >
-            <img src={e.url} alt={e.name} style={{ width: 28, height: 28, objectFit: 'contain' }} />
+            <img
+              src={customEmojiUrl(e, e.animated ? 'gif' : 'webp')}
+              alt={e.name}
+              style={{ width: 28, height: 28, objectFit: 'contain' }}
+              onError={(ev) => {
+                const img = ev.currentTarget;
+                const primary = e.animated ? 'gif' : 'webp';
+                const tried = (img.dataset.tried ?? primary).split(',');
+                const next = FALLBACK_EXTS[primary]?.find(ext => !tried.includes(ext));
+                if (next) {
+                  img.dataset.tried = [...tried, next].join(',');
+                  img.src = customEmojiUrl(e, next);
+                } else if (img.src !== e.url) {
+                  img.src = e.url;
+                }
+              }}
+            />
           </button>
         );
       })}
