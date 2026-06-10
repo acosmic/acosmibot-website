@@ -14,6 +14,14 @@ const DEFAULT_SLOTS: SlotsConfig = {
   },
 };
 
+const TIER_LIMITS: Record<SlotsTier, number> = {
+  common: 5,
+  uncommon: 3,
+  rare: 2,
+  legendary: 1,
+  scatter: 1,
+};
+
 export interface GuildEmoji {
   id: string;
   name: string;
@@ -37,7 +45,7 @@ export function useSlotsConfig(guildId: string) {
     if (!query.data) return undefined;
     const tiers: SlotsTier[] = ['common', 'uncommon', 'rare', 'legendary', 'scatter'];
     const tier_emojis = tiers.reduce((acc, t) => {
-      acc[t] = Array.isArray(raw?.tier_emojis?.[t]) ? [...raw.tier_emojis[t]] : [];
+      acc[t] = Array.isArray(raw?.tier_emojis?.[t]) ? [...raw.tier_emojis[t]].slice(0, TIER_LIMITS[t]) : [];
       return acc;
     }, {} as Record<SlotsTier, string[]>);
     return {

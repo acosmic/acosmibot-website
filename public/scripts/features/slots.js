@@ -23,8 +23,8 @@ const SlotsFeature = {
         tierRequirements: {
             common: 5,
             uncommon: 3,
-            rare: 1,
-            legendary: 2,
+            rare: 2,
+            legendary: 1,
             scatter: 1
         }
     },
@@ -89,18 +89,18 @@ const SlotsFeature = {
         const tierEmojis = slotsConfig.tier_emojis || {
             common: ['🍒', '🍋', '🍊', '🍇', '🍌'],
             uncommon: ['⭐', '🔔', '❤️'],
-            rare: ['🍀'],
-            legendary: ['💎', '🎰'],
+            rare: ['🍀', '🎰'],
+            legendary: ['💎'],
             scatter: ['7️⃣']
         };
 
         // Store in state
         this.state.tierEmojis = {
-            common: [...(tierEmojis.common || [])],
-            uncommon: [...(tierEmojis.uncommon || [])],
-            rare: [...(tierEmojis.rare || [])],
-            legendary: [...(tierEmojis.legendary || [])],
-            scatter: [...(tierEmojis.scatter || [])]
+            common: [...(tierEmojis.common || [])].slice(0, this.state.tierRequirements.common),
+            uncommon: [...(tierEmojis.uncommon || [])].slice(0, this.state.tierRequirements.uncommon),
+            rare: [...(tierEmojis.rare || [])].slice(0, this.state.tierRequirements.rare),
+            legendary: [...(tierEmojis.legendary || [])].slice(0, this.state.tierRequirements.legendary),
+            scatter: [...(tierEmojis.scatter || [])].slice(0, this.state.tierRequirements.scatter)
         };
 
         // Render all tiers

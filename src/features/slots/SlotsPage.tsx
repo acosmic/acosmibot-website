@@ -18,8 +18,8 @@ interface TierMeta {
 const TIERS: TierMeta[] = [
   { tier: 'common',    title: 'Common Tier',    badge: 'Most Frequent',   description: 'These symbols appear most often on the reels.',            limit: 5, color: '#9e9e9e' },
   { tier: 'uncommon',  title: 'Uncommon Tier',  badge: 'Medium Frequency', description: 'These symbols appear moderately often.',                   limit: 3, color: '#4caf50' },
-  { tier: 'rare',      title: 'Rare Tier',      badge: 'Less Frequent',   description: 'These symbols are harder to land.',                        limit: 1, color: '#2196f3' },
-  { tier: 'legendary', title: 'Legendary Tier', badge: 'Very Rare',       description: 'These symbols rarely appear but give the biggest payouts.', limit: 2, color: '#ff9800' },
+  { tier: 'rare',      title: 'Rare Tier',      badge: 'Less Frequent',   description: 'These symbols are harder to land.',                        limit: 2, color: '#2196f3' },
+  { tier: 'legendary', title: 'Legendary Tier', badge: 'Very Rare',       description: 'These symbols rarely appear but give the biggest payouts.', limit: 1, color: '#ff9800' },
   { tier: 'scatter',   title: 'Scatter Tier',   badge: 'Special Symbol',  description: 'Scatter symbols can trigger bonus features.',              limit: 1, color: '#9c27b0' },
 ];
 
