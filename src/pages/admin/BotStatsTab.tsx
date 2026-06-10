@@ -74,11 +74,11 @@ function relativeTime(isoString: string): string {
 // Log files are written by the server in naive UTC, e.g. "2026-06-10 19:08:20,747".
 // Parse as UTC and render in US Central (auto-handles CST/CDT).
 const CENTRAL_TZ = 'America/Chicago';
-const centralFmt = new Intl.DateTimeFormat('en-CA', {
+const centralFmt = new Intl.DateTimeFormat('en-US', {
   timeZone: CENTRAL_TZ,
-  year: 'numeric', month: '2-digit', day: '2-digit',
-  hour: '2-digit', minute: '2-digit', second: '2-digit',
-  hour12: false, timeZoneName: 'short',
+  month: 'numeric', day: 'numeric', year: 'numeric',
+  hour: 'numeric', minute: '2-digit', second: '2-digit',
+  hour12: true, timeZoneName: 'short',
 });
 
 function parseLogTs(ts: string): Date | null {
@@ -128,11 +128,11 @@ function contextItems(entry: LogEntry): { label: string; value: string }[] {
   return items;
 }
 
-function ContextChips({ entry }: { entry: LogEntry }) {
+function ContextChips({ entry, wrap = true }: { entry: LogEntry; wrap?: boolean }) {
   const items = contextItems(entry);
   if (items.length === 0) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+    <div style={{ display: 'flex', flexWrap: wrap ? 'wrap' : 'nowrap', gap: 4 }}>
       {items.map(({ label, value }) => (
         <span key={label} style={{
           display: 'inline-flex', gap: 4, alignItems: 'baseline',
@@ -360,15 +360,15 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       ) : (
         <>
         <div className="admin-table-desktop">
-          <table className="table table-dark table-hover" style={{ fontSize: '0.82rem' }}>
+          <table className="table table-dark table-hover" style={{ fontSize: '0.82rem', tableLayout: 'fixed', width: '100%' }}>
             <thead>
               <tr>
-                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Timestamp <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>(CT)</span></th>
-                <th style={{ borderColor: 'var(--border-light)', width: 70 }}>Source</th>
-                <th style={{ borderColor: 'var(--border-light)', width: 90 }}>Level</th>
-                <th style={{ borderColor: 'var(--border-light)' }}>Logger</th>
+                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', width: 180 }}>Timestamp <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>(CT)</span></th>
+                <th style={{ borderColor: 'var(--border-light)', width: 64 }}>Source</th>
+                <th style={{ borderColor: 'var(--border-light)', width: 84 }}>Level</th>
+                <th style={{ borderColor: 'var(--border-light)', width: 150 }}>Logger</th>
                 <th style={{ borderColor: 'var(--border-light)' }}>Message</th>
-                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap' }}>Context</th>
+                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', width: 280 }}>Context</th>
               </tr>
             </thead>
             <tbody>
@@ -424,8 +424,8 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                         </span>
                       </div>
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)' }}>
-                      <ContextChips entry={entry} />
+                    <td style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                      <ContextChips entry={entry} wrap={false} />
                     </td>
                   </tr>
                 );
