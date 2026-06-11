@@ -12,6 +12,8 @@ export interface GlobalEntry {
   global_exp?: number;
   // Present on the economy board.
   total_currency?: number;
+  bank_balance?: number;
+  economy_total?: number;
   // Server-decided: true when this person should be masked from the viewer
   // (not them, not opted-public, no shared server).
   masked?: boolean;

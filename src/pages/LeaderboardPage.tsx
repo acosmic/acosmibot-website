@@ -57,6 +57,12 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
   });
 
   const entries = data?.entries ?? [];
+  const economyValue = (entry: GlobalEntry): number | null | undefined =>
+    entry.economy_total ?? (
+      entry.total_currency === undefined && entry.bank_balance === undefined
+        ? undefined
+        : (entry.total_currency ?? 0) + (entry.bank_balance ?? 0)
+    );
 
   return (
     <>
@@ -83,7 +89,7 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
               name={e.global_name || e.discord_username || `User ${e.user_id}`}
               username={e.discord_username}
               userId={e.user_id}
-              value={metric === 'economy' ? `${fmt((e as GlobalEntry).total_currency)} credits` : `${fmt((e as GlobalEntry).global_exp)} XP`}
+              value={metric === 'economy' ? `${fmt(economyValue(e))} credits` : `${fmt((e as GlobalEntry).global_exp)} XP`}
               sub={`Lvl ${fmt(e.global_level)}`}
               isMe={!!meId && meId === e.user_id}
               masked={e.masked ?? !isAuthed}
