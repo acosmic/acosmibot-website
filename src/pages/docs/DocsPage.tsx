@@ -9,7 +9,13 @@ import {
 import '@/styles/docs.css';
 
 // ── Navigation structure (mirrors docs-search.js) ──────────────
-interface NavItemDef { slug: string; label: string; icon: LucideIcon; iconColor?: string }
+interface NavItemDef {
+  slug: string;
+  label: string;
+  icon: LucideIcon;
+  iconColor?: string;
+  assetIcon?: 'twitch' | 'youtube' | 'kick';
+}
 
 const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
   {
@@ -31,9 +37,9 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
   {
     category: 'Social Alerts',
     items: [
-      { slug: 'twitch',  label: 'Twitch Integration', icon: TvMinimalPlay, iconColor: '#9146FF' },
-      { slug: 'youtube', label: 'YouTube Integration', icon: TvMinimalPlay, iconColor: '#FF0000' },
-      { slug: 'kick',    label: 'Kick Integration', icon: TvMinimalPlay, iconColor: '#53FC18' },
+      { slug: 'twitch',  label: 'Twitch Integration', icon: TvMinimalPlay, assetIcon: 'twitch' },
+      { slug: 'youtube', label: 'YouTube Integration', icon: TvMinimalPlay, assetIcon: 'youtube' },
+      { slug: 'kick',    label: 'Kick Integration', icon: TvMinimalPlay, assetIcon: 'kick' },
     ],
   },
   {
@@ -182,7 +188,17 @@ export const DocsPage: React.FC = () => {
                   className={`docs-nav-item${page === item.slug ? ' active' : ''}`}
                   onClick={() => handleNavClick(item.slug)}
                 >
-                  <item.icon size={16} color={item.iconColor} aria-hidden />
+                  {item.assetIcon ? (
+                    <span
+                      className="docs-nav-asset-icon"
+                      style={{
+                        backgroundImage: `url('/images/acosmibot_${item.assetIcon}-${page === item.slug ? 'active' : 'inactive'}.svg')`,
+                      }}
+                      aria-hidden
+                    />
+                  ) : (
+                    <item.icon size={16} color={item.iconColor} aria-hidden />
+                  )}
                   {item.label}
                 </button>
               ))}

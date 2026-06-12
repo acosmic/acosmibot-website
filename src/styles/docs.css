@@ -141,6 +141,15 @@
   font-weight: 500;
 }
 
+.docs-nav-asset-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
 /* ── Main Content ────────────────────────────────────────── */
 .docs-content {
   margin-left: 280px;
