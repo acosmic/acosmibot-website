@@ -218,9 +218,9 @@ class DashboardCore {
     const tier = config.premium_tier || 'free';
     let tierBadge = '';
     if (tier === 'premium_plus_ai') {
-      tierBadge = '<span class="tier-badge premium-plus-ai">💎 Premium + AI</span>';
+      tierBadge = '<span class="tier-badge premium-plus-ai"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.125em"><path d="M10.5 3 8 9l4 13 4-13-2.5-6"/><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z"/><path d="M2 9h20"/></svg> Premium + AI</span>';
     } else if (tier === 'premium') {
-      tierBadge = '<span class="tier-badge premium">💎 Premium</span>';
+      tierBadge = '<span class="tier-badge premium"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.125em"><path d="M10.5 3 8 9l4 13 4-13-2.5-6"/><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z"/><path d="M2 9h20"/></svg> Premium</span>';
     } else {
       tierBadge = '<span class="tier-badge free">Free</span>';
     }
