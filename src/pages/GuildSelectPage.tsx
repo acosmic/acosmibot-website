@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bot, Gem, Plus } from 'lucide-react';
 import { useGuildStore } from '@/store/guild';
 import { useAuthStore } from '@/store/auth';
 import { guildApi } from '@/api/guilds';
@@ -54,7 +55,7 @@ export const GuildSelectPage: React.FC = () => {
         {/* Empty state */}
         {sorted.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🤖</div>
+            <div style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}><Bot size={64} /></div>
             <h2 style={{ color: 'var(--text-primary)', marginBottom: '12px' }}>No servers found</h2>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
               Add Acosmibot to a server you own or manage to get started.
@@ -84,9 +85,10 @@ export const GuildSelectPage: React.FC = () => {
                 background: 'var(--primary-color)', color: '#000', border: 'none',
                 borderRadius: '10px', padding: '14px 32px', fontSize: '15px',
                 fontWeight: 700, cursor: 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
               }}
             >
-              ➕ Add Acosmibot to a Server
+              <Plus size={18} /> Add Acosmibot to a Server
             </button>
           </div>
         )}
@@ -132,9 +134,13 @@ export const GuildSelectPage: React.FC = () => {
                   >
                     {/* Premium badge */}
                     {guild.premium_tier && guild.premium_tier !== 'free' && (
-                      <span style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '16px' }}
+                      <span style={{
+                        position: 'absolute', top: '10px', right: '10px', display: 'flex',
+                        alignItems: 'center', gap: '3px', color: 'var(--primary-color)',
+                      }}
                         title={guild.premium_tier === 'premium_plus_ai' ? 'Premium + AI' : 'Premium'}>
-                        {guild.premium_tier === 'premium_plus_ai' ? '🤖💎' : '💎'}
+                        {guild.premium_tier === 'premium_plus_ai' && <Bot size={16} />}
+                        <Gem size={16} />
                       </span>
                     )}
 
@@ -225,9 +231,9 @@ export const GuildSelectPage: React.FC = () => {
                   width: '48px', height: '48px', borderRadius: '50%',
                   background: 'var(--bg-overlay)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '24px',
+                  color: 'var(--text-secondary)',
                 }}>
-                  ➕
+                  <Plus size={24} />
                 </div>
                 <div style={{ color: 'var(--text-secondary)', fontSize: '14px', textAlign: 'center', fontWeight: 500 }}>
                   Add to another server

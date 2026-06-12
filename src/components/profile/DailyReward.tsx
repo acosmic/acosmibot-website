@@ -1,5 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { CircleCheck, Flame, Gift, PartyPopper } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import { dailyApi } from '@/api/daily';
 import './DailyReward.css';
 
@@ -48,16 +50,16 @@ export const DailyReward: React.FC = () => {
       <div
         key={justClaimed ? 'claimed' : 'idle'}
         className={justClaimed ? 'dr-emoji--pop' : (canClaim ? 'dr-gift--idle' : undefined)}
-        style={{ fontSize: '2rem', lineHeight: 1 }}
+        style={{ lineHeight: 1, color: justClaimed ? 'var(--primary-color)' : data.can_claim ? '#ffd700' : '#4ade80' }}
       >
-        {justClaimed ? '🎉' : data.can_claim ? '🎁' : '✅'}
+        {justClaimed ? <PartyPopper size={32} /> : data.can_claim ? <Gift size={32} /> : <CircleCheck size={32} />}
       </div>
 
       <div style={{ flex: 1, minWidth: '180px' }}>
         <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
           Daily reward
           {streakShown > 0 && (
-            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}> · 🔥 {streakShown.toLocaleString()} day streak</span>
+            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}> · <InlineIcon icon={Flame} color="#ff9f43" /> {streakShown.toLocaleString()} day streak</span>
           )}
         </div>
         <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -83,7 +85,7 @@ export const DailyReward: React.FC = () => {
           transition: 'transform 0.1s ease',
         }}
       >
-        {claim.isPending ? 'Claiming…' : justClaimed ? 'Claimed 🎉' : data.can_claim ? `Claim +${data.next_reward.toLocaleString()}` : 'Claimed'}
+        {claim.isPending ? 'Claiming…' : justClaimed ? <>Claimed <InlineIcon icon={PartyPopper} /></> : data.can_claim ? `Claim +${data.next_reward.toLocaleString()}` : 'Claimed'}
       </button>
     </div>
   );

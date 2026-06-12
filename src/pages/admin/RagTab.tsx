@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Check, ChevronDown, ChevronRight, RefreshCw, X } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 
 interface RagDocument {
   document_id: string;
@@ -268,7 +270,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
             disabled={refreshing || deletingAll}
             className="btn btn-sm btn-outline-secondary"
           >
-            {refreshing ? 'Refreshing...' : '↻ Refresh Help Docs'}
+            {refreshing ? 'Refreshing...' : <><InlineIcon icon={RefreshCw} size={13} /> Refresh Help Docs</>}
           </button>
           <button
             onClick={() => handleRefresh(true)}
@@ -336,7 +338,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
                 <div key={doc.document_id} style={{ borderBottom: '1px solid var(--border-light)' }}>
                   <div className="rag-doc-row" onClick={() => toggleDoc(doc.document_id)}>
                     <span className="rag-doc-toggle">
-                      {expanded ? '▼' : '▶'}
+                      {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </span>
                     <span className="rag-doc-title">{doc.title}</span>
                     <span className="rag-doc-meta">{doc.total_chunks} chunks</span>
@@ -485,8 +487,8 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
                     </td>
                     <td style={{ borderColor: 'var(--border-light)' }}>
                       {log.response_generated
-                        ? <span style={{ color: '#4ade80' }}>✓</span>
-                        : <span style={{ color: '#f87171' }}>✗</span>}
+                        ? <Check size={14} color="#4ade80" />
+                        : <X size={14} color="#f87171" />}
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Check, Trophy } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import { achievementsApi, type AchievementCatalogEntry } from '@/api/achievements';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -59,7 +61,7 @@ export const AchievementsPage: React.FC = () => {
           </Link>
         </nav>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <h1 style={{ color: 'var(--text-primary)', margin: 0 }}>🏆 Achievements</h1>
+          <h1 style={{ color: 'var(--text-primary)', margin: 0 }}><InlineIcon icon={Trophy} color="#ffd700" /> Achievements</h1>
           {token && <span style={{ color: 'var(--text-muted)' }}>{unlocked} / {total} unlocked</span>}
         </div>
         <p style={{ color: 'var(--text-muted)', marginTop: 8, marginBottom: 28 }}>
@@ -108,12 +110,12 @@ const AchievementCard: React.FC<{ a: AchievementCatalogEntry }> = ({ a }) => {
       }}
     >
       <span style={{ fontSize: 30, lineHeight: 1, filter: a.unlocked ? 'none' : 'grayscale(0.7)' }}>
-        {a.icon || '🏆'}
+        {a.icon || <Trophy size={30} color={tierColor} />}
       </span>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <strong style={{ color: 'var(--text-primary)' }}>{a.name}</strong>
-          {a.unlocked && <span style={{ color: '#4ade80', fontSize: 12 }}>✓</span>}
+          {a.unlocked && <Check size={14} color="#4ade80" />}
           {a.available_until && !a.unlocked && (
             <span style={{
               color: '#f59e0b', fontSize: 10, fontWeight: 700, textTransform: 'uppercase',

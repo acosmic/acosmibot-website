@@ -1,6 +1,9 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Flame, Hourglass, Lock, Palette, Settings, Trophy, type LucideIcon } from 'lucide-react';
+import { CenteredMessage } from '@/components/ui/CenteredMessage';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import { profileApi, type PublicProfile, type TopCommand, type TopReaction } from '@/api/profile';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -63,11 +66,11 @@ export const ProfilePage: React.FC = () => {
       <ProfileNav user={authUser} />
 
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
-        {isLoading && <CenteredMessage emoji="⏳" title="Loading profile…" />}
+        {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading profile…" />}
 
         {isError && (
           <CenteredMessage
-            emoji="🔒"
+            icon={<Lock size={48} />}
             title="Profile unavailable"
             subtitle={(error as Error)?.message?.includes('403')
               ? 'This profile is private.'
@@ -277,7 +280,7 @@ const LockedTeaser: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
           borderRadius: '20px', padding: '32px', maxWidth: '420px', textAlign: 'center',
           boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
         }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>🔒</div>
+          <div style={{ marginBottom: '8px', color: 'var(--text-secondary)' }}><Lock size={40} /></div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
             See {name}’s full profile
           </h2>
@@ -324,7 +327,7 @@ const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) =
           <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
             <Chip>Lvl {fmt(gu.level)}</Chip>
             <Chip highlight>{ordinal(gu.rank)}</Chip>
-            {gu.streak > 0 && <Chip>🔥 {fmt(gu.streak)}</Chip>}
+            {gu.streak > 0 && <Chip><InlineIcon icon={Flame} color="#ff9f43" /> {fmt(gu.streak)}</Chip>}
           </div>
         </a>
       ))}
@@ -348,10 +351,10 @@ const Chip: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ ch
  *  "Quick Links" so the consolidated profile is also the account jumping-off
  *  point. These are navigation (not settings) and stay on the profile. */
 const OwnerShortcuts: React.FC = () => {
-  const links: Array<{ label: string; desc: string; href: string; external?: boolean; primary?: boolean }> = [
-    { label: '⚙ Profile Settings', desc: 'Privacy & what others can see', href: '/settings', primary: true },
-    { label: '🎨 Customize your card', desc: 'Shop cosmetics & style your rank card', href: '/card-studio', primary: true },
-    { label: '🏆 Achievements', desc: 'Track badges & rewards to earn', href: '/achievements', primary: true },
+  const links: Array<{ label: string; icon?: LucideIcon; desc: string; href: string; external?: boolean; primary?: boolean }> = [
+    { label: 'Profile Settings', icon: Settings, desc: 'Privacy & what others can see', href: '/settings', primary: true },
+    { label: 'Customize your card', icon: Palette, desc: 'Shop cosmetics & style your rank card', href: '/card-studio', primary: true },
+    { label: 'Achievements', icon: Trophy, desc: 'Track badges & rewards to earn', href: '/achievements', primary: true },
     { label: 'Manage Servers', desc: 'Configure the bot in your servers', href: '/servers' },
     { label: 'Documentation', desc: 'Learn how to use the bot', href: DOCS_URL },
     { label: 'Support', desc: 'Join our Discord server', href: SUPPORT_URL, external: true },
@@ -372,18 +375,12 @@ const OwnerShortcuts: React.FC = () => {
             borderRadius: '14px', padding: '16px', textDecoration: 'none', display: 'block',
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: 700, color: l.primary ? 'var(--primary-color)' : 'var(--text-primary)' }}>{l.label}</div>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: l.primary ? 'var(--primary-color)' : 'var(--text-primary)' }}>
+            {l.icon && <><InlineIcon icon={l.icon} /> </>}{l.label}
+          </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{l.desc}</div>
         </a>
       ))}
     </div>
   );
 };
-
-const CenteredMessage: React.FC<{ emoji: string; title: string; subtitle?: string }> = ({ emoji, title, subtitle }) => (
-  <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>{emoji}</div>
-    <h2 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>{title}</h2>
-    {subtitle && <p style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>}
-  </div>
-);

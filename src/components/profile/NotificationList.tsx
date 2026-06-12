@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Check, Gift, Trophy } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import { notificationsApi, type AppNotification } from '@/api/notifications';
 import './DailyReward.css';
 
@@ -50,7 +52,7 @@ export const NotificationList: React.FC = () => {
       <h3 style={{ color: 'var(--text-primary)', fontSize: 18, marginBottom: 4 }}>Notifications</h3>
       {hasClaimable && (
         <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 0, marginBottom: 12 }}>
-          You have rewards to claim 🎁
+          You have rewards to claim <InlineIcon icon={Gift} color="#ffd700" />
         </p>
       )}
       <div style={{ display: 'grid', gap: 10 }}>
@@ -94,7 +96,9 @@ const NotificationRow: React.FC<{
         opacity: n.is_claimed && !claimed ? 0.7 : 1,
       }}
     >
-      <span style={{ fontSize: 26, lineHeight: 1 }}>{n.icon || '🏆'}</span>
+      {n.icon
+        ? <span style={{ fontSize: 26, lineHeight: 1 }}>{n.icon}</span>
+        : <Trophy size={26} color="#ffd700" />}
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{n.title}</div>
         {n.body && <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>{n.body}</div>}
@@ -115,7 +119,7 @@ const NotificationRow: React.FC<{
           </button>
         ) : n.is_claimed ? (
           <span className={claimed ? 'dr-reward-pop' : undefined} style={{ color: '#4ade80', fontSize: 13, fontWeight: 600 }}>
-            ✓ Claimed
+            <InlineIcon icon={Check} /> Claimed
           </span>
         ) : null}
       </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Check, TriangleAlert } from 'lucide-react';
 
 interface SaveBarProps {
   isDirty: boolean;
@@ -60,7 +61,7 @@ export const SaveBar: React.FC<SaveBarProps> = ({
           color: 'var(--success-color, #3ecf8e)',
         }}
       >
-        <span style={{ fontSize: '20px' }}>✓</span>
+        <Check size={20} />
         <span>Changes saved successfully</span>
       </div>
     );
@@ -78,7 +79,7 @@ export const SaveBar: React.FC<SaveBarProps> = ({
           color: 'var(--error-color, #ef4444)',
         }}
       >
-        <span style={{ fontSize: '20px' }}>⚠</span>
+        <TriangleAlert size={20} />
         <span>{saveError?.message || 'Failed to save changes'}</span>
       </div>
     );

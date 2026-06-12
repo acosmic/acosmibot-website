@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import { useAuthStore } from '@/store/auth';
 import { RagTab } from './RagTab';
 import { BotStatsTab } from './BotStatsTab';
@@ -138,7 +140,7 @@ function SortableTable<T extends Record<string, any>>({
                   onClick={() => handleSort(c.key)}
                   style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap', borderColor: 'var(--border-light)' }}
                 >
-                  {c.label} {sortKey === c.key ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                  {c.label} {sortKey === c.key ? <InlineIcon icon={sortDir === 'asc' ? ArrowUp : ArrowDown} size={12} /> : ''}
                 </th>
               ))}
             </tr>

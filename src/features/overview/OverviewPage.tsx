@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { BookOpen, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { useOverviewStats } from './useOverviewStats';
@@ -135,14 +136,14 @@ export const OverviewPage: React.FC = () => {
             <h3 className="mb-4">Quick Links</h3>
             <div className="d-grid gap-2">
               <a href="/docs" className="btn text-start p-3 d-flex align-items-center gap-3">
-                <span style={{ fontSize: '1.2rem' }}>📖</span>
+                <BookOpen size={20} />
                 <div>
                   <div className="fw-bold">Documentation</div>
                   <div className="small text-muted">Learn about features</div>
                 </div>
               </a>
               <a href="https://discord.gg/hrj7WhCyEv" target="_blank" className="btn text-start p-3 d-flex align-items-center gap-3">
-                <span style={{ fontSize: '1.2rem' }}>💬</span>
+                <MessageCircle size={20} />
                 <div>
                   <div className="fw-bold">Support Server</div>
                   <div className="small text-muted">Get help & updates</div>

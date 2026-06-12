@@ -11,10 +11,17 @@ const COLORS: Record<string, string> = {
   info: 'var(--primary-color, #00d9ff)',
 };
 
+// Static lucide SVG markup (Check / TriangleAlert / Info) — mirrors the icons
+// SaveBar renders via lucide-react. stroke="currentColor" inherits the toast's
+// per-type color.
+const SVG_ATTRS =
+  'xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" ' +
+  'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+
 const ICONS: Record<string, string> = {
-  success: '✓',
-  error: '⚠',
-  info: 'ℹ',
+  success: `<svg ${SVG_ATTRS}><path d="M20 6 9 17l-5-5"/></svg>`,
+  error: `<svg ${SVG_ATTRS}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
+  info: `<svg ${SVG_ATTRS}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
 };
 
 let container: HTMLDivElement | null = null;
@@ -43,8 +50,8 @@ export function showToast(message: string, type: ToastType = 'info'): void {
     `opacity:0;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease;`;
 
   const iconEl = document.createElement('span');
-  iconEl.style.fontSize = '20px';
-  iconEl.textContent = icon;
+  iconEl.style.display = 'flex';
+  iconEl.innerHTML = icon;
   const msgEl = document.createElement('span');
   msgEl.textContent = message;
   toast.append(iconEl, msgEl);

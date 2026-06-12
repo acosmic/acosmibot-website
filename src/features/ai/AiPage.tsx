@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Bot } from 'lucide-react';
 import { useAiConfig, AiConfig, AiPersonality } from './useAiConfig';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
@@ -38,7 +39,7 @@ export const AiPage: React.FC = () => {
   if (!hasAccess) {
     return (
       <div className="card p-5 text-center mt-5 mx-auto" style={{ maxWidth: '600px', border: '2px solid var(--border-cyan)', background: 'linear-gradient(135deg, var(--bg-primary), var(--bg-secondary))' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🤖</div>
+        <div style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}><Bot size={64} /></div>
         <h2 className="mb-3 fs-3 fw-bold text-primary">AI Customization is Premium</h2>
         <p className="mb-4 text-muted">Personalize your server's AI assistant with unique personalities and behaviors. This feature requires the <strong>Premium + AI</strong> tier.</p>
         <div className="d-flex flex-column gap-3">

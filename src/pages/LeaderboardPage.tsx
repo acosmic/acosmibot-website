@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { Ban, Hourglass, Lock, TriangleAlert, Trophy } from 'lucide-react';
+import { CenteredMessage } from '@/components/ui/CenteredMessage';
 import {
   leaderboardApi,
   type GlobalMetric,
@@ -76,8 +78,8 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
         {isAuthed && <ServerSelector />}
       </div>
 
-      {isLoading && <Centered emoji="⏳" title="Loading…" />}
-      {isError && <Centered emoji="⚠️" title="Couldn’t load the leaderboard" />}
+      {isLoading && <CenteredMessage icon={<Hourglass size={40} />} title="Loading…" />}
+      {isError && <CenteredMessage icon={<TriangleAlert size={40} />} title="Couldn’t load the leaderboard" />}
 
       {!isLoading && !isError && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -95,7 +97,7 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
               masked={e.masked ?? !isAuthed}
             />
           ))}
-          {entries.length === 0 && <Centered emoji="🏆" title="No entries yet" />}
+          {entries.length === 0 && <CenteredMessage icon={<Trophy size={40} />} title="No entries yet" />}
         </div>
       )}
 
@@ -120,7 +122,7 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
     return (
       <>
         <BackLink />
-        <Centered emoji="🔒" title="Sign in to view this server’s leaderboard" />
+        <CenteredMessage icon={<Lock size={40} />} title="Sign in to view this server’s leaderboard" />
         <div style={{ textAlign: 'center' }}>
           <PrimaryButton onClick={startLogin}>Sign in with Discord</PrimaryButton>
         </div>
@@ -139,10 +141,10 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
         subtitle="Top members by level in this server."
       />
 
-      {isLoading && <Centered emoji="⏳" title="Loading…" />}
+      {isLoading && <CenteredMessage icon={<Hourglass size={40} />} title="Loading…" />}
       {isError && (
-        <Centered
-          emoji={is403 ? '🚫' : '⚠️'}
+        <CenteredMessage
+          icon={is403 ? <Ban size={40} /> : <TriangleAlert size={40} />}
           title={is403 ? 'You’re not a member of this server' : 'Couldn’t load this leaderboard'}
         />
       )}
@@ -163,7 +165,7 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
               masked={false}
             />
           ))}
-          {entries.length === 0 && <Centered emoji="🏆" title="No entries yet" />}
+          {entries.length === 0 && <CenteredMessage icon={<Trophy size={40} />} title="No entries yet" />}
         </div>
       )}
 
@@ -325,9 +327,3 @@ const PrimaryButton: React.FC<{ onClick: () => void; children: React.ReactNode }
   </button>
 );
 
-const Centered: React.FC<{ emoji: string; title: string }> = ({ emoji, title }) => (
-  <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-    <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{emoji}</div>
-    <h2 style={{ color: 'var(--text-primary)', fontSize: '18px' }}>{title}</h2>
-  </div>
-);

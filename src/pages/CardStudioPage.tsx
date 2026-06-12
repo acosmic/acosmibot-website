@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { BadgePercent, Check, Hourglass, TriangleAlert } from 'lucide-react';
+import { CenteredMessage } from '@/components/ui/CenteredMessage';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { useHydrateAuthUser } from '@/lib/auth';
@@ -184,8 +186,8 @@ export const CardStudioPage: React.FC = () => {
           </p>
         </header>
 
-        {isLoading && <Centered emoji="⏳" title="Loading the shop…" />}
-        {isError && <Centered emoji="⚠️" title="Couldn’t load cosmetics" subtitle="Try refreshing, or sign in again." />}
+        {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading the shop…" />}
+        {isError && <CenteredMessage icon={<TriangleAlert size={48} />} title="Couldn’t load cosmetics" subtitle="Try refreshing, or sign in again." />}
 
         {catalog && (
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '24px', alignItems: 'start' }}>
@@ -278,7 +280,7 @@ const BalanceBadge: React.FC<{ balance: number; discount: number }> = ({ balance
         background: 'rgba(245,158,11,0.12)', border: '1px solid #f59e0b',
         borderRadius: '12px', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: '#f59e0b',
       }}>
-        🧿 {Math.round(discount * 100)}% shop discount active
+        <BadgePercent size={16} /> {Math.round(discount * 100)}% shop discount active
       </div>
     )}
   </div>
@@ -372,7 +374,9 @@ const Swatch: React.FC<{
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
         <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{cosmetic.name}</span>
         {cosmetic.owned && selected && (
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary-color)' }}>Equipped ✓</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 700, color: 'var(--primary-color)' }}>
+            Equipped <Check size={12} />
+          </span>
         )}
       </div>
 
@@ -438,14 +442,6 @@ const ModalButton: React.FC<{ variant: 'primary' | 'ghost'; onClick: () => void;
   >
     {children}
   </button>
-);
-
-const Centered: React.FC<{ emoji: string; title: string; subtitle?: string }> = ({ emoji, title, subtitle }) => (
-  <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>{emoji}</div>
-    <h2 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>{title}</h2>
-    {subtitle && <p style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>}
-  </div>
 );
 
 export default CardStudioPage;

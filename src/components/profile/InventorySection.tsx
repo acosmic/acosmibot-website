@@ -1,5 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Backpack, CircleCheck, Zap } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import { itemsApi, type ItemEffect } from '@/api/items';
 
 /**
@@ -54,7 +56,7 @@ export const InventorySection: React.FC = () => {
 
   return (
     <div style={{ marginTop: 24 }}>
-      <h3 style={{ color: 'var(--text-primary)', marginBottom: 12 }}>🎒 Inventory</h3>
+      <h3 style={{ color: 'var(--text-primary)', marginBottom: 12 }}><InlineIcon icon={Backpack} /> Inventory</h3>
 
       {/* Active boosts (timed + passive equipped) */}
       {effects.length > 0 && (
@@ -64,7 +66,7 @@ export const InventorySection: React.FC = () => {
               background: 'var(--bg-secondary)', border: '1px solid var(--border-light)',
               borderRadius: 999, padding: '4px 12px', fontSize: '0.8rem', color: 'var(--text-primary)',
             }}>
-              ⚡ +{Math.round((e.magnitude ?? 0) * 100)}% {(e.effect_type || '').replace(/_/g, ' ')}
+              <InlineIcon icon={Zap} color="#ffd700" /> +{Math.round((e.magnitude ?? 0) * 100)}% {(e.effect_type || '').replace(/_/g, ' ')}
               <span style={{ color: 'var(--text-muted)' }}> · {timeLeft(e.expires_at)}</span>
             </span>
           ))}
@@ -85,7 +87,7 @@ export const InventorySection: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 22 }}>{it.icon}</span>
                   <strong style={{ color: 'var(--text-primary)' }}>{it.name}</strong>
-                  <span style={{ marginLeft: 'auto', color: '#22c55e', fontSize: '0.72rem' }}>✅ {it.slot}</span>
+                  <span style={{ marginLeft: 'auto', color: '#22c55e', fontSize: '0.72rem' }}><InlineIcon icon={CircleCheck} /> {it.slot}</span>
                 </div>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: 6 }}>
                   {(it.effects ?? []).map((e, i) => <div key={i}>{effectLabel(e)}</div>)}

@@ -1,4 +1,6 @@
 import React from 'react';
+import { Palette, Sparkles } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import type { PublicProfile, PrivacySettings } from '@/api/profile';
 
 /**
@@ -32,7 +34,7 @@ export const OwnerSettings: React.FC<{
     borderRadius: '16px', padding: '20px', marginBottom: '20px',
   }}>
     <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
-      This is you ✨
+      This is you <InlineIcon icon={Sparkles} color="var(--primary-color)" />
     </h2>
     <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
       Your profile is public so others can find you. Your name &amp; global level always
@@ -103,7 +105,7 @@ export const OwnerSettings: React.FC<{
     )}
 
     <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
-      🎨 Rank card customization coming soon.
+      <InlineIcon icon={Palette} /> Rank card customization coming soon.
     </div>
   </div>
 );

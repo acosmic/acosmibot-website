@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Hourglass, TriangleAlert } from 'lucide-react';
+import { CenteredMessage } from '@/components/ui/CenteredMessage';
 import { profileApi, type PublicProfile, type PrivacySettings } from '@/api/profile';
 import { OwnerSettings } from '@/components/profile/OwnerSettings';
 import { ProfileNav } from '@/components/profile/ProfileNav';
@@ -44,11 +46,11 @@ export const SettingsPage: React.FC = () => {
       <ProfileNav user={authUser} />
 
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: '720px', margin: '0 auto', width: '100%' }}>
-        {isLoading && <Centered emoji="⏳" title="Loading settings…" />}
+        {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading settings…" />}
 
         {isError && (
-          <Centered
-            emoji="⚠️"
+          <CenteredMessage
+            icon={<TriangleAlert size={48} />}
             title="Couldn’t load your settings"
             subtitle="Try refreshing, or sign in again."
           />
@@ -89,11 +91,3 @@ export const SettingsPage: React.FC = () => {
     </div>
   );
 };
-
-const Centered: React.FC<{ emoji: string; title: string; subtitle?: string }> = ({ emoji, title, subtitle }) => (
-  <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>{emoji}</div>
-    <h2 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>{title}</h2>
-    {subtitle && <p style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>}
-  </div>
-);

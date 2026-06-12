@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Calendar, Clock, Ticket } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 import { useGiveawayConfig } from './useGiveawayConfig';
 import { RecentGiveaways } from './RecentGiveaways';
 import { useQuery } from '@tanstack/react-query';
@@ -348,9 +350,9 @@ export const GiveawayPage: React.FC = () => {
                   </div>
                   {g.description && <p className="small text-muted mb-2">{g.description}</p>}
                   <div className="d-flex gap-3 small text-muted mb-3">
-                    <span>🎟️ {(g.entry_count || 0).toLocaleString()} entries</span>
-                    <span>⏰ {diff > 0 ? formatTimeLeft(diff) : 'Ending soon'}</span>
-                    <span>📅 {end.toLocaleString()}</span>
+                    <span><InlineIcon icon={Ticket} /> {(g.entry_count || 0).toLocaleString()} entries</span>
+                    <span><InlineIcon icon={Clock} /> {diff > 0 ? formatTimeLeft(diff) : 'Ending soon'}</span>
+                    <span><InlineIcon icon={Calendar} /> {end.toLocaleString()}</span>
                   </div>
                   <button
                     className="btn btn-sm"

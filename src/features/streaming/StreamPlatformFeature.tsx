@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Check } from 'lucide-react';
 import { useStreamPlatformConfig } from './useStreamPlatformConfig';
 import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
@@ -229,7 +230,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
                     <span className="input-group-text bg-info text-dark small">Checking...</span>
                   )}
                   {validatingIndex !== selectedStreamerIndex && selectedStreamer.isValid && selectedStreamer.username && (
-                    <span className="input-group-text bg-success text-light small">✓</span>
+                    <span className="input-group-text bg-success text-light small"><Check size={14} /></span>
                   )}
                   {validatingIndex !== selectedStreamerIndex && !selectedStreamer.isValid && selectedStreamer.username && (
                     <span className="input-group-text bg-warning text-dark small">Unverified</span>

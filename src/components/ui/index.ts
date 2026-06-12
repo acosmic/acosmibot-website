@@ -7,3 +7,5 @@ export * from './SaveBar';
 export * from './CollapsibleSection';
 export * from './LoadingSpinner';
 export * from './ErrorBoundary';
+export * from './CenteredMessage';
+export * from './InlineIcon';

@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { ArrowDown, ArrowUp, Calendar, ChevronDown, ChevronUp, Ticket, Trophy } from 'lucide-react';
+import { InlineIcon } from '@/components/ui/InlineIcon';
 
 interface Giveaway {
   id: number;
@@ -87,7 +89,7 @@ export const RecentGiveaways: React.FC<Props> = ({ giveaways }) => {
         fontWeight: sortKey === k ? 600 : 400,
       }}
     >
-      {label} {sortKey === k ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+      {label} {sortKey === k ? <InlineIcon icon={sortDir === 'desc' ? ArrowDown : ArrowUp} size={12} /> : ''}
     </button>
   );
 
@@ -144,16 +146,16 @@ export const RecentGiveaways: React.FC<Props> = ({ giveaways }) => {
                   <div className="d-flex justify-content-between align-items-center">
                     <span className="fw-semibold" style={{ fontSize: '0.95rem', color: 'var(--text-primary, #fff)' }}>{g.prize}</span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      {isOpen ? '▲' : '▼'}
+                      {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </span>
                   </div>
                   <div className="d-flex gap-3 mt-1 flex-wrap" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    <span>🎟️ {(g.entry_count || 0).toLocaleString()} entries</span>
+                    <span><InlineIcon icon={Ticket} /> {(g.entry_count || 0).toLocaleString()} entries</span>
                     {hasWinner
-                      ? <span>🏆 {winnerLabel ?? g.winner_id}</span>
+                      ? <span><InlineIcon icon={Trophy} color="#ffd700" /> {winnerLabel ?? g.winner_id}</span>
                       : <span style={{ color: 'var(--text-muted)' }}>No winner</span>
                     }
-                    <span>📅 {date.toLocaleDateString()}</span>
+                    <span><InlineIcon icon={Calendar} /> {date.toLocaleDateString()}</span>
                   </div>
                 </button>
 

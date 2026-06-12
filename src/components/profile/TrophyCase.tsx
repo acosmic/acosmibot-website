@@ -1,4 +1,5 @@
 import React from 'react';
+import { Trophy } from 'lucide-react';
 import type { UnlockedAchievement } from '@/api/achievements';
 
 const TIER_COLORS: Record<string, string> = {
@@ -45,7 +46,9 @@ export const TrophyCase: React.FC<{ achievements?: UnlockedAchievement[] | null;
               borderRadius: 10, padding: '10px 12px',
             }}
           >
-            <span style={{ fontSize: 26, lineHeight: 1 }}>{a.icon || '🏆'}</span>
+            {a.icon
+              ? <span style={{ fontSize: 26, lineHeight: 1 }}>{a.icon}</span>
+              : <Trophy size={26} color={TIER_COLORS[a.tier] ?? '#ffd700'} />}
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {a.name}
