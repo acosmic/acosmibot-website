@@ -493,9 +493,9 @@ export const HomePage: React.FC = () => {
       <footer>
         <div className="footer-brand">Acosmibot</div>
         <div className="footer-links">
-          <a href="/terms-of-service">Terms</a>
+          <Link to="/terms-of-service">Terms</Link>
           <span className="footer-divider">•</span>
-          <a href="/privacy-policy">Privacy</a>
+          <Link to="/privacy-policy">Privacy</Link>
           <span className="footer-divider">•</span>
           <button className="support-link" onClick={() => setShowDonationModal(true)}>
             Support Development

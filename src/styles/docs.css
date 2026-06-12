@@ -109,7 +109,9 @@
 }
 
 .docs-nav-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 8px 16px 8px 20px;
   color: var(--text-secondary);
   text-decoration: none;

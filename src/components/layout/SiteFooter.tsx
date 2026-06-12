@@ -1,11 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const SUPPORT_URL = 'https://discord.gg/hrj7WhCyEv';
 
-/**
- * Slim footer for the public pages (profile, leaderboard, servers, etc.).
- * Terms and Privacy are static HTML pages outside the SPA, so plain anchors.
- */
+/** Slim footer for the public pages (profile, leaderboard, servers, etc.). */
 export const SiteFooter: React.FC = () => (
   <footer style={{
     borderTop: '1px solid var(--border-light)',
@@ -25,12 +23,10 @@ export const SiteFooter: React.FC = () => (
   </footer>
 );
 
-const FooterLink: React.FC<{ href: string; external?: boolean; children: React.ReactNode }> = ({ href, external, children }) => (
-  <a
-    href={href}
-    {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
-    style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
-  >
-    {children}
-  </a>
-);
+const FooterLink: React.FC<{ href: string; external?: boolean; children: React.ReactNode }> = ({ href, external, children }) => {
+  const style = { color: 'var(--text-secondary)', textDecoration: 'none' };
+  if (external) {
+    return <a href={href} target="_blank" rel="noreferrer" style={style}>{children}</a>;
+  }
+  return <Link to={href} style={style}>{children}</Link>;
+};

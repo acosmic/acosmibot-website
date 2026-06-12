@@ -5,9 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/globals.css';
-import { setupLegacyShim } from './utils/legacy-shim';
-
-setupLegacyShim();
 
 const queryClient = new QueryClient();
 

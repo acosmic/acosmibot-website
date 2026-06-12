@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Lock, Orbit, Ticket } from 'lucide-react';
+import { ComingSoonPage } from './components/ui/ComingSoonPage';
 import { DashboardShell } from './components/layout/DashboardShell';
-import { LegacyFeatureView } from './components/legacy/LegacyFeatureView';
 import { GiveawayPage } from './features/giveaway/GiveawayPage';
 import { LevelingPage } from './features/leveling/LevelingPage';
 import { StreamPlatformFeature } from './features/streaming/StreamPlatformFeature';
@@ -13,8 +14,14 @@ import { AiPage } from './features/ai/AiPage';
 import { SlotsPage } from './features/slots/SlotsPage';
 import { PolymorphPage } from './features/polymorph/PolymorphPage';
 import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
+import { ActivityMonitorPage } from './features/activity-monitor/ActivityMonitorPage';
+import { EmbedsListPage } from './features/embeds/EmbedsListPage';
+import { EmbedBuilderPage } from './features/embeds/EmbedBuilderPage';
+import { ReactionRolesListPage } from './features/reaction-roles/ReactionRolesListPage';
+import { ReactionRoleBuilderPage } from './features/reaction-roles/ReactionRoleBuilderPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
+import { PremiumPage } from './pages/PremiumPage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -22,6 +29,8 @@ import { CardStudioPage } from './pages/CardStudioPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AchievementsPage } from './pages/AchievementsPage';
 import { DocsPage } from './pages/docs/DocsPage';
+import { TermsOfServicePage } from './pages/legal/TermsOfServicePage';
+import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/admin/AdminPage';
@@ -78,8 +87,14 @@ const MeRedirect = () => {
 };
 
 const FeatureOutlet = () => {
-  const { feature } = useParams<{ feature: string }>();
-  
+  const { feature, guildId } = useParams<{ feature: string; guildId: string }>();
+
+  // Premium lives at the top-level /premium page; carry the guild over so the
+  // server picker preselects it.
+  if (feature === 'premium') {
+    return <Navigate to={`/premium?guild=${guildId}`} replace />;
+  }
+
   if (feature === 'overview') {
     return <OverviewPage />;
   }
@@ -124,7 +139,45 @@ const FeatureOutlet = () => {
     return <GuildAnalyticsPage />;
   }
 
-  return <LegacyFeatureView feature={feature || 'overview'} />;
+  if (feature === 'activity-monitor') {
+    return <ActivityMonitorPage />;
+  }
+
+  if (feature === 'jail') {
+    return (
+      <ComingSoonPage
+        title="Jail System"
+        description="Punish misbehaving members"
+        icon={Lock}
+        detail="The Jail System will let moderators send users to a restricted channel where messages cost credits to send."
+      />
+    );
+  }
+
+  if (feature === 'lottery') {
+    return (
+      <ComingSoonPage
+        title="Lottery"
+        description="Run exciting lottery events"
+        icon={Ticket}
+        detail="The Lottery feature will let you run server-wide lottery events where members can buy tickets for a chance to win big credit prizes."
+      />
+    );
+  }
+
+  if (feature === 'portals') {
+    return (
+      <ComingSoonPage
+        title="Cross-Server Portals"
+        description="Connect with other Discord servers"
+        icon={Orbit}
+        detail="Cross-Server Portals will let you open temporary connections to chat with other servers using Acosmibot."
+      />
+    );
+  }
+
+  // Unknown feature — back to the overview.
+  return <Navigate to={`/server/${guildId}/overview`} replace />;
 };
 
 function App() {
@@ -143,12 +196,21 @@ function App() {
       {/* Legacy /profile retired → resolve to the owner's public profile. */}
       <Route path="/profile" element={<MeRedirect />} />
       <Route path="/server/:guildId" element={<DashboardShell />}>
+        <Route path="embeds" element={<EmbedsListPage />} />
+        <Route path="embeds/new" element={<EmbedBuilderPage />} />
+        <Route path="embeds/edit/:embedId" element={<EmbedBuilderPage />} />
+        <Route path="reaction-roles" element={<ReactionRolesListPage />} />
+        <Route path="reaction-roles/new" element={<ReactionRoleBuilderPage />} />
+        <Route path="reaction-roles/edit/:rrId" element={<ReactionRoleBuilderPage />} />
         <Route path=":feature" element={<FeatureOutlet />} />
         <Route index element={<Navigate to="overview" replace />} />
       </Route>
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/docs/:page" element={<DocsPage />} />
+      <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/premium" element={<PremiumPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

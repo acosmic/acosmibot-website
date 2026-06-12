@@ -1,65 +1,73 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+  AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices,
+  FileText, Landmark, Lock, Orbit, Rocket, Settings, Shield, Spade,
+  Sparkles, Ticket, TrendingUp, TvMinimalPlay, VenetianMask,
+  type LucideIcon,
+} from 'lucide-react';
 import '@/styles/docs.css';
 
 // ── Navigation structure (mirrors docs-search.js) ──────────────
-const NAV_SECTIONS = [
+interface NavItemDef { slug: string; label: string; icon: LucideIcon; iconColor?: string }
+
+const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
   {
     category: 'Getting Started',
     items: [
-      { slug: 'introduction', label: 'Introduction' },
-      { slug: 'quick-start',  label: 'Quick Start' },
+      { slug: 'introduction', label: 'Introduction', icon: BookOpen },
+      { slug: 'quick-start',  label: 'Quick Start', icon: Rocket },
     ],
   },
   {
     category: 'Core Systems',
     items: [
-      { slug: 'leveling',   label: 'Leveling System' },
-      { slug: 'economy',    label: 'Economy & Banking' },
-      { slug: 'moderation', label: 'Moderation' },
-      { slug: 'ai',         label: 'AI Integration' },
+      { slug: 'leveling',   label: 'Leveling System', icon: TrendingUp },
+      { slug: 'economy',    label: 'Economy & Banking', icon: Landmark },
+      { slug: 'moderation', label: 'Moderation', icon: Shield },
+      { slug: 'ai',         label: 'AI Integration', icon: Bot },
     ],
   },
   {
     category: 'Social Alerts',
     items: [
-      { slug: 'twitch',  label: 'Twitch Integration' },
-      { slug: 'youtube', label: 'YouTube Integration' },
-      { slug: 'kick',    label: 'Kick Integration' },
+      { slug: 'twitch',  label: 'Twitch Integration', icon: TvMinimalPlay, iconColor: '#9146FF' },
+      { slug: 'youtube', label: 'YouTube Integration', icon: TvMinimalPlay, iconColor: '#FF0000' },
+      { slug: 'kick',    label: 'Kick Integration', icon: TvMinimalPlay, iconColor: '#53FC18' },
     ],
   },
   {
     category: 'Games & Gambling',
     items: [
-      { slug: 'slots',     label: 'Slots' },
-      { slug: 'mines',     label: 'Mines' },
-      { slug: 'lottery',   label: 'Lottery' },
-      { slug: 'blackjack', label: 'Blackjack' },
-      { slug: 'coinflip',  label: 'Coinflip' },
-      { slug: 'deathroll', label: 'Deathroll' },
+      { slug: 'slots',     label: 'Slots', icon: Cherry },
+      { slug: 'mines',     label: 'Mines', icon: Bomb },
+      { slug: 'lottery',   label: 'Lottery', icon: Ticket },
+      { slug: 'blackjack', label: 'Blackjack', icon: Spade },
+      { slug: 'coinflip',  label: 'Coinflip', icon: Coins },
+      { slug: 'deathroll', label: 'Deathroll', icon: Dices },
     ],
   },
   {
     category: 'Utilities',
     items: [
-      { slug: 'reaction-roles',    label: 'Reaction Roles' },
-      { slug: 'custom-commands',   label: 'Custom Commands' },
-      { slug: 'embeds',            label: 'Better Embeds' },
-      { slug: 'reminders',         label: 'Reminders' },
+      { slug: 'reaction-roles',    label: 'Reaction Roles', icon: Sparkles },
+      { slug: 'custom-commands',   label: 'Custom Commands', icon: Settings },
+      { slug: 'embeds',            label: 'Better Embeds', icon: FileText },
+      { slug: 'reminders',         label: 'Reminders', icon: AlarmClock },
     ],
   },
   {
     category: 'Chaos',
     items: [
-      { slug: 'portals',   label: 'Cross-Server Portals' },
-      { slug: 'polymorph', label: 'Polymorph' },
-      { slug: 'jail',      label: 'Jail System' },
+      { slug: 'portals',   label: 'Cross-Server Portals', icon: Orbit },
+      { slug: 'polymorph', label: 'Polymorph', icon: VenetianMask },
+      { slug: 'jail',      label: 'Jail System', icon: Lock },
     ],
   },
   {
     category: 'Reference',
     items: [
-      { slug: 'commands', label: 'Command List' },
+      { slug: 'commands', label: 'Command List', icon: ClipboardList },
     ],
   },
 ];
@@ -174,6 +182,7 @@ export const DocsPage: React.FC = () => {
                   className={`docs-nav-item${page === item.slug ? ' active' : ''}`}
                   onClick={() => handleNavClick(item.slug)}
                 >
+                  <item.icon size={16} color={item.iconColor} aria-hidden />
                   {item.label}
                 </button>
               ))}
