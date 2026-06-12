@@ -18,6 +18,11 @@ const DEFAULT_CONFIG: StreamPlatformConfig = {
   enabled: false,
   announcement_channel_id: null,
   announcement_message: null,
+  vod_settings: {
+    enabled: true,
+    vod_message_suffix: '[Watch VOD]({vod_url})',
+    edit_message_when_vod_available: true,
+  },
   tracked_streamers: [],
 };
 
@@ -25,13 +30,28 @@ export const streamingApi = {
   getConfig: async (guildId: string, platform: Platform): Promise<StreamPlatformConfig> => {
     const res = await api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`);
     const platformSettings = res?.data?.settings?.[platform] ?? {};
-    return { ...DEFAULT_CONFIG, ...platformSettings };
+    return {
+      ...DEFAULT_CONFIG,
+      ...platformSettings,
+      vod_settings: {
+        ...DEFAULT_CONFIG.vod_settings,
+        ...(platformSettings.vod_settings ?? {}),
+      },
+    };
   },
 
   updateConfig: async (guildId: string, platform: Platform, data: UpdateStreamPlatformConfigRequest): Promise<StreamPlatformConfig> => {
     const current = await configApi.getHybridConfig(guildId);
     const currentPlatform = current?.data?.settings?.[platform] ?? {};
-    const nextPlatform = { ...currentPlatform, ...data };
+    const nextPlatform = {
+      ...currentPlatform,
+      ...data,
+      vod_settings: {
+        ...DEFAULT_CONFIG.vod_settings,
+        ...(currentPlatform.vod_settings ?? {}),
+        ...(data.vod_settings ?? {}),
+      },
+    };
     await configApi.upsertHybridSections(guildId, { [platform]: nextPlatform });
     return { ...DEFAULT_CONFIG, ...nextPlatform };
   },

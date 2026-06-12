@@ -199,6 +199,63 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
               />
               <p className="text-muted small mt-2">Use {'{username}'}, {'{link}'}, and {'{title}'} as placeholders.</p>
             </div>
+
+            <div className="border-top pt-3 mt-4">
+              <h4 className="mb-3" style={{ fontSize: '16px' }}>VOD Settings</h4>
+              <div className="form-check form-switch mb-3">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id={`vodEnabled-${platform}`}
+                  checked={form.vod_settings.enabled}
+                  onChange={(e) => setForm({
+                    vod_settings: {
+                      ...form.vod_settings,
+                      enabled: e.target.checked,
+                    },
+                  })}
+                />
+                <label className="form-check-label" htmlFor={`vodEnabled-${platform}`}>Post VOD links when available</label>
+                <p className="text-muted small mt-1 mb-0">When enabled, the bot checks ended streams and adds a Watch VOD link.</p>
+              </div>
+
+              <div className="form-check form-switch mb-3">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id={`vodEdit-${platform}`}
+                  checked={form.vod_settings.edit_message_when_vod_available}
+                  onChange={(e) => setForm({
+                    vod_settings: {
+                      ...form.vod_settings,
+                      edit_message_when_vod_available: e.target.checked,
+                    },
+                  })}
+                  disabled={!form.vod_settings.enabled}
+                />
+                <label className="form-check-label" htmlFor={`vodEdit-${platform}`}>Edit announcements with VOD links</label>
+              </div>
+
+              {platform !== 'twitch' && (
+                <div className="mb-0">
+                  <label className="form-label mb-2 d-block">VOD Link Text</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={form.vod_settings.vod_message_suffix || ''}
+                    onChange={(e) => setForm({
+                      vod_settings: {
+                        ...form.vod_settings,
+                        vod_message_suffix: e.target.value,
+                      },
+                    })}
+                    placeholder="[Watch VOD]({vod_url})"
+                    disabled={!form.vod_settings.enabled}
+                  />
+                  <p className="text-muted small mt-2 mb-0">Use {'{vod_url}'} as the VOD URL placeholder.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

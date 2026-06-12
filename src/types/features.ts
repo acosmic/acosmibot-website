@@ -48,7 +48,14 @@ export interface StreamPlatformConfig {
   enabled: boolean;
   announcement_channel_id: string | null;
   announcement_message: string | null;
+  vod_settings: VodSettings;
   tracked_streamers: Streamer[];
+}
+
+export interface VodSettings {
+  enabled: boolean;
+  vod_message_suffix?: string;
+  edit_message_when_vod_available: boolean;
 }
 
 export interface Streamer {
@@ -67,6 +74,7 @@ export interface UpdateStreamPlatformConfigRequest {
   enabled?: boolean;
   announcement_channel_id?: string | null;
   announcement_message?: string | null;
+  vod_settings?: Partial<VodSettings>;
   tracked_streamers?: Streamer[];
 }
 
