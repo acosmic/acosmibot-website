@@ -10,6 +10,7 @@ export interface AiConfig {
   channel_mode: 'all' | 'exclude' | 'specific' | 'include';
   excluded_channels: string[];
   allowed_channels: string[];
+  web_search: boolean;
 }
 
 export interface AiPersonality {
@@ -54,6 +55,7 @@ const DEFAULT_AI: AiConfig = {
   channel_mode: 'all',
   excluded_channels: [],
   allowed_channels: [],
+  web_search: false,
 };
 
 function normalizeAiConfig(raw?: Partial<AiConfig>): AiConfig {

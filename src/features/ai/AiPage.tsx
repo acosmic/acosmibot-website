@@ -135,6 +135,13 @@ export const AiPage: React.FC = () => {
         description="Enable AI chat and image generation for this server."
       />
 
+      <FeatureToggle
+        label="Web Search"
+        enabled={form.web_search}
+        onChange={(v) => setForm({ web_search: v })}
+        description="Let the AI look up live information from the web when members ask it to search, look something up, or find current info."
+      />
+
       <CollapsibleSection title="Personalities" defaultOpen={true}>
         <div className="d-flex justify-content-between align-items-end gap-3 mb-4 flex-wrap">
           <div style={{ flex: '0 1 420px', minWidth: '260px' }}>
