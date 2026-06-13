@@ -19,6 +19,8 @@ function embedPreview(cfg: EmbedConfig | null | undefined): string {
 }
 
 const VARIABLES = ['{user}', '{server}', '{channel}', '{uses}'];
+// Timers run in-memory in the bot and are lost on restart, so the cap is kept short.
+const MAX_AUTO_DELETE_SECONDS = 300;
 
 // ── form state ────────────────────────────────────────────────────────────────
 
@@ -34,6 +36,8 @@ interface FormState {
   embed_thumbnail: string;
   embed_image: string;
   embed_footer: string;
+  auto_delete_input_seconds: string;
+  auto_delete_output_seconds: string;
 }
 
 function emptyForm(): FormState {
@@ -48,6 +52,8 @@ function emptyForm(): FormState {
     embed_thumbnail: '',
     embed_image: '',
     embed_footer: '',
+    auto_delete_input_seconds: '0',
+    auto_delete_output_seconds: '0',
   };
 }
 
@@ -63,11 +69,19 @@ function formFromCommand(cmd: CustomCommand): FormState {
     embed_thumbnail: cmd.embed_config?.thumbnail?.url ?? '',
     embed_image: cmd.embed_config?.image?.url ?? '',
     embed_footer: cmd.embed_config?.footer?.text ?? '',
+    auto_delete_input_seconds: String(cmd.auto_delete_input_seconds ?? 0),
+    auto_delete_output_seconds: String(cmd.auto_delete_output_seconds ?? 0),
   };
 }
 
 function buildPayload(form: FormState): CommandPayload {
-  const base = { command: form.command.trim(), prefix: form.prefix, response_type: form.response_type };
+  const base = {
+    command: form.command.trim(),
+    prefix: form.prefix,
+    response_type: form.response_type,
+    auto_delete_input_seconds: Number(form.auto_delete_input_seconds),
+    auto_delete_output_seconds: Number(form.auto_delete_output_seconds),
+  };
   if (form.response_type === 'text') {
     return { ...base, response_text: form.response_text };
   }
@@ -140,6 +154,14 @@ export const CustomCommandsPage: React.FC = () => {
     if (!/^[a-zA-Z0-9_-]+$/.test(form.command.trim())) return 'Command name can only contain letters, numbers, hyphens, and underscores.';
     if (form.response_type === 'text' && !form.response_text.trim()) return 'Response text is required.';
     if (form.response_type === 'embed' && !form.embed_title.trim() && !form.embed_description.trim()) return 'Embed must have at least a title or description.';
+    for (const [label, value] of [
+      ['Input auto-delete timer', form.auto_delete_input_seconds],
+      ['Output auto-delete timer', form.auto_delete_output_seconds],
+    ] as const) {
+      if (!/^\d+$/.test(value)) return `${label} must be a whole number of seconds.`;
+      const seconds = Number(value);
+      if (seconds < 0 || seconds > MAX_AUTO_DELETE_SECONDS) return `${label} must be between 0 and ${MAX_AUTO_DELETE_SECONDS} seconds (5 minutes).`;
+    }
     return null;
   };
 
@@ -337,6 +359,47 @@ export const CustomCommandsPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          <div className="mb-4">
+            <label className="form-label mb-2 d-block">Auto Delete</label>
+            <div className="card p-3" style={{ background: 'var(--bg-overlay)', borderRadius: '8px' }}>
+              <div className="d-flex flex-wrap gap-3">
+                <div style={{ minWidth: '220px', flex: '1 1 220px' }}>
+                  <label className="form-label mb-2 d-block">Input message</label>
+                  <div className="d-flex align-items-center gap-2">
+                    <input
+                      type="number"
+                      className="form-control"
+                      min={0}
+                      max={MAX_AUTO_DELETE_SECONDS}
+                      step={1}
+                      value={form.auto_delete_input_seconds}
+                      onChange={e => set('auto_delete_input_seconds', e.target.value)}
+                    />
+                    <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>seconds</span>
+                  </div>
+                </div>
+                <div style={{ minWidth: '220px', flex: '1 1 220px' }}>
+                  <label className="form-label mb-2 d-block">Output message</label>
+                  <div className="d-flex align-items-center gap-2">
+                    <input
+                      type="number"
+                      className="form-control"
+                      min={0}
+                      max={MAX_AUTO_DELETE_SECONDS}
+                      step={1}
+                      value={form.auto_delete_output_seconds}
+                      onChange={e => set('auto_delete_output_seconds', e.target.value)}
+                    />
+                    <span style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>seconds</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-2" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                Use 0 to leave a message visible. Max 5 minutes (300 seconds).
+              </div>
+            </div>
+          </div>
 
           {/* Actions */}
           <div className="d-flex justify-content-end gap-3">

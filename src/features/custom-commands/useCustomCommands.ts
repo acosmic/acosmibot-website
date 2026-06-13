@@ -17,6 +17,8 @@ export interface CustomCommand {
   response_type: 'text' | 'embed';
   response_text?: string | null;
   embed_config?: EmbedConfig | null;
+  auto_delete_input_seconds?: number;
+  auto_delete_output_seconds?: number;
   created_at?: string;
 }
 
@@ -26,6 +28,8 @@ export interface CommandPayload {
   response_type: 'text' | 'embed';
   response_text?: string;
   embed_config?: EmbedConfig;
+  auto_delete_input_seconds?: number;
+  auto_delete_output_seconds?: number;
 }
 
 export function useCustomCommands(guildId: string) {
