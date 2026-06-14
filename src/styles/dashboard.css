@@ -165,6 +165,8 @@
 .nav-item.active .nav-icon-customcommands { background-image: url('/images/acosmibot_customcommands-active.svg'); }
 .nav-icon-moderation    { background-image: url('/images/acosmibot_moderation-inactive.svg'); }
 .nav-item.active .nav-icon-moderation { background-image: url('/images/acosmibot_moderation-active.svg'); }
+.nav-icon-bannedusers   { background-image: url('/images/acosmibot_bannedusers-inactive.svg'); }
+.nav-item.active .nav-icon-bannedusers { background-image: url('/images/acosmibot_bannedusers-active.svg'); }
 .nav-icon-ai            { background-image: url('/images/acosmibot_customcommands-inactive.svg'); }
 .nav-item.active .nav-icon-ai { background-image: url('/images/acosmibot_customcommands-active.svg'); }
 .nav-icon-twitch        { background-image: url('/images/acosmibot_twitch-inactive.svg'); }
