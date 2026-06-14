@@ -11,6 +11,14 @@ export interface AiConfig {
   excluded_channels: string[];
   allowed_channels: string[];
   web_search: boolean;
+  memory_enabled: boolean;
+  ambient_enabled: boolean;
+  /** Probability (0–0.25) of chiming in on an eligible message. */
+  ambient_frequency: number;
+  /** Per-channel quiet period after a proactive reply, in seconds (60–86400). */
+  ambient_cooldown_seconds: number;
+  /** Max proactive replies per server per day. 0 = unlimited. */
+  ambient_daily_limit: number;
 }
 
 export interface AiPersonality {
@@ -56,6 +64,11 @@ const DEFAULT_AI: AiConfig = {
   excluded_channels: [],
   allowed_channels: [],
   web_search: false,
+  memory_enabled: true,
+  ambient_enabled: false,
+  ambient_frequency: 0.03,
+  ambient_cooldown_seconds: 600,
+  ambient_daily_limit: 50,
 };
 
 function normalizeAiConfig(raw?: Partial<AiConfig>): AiConfig {

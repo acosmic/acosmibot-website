@@ -9,6 +9,15 @@ import { useGuildChannels } from '@/hooks/useGuildChannels';
 const INSTRUCTIONS_MAX = 2000;
 const NAME_MAX = 48;
 
+// Proactive (ambient) chat bounds — must mirror acosmibot-core ai_personalities.
+const AMBIENT_MAX_FREQ_PCT = 25;
+const AMBIENT_MIN_COOLDOWN_MIN = 1;     // 60s
+const AMBIENT_MAX_COOLDOWN_MIN = 1440;  // 24h
+const AMBIENT_MAX_DAILY = 1000;
+
+const clamp = (value: number, min: number, max: number) =>
+  Number.isNaN(value) ? min : Math.min(Math.max(value, min), max);
+
 const createPersonalityId = () => `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 const uniqueName = (baseName: string, personalities: AiPersonality[]) => {
@@ -141,6 +150,92 @@ export const AiPage: React.FC = () => {
         onChange={(v) => setForm({ web_search: v })}
         description="Let the AI look up live information from the web when members ask it to search, look something up, or find current info."
       />
+
+      <FeatureToggle
+        label="Memory"
+        enabled={form.memory_enabled}
+        onChange={(v) => setForm({ memory_enabled: v })}
+        description="Let the AI remember facts members share about themselves (favorite game, timezone, running jokes) and use them in future replies. Members can review or clear their own memory with /ai-memory."
+      />
+
+      <CollapsibleSection title="Proactive Chat" defaultOpen={false}>
+        <p className="text-muted small mb-4">
+          When enabled, the AI will occasionally join conversations on its own — without being
+          mentioned — in your server's chosen personality. Tune how often and how much it does so below.
+        </p>
+
+        <FeatureToggle
+          label="Enable proactive chat"
+          enabled={form.ambient_enabled}
+          onChange={(v) => setForm({ ambient_enabled: v })}
+          description="Allow the AI to chime in unprompted on eligible messages."
+        />
+
+        {form.ambient_enabled && (
+          <div className="d-flex gap-4 flex-wrap mt-4">
+            <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
+              <label className="form-label mb-1 d-block">Chime-in chance</label>
+              <div className="d-flex align-items-center gap-2">
+                <input
+                  className="form-control"
+                  type="number"
+                  min={0}
+                  max={AMBIENT_MAX_FREQ_PCT}
+                  step={1}
+                  value={Math.round((form.ambient_frequency ?? 0) * 100)}
+                  onChange={(e) => setForm({
+                    ambient_frequency: clamp(parseInt(e.target.value, 10), 0, AMBIENT_MAX_FREQ_PCT) / 100,
+                  })}
+                  style={{ maxWidth: '110px' }}
+                />
+                <span className="text-muted">% of messages</span>
+              </div>
+              <p className="text-muted small mt-1 mb-0">How often it joins (max {AMBIENT_MAX_FREQ_PCT}%).</p>
+            </div>
+
+            <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
+              <label className="form-label mb-1 d-block">Cooldown</label>
+              <div className="d-flex align-items-center gap-2">
+                <input
+                  className="form-control"
+                  type="number"
+                  min={AMBIENT_MIN_COOLDOWN_MIN}
+                  max={AMBIENT_MAX_COOLDOWN_MIN}
+                  step={1}
+                  value={Math.round((form.ambient_cooldown_seconds ?? 600) / 60)}
+                  onChange={(e) => setForm({
+                    ambient_cooldown_seconds: clamp(
+                      parseInt(e.target.value, 10),
+                      AMBIENT_MIN_COOLDOWN_MIN,
+                      AMBIENT_MAX_COOLDOWN_MIN,
+                    ) * 60,
+                  })}
+                  style={{ maxWidth: '110px' }}
+                />
+                <span className="text-muted">minutes</span>
+              </div>
+              <p className="text-muted small mt-1 mb-0">Quiet period per channel after it speaks.</p>
+            </div>
+
+            <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
+              <label className="form-label mb-1 d-block">Daily limit</label>
+              <input
+                className="form-control"
+                type="number"
+                min={0}
+                max={AMBIENT_MAX_DAILY}
+                step={1}
+                value={form.ambient_daily_limit ?? 50}
+                onChange={(e) => setForm({
+                  ambient_daily_limit: clamp(parseInt(e.target.value, 10), 0, AMBIENT_MAX_DAILY),
+                })}
+                style={{ maxWidth: '110px' }}
+              />
+              <p className="text-muted small mt-1 mb-0">Max proactive messages/day (0 = unlimited).</p>
+            </div>
+          </div>
+        )}
+      </CollapsibleSection>
 
       <CollapsibleSection title="Personalities" defaultOpen={true}>
         <div className="d-flex justify-content-between align-items-end gap-3 mb-4 flex-wrap">
