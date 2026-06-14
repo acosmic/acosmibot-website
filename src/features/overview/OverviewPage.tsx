@@ -1,16 +1,25 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { BookOpen, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { useOverviewStats } from './useOverviewStats';
 import { LoadingSpinner } from '@/components/ui';
+import { analyticsApi } from '@/api/analytics';
+import { MemberFlowChart } from '@/features/analytics/charts';
 
 export const OverviewPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { user } = useAuthStore();
   const { currentGuild } = useGuildStore();
   const { userStats, guildStats, isLoading } = useOverviewStats(guildId!, user?.id || '');
+
+  const memberFlow = useQuery({
+    queryKey: ['guild', guildId, 'member-flow', 30],
+    queryFn: () => analyticsApi.guildMemberFlow(guildId!, 30),
+    enabled: !!guildId,
+  });
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -99,6 +108,27 @@ export const OverviewPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+
+          <section className="mb-5">
+            <div className="d-flex justify-content-between align-items-baseline mb-4">
+              <h3 className="mb-0">Member Growth</h3>
+              {memberFlow.data?.totals && (
+                <span className="small text-muted">
+                  Last 30 days:{' '}
+                  <span className="text-success">+{memberFlow.data.totals.joins}</span>{' / '}
+                  <span style={{ color: 'var(--bs-danger, #ed4245)' }}>−{memberFlow.data.totals.departures}</span>{' '}
+                  (net {memberFlow.data.totals.net >= 0 ? '+' : ''}{memberFlow.data.totals.net})
+                </span>
+              )}
+            </div>
+            <div className="card p-4">
+              {memberFlow.isLoading ? (
+                <span className="text-muted">Loading…</span>
+              ) : (
+                <MemberFlowChart data={memberFlow.data?.flow ?? []} />
+              )}
             </div>
           </section>
         </div>

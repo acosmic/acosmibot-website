@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '@/api/analytics';
-import type { CommandVolume, VolumeGranularity } from '@/api/analytics';
+import type { VolumeGranularity } from '@/api/analytics';
 import { EmojiBadge } from '@/features/analytics/GuildAnalyticsPage';
+import { VolumeChart } from '@/features/analytics/charts';
 
 const panel: React.CSSProperties = {
   background: 'var(--bg-card)', border: '1px solid var(--border-light)',
@@ -35,131 +36,22 @@ const RANGE_OPTIONS: Array<{ label: string; days: number }> = [
   { label: 'Last 90 days', days: 90 },
 ];
 
-const PLOT_H = 170;        // px height of the bar plotting area
-const Y_AXIS_W = 36;       // px reserved for y-axis tick labels
+const fmtCost = (n: number) => `$${n < 1 ? n.toFixed(4) : n.toFixed(2)}`;
+const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-/** Round a max value up to a "nice" axis ceiling (1,2,5 × 10ⁿ) so the y-axis
- *  stays readable whether the peak is 3 or 30,000. */
-const niceCeil = (v: number): number => {
-  if (v <= 1) return 1;
-  if (v <= 5) return v;
-  const pow = Math.pow(10, Math.floor(Math.log10(v)));
-  const n = v / pow;
-  const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
-  return step * pow;
-};
-
-/** Bar chart for command volume — hour-of-day histogram or daily timeline. */
-const VolumeChart: React.FC<{ data: CommandVolume }> = ({ data }) => {
-  const [hover, setHover] = useState<number | null>(null);
-  const isHour = data.granularity === 'hour';
-
-  // Build an ordered, gap-filled bucket list so empty hours/days still show.
-  let buckets: Array<{ key: string; label: string; count: number; showLabel: boolean }>;
-  if (isHour) {
-    const byHour = new Array(24).fill(0);
-    data.buckets.forEach((b) => { byHour[Number(b.bucket)] = b.count; });
-    buckets = byHour.map((count, h) => ({
-      key: String(h), label: `${h}:00`, count, showLabel: h % 6 === 0,
-    }));
-  } else {
-    const n = data.buckets.length;
-    const step = Math.max(1, Math.ceil(n / 8));
-    buckets = data.buckets.map((b, i) => {
-      const d = new Date(b.bucket + 'T00:00:00');
-      return {
-        key: b.bucket,
-        label: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        count: b.count,
-        showLabel: i % step === 0,
-      };
-    });
-  }
-
-  if (buckets.length === 0) {
-    return <p className="text-muted" style={{ margin: 0 }}>No activity in this range.</p>;
-  }
-
-  const rawMax = Math.max(...buckets.map((b) => b.count));
-  const axisMax = niceCeil(rawMax);
-  const ticks = [axisMax, axisMax / 2, 0];
-  const active = hover != null ? buckets[hover] : null;
-
-  return (
-    <div>
-      {/* Hover readout — keeps a fixed slot so the chart doesn't jump. */}
-      <div style={{ height: 22, marginBottom: 6, fontSize: 13, color: 'var(--text-secondary, var(--text-muted))' }}>
-        {active && (
-          <span>
-            <strong style={{ color: 'var(--text-primary)' }}>
-              {isHour ? `${active.key}:00–${active.key}:59 UTC` : active.label}
-            </strong>
-            {' · '}{active.count.toLocaleString()} command{active.count === 1 ? '' : 's'}
-          </span>
-        )}
-      </div>
-
-      <div style={{ display: 'flex', gap: 8 }}>
-        {/* Y-axis tick labels */}
-        <div style={{
-          width: Y_AXIS_W, height: PLOT_H, display: 'flex', flexDirection: 'column',
-          justifyContent: 'space-between', alignItems: 'flex-end',
-          fontSize: 10, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums',
-        }}>
-          {ticks.map((t) => <span key={t}>{t.toLocaleString()}</span>)}
-        </div>
-
-        {/* Plot area with horizontal gridlines behind the bars */}
-        <div style={{ flex: 1, position: 'relative', height: PLOT_H }}>
-          {ticks.map((t) => (
-            <div key={t} style={{
-              position: 'absolute', left: 0, right: 0, top: `${(1 - t / axisMax) * 100}%`,
-              borderTop: '1px dashed var(--border-light)', opacity: 0.5,
-            }} />
-          ))}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: '100%', position: 'relative' }}>
-            {buckets.map((b, i) => (
-              <div
-                key={b.key}
-                onMouseEnter={() => setHover(i)}
-                onMouseLeave={() => setHover((h) => (h === i ? null : h))}
-                title={`${isHour ? `${b.key}:00` : b.label} — ${b.count.toLocaleString()} commands`}
-                style={{
-                  flex: 1, height: '100%', minWidth: 0,
-                  display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center',
-                  cursor: 'default',
-                }}
-              >
-                <div style={{
-                  width: '100%',
-                  height: Math.max(b.count > 0 ? 2 : 0, (b.count / axisMax) * PLOT_H),
-                  background: hover === i ? '#8b95ff' : '#5865F2',
-                  borderRadius: '3px 3px 0 0', transition: 'background 0.1s',
-                }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* X-axis labels, aligned under the bars (offset past the y-axis) */}
-      <div style={{ display: 'flex', gap: 3, marginTop: 6, paddingLeft: Y_AXIS_W + 8 }}>
-        {buckets.map((b) => (
-          <div key={b.key} style={{
-            flex: 1, minWidth: 0, textAlign: 'center', whiteSpace: 'nowrap',
-            fontSize: 10, color: 'var(--text-muted)',
-          }}>
-            {b.showLabel ? b.label : ''}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+const RangeSelect: React.FC<{ value: number; onChange: (d: number) => void }> = ({ value, onChange }) => (
+  <select style={select} value={value} onChange={(e) => onChange(Number(e.target.value))}>
+    {RANGE_OPTIONS.filter((o) => o.days >= 7).map((o) => (
+      <option key={o.days} value={o.days}>{o.label}</option>
+    ))}
+  </select>
+);
 
 export const AnalyticsTab: React.FC = () => {
   const [granularity, setGranularity] = useState<VolumeGranularity>('hour');
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState(30);     // command-volume chart range
+  const [aiDays, setAiDays] = useState(30);  // AI usage range
+  const [msgDays, setMsgDays] = useState(30); // messages range
 
   const commands = useQuery({
     queryKey: ['global-analytics-commands'],
@@ -173,6 +65,14 @@ export const AnalyticsTab: React.FC = () => {
     queryKey: ['global-analytics-volume', granularity, days],
     queryFn: () => analyticsApi.globalVolume(granularity, days),
   });
+  const ai = useQuery({
+    queryKey: ['global-analytics-ai', aiDays],
+    queryFn: () => analyticsApi.globalAiUsage(aiDays),
+  });
+  const messages = useQuery({
+    queryKey: ['global-analytics-messages', msgDays],
+    queryFn: () => analyticsApi.globalMessages(msgDays),
+  });
 
   if (commands.isLoading || reactions.isLoading) {
     return <p className="text-muted">Loading…</p>;
@@ -181,6 +81,11 @@ export const AnalyticsTab: React.FC = () => {
   const topCommands = commands.data?.top_commands ?? [];
   const topGuilds = commands.data?.top_guilds ?? [];
   const topReactions = reactions.data?.top_reactions ?? [];
+  const aiByType = Object.entries(ai.data?.stats_by_type ?? {});
+  const aiByModel = ai.data?.by_model ?? [];
+  const aiTopGuilds = ai.data?.top_guilds ?? [];
+  const aiTotalCost = aiByType.reduce((sum, [, s]) => sum + s.total_cost, 0);
+  const msgTopGuilds = messages.data?.top_guilds ?? [];
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
@@ -268,6 +173,94 @@ export const AnalyticsTab: React.FC = () => {
         {volume.isLoading || !volume.data
           ? <p className="text-muted" style={{ margin: 0 }}>Loading…</p>
           : <VolumeChart data={volume.data} />}
+      </div>
+
+      {/* ---- AI usage ---- */}
+      <div style={panel}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <div style={heading}>AI usage by type</div>
+          <RangeSelect value={aiDays} onChange={setAiDays} />
+        </div>
+        {ai.isLoading ? <p className="text-muted" style={{ margin: 0 }}>Loading…</p> : (
+          <>
+            <div style={{ ...row, fontWeight: 700 }}>
+              <span style={{ color: 'var(--text-primary)' }}>Total cost</span>
+              <span style={meta}>{fmtCost(aiTotalCost)}</span>
+            </div>
+            {aiByType.length === 0 && <p className="text-muted" style={{ margin: 0 }}>No AI usage yet.</p>}
+            {aiByType.sort((a, b) => b[1].count - a[1].count).map(([type, s]) => (
+              <div key={type} style={row}>
+                <span style={{ color: 'var(--text-primary)' }}>{titleCase(type)}</span>
+                <span style={meta}>
+                  {s.count.toLocaleString()} · {s.total_tokens.toLocaleString()} tok · {fmtCost(s.total_cost)}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+
+      <div style={panel}>
+        <div style={heading}>AI usage by model</div>
+        {(aiByModel.length === 0)
+          ? <p className="text-muted" style={{ margin: 0 }}>No AI usage yet.</p>
+          : aiByModel.map((m) => (
+            <div key={m.model} style={row}>
+              <span style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.model}</span>
+              <span style={meta}>{m.usage_count.toLocaleString()} · {fmtCost(m.total_cost)}</span>
+            </div>
+          ))}
+      </div>
+
+      <div style={panel}>
+        <div style={heading}>Top servers by AI cost</div>
+        {(aiTopGuilds.length === 0)
+          ? <p className="text-muted" style={{ margin: 0 }}>No AI usage yet.</p>
+          : aiTopGuilds.map((g, i) => (
+            <div key={g.guild_id} style={row}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                <span style={num}>{i + 1}</span>
+                <span style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
+              </span>
+              <span style={meta}>{fmtCost(g.total_cost)} · {g.usage_count.toLocaleString()}</span>
+            </div>
+          ))}
+      </div>
+
+      {/* ---- Messages ---- */}
+      <div style={panel}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <div style={heading}>Most active servers (by messages)</div>
+          <RangeSelect value={msgDays} onChange={setMsgDays} />
+        </div>
+        {messages.isLoading ? <p className="text-muted" style={{ margin: 0 }}>Loading…</p> : (
+          msgTopGuilds.length === 0
+            ? <p className="text-muted" style={{ margin: 0 }}>No message data yet.</p>
+            : msgTopGuilds.map((g, i) => (
+              <div key={g.guild_id} style={row}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  <span style={num}>{i + 1}</span>
+                  <span style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
+                </span>
+                <span style={meta}>
+                  {g.count.toLocaleString()}
+                  {g.channels ? ` · ${g.channels.toLocaleString()} channels` : ''}
+                </span>
+              </div>
+            ))
+        )}
+      </div>
+
+      <div style={{ ...panel, gridColumn: '1 / -1' }}>
+        <div style={{ ...heading }}>Message volume (UTC, daily)</div>
+        {messages.isLoading || !messages.data
+          ? <p className="text-muted" style={{ margin: 0 }}>Loading…</p>
+          : (
+            <VolumeChart
+              unit="message"
+              data={{ granularity: 'day', days: msgDays, buckets: messages.data.volume }}
+            />
+          )}
       </div>
     </div>
   );

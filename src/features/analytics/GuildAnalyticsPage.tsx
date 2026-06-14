@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '@/api/analytics';
 import type { TopReaction } from '@/api/profile';
 import { LoadingSpinner } from '@/components/ui';
+import { Sparkline } from './charts';
+
+const fmtCost = (n: number) => `$${n < 1 ? n.toFixed(4) : n.toFixed(2)}`;
+const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 /** Custom Discord emoji from the CDN, or the unicode char directly. */
 export const EmojiBadge: React.FC<{ reaction: TopReaction; size?: number }> = ({ reaction, size = 20 }) => {
@@ -50,12 +54,27 @@ export const GuildAnalyticsPage: React.FC = () => {
     queryFn: () => analyticsApi.guildReactions(guildId!),
     enabled: !!guildId,
   });
+  const [days] = useState(30);
+  const aiUsage = useQuery({
+    queryKey: ['guild-analytics-ai', guildId, days],
+    queryFn: () => analyticsApi.guildAiUsage(guildId!, days),
+    enabled: !!guildId,
+  });
+  const channels = useQuery({
+    queryKey: ['guild-analytics-channels', guildId, days],
+    queryFn: () => analyticsApi.guildChannels(guildId!, days),
+    enabled: !!guildId,
+  });
 
   if (commands.isLoading || reactions.isLoading) return <LoadingSpinner />;
 
   const topCommands = commands.data?.top_commands ?? [];
   const neverUsed = commands.data?.never_used ?? [];
   const topReactions = reactions.data?.top_reactions ?? [];
+  const aiByType = Object.entries(aiUsage.data?.stats_by_type ?? {});
+  const aiTopUsers = aiUsage.data?.top_users ?? [];
+  const aiTotalCost = aiByType.reduce((sum, [, s]) => sum + s.total_cost, 0);
+  const channelList = channels.data?.channels ?? [];
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -112,6 +131,72 @@ export const GuildAnalyticsPage: React.FC = () => {
             <span style={meta}>{r.count.toLocaleString()}</span>
           </div>
         ))}
+      </div>
+
+      <div style={panel}>
+        <div style={heading}>Most active channels (last {days} days)</div>
+        {channels.isLoading ? (
+          <div style={{ color: 'var(--text-muted)' }}>Loading…</div>
+        ) : channelList.length === 0 ? (
+          <div style={{ color: 'var(--text-muted)' }}>No channel activity recorded yet.</div>
+        ) : channelList.slice(0, 15).map((c, i) => (
+          <div key={c.channel_id} style={row}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+              <span style={num}>{i + 1}</span>
+              <span style={{
+                color: 'var(--text-primary)', fontWeight: 600,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>#{c.name}</span>
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Sparkline data={c.series.map((s) => s.count)} />
+              <span style={{ ...meta, minWidth: 56, textAlign: 'right' }}>
+                {c.count.toLocaleString()}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div style={panel}>
+        <div style={heading}>AI usage (last {days} days)</div>
+        {aiUsage.isLoading ? (
+          <div style={{ color: 'var(--text-muted)' }}>Loading…</div>
+        ) : aiByType.length === 0 ? (
+          <div style={{ color: 'var(--text-muted)' }}>No AI usage recorded yet.</div>
+        ) : (
+          <>
+            <div style={{ ...row, fontWeight: 700 }}>
+              <span style={{ color: 'var(--text-primary)' }}>Total cost</span>
+              <span style={meta}>{fmtCost(aiTotalCost)}</span>
+            </div>
+            {aiByType.sort((a, b) => b[1].count - a[1].count).map(([type, s]) => (
+              <div key={type} style={row}>
+                <span style={{ color: 'var(--text-primary)' }}>{titleCase(type)}</span>
+                <span style={meta}>
+                  {s.count.toLocaleString()} · {s.total_tokens.toLocaleString()} tok · {fmtCost(s.total_cost)}
+                </span>
+              </div>
+            ))}
+            {aiTopUsers.length > 0 && (
+              <>
+                <div style={{ ...heading, marginTop: 16 }}>Top AI users</div>
+                {aiTopUsers.map((u, i) => (
+                  <div key={u.user_id} style={row}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                      <span style={num}>{i + 1}</span>
+                      <span style={{
+                        color: 'var(--text-primary)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>{u.username}</span>
+                    </span>
+                    <span style={meta}>{u.total_usage.toLocaleString()} uses</span>
+                  </div>
+                ))}
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
