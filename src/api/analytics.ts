@@ -16,13 +16,34 @@ export interface HourBucket {
   count: number;
 }
 
+export interface TopGuild {
+  guild_id: string;
+  name: string;
+  count: number;
+  users: number;
+}
+
 export interface GlobalCommandAnalytics {
   top_commands: Array<TopCommand & { users?: number; guilds?: number }>;
+  top_guilds: TopGuild[];
   hourly_distribution: HourBucket[];
 }
 
 export interface GlobalReactionAnalytics {
   top_reactions: TopReaction[];
+}
+
+export type VolumeGranularity = 'hour' | 'day';
+
+export interface VolumeBucket {
+  bucket: string;
+  count: number;
+}
+
+export interface CommandVolume {
+  granularity: VolumeGranularity;
+  days: number;
+  buckets: VolumeBucket[];
 }
 
 export const analyticsApi = {
@@ -37,4 +58,9 @@ export const analyticsApi = {
 
   globalReactions: (): Promise<GlobalReactionAnalytics> =>
     api.fetch<GlobalReactionAnalytics>('/api/admin/analytics/reactions'),
+
+  globalVolume: (granularity: VolumeGranularity, days: number): Promise<CommandVolume> =>
+    api.fetch<CommandVolume>(
+      `/api/admin/analytics/volume?granularity=${granularity}&days=${days}`,
+    ),
 };
