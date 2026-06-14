@@ -35,8 +35,23 @@ const RANGE_OPTIONS: Array<{ label: string; days: number }> = [
   { label: 'Last 90 days', days: 90 },
 ];
 
+const PLOT_H = 170;        // px height of the bar plotting area
+const Y_AXIS_W = 36;       // px reserved for y-axis tick labels
+
+/** Round a max value up to a "nice" axis ceiling (1,2,5 × 10ⁿ) so the y-axis
+ *  stays readable whether the peak is 3 or 30,000. */
+const niceCeil = (v: number): number => {
+  if (v <= 1) return 1;
+  if (v <= 5) return v;
+  const pow = Math.pow(10, Math.floor(Math.log10(v)));
+  const n = v / pow;
+  const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+  return step * pow;
+};
+
 /** Bar chart for command volume — hour-of-day histogram or daily timeline. */
 const VolumeChart: React.FC<{ data: CommandVolume }> = ({ data }) => {
+  const [hover, setHover] = useState<number | null>(null);
   const isHour = data.granularity === 'hour';
 
   // Build an ordered, gap-filled bucket list so empty hours/days still show.
@@ -61,28 +76,83 @@ const VolumeChart: React.FC<{ data: CommandVolume }> = ({ data }) => {
     });
   }
 
-  const max = Math.max(1, ...buckets.map((b) => b.count));
-
   if (buckets.length === 0) {
     return <p className="text-muted" style={{ margin: 0 }}>No activity in this range.</p>;
   }
 
+  const rawMax = Math.max(...buckets.map((b) => b.count));
+  const axisMax = niceCeil(rawMax);
+  const ticks = [axisMax, axisMax / 2, 0];
+  const active = hover != null ? buckets[hover] : null;
+
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 140 }}>
-      {buckets.map((b) => (
-        <div key={b.key} title={`${b.label} — ${b.count.toLocaleString()} commands`}
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
-          <div style={{
-            width: '100%', height: `${(b.count / max) * 100}%`, minHeight: b.count > 0 ? 2 : 0,
-            background: '#5865F2', borderRadius: '3px 3px 0 0',
-          }} />
-          {b.showLabel && (
-            <span style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-              {b.label}
-            </span>
-          )}
+    <div>
+      {/* Hover readout — keeps a fixed slot so the chart doesn't jump. */}
+      <div style={{ height: 22, marginBottom: 6, fontSize: 13, color: 'var(--text-secondary, var(--text-muted))' }}>
+        {active && (
+          <span>
+            <strong style={{ color: 'var(--text-primary)' }}>
+              {isHour ? `${active.key}:00–${active.key}:59 UTC` : active.label}
+            </strong>
+            {' · '}{active.count.toLocaleString()} command{active.count === 1 ? '' : 's'}
+          </span>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        {/* Y-axis tick labels */}
+        <div style={{
+          width: Y_AXIS_W, height: PLOT_H, display: 'flex', flexDirection: 'column',
+          justifyContent: 'space-between', alignItems: 'flex-end',
+          fontSize: 10, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums',
+        }}>
+          {ticks.map((t) => <span key={t}>{t.toLocaleString()}</span>)}
         </div>
-      ))}
+
+        {/* Plot area with horizontal gridlines behind the bars */}
+        <div style={{ flex: 1, position: 'relative', height: PLOT_H }}>
+          {ticks.map((t) => (
+            <div key={t} style={{
+              position: 'absolute', left: 0, right: 0, top: `${(1 - t / axisMax) * 100}%`,
+              borderTop: '1px dashed var(--border-light)', opacity: 0.5,
+            }} />
+          ))}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: '100%', position: 'relative' }}>
+            {buckets.map((b, i) => (
+              <div
+                key={b.key}
+                onMouseEnter={() => setHover(i)}
+                onMouseLeave={() => setHover((h) => (h === i ? null : h))}
+                title={`${isHour ? `${b.key}:00` : b.label} — ${b.count.toLocaleString()} commands`}
+                style={{
+                  flex: 1, height: '100%', minWidth: 0,
+                  display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center',
+                  cursor: 'default',
+                }}
+              >
+                <div style={{
+                  width: '100%',
+                  height: Math.max(b.count > 0 ? 2 : 0, (b.count / axisMax) * PLOT_H),
+                  background: hover === i ? '#8b95ff' : '#5865F2',
+                  borderRadius: '3px 3px 0 0', transition: 'background 0.1s',
+                }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* X-axis labels, aligned under the bars (offset past the y-axis) */}
+      <div style={{ display: 'flex', gap: 3, marginTop: 6, paddingLeft: Y_AXIS_W + 8 }}>
+        {buckets.map((b) => (
+          <div key={b.key} style={{
+            flex: 1, minWidth: 0, textAlign: 'center', whiteSpace: 'nowrap',
+            fontSize: 10, color: 'var(--text-muted)',
+          }}>
+            {b.showLabel ? b.label : ''}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
