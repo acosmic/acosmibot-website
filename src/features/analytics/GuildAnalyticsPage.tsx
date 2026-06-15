@@ -3,7 +3,9 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '@/api/analytics';
 import type { TopReaction } from '@/api/profile';
-import { LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner, FeatureToggle, ChannelSelect, SaveBar } from '@/components/ui';
+import { useDirtyState } from '@/hooks/useDirtyState';
+import { useRecapConfig, RecapConfig } from './useRecapConfig';
 import { Sparkline } from './charts';
 
 const fmtCost = (n: number) => `$${n < 1 ? n.toFixed(4) : n.toFixed(2)}`;
@@ -66,6 +68,10 @@ export const GuildAnalyticsPage: React.FC = () => {
     enabled: !!guildId,
   });
 
+  const { recap, save: saveRecap, isSaving, saveError } = useRecapConfig(guildId!);
+  const { form: recapForm, setForm: setRecapForm, isDirty: recapDirty, resetForm: resetRecapForm } =
+    useDirtyState<RecapConfig>(recap);
+
   if (commands.isLoading || reactions.isLoading) return <LoadingSpinner />;
 
   const topCommands = commands.data?.top_commands ?? [];
@@ -82,6 +88,33 @@ export const GuildAnalyticsPage: React.FC = () => {
       <p style={{ color: 'var(--text-muted)', marginBottom: 20 }}>
         What your members actually use — popular commands, untapped features, and favorite reactions.
       </p>
+
+      {recapForm && (
+        <div style={{ marginBottom: 16 }}>
+          <FeatureToggle
+            enabled={recapForm.enabled}
+            onChange={(v) => setRecapForm({ enabled: v })}
+            label="Weekly Recap"
+            description="Post a summary of the week's top commands and reactions every Monday."
+          />
+          {recapForm.enabled && (
+            <div style={panel}>
+              <ChannelSelect
+                guildId={guildId!}
+                value={recapForm.channel_id}
+                onChange={(v) => setRecapForm({ channel_id: v })}
+                label="Recap Channel"
+                placeholder="Select a channel…"
+              />
+              {!recapForm.channel_id && (
+                <p style={{ color: 'var(--warning-color, #e0a800)', fontSize: 13, margin: 0 }}>
+                  Pick a channel — recaps won't post until one is selected.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={panel}>
         <div style={heading}>Most-used commands</div>
@@ -198,6 +231,14 @@ export const GuildAnalyticsPage: React.FC = () => {
           </>
         )}
       </div>
+
+      <SaveBar
+        isDirty={recapDirty}
+        onSave={() => saveRecap(recapForm!)}
+        onDiscard={resetRecapForm}
+        isSaving={isSaving}
+        saveError={saveError}
+      />
     </div>
   );
 };
