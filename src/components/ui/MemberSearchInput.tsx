@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { bannedUsersApi, MemberSearchResult } from '@/api/bannedUsers';
 
 interface MemberSearchInputProps {
@@ -23,6 +24,7 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const search = useCallback(
     async (q: string) => {
@@ -58,7 +60,10 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inContainer = containerRef.current?.contains(target);
+      const inDropdown = dropdownRef.current?.contains(target);
+      if (!inContainer && !inDropdown) {
         setIsOpen(false);
       }
     };
@@ -124,8 +129,9 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
       {isLoading && (
         <div className="small text-muted mt-1">Searching…</div>
       )}
-      {isOpen && results.length > 0 && (
+      {isOpen && results.length > 0 && createPortal(
         <div
+          ref={dropdownRef}
           style={{
             position: 'fixed',
             top: dropdownRect.top,
@@ -186,7 +192,8 @@ export const MemberSearchInput: React.FC<MemberSearchInputProps> = ({
               </div>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
