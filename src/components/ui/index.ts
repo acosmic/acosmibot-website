@@ -10,3 +10,4 @@ export * from './ErrorBoundary';
 export * from './CenteredMessage';
 export * from './InlineIcon';
 export * from './ComingSoonPage';
+export * from './MemberSearchInput';

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Bot } from 'lucide-react';
 import { useAiConfig, AiConfig, AiPersonality } from './useAiConfig';
+import { AiMemorySection } from './AiMemorySection';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
@@ -157,6 +158,8 @@ export const AiPage: React.FC = () => {
         onChange={(v) => setForm({ memory_enabled: v })}
         description="Let the AI remember facts members share about themselves (favorite game, timezone, running jokes) and use them in future replies. Members can review or clear their own memory with /ai-memory."
       />
+
+      <AiMemorySection guildId={guildId!} enabled={form.memory_enabled} />
 
       <CollapsibleSection title="Proactive Chat" defaultOpen={false}>
         <p className="text-muted small mb-4">
