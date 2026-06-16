@@ -218,6 +218,10 @@
           <td><code>/stats-games [member]</code></td>
           <td>View game-specific stats (slots wins, blackjack record, etc.)</td>
         </tr>
+        <tr>
+          <td><code>/topreactions [timeframe]</code></td>
+          <td>Top 10 most-used reaction emojis in this server (today, week, month, or all time)</td>
+        </tr>
       </tbody>
     </table>
   </section>
@@ -263,6 +267,10 @@
           <td>Return NASA's Astronomy Picture of the Day</td>
         </tr>
         <tr>
+          <td><code>/weather &lt;city&gt;</code></td>
+          <td>Return the current weather for a city</td>
+        </tr>
+        <tr>
           <td><code>/help</code></td>
           <td>Get info about Acosmibot and its features (AI-powered with RAG)</td>
         </tr>
@@ -279,16 +287,40 @@
           <td>Check AI status, model, usage today, and channel restrictions (Administrator)</td>
         </tr>
         <tr>
+          <td><code>/ai-personality &lt;list|current|set|reset&gt;</code></td>
+          <td>List and switch the server's saved AI personalities</td>
+        </tr>
+        <tr>
+          <td><code>/ai-memory &lt;add|list|clear&gt;</code></td>
+          <td>Manage what the AI remembers about you in this server</td>
+        </tr>
+        <tr>
+          <td><code>/ai-ambient &lt;enable|disable|frequency&gt;</code></td>
+          <td>Control proactive ambient AI replies (Premium + AI)</td>
+        </tr>
+        <tr>
           <td><code>/generate-image &lt;prompt&gt;</code></td>
           <td>Generate an image using AI / gpt-image-2 (Premium)</td>
         </tr>
         <tr>
           <td><code>/analyze-image</code></td>
-          <td>Analyze an attached image using GPT-4 Vision (Premium)</td>
+          <td>Analyze an attached image using GPT-4o Vision (Premium)</td>
         </tr>
         <tr>
           <td><code>/admin-start-lotto &lt;hours&gt; &lt;channel&gt;</code></td>
           <td>Start a server lottery — members enter by reacting (Administrator)</td>
+        </tr>
+        <tr>
+          <td><code>/admin-giveaway &lt;prize&gt; &lt;duration&gt;</code></td>
+          <td>Start a giveaway with optional channel, winner count, required roles, and entry restrictions (Manage Server)</td>
+        </tr>
+        <tr>
+          <td><code>/admin-cancel-giveaway &lt;id&gt;</code></td>
+          <td>Cancel an active giveaway by its ID (Manage Server)</td>
+        </tr>
+        <tr>
+          <td><code>/admin-giveaway-reroll [id]</code></td>
+          <td>Reroll the winner of an ended giveaway (Manage Server)</td>
         </tr>
       </tbody>
     </table>
@@ -301,7 +333,8 @@
       <h3>Who Can Use What</h3>
       <ul>
         <li><strong>Everyone</strong> — Games, economy, bank, reminders, rank, stats, utility (ping, avatar, apod, polymorph)</li>
-        <li><strong>Administrator</strong> — AI controls (enable, disable, status, clear), lottery admin, server dashboard settings</li>
+        <li><strong>Administrator</strong> — AI controls (enable, disable, status, personality), lottery admin, server dashboard settings</li>
+        <li><strong>Manage Server</strong> — Giveaway controls (start, cancel, reroll)</li>
         <li><strong>Premium servers</strong> — Image generation and analysis, extended custom commands limit</li>
         <li><strong>Server Owner</strong> — Full access to all commands and dashboard settings</li>
       </ul>
