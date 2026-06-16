@@ -1,0 +1,192 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Items & Inventory</h1>
+    <p class="docs-page-description">
+      A credit-funded shop where members buy items, keep them in a personal inventory, and activate effects that boost the XP and economy systems.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      The items system lets members spend their credits on items that do something — most notably XP and credit boosts. Items live in a per-member inventory and are activated in one of two ways: <strong>used</strong> (a one-time consumable effect) or <strong>equipped</strong> (an effect that stays active while the item is equipped). Items can also be gifted or traded to other members.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>Key Features</h3>
+      <ul>
+        <li>Browse and buy items with credits via <code>/shop</code> and <code>/buy</code></li>
+        <li>Personal inventory per member with <code>/inventory</code></li>
+        <li>Consumable items with one-time effects via <code>/use</code></li>
+        <li>Equippable items with always-on effects via <code>/equip</code> and <code>/unequip</code></li>
+        <li>Effects boost XP and credit earnings, with global or server scope</li>
+        <li>Gift items to anyone with <code>/gift</code>, or trade tradeable items with <code>/trade</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How It Works</h2>
+
+    <div class="info-card">
+      <h3>🛍️ Buying items</h3>
+      <p>
+        Run <code>/shop</code> to see what's available and how much each item costs in credits. Buy one with <code>/buy &lt;item&gt;</code> — the cost is deducted from your server wallet and the item is added to your inventory. Each item has a rarity (common, rare, and so on) and a maximum stack size.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>⚡ Using vs. equipping</h3>
+      <p>
+        How an item activates depends on its type:
+      </p>
+      <ul>
+        <li><strong>Consumables</strong> — <code>/use</code> spends one copy and applies its effect immediately (for example, a temporary XP boost for a set duration).</li>
+        <li><strong>Equippable</strong> — <code>/equip</code> turns the item's effect on and keeps it active until you <code>/unequip</code> it. Equipped items aren't consumed.</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h3>📈 Effects &amp; boosts</h3>
+      <p>
+        An item's power lives in its effects — things like an <code>xp_boost</code> or <code>credit_boost</code> with a magnitude, a scope, and (for consumables) a duration. Boosts are additive and stack with the leveling and economy systems. Scope determines where a boost applies:
+      </p>
+      <ul>
+        <li><strong>Server scope</strong> — the boost only applies in the server where it was activated.</li>
+        <li><strong>Global scope</strong> — the boost follows you across every server running Acosmibot.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/shop</div>
+        <div class="command-description">
+          Browse the items you can buy with credits, including each item's price, rarity, and what it does.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/shop</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/buy &lt;item&gt;</div>
+        <div class="command-description">
+          Buy an item from the shop with credits. The cost is deducted from your server wallet and the item is added to your inventory.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/buy XP Booster</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/inventory</div>
+        <div class="command-description">
+          View the items you currently own, including quantities and which items are equipped.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/inventory</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/use &lt;item&gt;</div>
+        <div class="command-description">
+          Use a consumable item to activate its effect. One copy is spent and the effect applies immediately (for example, a timed XP boost).
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/use XP Booster</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/equip &lt;item&gt;</div>
+        <div class="command-description">
+          Equip an item — its effect stays active while equipped. Equipped items are not consumed.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/equip Lucky Charm</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/unequip &lt;item&gt;</div>
+        <div class="command-description">
+          Unequip an item — its effect turns off and the item returns to your inventory.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/unequip Lucky Charm</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/gift &lt;member&gt; &lt;item&gt;</div>
+        <div class="command-description">
+          Give one of your giftable items to another member at no cost to them.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/gift @username XP Booster</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/trade &lt;member&gt; &lt;item&gt;</div>
+        <div class="command-description">
+          Trade a tradeable item to another member of this server.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/trade @username Lucky Charm</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: What's the difference between using and equipping an item?</h4>
+      <p>A: Using a consumable spends one copy and applies its effect right away (often for a limited time). Equipping keeps an item's effect active without consuming it — until you unequip it.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Do boosts stack?</h4>
+      <p>A: Yes. Boost magnitudes are additive and stack with the XP and economy systems, as well as with other active boosts.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I move items between servers?</h4>
+      <p>A: Trades happen between members of the same server. A boost's reach depends on its scope — server-scoped boosts only apply where they're activated, while global-scoped boosts follow you everywhere.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: What's the difference between gifting and trading?</h4>
+      <p>A: Both move an item to another member. Gifting works with items flagged as giftable; trading works with items flagged as tradeable. An item's flags determine which actions are allowed.</p>
+    </div>
+  </section>
+
+  <!-- Navigation -->
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('economy')">
+      <span class="arrow">←</span>
+      <span class="nav-label">Back</span>
+      <span class="nav-page">Economy &amp; Banking</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('moderation')">
+      <span class="nav-page">Moderation</span>
+      <span class="nav-label">Next</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</div>

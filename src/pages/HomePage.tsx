@@ -169,6 +169,9 @@ export const HomePage: React.FC = () => {
     Crown: () => (
       <svg {...svgProps}><path d="M2 7l4 10h12l4-10-6 4-4-7-4 7z" /></svg>
     ),
+    Package: () => (
+      <svg {...svgProps}><path d="M16.5 9.4 7.5 4.21" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
+    ),
   };
 
   return (
@@ -364,7 +367,7 @@ export const HomePage: React.FC = () => {
                 <li>Mention the bot to start a conversation</li>
                 <li>Context-aware threaded memory</li>
                 <li>Per-server custom AI personality</li>
-                <li>DALL-E image generation on demand</li>
+                <li>On-demand AI image generation</li>
                 <li>RAG-powered server knowledge base</li>
               </ul>
             </div>
@@ -396,14 +399,27 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="feature-card fade-in">
+              <div className="feature-icon-wrapper"><Icon.Package /></div>
+              <h3>Items & Inventory</h3>
+              <p>A credit-funded shop where members buy items, stock an inventory, and activate boosts that stack with the economy and leveling systems.</p>
+              <ul className="feature-list">
+                <li>Buy items from the credits shop</li>
+                <li>Personal inventory per member</li>
+                <li>Equip items for always-on effects</li>
+                <li>Consumable items with one-time effects</li>
+                <li>Gift and trade items to other members</li>
+              </ul>
+            </div>
+
+            <div className="feature-card fade-in">
               <div className="feature-icon-wrapper"><Icon.Dice /></div>
               <h3>Games & Gambling</h3>
               <p>A full slate of interactive games and credit-based wagering to keep members engaged.</p>
               <ul className="feature-list">
-                <li>Blackjack, Slots, and Coinflip</li>
+                <li>Blackjack, Slots, Mines, and Coinflip</li>
                 <li>Deathroll and Rock Paper Scissors PvP</li>
-                <li>Dice rolls and Magic 8-Ball</li>
-                <li>Lightweight RPG progression</li>
+                <li>Magic 8-Ball predictions</li>
+                <li>Credit-based wagering on every game</li>
                 <li>Game-specific leaderboards</li>
               </ul>
             </div>

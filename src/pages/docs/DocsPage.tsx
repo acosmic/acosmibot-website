@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices,
-  FileText, Landmark, Lock, Orbit, Rocket, Settings, Shield, Spade,
+  FileText, Landmark, Lock, Orbit, Package, Rocket, Settings, Shield, Spade,
   Sparkles, Ticket, TrendingUp, TvMinimalPlay, VenetianMask,
   type LucideIcon,
 } from 'lucide-react';
@@ -30,6 +30,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
     items: [
       { slug: 'leveling',   label: 'Leveling System', icon: TrendingUp },
       { slug: 'economy',    label: 'Economy & Banking', icon: Landmark },
+      { slug: 'items',      label: 'Items & Inventory', icon: Package },
       { slug: 'moderation', label: 'Moderation', icon: Shield },
       { slug: 'ai',         label: 'AI Integration', icon: Bot },
     ],
