@@ -74,7 +74,7 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         <Tab active={metric === 'xp'} onClick={() => { setMetric('xp'); setLimit(PAGE); }}>Global XP</Tab>
-        <Tab active={metric === 'economy'} onClick={() => { setMetric('economy'); setLimit(PAGE); }}>Economy</Tab>
+        <Tab active={metric === 'economy'} onClick={() => { setMetric('economy'); setLimit(PAGE); }}>Net Worth</Tab>
         {isAuthed && <ServerSelector />}
       </div>
 

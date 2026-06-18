@@ -156,9 +156,10 @@ const GlobalStats: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
   if (g.total_reactions !== undefined) cards.push(['Reactions', fmt(g.total_reactions)]);
   if (g.total_commands !== undefined) cards.push(['Commands', fmt(g.total_commands)]);
   if (g.currency !== undefined) {
-    cards.push(['Currency', fmt(g.currency)]);
-    cards.push(['Currency Rank', ordinal(g.currency_rank)]);
-    cards.push(['Bank', fmt(g.bank_balance)]);
+    // Net Worth = wallet + bank, the same total the economy leaderboard ranks on
+    // (so currency_rank is the net-worth rank).
+    cards.push(['Net Worth', fmt((g.currency ?? 0) + (g.bank_balance ?? 0))]);
+    cards.push(['Net Worth Rank', ordinal(g.currency_rank)]);
   }
 
   if (cards.length === 0) return null;
