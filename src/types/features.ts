@@ -111,6 +111,33 @@ export interface PolymorphConfig {
   allow_ai_random_names: boolean;
 }
 
+/** Mini-games whose only server-configurable field is the enable toggle. */
+export interface SimpleGameConfig {
+  enabled: boolean;
+}
+
+/** Blackjack stores tunables the website doesn't surface yet; preserve them on save. */
+export interface BlackjackConfig {
+  enabled: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * The consolidated `games` block. `enabled` is the master toggle that gates every
+ * game; each child is a per-game config. Heist lives at the top-level `heist` key
+ * but is edited alongside these on the Games page.
+ */
+export interface GamesConfig {
+  enabled: boolean;
+  slots: SlotsConfig;
+  blackjack: BlackjackConfig;
+  coinflip: SimpleGameConfig;
+  mines: SimpleGameConfig;
+  deathroll: SimpleGameConfig;
+  rps: SimpleGameConfig;
+  heist: HeistConfig;
+}
+
 export interface HeistConfig {
   enabled: boolean;
   cooldown_hours: number;

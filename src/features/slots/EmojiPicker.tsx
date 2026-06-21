@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { STANDARD_EMOJI_CATEGORIES } from './emojiData';
-import { GuildEmoji } from './useSlotsConfig';
+import { GuildEmoji } from '@/hooks/useGuildEmojis';
 
 interface EmojiPickerProps {
   open: boolean;

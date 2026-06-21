@@ -11,9 +11,8 @@ import { CustomCommandsPage } from './features/custom-commands/CustomCommandsPag
 import { ModerationPage } from './features/moderation/ModerationPage';
 import { BannedUsersPage } from './features/banned-users/BannedUsersPage';
 import { AiPage } from './features/ai/AiPage';
-import { SlotsPage } from './features/slots/SlotsPage';
+import { GamesPage } from './features/games/GamesPage';
 import { PolymorphPage } from './features/polymorph/PolymorphPage';
-import { HeistPage } from './features/heist/HeistPage';
 import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
 import { ActivityMonitorPage } from './features/activity-monitor/ActivityMonitorPage';
 import { EmbedsListPage } from './features/embeds/EmbedsListPage';
@@ -128,16 +127,17 @@ const FeatureOutlet = () => {
     return <AiPage />;
   }
 
-  if (feature === 'slots') {
-    return <SlotsPage />;
+  if (feature === 'games') {
+    return <GamesPage />;
+  }
+
+  // Slots and Heist were merged into the consolidated Games page; keep old links working.
+  if (feature === 'slots' || feature === 'heist') {
+    return <Navigate to={`/server/${guildId}/games`} replace />;
   }
 
   if (feature === 'polymorph') {
     return <PolymorphPage />;
-  }
-
-  if (feature === 'heist') {
-    return <HeistPage />;
   }
 
   if (feature === 'analytics') {
