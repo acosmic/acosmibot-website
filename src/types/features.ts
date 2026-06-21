@@ -110,3 +110,17 @@ export interface PolymorphConfig {
   mode?: 'manual' | 'ai_random';
   allow_ai_random_names: boolean;
 }
+
+export interface HeistConfig {
+  enabled: boolean;
+  cooldown_hours: number;
+  join_window_seconds: number;
+  base_success: number;       // 0..1
+  per_member_success: number; // 0..1 added per crew member
+  success_cap: number;        // 0..1
+  base_loot_percent: number;  // % of vault (solo)
+  pie_growth_k: number;       // loot growth per extra member
+  max_loot_percent: number;   // % of vault cap
+  min_vault: number;          // minimum vault to start a heist
+  fine_percent: number;       // % of wallet fined when caught
+}

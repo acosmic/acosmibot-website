@@ -13,6 +13,7 @@ import { BannedUsersPage } from './features/banned-users/BannedUsersPage';
 import { AiPage } from './features/ai/AiPage';
 import { SlotsPage } from './features/slots/SlotsPage';
 import { PolymorphPage } from './features/polymorph/PolymorphPage';
+import { HeistPage } from './features/heist/HeistPage';
 import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
 import { ActivityMonitorPage } from './features/activity-monitor/ActivityMonitorPage';
 import { EmbedsListPage } from './features/embeds/EmbedsListPage';
@@ -133,6 +134,10 @@ const FeatureOutlet = () => {
 
   if (feature === 'polymorph') {
     return <PolymorphPage />;
+  }
+
+  if (feature === 'heist') {
+    return <HeistPage />;
   }
 
   if (feature === 'analytics') {
