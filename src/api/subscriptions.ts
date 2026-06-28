@@ -18,7 +18,7 @@ export const subscriptionsApi = {
     success_url: string;
     cancel_url: string;
   }) =>
-    api.fetch<{ success: boolean; checkout_url: string; message?: string }>(
+    api.fetch<{ success: boolean; checkout_url: string | null; message?: string }>(
       '/api/subscriptions/create-checkout',
       { method: 'POST', body: JSON.stringify(body) },
     ),

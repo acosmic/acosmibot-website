@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { Bot, Check, Gem, X } from 'lucide-react';
 import { ProfileNav } from '@/components/profile/ProfileNav';
@@ -10,10 +10,6 @@ import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import type { Guild } from '@/types/guild';
-
-// TEMPORARY: premium is gated to this user until it goes live.
-// TODO: remove the allowlist when premium launches publicly.
-const AUTHORIZED_USER_ID = '110637665128325120';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
   free: 'Free',
@@ -82,26 +78,16 @@ const TIERS: TierCardDef[] = [
 export const PremiumPage: React.FC = () => {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   useHydrateAuthUser();
 
   const [pickerTier, setPickerTier] = useState<Exclude<PremiumTier, 'free'> | null>(null);
   const preselectGuildId = searchParams.get('guild');
 
-  // TEMPORARY allowlist gate — everyone else bounces home with a notice.
-  useEffect(() => {
-    if (!token) return; // logged-out visitors can read the pricing page
-    if (user && user.id !== AUTHORIZED_USER_ID) {
-      showToast('Premium is not yet available.', 'info');
-      navigate('/', { replace: true });
-    }
-  }, [user, token, navigate]);
-
   // Stripe return params
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
-      showToast('Premium upgrade successful! Your server now has access to all premium features.', 'success');
+      showToast('Premium upgrade successful! Your server subscription is active.', 'success');
       setSearchParams({}, { replace: true });
     } else if (searchParams.get('canceled') === 'true') {
       showToast('Upgrade canceled. You can upgrade anytime!', 'info');
@@ -136,7 +122,7 @@ export const PremiumPage: React.FC = () => {
             Unlock the Full Power of Acosmibot
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '560px', margin: '0 auto' }}>
-            Supercharge your Discord server with advanced features, unlimited AI capabilities, and priority support.
+            Supercharge your Discord server with higher feature limits, Premium + AI tools, and priority support.
           </p>
         </div>
 
@@ -285,26 +271,8 @@ const ServerPickerModal: React.FC<{
   const upgrade = (guild: Guild, targetTier: Exclude<PremiumTier, 'free'>) => {
     showToast('Premium checkout is coming soon.', 'info');
 
-    // TODO: Re-enable Stripe checkout when premium billing is ready for production.
-    // setBusyGuildId(guild.id);
-    // try {
-    //   showToast('Creating checkout session…', 'info');
-    //   const res = await subscriptionsApi.createCheckout({
-    //     guild_id: guild.id,
-    //     tier: targetTier,
-    //     success_url: `${window.location.origin}/premium?success=true&guild=${guild.id}`,
-    //     cancel_url: `${window.location.origin}/premium?canceled=true`,
-    //   });
-    //   if (res.checkout_url) {
-    //     window.location.href = res.checkout_url;
-    //   } else {
-    //     showToast(res.message || 'Failed to create checkout session', 'error');
-    //     setBusyGuildId(null);
-    //   }
-    // } catch (e) {
-    //   showToast(e instanceof Error ? e.message : 'Failed to create checkout session', 'error');
-    //   setBusyGuildId(null);
-    // }
+    // Stripe checkout is intentionally disabled until production prices,
+    // annual plans, and live billing configuration are ready.
     void guild;
     void targetTier;
   };
@@ -312,24 +280,8 @@ const ServerPickerModal: React.FC<{
   const manage = (guild: Guild) => {
     showToast('Subscription management is coming soon.', 'info');
 
-    // TODO: Re-enable Stripe billing portal when premium billing is ready for production.
-    // setBusyGuildId(guild.id);
-    // try {
-    //   showToast('Opening subscription portal…', 'info');
-    //   const res = await subscriptionsApi.openPortal({
-    //     guild_id: guild.id,
-    //     return_url: `${window.location.origin}/premium`,
-    //   });
-    //   if (res.portal_url) {
-    //     window.location.href = res.portal_url;
-    //   } else {
-    //     showToast('Failed to open billing portal', 'error');
-    //     setBusyGuildId(null);
-    //   }
-    // } catch {
-    //   showToast('Failed to open billing portal', 'error');
-    //   setBusyGuildId(null);
-    // }
+    // Stripe customer portal is intentionally disabled until production billing
+    // configuration is ready.
     void guild;
   };
 
