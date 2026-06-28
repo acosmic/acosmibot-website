@@ -19,6 +19,7 @@ const DEFAULT_HEIST: HeistConfig = {
   min_vault: 1000,
   fine_percent: 5.0,
   minigames_enabled: true,
+  briefing_seconds: 30,
   turn_seconds: 20,
   success_per_pass: 0.13,
   success_per_fail: 0.07,

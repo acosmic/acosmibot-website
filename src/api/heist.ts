@@ -36,7 +36,7 @@ export interface HeistLeaderboardEntry {
   rank: number;
   user_id: string;
   name: string;
-  heists_led: number;
+  heists: number;
   successes: number;
   success_rate: number;
   total_loot: number;

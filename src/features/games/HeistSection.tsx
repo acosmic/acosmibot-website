@@ -76,13 +76,13 @@ const Leaderboard: React.FC<{ guildId: string }> = ({ guildId }) => {
 
   return (
     <div className="card p-4 mb-4">
-      <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>🦝 Top Ringleaders</h3>
+      <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>🦝 Top Crew</h3>
       <div className="table-responsive">
-        <table className="table table-sm align-middle mb-0">
+        <table className="table table-dark table-hover table-sm align-middle mb-0" style={{ background: 'transparent' }}>
           <thead>
             <tr>
               <th>#</th>
-              <th>Ringleader</th>
+              <th>Member</th>
               <th className="text-end">Heists</th>
               <th className="text-end">Success</th>
               <th className="text-end">Total Loot</th>
@@ -94,7 +94,7 @@ const Leaderboard: React.FC<{ guildId: string }> = ({ guildId }) => {
               <tr key={e.user_id}>
                 <td>{e.rank}</td>
                 <td>{e.name}</td>
-                <td className="text-end">{e.heists_led}</td>
+                <td className="text-end">{e.heists}</td>
                 <td className="text-end">{Math.round(e.success_rate * 100)}%</td>
                 <td className="text-end">{fmt(e.total_loot)}</td>
                 <td className="text-end">{fmt(e.biggest_loot)}</td>
@@ -122,9 +122,9 @@ interface HeistSectionProps {
 }
 
 export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onChange }) => {
-  const num = (field: keyof HeistConfig, raw: string, min = 0) => {
+  const num = (field: keyof HeistConfig, raw: string, min = 0, max = Infinity) => {
     const parsed = parseFloat(raw);
-    onChange({ [field]: Number.isFinite(parsed) ? Math.max(min, parsed) : min } as Partial<HeistConfig>);
+    onChange({ [field]: Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : min } as Partial<HeistConfig>);
   };
   // success fields are stored 0..1 but shown as percentages
   const pct = (field: keyof HeistConfig, raw: string) => {
@@ -174,6 +174,10 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
           description="After the lobby closes, the crew takes turns on a shared message — everyone watches each member play a random minigame. Passing jobs raises the crew's success; botching or stalling lowers it. Turn off for a pure RNG heist."
         />
         <div className="mt-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          <Field label="Briefing Length (seconds)" hint="Job-reveal + ready-up window before the jobs start. Begins early once everyone's ready. 10–120s.">
+            <input className="form-control" type="number" min={10} max={120}
+              value={value.briefing_seconds} onChange={(e) => num('briefing_seconds', e.target.value, 10, 120)} />
+          </Field>
           <Field label="Turn Length (seconds)" hint="Time each member gets for their job before it's a bust.">
             <input className="form-control" type="number" min={5}
               value={value.turn_seconds} onChange={(e) => num('turn_seconds', e.target.value, 5)} />

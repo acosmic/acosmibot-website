@@ -153,6 +153,7 @@ export interface HeistConfig {
   fine_percent: number;       // % of wallet fined when caught
   // Active Phase / minigames (turn-based)
   minigames_enabled: boolean;   // run the per-member minigame phase
+  briefing_seconds: number;     // job-reveal + ready-up window (default 30, clamped 10–120)
   turn_seconds: number;         // time each member gets for their job
   success_per_pass: number;     // 0..1 success added per passed job
   success_per_fail: number;     // 0..1 success removed per failed/no-show job
