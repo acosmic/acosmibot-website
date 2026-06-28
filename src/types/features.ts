@@ -142,12 +142,19 @@ export interface HeistConfig {
   enabled: boolean;
   cooldown_hours: number;
   join_window_seconds: number;
+  max_crew: number;           // lobby size cap
   base_success: number;       // 0..1
-  per_member_success: number; // 0..1 added per crew member
+  per_member_success: number; // 0..1 added per crew member (minigames OFF)
   success_cap: number;        // 0..1
   base_loot_percent: number;  // % of vault (solo)
   pie_growth_k: number;       // loot growth per extra member
   max_loot_percent: number;   // % of vault cap
   min_vault: number;          // minimum vault to start a heist
   fine_percent: number;       // % of wallet fined when caught
+  // Active Phase / minigames (turn-based)
+  minigames_enabled: boolean;   // run the per-member minigame phase
+  turn_seconds: number;         // time each member gets for their job
+  success_per_pass: number;     // 0..1 success added per passed job
+  success_per_fail: number;     // 0..1 success removed per failed/no-show job
+  success_floor: number;        // 0..1 min success chance (minigames ON)
 }

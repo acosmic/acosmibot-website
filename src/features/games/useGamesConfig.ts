@@ -9,6 +9,7 @@ const DEFAULT_HEIST: HeistConfig = {
   enabled: true,
   cooldown_hours: 4,
   join_window_seconds: 60,
+  max_crew: 5,
   base_success: 0.25,
   per_member_success: 0.12,
   success_cap: 0.85,
@@ -17,6 +18,11 @@ const DEFAULT_HEIST: HeistConfig = {
   max_loot_percent: 45.0,
   min_vault: 1000,
   fine_percent: 5.0,
+  minigames_enabled: true,
+  turn_seconds: 20,
+  success_per_pass: 0.13,
+  success_per_fail: 0.07,
+  success_floor: 0.05,
 };
 
 const TIER_LIMITS: Record<SlotsTier, number> = {

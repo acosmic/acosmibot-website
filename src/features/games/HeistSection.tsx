@@ -155,9 +155,40 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
             <input className="form-control" type="number" min={10}
               value={value.join_window_seconds} onChange={(e) => num('join_window_seconds', e.target.value, 10)} />
           </Field>
+          <Field label="Max Crew" hint="Largest lobby allowed (recommended 5, hard cap 20).">
+            <input className="form-control" type="number" min={1} max={20}
+              value={value.max_crew} onChange={(e) => num('max_crew', e.target.value, 1)} />
+          </Field>
           <Field label="Minimum Vault" hint="Vault must hold at least this to start a heist.">
             <input className="form-control" type="number" min={0}
               value={value.min_vault} onChange={(e) => num('min_vault', e.target.value)} />
+          </Field>
+        </div>
+      </div>
+
+      <div className="card p-4 mb-4">
+        <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Active Phase (Minigames)</h3>
+        <FeatureToggle
+          enabled={value.minigames_enabled}
+          onChange={(v) => onChange({ minigames_enabled: v })}
+          description="After the lobby closes, the crew takes turns on a shared message — everyone watches each member play a random minigame. Passing jobs raises the crew's success; botching or stalling lowers it. Turn off for a pure RNG heist."
+        />
+        <div className="mt-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          <Field label="Turn Length (seconds)" hint="Time each member gets for their job before it's a bust.">
+            <input className="form-control" type="number" min={5}
+              value={value.turn_seconds} onChange={(e) => num('turn_seconds', e.target.value, 5)} />
+          </Field>
+          <Field label="Success per Job Passed (%)" hint="Added to the odds for each job the crew nails.">
+            <input className="form-control" type="number" min={0} max={100}
+              value={asPct(value.success_per_pass)} onChange={(e) => pct('success_per_pass', e.target.value)} />
+          </Field>
+          <Field label="Success per Job Failed (%)" hint="Removed from the odds for each botched or skipped job.">
+            <input className="form-control" type="number" min={0} max={100}
+              value={asPct(value.success_per_fail)} onChange={(e) => pct('success_per_fail', e.target.value)} />
+          </Field>
+          <Field label="Success Floor (%)" hint="Minimum success chance when minigames are on.">
+            <input className="form-control" type="number" min={0} max={100}
+              value={asPct(value.success_floor)} onChange={(e) => pct('success_floor', e.target.value)} />
           </Field>
         </div>
       </div>
@@ -169,7 +200,7 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
             <input className="form-control" type="number" min={0} max={100}
               value={asPct(value.base_success)} onChange={(e) => pct('base_success', e.target.value)} />
           </Field>
-          <Field label="Per-Member Success (%)" hint="Added to success chance per extra crew member.">
+          <Field label="Per-Member Success (%)" hint="Added per extra crew member. Only used when minigames are OFF.">
             <input className="form-control" type="number" min={0} max={100}
               value={asPct(value.per_member_success)} onChange={(e) => pct('per_member_success', e.target.value)} />
           </Field>
