@@ -245,7 +245,6 @@ const TierCard: React.FC<{
 }> = ({ def, onSelect }) => (
   <div style={{
     position: 'relative',
-    overflow: 'hidden',
     background: def.popular
       ? 'linear-gradient(180deg, rgba(0,217,255,0.08), var(--bg-card) 34%)'
       : 'var(--bg-card)',
