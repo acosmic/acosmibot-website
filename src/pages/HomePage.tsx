@@ -9,7 +9,6 @@ const BTC_ADDRESS = '3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS';
 export const HomePage: React.FC = () => {
   const { isAuthenticated, user, token, setToken, setUser, logout } = useAuthStore();
 
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [showBitcoinPopup, setShowBitcoinPopup] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -207,7 +206,7 @@ export const HomePage: React.FC = () => {
         </div>
         <ul className="mobile-nav-links">
           <li><a href="#features" onClick={() => setMobileNavOpen(false)}>Features</a></li>
-          <li><button onClick={() => { setMobileNavOpen(false); setShowPremiumModal(true); }}>Premium</button></li>
+          <li><Link to="/premium" onClick={() => setMobileNavOpen(false)}>Premium</Link></li>
           <li><Link to="/docs/introduction" onClick={() => setMobileNavOpen(false)}>Documentation</Link></li>
           <li><Link to="/leaderboard" onClick={() => setMobileNavOpen(false)}>Leaderboards</Link></li>
           {isAuthenticated && (
@@ -254,11 +253,7 @@ export const HomePage: React.FC = () => {
 
             <ul className="nav-links">
               <li><a href="#features">Features</a></li>
-              <li>
-                <a href="#" className="premium-nav-link" onClick={e => { e.preventDefault(); setShowPremiumModal(true); }}>
-                  Premium
-                </a>
-              </li>
+              <li><Link to="/premium" className="premium-nav-link">Premium</Link></li>
               <li><Link to="/docs/introduction">Documentation</Link></li>
               <li><Link to="/leaderboard">Leaderboards</Link></li>
               {isAuthenticated && (
@@ -519,19 +514,6 @@ export const HomePage: React.FC = () => {
         </div>
         <div className="footer-copyright">© 2026 Acosmibot. All rights reserved.</div>
       </footer>
-
-      {/* ── Premium Modal ───────────────────────────────────── */}
-      {showPremiumModal && (
-        <div className="home-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowPremiumModal(false); }}>
-          <div className="premium-modal-content">
-            <div className="premium-modal-icon"><Icon.Crown /></div>
-            <h2>Premium Coming Soon</h2>
-            <p>Premium features are under active development and will be available shortly.</p>
-            <p className="p-small">Expect exclusive perks, advanced configuration, and priority support.</p>
-            <button className="premium-got-it-btn" onClick={() => setShowPremiumModal(false)}>Got it</button>
-          </div>
-        </div>
-      )}
 
       {/* ── Donation Modal ──────────────────────────────────── */}
       {showDonationModal && (

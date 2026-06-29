@@ -54,7 +54,7 @@ const TIERS: TierCardDef[] = [
     description: 'Higher limits for active community servers.',
     popular: true,
     icon: <Gem size={18} />,
-    ctaLabel: 'Coming Soon',
+    ctaLabel: 'Select Server',
     features: [
       { text: 'Everything in Free, plus:' },
       { text: '5 Twitch streamers tracking' },
@@ -72,7 +72,7 @@ const TIERS: TierCardDef[] = [
     price: '$9.99',
     description: 'Premium limits plus AI tools with usage caps.',
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
-    ctaLabel: 'Coming Soon',
+    ctaLabel: 'Select Server',
     features: [
       { text: 'Everything in Premium, plus:' },
       { text: 'AI chat — mention the bot to talk (100 messages/day)' },
@@ -96,6 +96,10 @@ export const PremiumPage: React.FC = () => {
   const preselectGuildId = searchParams.get('guild');
 
   const selectTier = (tier: Exclude<PremiumTier, 'free'>) => {
+    if (!token) {
+      startLogin();
+      return;
+    }
     if (!BILLING_ENABLED) {
       showToast('Premium checkout is coming soon.', 'info');
       return;
@@ -213,7 +217,7 @@ const TierCard: React.FC<{
   def: TierCardDef;
   loggedIn: boolean;
   onSelect?: () => void;
-}> = ({ def, loggedIn, onSelect }) => (
+}> = ({ def, onSelect }) => (
   <div style={{
     position: 'relative',
     background: 'var(--bg-card)',
@@ -266,26 +270,17 @@ const TierCard: React.FC<{
     {onSelect ? (
       <>
         <button
-          disabled={!loggedIn}
           onClick={onSelect}
           style={{
             background: def.popular ? 'var(--primary-color)' : 'transparent',
             color: def.popular ? '#000' : 'var(--primary-color)',
             border: def.popular ? 'none' : '1px solid var(--border-cyan)',
             borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700,
-            cursor: loggedIn ? 'pointer' : 'default', opacity: loggedIn ? 1 : 0.5,
+            cursor: 'pointer',
           }}
         >
           {def.ctaLabel ?? 'Select Server'}
         </button>
-        {!loggedIn && (
-          <button onClick={startLogin} style={{
-            background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px',
-            cursor: 'pointer', textDecoration: 'underline', padding: 0,
-          }}>
-            Please log in to select a server
-          </button>
-        )}
       </>
     ) : (
       <button disabled style={{
