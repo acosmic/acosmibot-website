@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
-import { Bot, Check, Gem, X } from 'lucide-react';
+import { ArrowRight, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { guildApi } from '@/api/guilds';
@@ -23,9 +23,11 @@ interface TierCardDef {
   tier: PremiumTier;
   price: string;
   description: string;
+  fit: string;
   popular?: boolean;
   icon?: React.ReactNode;
   ctaLabel?: string;
+  ctaNote?: string;
   features: Array<{ text: string; disabled?: boolean }>;
 }
 
@@ -34,6 +36,7 @@ const TIERS: TierCardDef[] = [
     tier: 'free',
     price: '$0',
     description: 'Core community systems for getting started.',
+    fit: 'For new or casual servers',
     ctaLabel: 'Current Plan',
     features: [
       { text: 'Leveling & XP system' },
@@ -41,28 +44,30 @@ const TIERS: TierCardDef[] = [
       { text: 'Server analytics' },
       { text: '1 Twitch streamer tracking' },
       { text: '1 YouTube streamer tracking' },
+      { text: '1 Kick streamer tracking' },
       { text: '1 custom command' },
       { text: '1 reaction role message' },
       { text: '5 custom embeds' },
       { text: 'No AI features', disabled: true },
-      { text: 'No custom branding', disabled: true },
     ],
   },
   {
     tier: 'premium',
     price: '$4.99',
-    description: 'Higher limits for active community servers.',
+    description: 'More automation capacity for active community servers.',
+    fit: 'Best for growing Discords',
     popular: true,
     icon: <Gem size={18} />,
     ctaLabel: 'Select Server',
+    ctaNote: BILLING_ENABLED ? 'Billed monthly per server' : 'Checkout opens after billing launch',
     features: [
       { text: 'Everything in Free, plus:' },
       { text: '5 Twitch streamers tracking' },
       { text: '5 YouTube streamers tracking' },
+      { text: '5 Kick streamers tracking' },
       { text: '25 custom commands' },
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
-      { text: '20% XP bonus' },
       { text: 'Priority support' },
       { text: 'No AI features', disabled: true },
     ],
@@ -70,12 +75,14 @@ const TIERS: TierCardDef[] = [
   {
     tier: 'premium_plus_ai',
     price: '$9.99',
-    description: 'Premium limits plus AI tools with usage caps.',
+    description: 'Premium limits plus AI tools with clear usage caps.',
+    fit: 'For servers that want AI built in',
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
     ctaLabel: 'Select Server',
+    ctaNote: BILLING_ENABLED ? 'Billed monthly per server' : 'Checkout opens after billing launch',
     features: [
       { text: 'Everything in Premium, plus:' },
-      { text: 'AI chat — mention the bot to talk (100 messages/day)' },
+      { text: 'AI chat - mention the bot to talk (100 messages/day)' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
       { text: 'AI web search' },
@@ -130,9 +137,9 @@ export const PremiumPage: React.FC = () => {
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <ProfileNav user={user} />
 
-      <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+      <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1160px', margin: '0 auto', width: '100%' }}>
         {/* Hero */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '34px' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             background: 'rgba(0,217,255,0.1)', border: '1px solid var(--border-cyan)',
@@ -141,11 +148,18 @@ export const PremiumPage: React.FC = () => {
           }}>
             <Gem size={16} /> PREMIUM
           </span>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', margin: '16px 0 8px' }}>
+          <h1 style={{
+            fontSize: '42px',
+            lineHeight: 1.05,
+            fontWeight: 900,
+            color: 'var(--text-primary)',
+            margin: '18px auto 12px',
+            maxWidth: '860px',
+          }}>
             Unlock the Full Power of Acosmibot
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '560px', margin: '0 auto' }}>
-            Supercharge your Discord server with higher feature limits, Premium + AI tools, and priority support.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '17px', lineHeight: 1.65, maxWidth: '690px', margin: '0 auto' }}>
+            Upgrade stream alerts, custom commands, reaction roles, embeds, and optional AI tools without changing how your community already uses Discord.
           </p>
           <div style={{
             margin: '18px auto 0',
@@ -166,9 +180,20 @@ export const PremiumPage: React.FC = () => {
           </div>
         </div>
 
+        <div style={{
+          margin: '0 auto 34px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+          gap: '12px',
+        }}>
+          <PremiumStat icon={<Radio size={18} />} value="Twitch, YouTube, Kick" label="Live alerts for creator-led servers" />
+          <PremiumStat icon={<ShieldCheck size={18} />} value="Higher limits" label="More commands, role messages, and embeds" />
+          <PremiumStat icon={<Sparkles size={18} />} value="Optional AI tier" label="AI stays separate from core Premium" />
+        </div>
+
         {/* Pricing cards */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '20px', alignItems: 'stretch',
         }}>
           {TIERS.map((t) => (
@@ -191,9 +216,9 @@ export const PremiumPage: React.FC = () => {
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: '14px',
         }}>
-          <PremiumNote title="Best for growth" text="Premium is for servers that are hitting free limits on stream alerts, commands, roles, or embeds." />
+          <PremiumNote title="Best for growth" text="Premium is for servers that are hitting free limits on creator alerts, commands, roles, or embeds." />
           <PremiumNote title="AI is separated" text="Premium + AI carries the OpenAI-backed features and keeps explicit daily/monthly usage caps." />
-          <PremiumNote title="Billing status" text="Checkout is paused while production Stripe prices and annual plans are finalized." />
+          <PremiumNote title="Billing status" text="Checkout is paused while prices and annual plans are finalized." />
         </div>
       </div>
 
@@ -220,10 +245,14 @@ const TierCard: React.FC<{
 }> = ({ def, onSelect }) => (
   <div style={{
     position: 'relative',
-    background: 'var(--bg-card)',
+    overflow: 'hidden',
+    background: def.popular
+      ? 'linear-gradient(180deg, rgba(0,217,255,0.08), var(--bg-card) 34%)'
+      : 'var(--bg-card)',
     border: `1px solid ${def.popular ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-    borderRadius: '16px', padding: '28px 24px',
+    borderRadius: '16px', padding: '30px 24px 24px',
     display: 'flex', flexDirection: 'column', gap: '16px',
+    boxShadow: def.popular ? '0 16px 42px rgba(0, 217, 255, 0.12)' : 'none',
   }}>
     {def.popular && (
       <span style={{
@@ -246,6 +275,16 @@ const TierCard: React.FC<{
       <div style={{ marginTop: '8px' }}>
         <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}>{def.price}</span>
         <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>/month</span>
+      </div>
+      <div style={{
+        marginTop: '8px',
+        color: def.popular ? 'var(--primary-color)' : 'var(--text-secondary)',
+        fontSize: '12px',
+        fontWeight: 800,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+      }}>
+        {def.fit}
       </div>
       <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.45 }}>
         {def.description}
@@ -277,10 +316,20 @@ const TierCard: React.FC<{
             border: def.popular ? 'none' : '1px solid var(--border-cyan)',
             borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700,
             cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
           }}
         >
           {def.ctaLabel ?? 'Select Server'}
+          <ArrowRight size={16} />
         </button>
+        {def.ctaNote && (
+          <div style={{ minHeight: '16px', color: 'var(--text-muted)', fontSize: '11px', textAlign: 'center' }}>
+            {def.ctaNote}
+          </div>
+        )}
       </>
     ) : (
       <button disabled style={{
@@ -290,6 +339,36 @@ const TierCard: React.FC<{
         {def.ctaLabel ?? 'Current Plan'}
       </button>
     )}
+  </div>
+);
+
+const PremiumStat: React.FC<{ icon: React.ReactNode; value: string; label: string }> = ({ icon, value, label }) => (
+  <div style={{
+    border: '1px solid var(--border-light)',
+    borderRadius: '12px',
+    background: 'var(--bg-card)',
+    padding: '14px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  }}>
+    <div style={{
+      width: 36,
+      height: 36,
+      borderRadius: '10px',
+      border: '1px solid var(--border-cyan)',
+      color: 'var(--primary-color)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    }}>
+      {icon}
+    </div>
+    <div>
+      <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 800 }}>{value}</div>
+      <div style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.35 }}>{label}</div>
+    </div>
   </div>
 );
 
