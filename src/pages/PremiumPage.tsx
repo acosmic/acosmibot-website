@@ -17,11 +17,15 @@ const TIER_LABELS: Record<PremiumTier, string> = {
   premium_plus_ai: 'Premium + AI',
 };
 
+const BILLING_ENABLED = false;
+
 interface TierCardDef {
   tier: PremiumTier;
   price: string;
+  description: string;
   popular?: boolean;
   icon?: React.ReactNode;
+  ctaLabel?: string;
   features: Array<{ text: string; disabled?: boolean }>;
 }
 
@@ -29,6 +33,8 @@ const TIERS: TierCardDef[] = [
   {
     tier: 'free',
     price: '$0',
+    description: 'Core community systems for getting started.',
+    ctaLabel: 'Current Plan',
     features: [
       { text: 'Leveling & XP system' },
       { text: 'Economy, games & gambling' },
@@ -45,8 +51,10 @@ const TIERS: TierCardDef[] = [
   {
     tier: 'premium',
     price: '$4.99',
+    description: 'Higher limits for active community servers.',
     popular: true,
     icon: <Gem size={18} />,
+    ctaLabel: 'Coming Soon',
     features: [
       { text: 'Everything in Free, plus:' },
       { text: '5 Twitch streamers tracking' },
@@ -54,6 +62,7 @@ const TIERS: TierCardDef[] = [
       { text: '25 custom commands' },
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
+      { text: '20% XP bonus' },
       { text: 'Priority support' },
       { text: 'No AI features', disabled: true },
     ],
@@ -61,7 +70,9 @@ const TIERS: TierCardDef[] = [
   {
     tier: 'premium_plus_ai',
     price: '$9.99',
+    description: 'Premium limits plus AI tools with usage caps.',
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
+    ctaLabel: 'Coming Soon',
     features: [
       { text: 'Everything in Premium, plus:' },
       { text: 'AI chat — mention the bot to talk (100 messages/day)' },
@@ -83,6 +94,14 @@ export const PremiumPage: React.FC = () => {
 
   const [pickerTier, setPickerTier] = useState<Exclude<PremiumTier, 'free'> | null>(null);
   const preselectGuildId = searchParams.get('guild');
+
+  const selectTier = (tier: Exclude<PremiumTier, 'free'>) => {
+    if (!BILLING_ENABLED) {
+      showToast('Premium checkout is coming soon.', 'info');
+      return;
+    }
+    setPickerTier(tier);
+  };
 
   // Stripe return params
   useEffect(() => {
@@ -124,6 +143,23 @@ export const PremiumPage: React.FC = () => {
           <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '560px', margin: '0 auto' }}>
             Supercharge your Discord server with higher feature limits, Premium + AI tools, and priority support.
           </p>
+          <div style={{
+            margin: '18px auto 0',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            color: 'var(--text-muted)',
+            fontSize: '13px',
+            fontWeight: 600,
+          }}>
+            <span>Per-server subscriptions</span>
+            <span style={{ color: 'var(--border-light)' }}>•</span>
+            <span>Monthly pricing shown</span>
+            <span style={{ color: 'var(--border-light)' }}>•</span>
+            <span>Annual plans coming soon</span>
+          </div>
         </div>
 
         {/* Pricing cards */}
@@ -136,9 +172,24 @@ export const PremiumPage: React.FC = () => {
               key={t.tier}
               def={t}
               loggedIn={!!token}
-              onSelect={t.tier === 'free' ? undefined : () => setPickerTier(t.tier as Exclude<PremiumTier, 'free'>)}
+              onSelect={t.tier === 'free' ? undefined : () => selectTier(t.tier as Exclude<PremiumTier, 'free'>)}
             />
           ))}
+        </div>
+
+        <div style={{
+          marginTop: '28px',
+          border: '1px solid var(--border-light)',
+          borderRadius: '12px',
+          background: 'var(--bg-card)',
+          padding: '18px 20px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '14px',
+        }}>
+          <PremiumNote title="Best for growth" text="Premium is for servers that are hitting free limits on stream alerts, commands, roles, or embeds." />
+          <PremiumNote title="AI is separated" text="Premium + AI carries the OpenAI-backed features and keeps explicit daily/monthly usage caps." />
+          <PremiumNote title="Billing status" text="Checkout is paused while production Stripe prices and annual plans are finalized." />
         </div>
       </div>
 
@@ -192,6 +243,9 @@ const TierCard: React.FC<{
         <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}>{def.price}</span>
         <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>/month</span>
       </div>
+      <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.45 }}>
+        {def.description}
+      </p>
     </div>
 
     <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -222,7 +276,7 @@ const TierCard: React.FC<{
             cursor: loggedIn ? 'pointer' : 'default', opacity: loggedIn ? 1 : 0.5,
           }}
         >
-          Select Server
+          {def.ctaLabel ?? 'Select Server'}
         </button>
         {!loggedIn && (
           <button onClick={startLogin} style={{
@@ -238,9 +292,20 @@ const TierCard: React.FC<{
         background: 'var(--bg-tertiary)', color: 'var(--text-muted)', border: 'none',
         borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700, cursor: 'default',
       }}>
-        Current Plan
+        {def.ctaLabel ?? 'Current Plan'}
       </button>
     )}
+  </div>
+);
+
+const PremiumNote: React.FC<{ title: string; text: string }> = ({ title, text }) => (
+  <div>
+    <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 800, marginBottom: '4px' }}>
+      {title}
+    </div>
+    <div style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: 1.45 }}>
+      {text}
+    </div>
   </div>
 );
 
