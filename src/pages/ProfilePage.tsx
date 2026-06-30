@@ -12,7 +12,7 @@ import { NotificationList } from '@/components/profile/NotificationList';
 import { TrophyCase } from '@/components/profile/TrophyCase';
 import { InventorySection } from '@/components/profile/InventorySection';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
-import { buildGlobalRankCardData } from '@/cards/buildRankCardData';
+import { buildGlobalRankCardData, buildRankCardData } from '@/cards/buildRankCardData';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
@@ -108,9 +108,10 @@ export const ProfilePage: React.FC = () => {
  *  "member since" line beneath it. Falls back to a plain identity line when
  *  there are no stats to render a card from (e.g. a viewer who hid XP & servers). */
 const RankCardHeader: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
-  // The global card is driven by global XP; if the viewer hid it, fall back to
-  // the plain identity line rather than rendering a card with placeholder XP.
-  const hasStats = profile.global.exp !== undefined;
+  // The card needs either global XP or a mutual-guild XP to drive off of; if
+  // both are hidden/absent, fall back to the plain identity line rather than
+  // rendering a card with placeholder XP.
+  const hasStats = profile.global.exp !== undefined || !!profile.mutual_guild;
 
   if (!hasStats) {
     return (
@@ -130,7 +131,13 @@ const RankCardHeader: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
     );
   }
 
-  const data = buildGlobalRankCardData(profile, profile.loadout);
+  // Prefer the highest-XP server the viewer and this user actually share —
+  // it's more relevant than global stats when you know someone from a server.
+  // Falls back to the global card for strangers, signed-out visitors, and
+  // when viewing your own profile.
+  const data = profile.mutual_guild
+    ? buildRankCardData({ ...profile, guilds: [profile.mutual_guild] }, profile.loadout)
+    : buildGlobalRankCardData(profile, profile.loadout);
   return (
     <div style={{ marginBottom: '20px' }}>
       <ScaledRankCard data={data} />

@@ -73,6 +73,10 @@ export interface PublicProfile {
   account_created: string | null;
   global: ProfileGlobal;
   guilds: ProfileGuild[] | null;
+  // Highest-XP guild the signed-in viewer shares with this profile's owner, if
+  // any — null for strangers with no shared server, signed-out viewers, and
+  // when viewing your own profile.
+  mutual_guild: ProfileGuild | null;
   privacy: PrivacySettings;
   is_owner?: boolean;
   // Resolved CSS values for the user's equipped rank-card cosmetics (decorative
