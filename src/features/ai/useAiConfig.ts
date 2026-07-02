@@ -19,6 +19,8 @@ export interface AiConfig {
   ambient_cooldown_seconds: number;
   /** Max proactive replies per server per day. 0 = unlimited. */
   ambient_daily_limit: number;
+  /** Guild default IANA timezone for the AI's date/time awareness. */
+  timezone: string;
 }
 
 export interface AiPersonality {
@@ -69,6 +71,7 @@ const DEFAULT_AI: AiConfig = {
   ambient_frequency: 0.03,
   ambient_cooldown_seconds: 600,
   ambient_daily_limit: 50,
+  timezone: 'UTC',
 };
 
 function normalizeAiConfig(raw?: Partial<AiConfig>): AiConfig {

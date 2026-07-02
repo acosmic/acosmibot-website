@@ -1,6 +1,7 @@
 import React from 'react';
-import { Palette, Sparkles } from 'lucide-react';
+import { Clock, Palette, Sparkles } from 'lucide-react';
 import { InlineIcon } from '@/components/ui/InlineIcon';
+import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import type { PublicProfile, PrivacySettings } from '@/api/profile';
 
 /**
@@ -25,10 +26,14 @@ export type BoolPrivacyKey = Exclude<keyof PrivacySettings, 'hidden_guilds'>;
 export const OwnerSettings: React.FC<{
   privacy: PrivacySettings;
   guilds: PublicProfile['guilds'];
+  timezone: string;
   saving: boolean;
+  timezoneSaving: boolean;
   onToggle: (key: BoolPrivacyKey, value: boolean) => void;
   onToggleGuild: (guildId: string, hidden: boolean) => void;
-}> = ({ privacy, guilds, saving, onToggle, onToggleGuild }) => (
+  onTimezoneChange: (timezone: string) => void;
+}> = ({ privacy, guilds, timezone, saving, timezoneSaving, onToggle, onToggleGuild, onTimezoneChange }) => (
+  <>
   <div style={{
     background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
     borderRadius: '16px', padding: '20px', marginBottom: '20px',
@@ -108,6 +113,38 @@ export const OwnerSettings: React.FC<{
       <InlineIcon icon={Palette} /> Rank card customization coming soon.
     </div>
   </div>
+
+  {/* Personal timezone — drives the AI's clock when you chat with it. */}
+  <div style={{
+    background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
+    borderRadius: '16px', padding: '20px', marginBottom: '20px',
+  }}>
+    <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+      Timezone <InlineIcon icon={Clock} color="var(--primary-color)" />
+    </h2>
+    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
+      When you chat with the AI, it uses this timezone for dates and times. Leave it on
+      “No preference” to use each server’s default instead.
+    </p>
+    <TimezoneSelect
+      value={timezone}
+      onChange={onTimezoneChange}
+      allowEmpty
+      emptyLabel="No preference (use server default)"
+      disabled={timezoneSaving}
+    />
+    <div style={{ marginTop: '10px' }}>
+      <button
+        type="button"
+        className="btn btn-sm"
+        disabled={timezoneSaving}
+        onClick={() => onTimezoneChange(detectBrowserTimezone())}
+      >
+        Use my current timezone ({detectBrowserTimezone().replace(/_/g, ' ')})
+      </button>
+    </div>
+  </div>
+  </>
 );
 
 const Toggle: React.FC<{

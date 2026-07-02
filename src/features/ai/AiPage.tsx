@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { Bot } from 'lucide-react';
 import { useAiConfig, AiConfig, AiPersonality } from './useAiConfig';
 import { AiMemorySection } from './AiMemorySection';
-import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner } from '@/components/ui';
+import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, TimezoneSelect } from '@/components/ui';
+import { detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 
@@ -160,6 +161,28 @@ export const AiPage: React.FC = () => {
       />
 
       <AiMemorySection guildId={guildId!} enabled={form.memory_enabled} />
+
+      <CollapsibleSection title="Timezone" defaultOpen={false}>
+        <p className="text-muted small mb-3">
+          The default timezone the AI uses for dates and times (e.g. "what's today?",
+          "how long until the weekend?"). Members can override this with their own
+          timezone in their profile settings.
+        </p>
+        <label className="form-label mb-2 d-block">Server default timezone</label>
+        <TimezoneSelect
+          value={form.timezone || 'UTC'}
+          onChange={(tz) => setForm({ timezone: tz })}
+        />
+        <div className="mt-2">
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => setForm({ timezone: detectBrowserTimezone() })}
+          >
+            Use my current timezone ({detectBrowserTimezone().replace(/_/g, ' ')})
+          </button>
+        </div>
+      </CollapsibleSection>
 
       <CollapsibleSection title="Proactive Chat" defaultOpen={false}>
         <p className="text-muted small mb-4">

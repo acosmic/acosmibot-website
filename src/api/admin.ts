@@ -4,6 +4,8 @@ export interface AdminAiSettings {
   enabled: boolean;
   model: string;
   polymorph_model: string;
+  /** Bot-wide fallback timezone (IANA) for the AI clock. */
+  timezone: string;
   daily_limit: number;
   monthly_limit: number;
   available_models: string[];

@@ -89,6 +89,9 @@ export interface PublicProfile {
   };
   // Unlocked achievements for the trophy case (null when hidden by privacy).
   achievements?: UnlockedAchievement[] | null;
+  // Owner view only — the member's personal IANA timezone for the AI clock.
+  // null/empty when they haven't set one (AI falls back to the server default).
+  timezone?: string | null;
 }
 
 export const profileApi = {
@@ -105,5 +108,12 @@ export const profileApi = {
     api.fetch<{ privacy: PrivacySettings }>('/api/profile/me', {
       method: 'PATCH',
       body: JSON.stringify({ privacy: updates }),
+    }),
+
+  /** Update the authenticated user's personal timezone (empty string clears it). */
+  updateMyTimezone: (timezone: string): Promise<{ timezone: string | null }> =>
+    api.fetch<{ timezone: string | null }>('/api/profile/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ timezone }),
     }),
 };

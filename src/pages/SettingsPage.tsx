@@ -41,6 +41,11 @@ export const SettingsPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
 
+  const timezoneMutation = useMutation({
+    mutationFn: (timezone: string) => profileApi.updateMyTimezone(timezone),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
+  });
+
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <ProfileNav user={authUser} />
@@ -73,7 +78,9 @@ export const SettingsPage: React.FC = () => {
             <OwnerSettings
               privacy={profile.privacy}
               guilds={profile.guilds}
+              timezone={profile.timezone ?? ''}
               saving={privacyMutation.isPending}
+              timezoneSaving={timezoneMutation.isPending}
               onToggle={(key, value) =>
                 privacyMutation.mutate({ [key]: value } as Partial<PrivacySettings>)}
               onToggleGuild={(guildId, hidden) => {
@@ -83,6 +90,7 @@ export const SettingsPage: React.FC = () => {
                   : current.filter((g) => g !== guildId);
                 privacyMutation.mutate({ hidden_guilds: next });
               }}
+              onTimezoneChange={(tz) => timezoneMutation.mutate(tz)}
             />
           </>
         )}

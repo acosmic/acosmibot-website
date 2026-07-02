@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, AdminAiSettings } from '@/api/admin';
+import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'daily_limit' | 'monthly_limit'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'timezone' | 'daily_limit' | 'monthly_limit'>;
 
 export const AiSettingsTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -16,8 +17,8 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, model, polymorph_model, daily_limit, monthly_limit } = query.data.data;
-      setForm({ enabled, model, polymorph_model, daily_limit, monthly_limit });
+      const { enabled, model, polymorph_model, timezone, daily_limit, monthly_limit } = query.data.data;
+      setForm({ enabled, model, polymorph_model, timezone: timezone || 'UTC', daily_limit, monthly_limit });
     }
   }, [query.data]);
 
@@ -95,6 +96,26 @@ export const AiSettingsTab: React.FC = () => {
             ))}
           </select>
           <p className="text-muted small mt-2 mb-0">OpenAI chat model used when Polymorph generates a nickname.</p>
+        </div>
+
+        <div className="mb-4">
+          <label className="form-label mb-2 d-block">Fallback timezone</label>
+          <TimezoneSelect
+            value={form.timezone || 'UTC'}
+            onChange={(tz) => setForm({ ...form, timezone: tz })}
+          />
+          <div className="mt-2">
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => setForm({ ...form, timezone: detectBrowserTimezone() })}
+            >
+              Use my current timezone ({detectBrowserTimezone().replace(/_/g, ' ')})
+            </button>
+          </div>
+          <p className="text-muted small mt-2 mb-0">
+            Used for the AI clock only when neither the member nor the server has set a timezone.
+          </p>
         </div>
 
         <div className="mb-4">
