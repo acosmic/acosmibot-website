@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices,
-  FileText, Landmark, Lock, Orbit, Package, Rocket, Settings, Shield, Spade,
+  FileText, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
   Sparkles, Ticket, TrendingUp, TvMinimalPlay, VenetianMask,
   type LucideIcon,
 } from 'lucide-react';
@@ -33,6 +33,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'items',      label: 'Items & Inventory', icon: Package },
       { slug: 'moderation', label: 'Moderation', icon: Shield },
       { slug: 'ai',         label: 'AI Integration', icon: Bot },
+      { slug: 'spotify',    label: 'Spotify', icon: Music },
     ],
   },
   {

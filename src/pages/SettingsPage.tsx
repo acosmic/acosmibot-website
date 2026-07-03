@@ -7,8 +7,11 @@ import { profileApi, type PublicProfile, type PrivacySettings } from '@/api/prof
 import { OwnerSettings } from '@/components/profile/OwnerSettings';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { ConnectedAccountsSettings } from '@/components/profile/ConnectedAccountsSettings';
 import { useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
+import { spotifyApi, type SpotifyStatus } from '@/api/spotify';
+import { showToast } from '@/utils/toast';
 
 /**
  * Owner-only account settings (`/settings`). Renders the shared `OwnerSettings`
@@ -35,6 +38,12 @@ export const SettingsPage: React.FC = () => {
     enabled: !!token,
   });
 
+  const { data: spotifyStatus, isLoading: spotifyLoading } = useQuery<SpotifyStatus>({
+    queryKey: ['spotify', 'status'],
+    queryFn: () => spotifyApi.status(),
+    enabled: !!token,
+  });
+
   const privacyMutation = useMutation({
     mutationFn: (updates: Partial<PrivacySettings>) => profileApi.updateMyPrivacy(updates),
     // Prefix match keeps both this page and the /u/<name> profile in sync.
@@ -45,6 +54,44 @@ export const SettingsPage: React.FC = () => {
     mutationFn: (timezone: string) => profileApi.updateMyTimezone(timezone),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
+
+  const spotifyLinkMutation = useMutation({
+    mutationFn: () => spotifyApi.linkToken(),
+    onSuccess: ({ url }) => {
+      window.location.assign(url);
+    },
+  });
+
+  const spotifyUnlinkMutation = useMutation({
+    mutationFn: () => spotifyApi.unlink(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['spotify', 'status'] });
+      showToast('Spotify unlinked', 'success');
+    },
+  });
+
+  const spotifyOptOutMutation = useMutation({
+    mutationFn: (optedOut: boolean) => spotifyApi.setOptOut(optedOut),
+    onSuccess: ({ opted_out }) => {
+      queryClient.invalidateQueries({ queryKey: ['spotify', 'status'] });
+      showToast(opted_out ? 'Spotify tracking off' : 'Spotify tracking on', 'success');
+    },
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const spotify = params.get('spotify');
+    if (!spotify) return;
+    if (spotify === 'linked') {
+      showToast('Spotify linked', 'success');
+      queryClient.invalidateQueries({ queryKey: ['spotify', 'status'] });
+    } else {
+      showToast(spotify === 'expired' ? 'Spotify link expired' : 'Spotify link failed', 'error');
+    }
+    params.delete('spotify');
+    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+    window.history.replaceState(null, '', next);
+  }, [queryClient]);
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -91,6 +138,15 @@ export const SettingsPage: React.FC = () => {
                 privacyMutation.mutate({ hidden_guilds: next });
               }}
               onTimezoneChange={(tz) => timezoneMutation.mutate(tz)}
+            />
+            <ConnectedAccountsSettings
+              spotify={spotifyStatus}
+              loading={spotifyLoading}
+              saving={spotifyLinkMutation.isPending || spotifyUnlinkMutation.isPending}
+              optOutSaving={spotifyOptOutMutation.isPending}
+              onLink={() => spotifyLinkMutation.mutate()}
+              onUnlink={() => spotifyUnlinkMutation.mutate()}
+              onToggleOptOut={(optedOut) => spotifyOptOutMutation.mutate(optedOut)}
             />
           </>
         )}

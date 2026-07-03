@@ -14,6 +14,7 @@ import { AiPage } from './features/ai/AiPage';
 import { GamesPage } from './features/games/GamesPage';
 import { PolymorphPage } from './features/polymorph/PolymorphPage';
 import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
+import { SpotifyPage } from './features/spotify/SpotifyPage';
 import { ActivityMonitorPage } from './features/activity-monitor/ActivityMonitorPage';
 import { EmbedsListPage } from './features/embeds/EmbedsListPage';
 import { EmbedBuilderPage } from './features/embeds/EmbedBuilderPage';
@@ -142,6 +143,10 @@ const FeatureOutlet = () => {
 
   if (feature === 'analytics') {
     return <GuildAnalyticsPage />;
+  }
+
+  if (feature === 'spotify') {
+    return <SpotifyPage />;
   }
 
   if (feature === 'activity-monitor') {

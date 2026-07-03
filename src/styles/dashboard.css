@@ -161,6 +161,9 @@
 .nav-item.active .nav-icon-reactionroles { background-image: url('/images/acosmibot_reactionroles-active.svg'); }
 .nav-icon-activitymonitor { background-image: url('/images/acosmibot_activitymonitor-inactive.svg'); }
 .nav-item.active .nav-icon-activitymonitor { background-image: url('/images/acosmibot_activitymonitor-active.svg'); }
+/* Brand mark — same green glyph active or inactive (Spotify logos aren't recolored). */
+.nav-icon-spotify { background-image: url('/images/acosmibot_spotify.svg'); opacity: 0.6; }
+.nav-item.active .nav-icon-spotify { background-image: url('/images/acosmibot_spotify.svg'); opacity: 1; }
 .nav-icon-customcommands { background-image: url('/images/acosmibot_customcommands-inactive.svg'); }
 .nav-item.active .nav-icon-customcommands { background-image: url('/images/acosmibot_customcommands-active.svg'); }
 .nav-icon-moderation    { background-image: url('/images/acosmibot_moderation-inactive.svg'); }
