@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Music, Users, Eye, Shield, type LucideIcon } from 'lucide-react';
+import { Music, Users, Eye, Shield, Check, Minus, type LucideIcon } from 'lucide-react';
 import { FeatureToggle, SaveBar, LoadingSpinner } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useSpotifyGuildConfig, type SpotifyGuildConfig } from './useSpotifyGuildConfig';
@@ -66,6 +66,40 @@ export const SpotifyPage: React.FC = () => {
         </p>
       </div>
 
+      <div className="card p-4 mb-4">
+        <h3 className="mb-1">Without vs. with a Spotify login</h3>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
+          Every member is covered by presence tracking automatically. Linking a Spotify account
+          is optional and only unlocks extra, personal features for that member.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+          <TierCard
+            title="No Spotify login"
+            subtitle="Automatic, from Discord presence"
+            accent="var(--text-secondary)"
+            rows={[
+              { on: true, text: 'Plays recorded while "Listening to Spotify" shows on Discord' },
+              { on: true, text: 'Appears on /spotify whoknows server leaderboards' },
+              { on: true, text: '/spotify now, top, recent from recorded plays' },
+              { on: false, text: 'Mobile / off-Discord listening (only what Discord broadcasts)' },
+              { on: false, text: 'Playback control, playlists, genre taste' },
+            ]}
+          />
+          <TierCard
+            title="Linked account"
+            subtitle="Member connects Spotify — everything on the left, plus:"
+            accent="#1DB954"
+            rows={[
+              { on: true, text: 'Fuller coverage — plays pulled from Spotify itself (incl. mobile)' },
+              { on: true, text: '/spotify now works even when Discord isn’t showing it' },
+              { on: true, text: '/spotify top with real ranges (4 weeks / 6 months / all time)' },
+              { on: true, text: '/spotify taste (top genres) and /spotify playlist' },
+              { on: true, text: '/spotify player — pause / resume / skip (Spotify Premium)' },
+            ]}
+          />
+        </div>
+      </div>
+
       <SaveBar
         isDirty={isDirty}
         onSave={() => save(form)}
@@ -87,6 +121,32 @@ const InfoRow: React.FC<{ icon: LucideIcon; title: string; text: string }> = ({
     <div>
       <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
       <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{text}</div>
+    </div>
+  </div>
+);
+
+const TierCard: React.FC<{
+  title: string;
+  subtitle: string;
+  accent: string;
+  rows: { on: boolean; text: string }[];
+}> = ({ title, subtitle, accent, rows }) => (
+  <div style={{
+    flex: '1 1 260px', minWidth: '260px',
+    background: 'var(--bg-overlay)', border: `1px solid ${accent === '#1DB954' ? 'var(--border-cyan)' : 'var(--border-light)'}`,
+    borderRadius: '12px', padding: '16px',
+  }}>
+    <div style={{ fontSize: '15px', fontWeight: 700, color: accent }}>{title}</div>
+    <div style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 12px' }}>{subtitle}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+      {rows.map((r, i) => (
+        <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+          {r.on
+            ? <Check size={16} color="#1DB954" style={{ flexShrink: 0, marginTop: '2px' }} />
+            : <Minus size={16} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />}
+          <span style={{ fontSize: '13px', color: r.on ? 'var(--text-secondary)' : 'var(--text-muted)' }}>{r.text}</span>
+        </div>
+      ))}
     </div>
   </div>
 );
