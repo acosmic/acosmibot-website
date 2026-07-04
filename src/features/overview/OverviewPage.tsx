@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { BookOpen, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
@@ -9,7 +9,6 @@ import { LoadingSpinner } from '@/components/ui';
 import { analyticsApi } from '@/api/analytics';
 import { subscriptionsApi, type PremiumTier } from '@/api/subscriptions';
 import { MemberFlowChart } from '@/features/analytics/charts';
-import { showToast } from '@/utils/toast';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
   free: 'Free',
@@ -43,30 +42,12 @@ export const OverviewPage: React.FC = () => {
     retry: false,
   });
 
-  const manageSubscription = useMutation({
-    mutationFn: () => subscriptionsApi.openPortal({
-      guild_id: guildId!,
-      return_url: window.location.href,
-    }),
-    onSuccess: (data) => {
-      window.location.href = data.portal_url;
-    },
-    onError: () => {
-      showToast('Subscription management is not available for this server yet.', 'info');
-      navigate(`/premium?guild=${guildId}`);
-    },
-  });
-
   const tier = normalizeTier(subscription.data?.tier ?? currentGuild?.premium_tier);
   const status = subscription.data?.status ?? 'active';
   const manageLabel = tier === 'free' ? 'Upgrade' : 'Manage';
 
   const handleManageSubscription = () => {
-    if (tier === 'free') {
-      navigate(`/premium?guild=${guildId}`);
-      return;
-    }
-    manageSubscription.mutate();
+    navigate(`/server/${guildId}/billing`);
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -119,9 +100,8 @@ export const OverviewPage: React.FC = () => {
                   type="button"
                   className="btn p-3"
                   onClick={handleManageSubscription}
-                  disabled={manageSubscription.isPending}
                 >
-                  {manageSubscription.isPending ? 'Opening…' : manageLabel}
+                  {manageLabel}
                 </button>
               </div>
             </div>

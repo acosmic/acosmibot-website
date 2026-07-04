@@ -16,6 +16,7 @@ import { PolymorphPage } from './features/polymorph/PolymorphPage';
 import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
 import { SpotifyPage } from './features/spotify/SpotifyPage';
 import { ActivityMonitorPage } from './features/activity-monitor/ActivityMonitorPage';
+import { BillingPage } from './features/billing/BillingPage';
 import { EmbedsListPage } from './features/embeds/EmbedsListPage';
 import { EmbedBuilderPage } from './features/embeds/EmbedBuilderPage';
 import { ReactionRolesListPage } from './features/reaction-roles/ReactionRolesListPage';
@@ -98,6 +99,10 @@ const FeatureOutlet = () => {
 
   if (feature === 'overview') {
     return <OverviewPage />;
+  }
+
+  if (feature === 'billing') {
+    return <BillingPage />;
   }
   
   if (feature === 'giveaway') {

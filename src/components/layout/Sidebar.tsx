@@ -115,6 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <nav className="sidebar-nav">
           <NavSection title="GENERAL">
             <NavItem to={`/server/${guildId}/overview`} icon="overview" label="Overview" onClick={onClose} />
+            {canManage && <NavItem to={`/server/${guildId}/billing`} icon="premium" label="Billing" onClick={onClose} />}
           </NavSection>
 
           {canManage && (

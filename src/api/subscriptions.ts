@@ -2,9 +2,26 @@ import { api } from './client';
 
 export type PremiumTier = 'free' | 'premium' | 'premium_plus_ai';
 
-export interface GuildSubscription {
-  subscription?: unknown;
+export interface SubscriptionRecord {
+  id: number;
+  guild_id: string;
   tier: PremiumTier;
+  status: string;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  stripe_subscription_id?: string | null;
+  stripe_customer_id?: string | null;
+  cancel_at_period_end?: boolean;
+  cancel_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface GuildSubscription {
+  success?: boolean;
+  subscription?: SubscriptionRecord | null;
+  tier: PremiumTier;
+  stored_tier?: PremiumTier;
   status: string;
 }
 
@@ -26,6 +43,12 @@ export const subscriptionsApi = {
   openPortal: (body: { guild_id: string; return_url: string }) =>
     api.fetch<{ success: boolean; portal_url: string }>(
       '/api/subscriptions/portal',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
+  cancel: (body: { guild_id: string; immediately?: boolean }) =>
+    api.fetch<{ success: boolean; message: string }>(
+      '/api/subscriptions/cancel',
       { method: 'POST', body: JSON.stringify(body) },
     ),
 };
