@@ -1,16 +1,30 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { BookOpen, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { useOverviewStats } from './useOverviewStats';
 import { LoadingSpinner } from '@/components/ui';
 import { analyticsApi } from '@/api/analytics';
+import { subscriptionsApi, type PremiumTier } from '@/api/subscriptions';
 import { MemberFlowChart } from '@/features/analytics/charts';
+import { showToast } from '@/utils/toast';
+
+const TIER_LABELS: Record<PremiumTier, string> = {
+  free: 'Free',
+  premium: 'Premium',
+  premium_plus_ai: 'Premium + AI',
+};
+
+const normalizeTier = (tier: unknown): PremiumTier => {
+  if (tier === 'premium' || tier === 'premium_plus_ai') return tier;
+  return 'free';
+};
 
 export const OverviewPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const { currentGuild } = useGuildStore();
   const { userStats, guildStats, isLoading } = useOverviewStats(guildId!, user?.id || '');
@@ -20,6 +34,40 @@ export const OverviewPage: React.FC = () => {
     queryFn: () => analyticsApi.guildMemberFlow(guildId!, 30),
     enabled: !!guildId,
   });
+
+  const subscription = useQuery({
+    queryKey: ['guild', guildId, 'subscription'],
+    queryFn: () => subscriptionsApi.getGuildSubscription(guildId!),
+    enabled: !!guildId,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const manageSubscription = useMutation({
+    mutationFn: () => subscriptionsApi.openPortal({
+      guild_id: guildId!,
+      return_url: window.location.href,
+    }),
+    onSuccess: (data) => {
+      window.location.href = data.portal_url;
+    },
+    onError: () => {
+      showToast('Subscription management is not available for this server yet.', 'info');
+      navigate(`/premium?guild=${guildId}`);
+    },
+  });
+
+  const tier = normalizeTier(subscription.data?.tier ?? currentGuild?.premium_tier);
+  const status = subscription.data?.status ?? 'active';
+  const manageLabel = tier === 'free' ? 'Upgrade' : 'Manage';
+
+  const handleManageSubscription = () => {
+    if (tier === 'free') {
+      navigate(`/premium?guild=${guildId}`);
+      return;
+    }
+    manageSubscription.mutate();
+  };
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -33,29 +81,48 @@ export const OverviewPage: React.FC = () => {
       <div className="row">
         <div className="col-md-8">
           {currentGuild && (
-            <div className="card p-4 mb-4 d-flex flex-row align-items-center gap-3">
-              <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '12px',
-                backgroundImage: currentGuild.icon
-                  ? `url(https://cdn.discordapp.com/icons/${currentGuild.id}/${currentGuild.icon}.png)`
-                  : 'none',
-                backgroundSize: 'cover',
-                backgroundColor: 'var(--bg-tertiary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: 'white',
-                flexShrink: 0,
-              }}>
-                {!currentGuild.icon && currentGuild.name.charAt(0).toUpperCase()}
+            <div className="card p-4 mb-4 d-flex flex-row align-items-center justify-content-between gap-3 flex-wrap">
+              <div className="d-flex flex-row align-items-center gap-3">
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '12px',
+                  backgroundImage: currentGuild.icon
+                    ? `url(https://cdn.discordapp.com/icons/${currentGuild.id}/${currentGuild.icon}.png)`
+                    : 'none',
+                  backgroundSize: 'cover',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  flexShrink: 0,
+                }}>
+                  {!currentGuild.icon && currentGuild.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="fw-bold fs-6">{currentGuild.name}</div>
+                  <div className="small text-muted">{guildStats?.member_count?.toLocaleString() ?? '-'} members</div>
+                </div>
               </div>
-              <div>
-                <div className="fw-bold fs-6">{currentGuild.name}</div>
-                <div className="small text-muted">{guildStats?.member_count?.toLocaleString() ?? '-'} members</div>
+
+              <div className="d-flex flex-row align-items-center gap-3 flex-wrap">
+                <div className="text-end">
+                  <div className="fw-bold fs-6">{TIER_LABELS[tier]}</div>
+                  <div className="small text-muted">
+                    {subscription.isLoading ? 'Checking subscription…' : `Status: ${status.replace(/_/g, ' ')}`}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn p-3"
+                  onClick={handleManageSubscription}
+                  disabled={manageSubscription.isPending}
+                >
+                  {manageSubscription.isPending ? 'Opening…' : manageLabel}
+                </button>
               </div>
             </div>
           )}
