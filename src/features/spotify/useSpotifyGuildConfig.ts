@@ -3,13 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 
 export interface SpotifyGuildConfig {
-  // Master opt-in: no member's "Listening to Spotify" presence is recorded until
-  // an admin turns this on (mirrors the bot's /spotify config command).
+  // On by default: members' "Listening to Spotify" presence is recorded in every
+  // server unless an admin turns this off (mirrors the bot's /spotify config command).
   scrobble_enabled: boolean;
 }
 
 const DEFAULT_SPOTIFY: SpotifyGuildConfig = {
-  scrobble_enabled: false,
+  scrobble_enabled: true,
 };
 
 export function useSpotifyGuildConfig(guildId: string) {
