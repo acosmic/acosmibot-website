@@ -24,15 +24,26 @@ const DEFAULT_CONFIG: StreamPlatformConfig = {
     edit_message_when_vod_available: true,
   },
   tracked_streamers: [],
+  premium_tier: 'free',
+  max_streamers: 1,
+};
+
+const STREAMER_LIMITS: Record<string, number> = {
+  free: 1,
+  premium: 5,
+  premium_plus_ai: 5,
 };
 
 export const streamingApi = {
   getConfig: async (guildId: string, platform: Platform): Promise<StreamPlatformConfig> => {
     const res = await api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`);
     const platformSettings = res?.data?.settings?.[platform] ?? {};
+    const premiumTier = res?.data?.premium_tier ?? 'free';
     return {
       ...DEFAULT_CONFIG,
       ...platformSettings,
+      premium_tier: premiumTier,
+      max_streamers: STREAMER_LIMITS[premiumTier] ?? STREAMER_LIMITS.free,
       vod_settings: {
         ...DEFAULT_CONFIG.vod_settings,
         ...(platformSettings.vod_settings ?? {}),
@@ -43,6 +54,7 @@ export const streamingApi = {
   updateConfig: async (guildId: string, platform: Platform, data: UpdateStreamPlatformConfigRequest): Promise<StreamPlatformConfig> => {
     const current = await configApi.getHybridConfig(guildId);
     const currentPlatform = current?.data?.settings?.[platform] ?? {};
+    const premiumTier = current?.data?.premium_tier ?? 'free';
     const nextPlatform = {
       ...currentPlatform,
       ...data,
@@ -53,7 +65,12 @@ export const streamingApi = {
       },
     };
     await configApi.upsertHybridSections(guildId, { [platform]: nextPlatform });
-    return { ...DEFAULT_CONFIG, ...nextPlatform };
+    return {
+      ...DEFAULT_CONFIG,
+      ...nextPlatform,
+      premium_tier: premiumTier,
+      max_streamers: STREAMER_LIMITS[premiumTier] ?? STREAMER_LIMITS.free,
+    };
   },
 
   validateStreamer: async (platform: Platform, identifier: string): Promise<StreamerValidationResult> => {

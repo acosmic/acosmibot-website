@@ -28,6 +28,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
   const emptyLabel = platform === 'youtube' ? 'No youtubers tracked yet.' : 'No streamers tracked yet.';
   const limitLabel = platform === 'youtube' ? 'youtubers' : 'streamers';
   const streamers = form.tracked_streamers || [];
+  const maxStreamers = form.max_streamers ?? 1;
   
   const addStreamer = () => {
     const newStreamer: Streamer = {
@@ -116,6 +117,10 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
 
   const selectedStreamer = selectedStreamerIndex !== null ? streamers[selectedStreamerIndex] : null;
   const selectedValidationError = selectedStreamerIndex !== null ? validationErrors[selectedStreamerIndex] : null;
+  const saveForm = () => {
+    const { premium_tier, max_streamers, ...payload } = form;
+    save(payload);
+  };
 
   return (
     <div className="feature-page">
@@ -138,7 +143,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
               <button 
                 className="btn primary py-2 px-3" 
                 onClick={addStreamer}
-                disabled={streamers.length >= 5}
+                disabled={streamers.length >= maxStreamers}
               >
                 + Add
               </button>
@@ -175,7 +180,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
             </div>
             
             <div className="mt-3 text-muted small">
-              Limit: {streamers.length} of 5 {limitLabel}
+              Limit: {streamers.length} of {maxStreamers} {limitLabel}
             </div>
           </div>
 
@@ -365,7 +370,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
 
       <SaveBar
         isDirty={isDirty}
-        onSave={() => save(form)}
+        onSave={saveForm}
         onDiscard={resetForm}
         isSaving={isSaving}
         saveError={saveError}
