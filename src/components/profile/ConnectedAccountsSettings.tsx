@@ -1,18 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Link2, Music, Unlink } from 'lucide-react';
+import { Link2, Music } from 'lucide-react';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import type { SpotifyStatus } from '@/api/spotify';
 
+// SPOTIFY OAUTH DEFERRED — see SPOTIFY_OAUTH_DEFERRED.md. Account linking (OAuth) is
+// disabled until we qualify for Spotify Extended Quota Mode, so this card no longer
+// shows Link/Unlink. Scrobbling still works from Discord "Listening to Spotify"
+// presence; the privacy opt-out below still applies.
 export const ConnectedAccountsSettings: React.FC<{
   spotify?: SpotifyStatus;
   loading?: boolean;
-  saving?: boolean;
   optOutSaving?: boolean;
-  onLink: () => void;
-  onUnlink: () => void;
   onToggleOptOut: (optedOut: boolean) => void;
-}> = ({ spotify, loading, saving, optOutSaving, onLink, onUnlink, onToggleOptOut }) => (
+}> = ({ spotify, loading, optOutSaving, onToggleOptOut }) => (
   <div style={{
     background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
     borderRadius: '16px', padding: '20px', marginBottom: '20px',
@@ -32,33 +33,20 @@ export const ConnectedAccountsSettings: React.FC<{
             Spotify
           </span>
           <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)' }}>
-            {loading
-              ? 'Checking connection...'
-              : spotify?.linked
-                ? `${spotify.display_name || 'Linked'}${spotify.product ? ` · ${spotify.product}` : ''}`
-                : 'Not connected'}
+            Tracked from your Discord “Listening to Spotify” status
           </span>
         </span>
       </span>
-
-      {spotify?.linked ? (
-        <button type="button" className="btn btn-sm" disabled={saving} onClick={onUnlink}>
-          <InlineIcon icon={Unlink} /> Unlink
-        </button>
-      ) : (
-        <button type="button" className="btn btn-sm btn-primary" disabled={saving || loading} onClick={onLink}>
-          <InlineIcon icon={Link2} /> Link
-        </button>
-      )}
     </div>
 
     <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '10px 0 0' }}>
-      Linking lets you use richer <code>/spotify</code> features (top artists, now-playing off Discord,
-      playback). You don't have to link to appear on server WhoKnows leaderboards.{' '}
+      Your plays are recorded automatically from Discord presence in servers where Spotify
+      tracking is on — no account linking needed. That powers WhoKnows leaderboards and your
+      stats.{' '}
       <Link to="/docs/spotify">Learn how it works</Link>.
     </p>
 
-    {/* Privacy opt-out — applies whether or not you've linked. */}
+    {/* Privacy opt-out — applies to presence-based tracking. */}
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
       marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-light)',

@@ -55,21 +55,9 @@ export const SettingsPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
 
-  const spotifyLinkMutation = useMutation({
-    mutationFn: () => spotifyApi.linkToken(),
-    onSuccess: ({ url }) => {
-      window.location.assign(url);
-    },
-  });
-
-  const spotifyUnlinkMutation = useMutation({
-    mutationFn: () => spotifyApi.unlink(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['spotify', 'status'] });
-      showToast('Spotify unlinked', 'success');
-    },
-  });
-
+  // SPOTIFY OAUTH DEFERRED — account linking (link/unlink) is disabled until we
+  // qualify for Spotify Extended Quota Mode. See SPOTIFY_OAUTH_DEFERRED.md. Only the
+  // presence-based privacy opt-out remains.
   const spotifyOptOutMutation = useMutation({
     mutationFn: (optedOut: boolean) => spotifyApi.setOptOut(optedOut),
     onSuccess: ({ opted_out }) => {
@@ -77,21 +65,6 @@ export const SettingsPage: React.FC = () => {
       showToast(opted_out ? 'Spotify tracking off' : 'Spotify tracking on', 'success');
     },
   });
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const spotify = params.get('spotify');
-    if (!spotify) return;
-    if (spotify === 'linked') {
-      showToast('Spotify linked', 'success');
-      queryClient.invalidateQueries({ queryKey: ['spotify', 'status'] });
-    } else {
-      showToast(spotify === 'expired' ? 'Spotify link expired' : 'Spotify link failed', 'error');
-    }
-    params.delete('spotify');
-    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
-    window.history.replaceState(null, '', next);
-  }, [queryClient]);
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -142,10 +115,7 @@ export const SettingsPage: React.FC = () => {
             <ConnectedAccountsSettings
               spotify={spotifyStatus}
               loading={spotifyLoading}
-              saving={spotifyLinkMutation.isPending || spotifyUnlinkMutation.isPending}
               optOutSaving={spotifyOptOutMutation.isPending}
-              onLink={() => spotifyLinkMutation.mutate()}
-              onUnlink={() => spotifyUnlinkMutation.mutate()}
               onToggleOptOut={(optedOut) => spotifyOptOutMutation.mutate(optedOut)}
             />
           </>

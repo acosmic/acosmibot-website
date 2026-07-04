@@ -12,8 +12,9 @@ export interface SpotifyStatus {
 
 export const spotifyApi = {
   status: () => api.fetch<SpotifyStatus>('/api/spotify/status'),
-  linkToken: () => api.fetch<{ url: string }>('/api/spotify/link-token', { method: 'POST' }),
-  unlink: () => api.fetch<{ success: boolean; was_linked?: boolean }>('/api/spotify/unlink', { method: 'POST' }),
+  // SPOTIFY OAUTH DEFERRED — account linking (link-token/unlink) needs Spotify
+  // Extended Quota Mode. See SPOTIFY_OAUTH_DEFERRED.md. Presence scrobbling +
+  // the privacy opt-out below don't need it.
   setOptOut: (optedOut: boolean) =>
     api.fetch<{ opted_out: boolean }>('/api/spotify/opt-out', {
       method: 'POST',

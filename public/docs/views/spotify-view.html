@@ -9,39 +9,14 @@
   <section class="docs-section">
     <h2>Overview</h2>
     <p>
-      There are two ways your listening is tracked, and you can use either or both:
+      No login or account linking needed — tracking runs entirely off Discord's rich presence:
     </p>
     <div class="info-card info-card-info">
-      <h3>Two tracking modes</h3>
+      <h3>How tracking works</h3>
       <ul>
-        <li><strong>Presence (no login):</strong> When a server enables tracking, anyone showing "Listening to Spotify" on Discord has their plays recorded automatically.</li>
-        <li><strong>Linked account (optional):</strong> Connect your Spotify account to also capture plays from mobile and other devices — even when Discord isn't showing them — and unlock richer commands like top artists, off-Discord now-playing, and playback control.</li>
+        <li><strong>Presence (no login):</strong> When a server enables tracking, anyone showing "Listening to Spotify" on Discord has their plays recorded automatically — that's all it takes to appear on WhoKnows leaderboards and build your stats.</li>
       </ul>
     </div>
-  </section>
-
-  <section class="docs-section">
-    <h2>Connecting your Spotify account</h2>
-    <p>
-      Linking is optional — you'll appear on WhoKnows leaderboards from Discord presence either way. Link only if you want the extra features. There are two ways to connect:
-    </p>
-    <div class="command-list">
-      <div class="command-card">
-        <div class="command-signature">On the website</div>
-        <div class="command-description">
-          Go to <a href="https://acosmibot.com/settings">acosmibot.com/settings</a> → <strong>Connected Accounts</strong> → <strong>Link</strong>. You'll be sent to Spotify to approve access, then returned to your settings.
-        </div>
-      </div>
-      <div class="command-card">
-        <div class="command-signature">/spotify link</div>
-        <div class="command-description">
-          Run <code>/spotify link</code> in Discord and click the private link it sends you. It goes through the same Spotify approval screen.
-        </div>
-      </div>
-    </div>
-    <p>
-      To disconnect, use <strong>Unlink</strong> on the settings page or <code>/spotify unlink</code>. Your stored tokens are encrypted at rest and are removed immediately when you unlink.
-    </p>
   </section>
 
   <section class="docs-section">
@@ -56,24 +31,12 @@
         <div class="command-description">See who in the server listens to an artist, track, or album. Defaults to what you're currently playing.</div>
       </div>
       <div class="command-card">
-        <div class="command-signature">/spotify top [type] [period] [user]</div>
-        <div class="command-description">Your most-played artists, tracks, or albums. Linked users can pick a Spotify time range.</div>
+        <div class="command-signature">/spotify top [type] [user]</div>
+        <div class="command-description">Your most-played artists, tracks, or albums, ranked from your recorded scrobbles.</div>
       </div>
       <div class="command-card">
         <div class="command-signature">/spotify recent [user]</div>
         <div class="command-description">A member's most recent scrobbles, newest first.</div>
-      </div>
-      <div class="command-card">
-        <div class="command-signature">/spotify taste</div>
-        <div class="command-description">Summarize your listening by top genres (linked account required).</div>
-      </div>
-      <div class="command-card">
-        <div class="command-signature">/spotify playlist</div>
-        <div class="command-description">List your Spotify playlists (linked account required).</div>
-      </div>
-      <div class="command-card">
-        <div class="command-signature">/spotify player &lt;action&gt;</div>
-        <div class="command-description">Pause, resume, or skip playback on your active device. Requires Spotify Premium.</div>
       </div>
       <div class="command-card">
         <div class="command-signature">/spotify optout</div>
@@ -92,7 +55,6 @@
       <ul>
         <li>Opt out any time with <code>/spotify optout</code>, or from <a href="https://acosmibot.com/settings">acosmibot.com/settings</a> → "Keep my listening private."</li>
         <li>Opting out stops new plays from being recorded and hides your listening from other members' <code>/spotify</code> lookups. It takes effect immediately.</li>
-        <li>Linked-account tokens are encrypted at rest and deleted the moment you unlink.</li>
       </ul>
     </div>
   </section>
