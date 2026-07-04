@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Music, Users, Eye, Shield, Check, Minus, type LucideIcon } from 'lucide-react';
+// SPOTIFY OAUTH DEFERRED — Check/Minus were only used by the commented-out TierCard comparison.
+import { Music, Users, Eye, Shield, type LucideIcon } from 'lucide-react';
 import { FeatureToggle, SaveBar, LoadingSpinner } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useSpotifyGuildConfig, type SpotifyGuildConfig } from './useSpotifyGuildConfig';
@@ -8,9 +9,9 @@ import { useSpotifyGuildConfig, type SpotifyGuildConfig } from './useSpotifyGuil
 /**
  * Server-owner Spotify configuration.
  *
- * The one setting that matters at the guild level is the master opt-in: whether
- * members' "Listening to Spotify" presence is recorded here at all. Everything
- * else (per-user linking, opt-out) is a personal choice made elsewhere.
+ * The one setting that matters at the guild level is whether members' "Listening to
+ * Spotify" presence is recorded here at all — on by default, and an admin can turn it
+ * off. Per-member privacy (opt-out) is a personal choice made elsewhere.
  */
 export const SpotifyPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -49,22 +50,27 @@ export const SpotifyPage: React.FC = () => {
           />
           <InfoRow
             icon={Eye}
-            title="Off by default"
-            text="Nothing is recorded until you enable it here. Turning it off keeps existing history but stops recording new plays."
+            title="On by default"
+            text="Tracking is enabled out of the box. Turn it off here to stop recording new plays — existing history is kept."
           />
           <InfoRow
             icon={Shield}
             title="Members stay in control"
-            text="Any member can opt out at any time with /spotify optout (or from their account settings), and linked users are tracked via their own Spotify account instead."
+            text="Any member can opt out at any time with /spotify optout (or from their account settings)."
           />
         </div>
 
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '16px 0 0' }}>
-          Members connect their own Spotify and manage privacy on their{' '}
+          Members manage their listening privacy on their{' '}
           <Link to="/settings">account settings</Link> page. See the{' '}
           <Link to="/docs/spotify">Spotify docs</Link> for the full command list.
         </p>
       </div>
+
+      {/*
+        SPOTIFY OAUTH DEFERRED — see SPOTIFY_OAUTH_DEFERRED.md. This "Without vs. with a
+        Spotify login" comparison advertised linked-account (OAuth) features that are
+        disabled until we qualify for Spotify Extended Quota Mode. Restore when linking is back.
 
       <div className="card p-4 mb-4">
         <h3 className="mb-1">Without vs. with a Spotify login</h3>
@@ -99,6 +105,7 @@ export const SpotifyPage: React.FC = () => {
           />
         </div>
       </div>
+      */}
 
       <SaveBar
         isDirty={isDirty}
@@ -125,28 +132,30 @@ const InfoRow: React.FC<{ icon: LucideIcon; title: string; text: string }> = ({
   </div>
 );
 
-const TierCard: React.FC<{
-  title: string;
-  subtitle: string;
-  accent: string;
-  rows: { on: boolean; text: string }[];
-}> = ({ title, subtitle, accent, rows }) => (
-  <div style={{
-    flex: '1 1 260px', minWidth: '260px',
-    background: 'var(--bg-overlay)', border: `1px solid ${accent === '#1DB954' ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-    borderRadius: '12px', padding: '16px',
-  }}>
-    <div style={{ fontSize: '15px', fontWeight: 700, color: accent }}>{title}</div>
-    <div style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 12px' }}>{subtitle}</div>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-      {rows.map((r, i) => (
-        <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-          {r.on
-            ? <Check size={16} color="#1DB954" style={{ flexShrink: 0, marginTop: '2px' }} />
-            : <Minus size={16} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />}
-          <span style={{ fontSize: '13px', color: r.on ? 'var(--text-secondary)' : 'var(--text-muted)' }}>{r.text}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+// SPOTIFY OAUTH DEFERRED — see SPOTIFY_OAUTH_DEFERRED.md. Used only by the commented-out
+// "Without vs. with a Spotify login" comparison above. Restore alongside it.
+// const TierCard: React.FC<{
+//   title: string;
+//   subtitle: string;
+//   accent: string;
+//   rows: { on: boolean; text: string }[];
+// }> = ({ title, subtitle, accent, rows }) => (
+//   <div style={{
+//     flex: '1 1 260px', minWidth: '260px',
+//     background: 'var(--bg-overlay)', border: `1px solid ${accent === '#1DB954' ? 'var(--border-cyan)' : 'var(--border-light)'}`,
+//     borderRadius: '12px', padding: '16px',
+//   }}>
+//     <div style={{ fontSize: '15px', fontWeight: 700, color: accent }}>{title}</div>
+//     <div style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 12px' }}>{subtitle}</div>
+//     <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+//       {rows.map((r, i) => (
+//         <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+//           {r.on
+//             ? <Check size={16} color="#1DB954" style={{ flexShrink: 0, marginTop: '2px' }} />
+//             : <Minus size={16} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />}
+//           <span style={{ fontSize: '13px', color: r.on ? 'var(--text-secondary)' : 'var(--text-muted)' }}>{r.text}</span>
+//         </div>
+//       ))}
+//     </div>
+//   </div>
+// );
