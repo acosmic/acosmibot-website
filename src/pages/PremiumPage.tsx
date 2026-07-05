@@ -63,7 +63,7 @@ const TIERS: TierCardDef[] = [
     ctaLabel: 'Select Server',
     ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
     features: [
-      { text: 'Everything in Free, plus:' },
+      { text: 'Everything in Free, and:' },
       { text: '5 Twitch streamers tracking' },
       { text: '5 YouTube streamers tracking' },
       { text: '5 Kick streamers tracking' },
@@ -85,7 +85,7 @@ const TIERS: TierCardDef[] = [
     ctaLabel: 'Select Server',
     ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
     features: [
-      { text: 'Everything in Plus, plus:' },
+      { text: 'Everything in Plus, and:' },
       { text: 'AI chat - 100/day and 2,000/month' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
