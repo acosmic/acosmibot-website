@@ -239,9 +239,8 @@ export const PricingPage: React.FC = () => {
         </div>
 
         {/* Pricing cards */}
-        <div style={{
+        <div className="pricing-plans-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
           gap: '20px', alignItems: 'stretch',
           overflow: 'visible',
           paddingTop: '16px',
