@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
@@ -19,6 +19,8 @@ const TIER_LABELS: Record<PremiumTier, string> = {
 };
 
 const BILLING_ENABLED = false;
+
+const parsePriceAmount = (price: string) => Number(price.replace(/[^0-9.]/g, '')) || 0;
 
 interface TierCardDef {
   tier: PremiumTier;
@@ -297,24 +299,26 @@ const TierCard: React.FC<{
       </span>
     )}
     <div>
-      <h3 style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0,
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: '12px',
+        minHeight: def.tier === 'free' ? 0 : 34,
       }}>
-        {TIER_LABELS[def.tier]}
-        {def.icon && <span style={{ color: 'var(--primary-color)', display: 'inline-flex' }}>{def.icon}</span>}
-      </h3>
-      {def.tier !== 'free' && (
-        <BillingToggle interval={interval} onChange={onIntervalChange} />
-      )}
-      <div style={{ marginTop: def.tier === 'free' ? '8px' : '12px', overflow: 'hidden' }}>
-        <span
-          key={`${def.tier}-${interval}`}
-          className="pricing-price-scroll"
-          style={{ display: 'inline-block', fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}
-        >
-          {interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice}
-        </span>
+        <h3 style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0,
+        }}>
+          {TIER_LABELS[def.tier]}
+          {def.icon && <span style={{ color: 'var(--primary-color)', display: 'inline-flex' }}>{def.icon}</span>}
+        </h3>
+        {def.tier !== 'free' && (
+          <BillingToggle interval={interval} onChange={onIntervalChange} />
+        )}
+      </div>
+      <div style={{ marginTop: '8px', overflow: 'hidden' }}>
+        <AnimatedPrice price={interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice} />
         <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
           {def.tier === 'free' ? '' : interval === 'annual' ? '/year' : '/month'}
         </span>
@@ -385,6 +389,58 @@ const TierCard: React.FC<{
   </div>
 );
 
+const AnimatedPrice: React.FC<{ price: string }> = ({ price }) => {
+  const target = parsePriceAmount(price);
+  const previous = useRef(target);
+  const frame = useRef<number | null>(null);
+  const [displayAmount, setDisplayAmount] = useState(target);
+
+  useEffect(() => {
+    const start = previous.current;
+    const delta = target - start;
+    const duration = 360;
+    const startedAt = performance.now();
+
+    if (frame.current !== null) {
+      cancelAnimationFrame(frame.current);
+    }
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const next = start + delta * eased;
+      setDisplayAmount(next);
+
+      if (progress < 1) {
+        frame.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      previous.current = target;
+      setDisplayAmount(target);
+      frame.current = null;
+    };
+
+    frame.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (frame.current !== null) {
+        cancelAnimationFrame(frame.current);
+        frame.current = null;
+      }
+    };
+  }, [target]);
+
+  const settled = Math.abs(displayAmount - target) < 0.005;
+  const label = settled ? price : `$${displayAmount.toFixed(2)}`;
+
+  return (
+    <span style={{ display: 'inline-block', fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', minWidth: '4ch' }}>
+      {label}
+    </span>
+  );
+};
+
 const PremiumStat: React.FC<{ icon: React.ReactNode; value: string; label: string }> = ({ icon, value, label }) => (
   <div style={{
     border: '1px solid var(--border-light)',
@@ -432,7 +488,6 @@ const BillingToggle: React.FC<{
 }> = ({ interval, onChange }) => (
   <div
     style={{
-      marginTop: '12px',
       display: 'inline-flex',
       border: '1px solid var(--border-light)',
       borderRadius: 8,
@@ -449,8 +504,8 @@ const BillingToggle: React.FC<{
         style={{
           border: 'none',
           borderRadius: 6,
-          padding: '5px 9px',
-          minWidth: 64,
+          padding: '4px 8px',
+          minWidth: 58,
           cursor: 'pointer',
           fontSize: 11,
           fontWeight: 800,
