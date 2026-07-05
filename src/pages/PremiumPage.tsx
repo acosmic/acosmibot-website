@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useQueries } from '@tanstack/react-query';
-import { ArrowRight, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { guildApi } from '@/api/guilds';
@@ -233,6 +233,7 @@ export const PricingPage: React.FC = () => {
           gap: '12px',
         }}>
           <PremiumStat icon={<Radio size={18} />} value="Twitch, YouTube, Kick" label="Live alerts for creator-led servers" />
+          <PremiumStat icon={<BarChart3 size={18} />} value="Server analytics" label="Activity and member trends for admins" />
           <PremiumStat icon={<ShieldCheck size={18} />} value="Higher limits" label="More commands, role messages, and embeds" />
           <PremiumStat icon={<Sparkles size={18} />} value="AI tiers" label="AI starts on Pro with higher limits on Max" />
         </div>
@@ -242,7 +243,8 @@ export const PricingPage: React.FC = () => {
           display: 'grid',
           gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
           gap: '20px', alignItems: 'stretch',
-          overflowX: 'auto',
+          overflow: 'visible',
+          paddingTop: '16px',
           paddingBottom: '4px',
         }}>
           {TIERS.map((t) => (
@@ -267,6 +269,7 @@ export const PricingPage: React.FC = () => {
           gap: '14px',
         }}>
           <PremiumNote title="Best for growth" text="Plus is for servers hitting free limits on creator alerts, commands, roles, or embeds." />
+          <PremiumNote title="Server insights" text="Every plan includes analytics views for checking community activity and member trends." />
           <PremiumNote title="AI tiers" text="Pro and Max carry OpenAI-backed features with explicit daily and monthly usage caps." />
           <PremiumNote title="Billing status" text="Checkout is paused while billing configuration is finalized." />
         </div>
