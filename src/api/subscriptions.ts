@@ -42,6 +42,18 @@ export const subscriptionsApi = {
       { method: 'POST', body: JSON.stringify(body) },
     ),
 
+  previewChange: (body: { guild_id: string; tier: PremiumTier; interval?: BillingInterval }) =>
+    api.fetch<{
+      success: boolean;
+      net_amount?: number;
+      is_charge?: boolean;
+      currency?: string;
+      message?: string;
+    }>(
+      '/api/subscriptions/preview-change',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
   openPortal: (body: { guild_id: string; return_url: string }) =>
     api.fetch<{ success: boolean; portal_url: string }>(
       '/api/subscriptions/portal',

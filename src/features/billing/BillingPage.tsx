@@ -46,6 +46,12 @@ const formatDate = (value?: string | null) => {
   }).format(date);
 };
 
+const formatMoney = (amountInCents: number, currency?: string) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: (currency || 'usd').toUpperCase(),
+  }).format(amountInCents / 100);
+
 export const BillingPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const navigate = useNavigate();
@@ -105,6 +111,21 @@ export const BillingPage: React.FC = () => {
     },
   });
 
+  const [pendingPlan, setPendingPlan] = React.useState<Exclude<PremiumTier, 'free'> | null>(null);
+
+  const preview = useQuery({
+    queryKey: ['guild', guildId, 'preview-change', pendingPlan],
+    queryFn: () => subscriptionsApi.previewChange({
+      guild_id: guildId!,
+      tier: pendingPlan!,
+      interval: 'monthly',
+    }),
+    enabled: Boolean(pendingPlan && guildId),
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+  });
+
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('success') === 'true') {
@@ -136,18 +157,24 @@ export const BillingPage: React.FC = () => {
   const handleChangeTier = (plan: Exclude<PremiumTier, 'free'>) => {
     // Free -> paid goes through Stripe Checkout, which is its own confirmation.
     // An existing paid subscription is modified in place with proration and no
-    // checkout step, so confirm before we trigger a billing change.
+    // checkout step, so confirm via modal before we trigger a billing change.
     if (hasPaidTier) {
-      const isUpgrade = TIER_RANK[plan] > TIER_RANK[tier];
-      const proration = isUpgrade
-        ? `Your card will be charged a prorated amount for the rest of this billing period, then ${TIER_PRICES[plan]}/month going forward.`
-        : `You'll receive prorated credit toward future invoices, then be billed ${TIER_PRICES[plan]}/month going forward.`;
-      const confirmed = window.confirm(
-        `${isUpgrade ? 'Upgrade' : 'Change'} ${TIER_LABELS[tier]} → ${TIER_LABELS[plan]}?\n\n${proration}`
-      );
-      if (!confirmed) return;
+      setPendingPlan(plan);
+      return;
     }
     changeTier.mutate(plan);
+  };
+
+  const pendingIsUpgrade = pendingPlan ? TIER_RANK[pendingPlan] > TIER_RANK[tier] : false;
+  const pendingProration = pendingPlan
+    ? pendingIsUpgrade
+      ? `Your card will be charged the prorated difference for the rest of this billing period today, then ${TIER_PRICES[pendingPlan]}/month going forward.`
+      : `You'll be credited the prorated difference to your account balance today, then billed ${TIER_PRICES[pendingPlan]}/month going forward.`
+    : '';
+
+  const confirmPendingChange = () => {
+    if (!pendingPlan) return;
+    changeTier.mutate(pendingPlan, { onSettled: () => setPendingPlan(null) });
   };
 
   return (
@@ -286,6 +313,78 @@ export const BillingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {pendingPlan && (
+        <div
+          onClick={() => !changeTier.isPending && setPendingPlan(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1050,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--bg-card)', border: '1px solid var(--border-cyan)', borderRadius: '16px',
+              padding: '24px', maxWidth: '460px', width: '100%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <div className="d-flex align-items-center gap-2 mb-3">
+              {pendingIsUpgrade ? <Sparkles size={20} /> : <Gem size={20} />}
+              <h3 className="mb-0" style={{ fontSize: '18px', fontWeight: 800 }}>
+                {pendingIsUpgrade ? 'Upgrade' : 'Change'} {TIER_LABELS[tier]} → {TIER_LABELS[pendingPlan]}?
+              </h3>
+            </div>
+            <p className="text-muted mb-3">{pendingProration}</p>
+            <div
+              className="p-3 rounded bg-tertiary border border-light mb-4"
+              style={{ minHeight: '58px' }}
+            >
+              {preview.isLoading && (
+                <div className="text-muted small">Calculating your prorated amount…</div>
+              )}
+              {!preview.isLoading && preview.data?.success && typeof preview.data.net_amount === 'number' && (
+                <>
+                  <div className="small text-muted">
+                    {preview.data.is_charge ? 'Charged today' : 'Credited to your balance today'}
+                  </div>
+                  <div className="fs-4 fw-bold text-primary">
+                    {preview.data.is_charge ? '' : '−'}
+                    {formatMoney(preview.data.net_amount, preview.data.currency)}
+                  </div>
+                </>
+              )}
+              {!preview.isLoading && !(preview.data?.success && typeof preview.data?.net_amount === 'number') && (
+                <div className="small text-muted">
+                  Exact prorated amount will be calculated by Stripe when you confirm.
+                </div>
+              )}
+            </div>
+            <div className="d-flex justify-content-end gap-2">
+              <button
+                type="button"
+                className="btn p-3"
+                disabled={changeTier.isPending}
+                onClick={() => setPendingPlan(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn p-3"
+                style={{ background: 'var(--primary-color)', color: '#000', border: 'none', fontWeight: 700 }}
+                disabled={changeTier.isPending}
+                onClick={confirmPendingChange}
+              >
+                {changeTier.isPending ? 'Working…' : `Confirm ${pendingIsUpgrade ? 'Upgrade' : 'Change'}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
