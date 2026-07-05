@@ -131,6 +131,25 @@ export const BillingPage: React.FC = () => {
     cancel.mutate();
   };
 
+  const TIER_RANK: Record<PremiumTier, number> = { free: 0, plus: 1, pro: 2, max: 3 };
+
+  const handleChangeTier = (plan: Exclude<PremiumTier, 'free'>) => {
+    // Free -> paid goes through Stripe Checkout, which is its own confirmation.
+    // An existing paid subscription is modified in place with proration and no
+    // checkout step, so confirm before we trigger a billing change.
+    if (hasPaidTier) {
+      const isUpgrade = TIER_RANK[plan] > TIER_RANK[tier];
+      const proration = isUpgrade
+        ? `Your card will be charged a prorated amount for the rest of this billing period, then ${TIER_PRICES[plan]}/month going forward.`
+        : `You'll receive prorated credit toward future invoices, then be billed ${TIER_PRICES[plan]}/month going forward.`;
+      const confirmed = window.confirm(
+        `${isUpgrade ? 'Upgrade' : 'Change'} ${TIER_LABELS[tier]} → ${TIER_LABELS[plan]}?\n\n${proration}`
+      );
+      if (!confirmed) return;
+    }
+    changeTier.mutate(plan);
+  };
+
   return (
     <div>
       <div className="page-header text-start mt-0 mb-4">
@@ -201,7 +220,7 @@ export const BillingPage: React.FC = () => {
                         type="button"
                         className="btn p-3 mt-auto"
                         disabled={isCurrent || changeTier.isPending || isCanceling}
-                        onClick={() => changeTier.mutate(plan)}
+                        onClick={() => handleChangeTier(plan)}
                       >
                         {isCurrent ? 'Current Plan' : changeTier.isPending ? 'Working...' : action}
                       </button>
