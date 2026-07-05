@@ -59,7 +59,6 @@ const TIERS: TierCardDef[] = [
     annualPrice: '$49',
     description: 'More automation capacity for active community servers.',
     fit: 'Best for growing Discords',
-    popular: true,
     icon: <Gem size={18} />,
     ctaLabel: 'Select Server',
     ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
@@ -81,6 +80,7 @@ const TIERS: TierCardDef[] = [
     annualPrice: '$99',
     description: 'Plus limits with AI tools and clear usage caps.',
     fit: 'For servers that want AI built in',
+    popular: true,
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
     ctaLabel: 'Select Server',
     ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
@@ -162,7 +162,7 @@ export const PricingPage: React.FC = () => {
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <ProfileNav user={user} />
 
-      <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1160px', margin: '0 auto', width: '100%' }}>
+      <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
         {/* Hero */}
         <div style={{ textAlign: 'center', marginBottom: '34px' }}>
           <span style={{
@@ -181,7 +181,7 @@ export const PricingPage: React.FC = () => {
             margin: '18px auto 12px',
             maxWidth: '860px',
           }}>
-            Choose the Right Acosmibot Plan
+            Unlock the Full Power of Acosmibot
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '17px', lineHeight: 1.65, maxWidth: '690px', margin: '0 auto' }}>
             Upgrade stream alerts, custom commands, reaction roles, embeds, and AI tools without changing how your community already uses Discord.
@@ -200,8 +200,6 @@ export const PricingPage: React.FC = () => {
             <span>Per-server subscriptions</span>
             <span style={{ color: 'var(--border-light)' }}>•</span>
             <span>{billingInterval === 'monthly' ? 'Monthly pricing shown' : 'Annual pricing shown'}</span>
-            <span style={{ color: 'var(--border-light)' }}>•</span>
-            <span>Medium image quality only</span>
           </div>
         </div>
 
@@ -241,8 +239,11 @@ export const PricingPage: React.FC = () => {
 
         {/* Pricing cards */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
           gap: '20px', alignItems: 'stretch',
+          overflowX: 'auto',
+          paddingBottom: '4px',
         }}>
           {TIERS.map((t) => (
             <TierCard
