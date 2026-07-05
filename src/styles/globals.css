@@ -64,6 +64,26 @@ body {
     grid-template-columns: repeat(4, minmax(260px, 1fr));
 }
 
+.pricing-price-scroll {
+    animation: pricing-price-scroll 180ms ease-out;
+    will-change: transform, opacity;
+}
+
+@keyframes pricing-price-scroll {
+    0% {
+        opacity: 0;
+        transform: translateY(-80%);
+    }
+    70% {
+        opacity: 1;
+        transform: translateY(8%);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @media (max-width: 1180px) {
     .pricing-plans-grid {
         grid-template-columns: repeat(2, minmax(260px, 1fr));

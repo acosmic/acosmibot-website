@@ -203,29 +203,6 @@ export const PricingPage: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '0 0 24px' }}>
-          <div style={{ display: 'inline-flex', border: '1px solid var(--border-light)', borderRadius: 8, padding: 4, background: 'var(--bg-card)' }}>
-            {(['monthly', 'annual'] as const).map((interval) => (
-              <button
-                key={interval}
-                onClick={() => setBillingInterval(interval)}
-                style={{
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '8px 14px',
-                  cursor: 'pointer',
-                  fontWeight: 800,
-                  color: billingInterval === interval ? '#000' : 'var(--text-secondary)',
-                  background: billingInterval === interval ? 'var(--primary-color)' : 'transparent',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {interval}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div style={{
           margin: '0 auto 34px',
           display: 'grid',
@@ -251,6 +228,7 @@ export const PricingPage: React.FC = () => {
               key={t.tier}
               def={t}
               interval={billingInterval}
+              onIntervalChange={setBillingInterval}
               loggedIn={!!token}
               onSelect={t.tier === 'free' ? undefined : () => selectTier(t.tier as Exclude<PremiumTier, 'free'>)}
             />
@@ -294,9 +272,10 @@ export const PricingPage: React.FC = () => {
 const TierCard: React.FC<{
   def: TierCardDef;
   interval: BillingInterval;
+  onIntervalChange: (interval: BillingInterval) => void;
   loggedIn: boolean;
   onSelect?: () => void;
-}> = ({ def, interval, onSelect }) => (
+}> = ({ def, interval, onIntervalChange, onSelect }) => (
   <div style={{
     position: 'relative',
     background: def.popular
@@ -325,8 +304,15 @@ const TierCard: React.FC<{
         {TIER_LABELS[def.tier]}
         {def.icon && <span style={{ color: 'var(--primary-color)', display: 'inline-flex' }}>{def.icon}</span>}
       </h3>
-      <div style={{ marginTop: '8px' }}>
-        <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}>
+      {def.tier !== 'free' && (
+        <BillingToggle interval={interval} onChange={onIntervalChange} />
+      )}
+      <div style={{ marginTop: def.tier === 'free' ? '8px' : '12px', overflow: 'hidden' }}>
+        <span
+          key={`${def.tier}-${interval}`}
+          className="pricing-price-scroll"
+          style={{ display: 'inline-block', fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}
+        >
           {interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice}
         </span>
         <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
@@ -437,6 +423,46 @@ const PremiumNote: React.FC<{ title: string; text: string }> = ({ title, text })
     <div style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: 1.45 }}>
       {text}
     </div>
+  </div>
+);
+
+const BillingToggle: React.FC<{
+  interval: BillingInterval;
+  onChange: (interval: BillingInterval) => void;
+}> = ({ interval, onChange }) => (
+  <div
+    style={{
+      marginTop: '12px',
+      display: 'inline-flex',
+      border: '1px solid var(--border-light)',
+      borderRadius: 8,
+      padding: 3,
+      background: 'rgba(0, 0, 0, 0.12)',
+    }}
+  >
+    {(['monthly', 'annual'] as const).map((option) => (
+      <button
+        key={option}
+        type="button"
+        onClick={() => onChange(option)}
+        aria-pressed={interval === option}
+        style={{
+          border: 'none',
+          borderRadius: 6,
+          padding: '5px 9px',
+          minWidth: 64,
+          cursor: 'pointer',
+          fontSize: 11,
+          fontWeight: 800,
+          lineHeight: 1.2,
+          color: interval === option ? '#000' : 'var(--text-secondary)',
+          background: interval === option ? 'var(--primary-color)' : 'transparent',
+          textTransform: 'capitalize',
+        }}
+      >
+        {option}
+      </button>
+    ))}
   </div>
 );
 
