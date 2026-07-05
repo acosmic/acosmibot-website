@@ -12,12 +12,15 @@ import { MemberFlowChart } from '@/features/analytics/charts';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
   free: 'Free',
-  premium: 'Premium',
-  premium_plus_ai: 'Premium + AI',
+  plus: 'Plus',
+  pro: 'Pro',
+  max: 'Max',
 };
 
 const normalizeTier = (tier: unknown): PremiumTier => {
-  if (tier === 'premium' || tier === 'premium_plus_ai') return tier;
+  if (tier === 'premium') return 'plus';
+  if (tier === 'premium_plus_ai') return 'pro';
+  if (tier === 'plus' || tier === 'pro' || tier === 'max') return tier;
   return 'free';
 };
 

@@ -9,24 +9,29 @@ import { showToast } from '@/utils/toast';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
   free: 'Free',
-  premium: 'Premium',
-  premium_plus_ai: 'Premium + AI',
+  plus: 'Plus',
+  pro: 'Pro',
+  max: 'Max',
 };
 
 const TIER_PRICES: Record<PremiumTier, string> = {
   free: '$0',
-  premium: '$4.99',
-  premium_plus_ai: '$14.99',
+  plus: '$4.99',
+  pro: '$9.99',
+  max: '$19.99',
 };
 
 const TIER_DESCRIPTIONS: Record<PremiumTier, string> = {
   free: 'Core community systems and starter limits.',
-  premium: 'Higher limits for active community automation.',
-  premium_plus_ai: 'Premium limits plus Acosmibot AI features.',
+  plus: 'Higher limits for active community automation.',
+  pro: 'Plus limits with Acosmibot AI features.',
+  max: 'Higher AI limits for active AI servers.',
 };
 
 const normalizeTier = (tier: unknown): PremiumTier => {
-  if (tier === 'premium' || tier === 'premium_plus_ai') return tier;
+  if (tier === 'premium') return 'plus';
+  if (tier === 'premium_plus_ai') return 'pro';
+  if (tier === 'plus' || tier === 'pro' || tier === 'max') return tier;
   return 'free';
 };
 
@@ -72,6 +77,7 @@ export const BillingPage: React.FC = () => {
     mutationFn: (tier: Exclude<PremiumTier, 'free'>) => subscriptionsApi.createCheckout({
       guild_id: guildId!,
       tier,
+      interval: 'monthly',
       success_url: `${window.location.origin}/server/${guildId}/billing?success=true`,
       cancel_url: `${window.location.origin}/server/${guildId}/billing?canceled=true`,
     }),
@@ -174,20 +180,18 @@ export const BillingPage: React.FC = () => {
           <div className="card p-4 mb-4">
             <h3 className="mb-4">Plans</h3>
             <div className="row g-3">
-              {(['premium', 'premium_plus_ai'] as const).map((plan) => {
+              {(['plus', 'pro', 'max'] as const).map((plan) => {
                 const isCurrent = tier === plan;
                 const action = tier === 'free'
                   ? `Upgrade to ${TIER_LABELS[plan]}`
-                  : plan === 'premium_plus_ai'
-                    ? 'Upgrade'
-                    : 'Downgrade';
+                  : 'Change Plan';
 
                 return (
                   <div className="col-md-6" key={plan}>
                     <div className="p-3 rounded bg-tertiary border border-light h-100 d-flex flex-column gap-3">
                       <div>
                         <div className="d-flex align-items-center gap-2 mb-2">
-                          {plan === 'premium_plus_ai' ? <Sparkles size={18} /> : <ShieldCheck size={18} />}
+                          {plan === 'pro' || plan === 'max' ? <Sparkles size={18} /> : <ShieldCheck size={18} />}
                           <div className="fw-bold">{TIER_LABELS[plan]}</div>
                         </div>
                         <div className="fs-4 fw-bold text-primary">{TIER_PRICES[plan]}</div>

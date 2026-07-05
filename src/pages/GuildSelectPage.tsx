@@ -132,14 +132,14 @@ export const GuildSelectPage: React.FC = () => {
                     onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--primary-color)')}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
                   >
-                    {/* Premium badge */}
+                    {/* Paid plan badge */}
                     {guild.premium_tier && guild.premium_tier !== 'free' && (
                       <span style={{
                         position: 'absolute', top: '10px', right: '10px', display: 'flex',
                         alignItems: 'center', gap: '3px', color: 'var(--primary-color)',
                       }}
-                        title={guild.premium_tier === 'premium_plus_ai' ? 'Premium + AI' : 'Premium'}>
-                        {guild.premium_tier === 'premium_plus_ai' && <Bot size={16} />}
+                        title={guild.premium_tier === 'max' ? 'Max' : guild.premium_tier === 'pro' || guild.premium_tier === 'premium_plus_ai' ? 'Pro' : 'Plus'}>
+                        {(guild.premium_tier === 'pro' || guild.premium_tier === 'max' || guild.premium_tier === 'premium_plus_ai') && <Bot size={16} />}
                         <Gem size={16} />
                       </span>
                     )}

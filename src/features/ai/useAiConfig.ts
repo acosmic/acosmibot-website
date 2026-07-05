@@ -116,7 +116,7 @@ export function useAiConfig(guildId: string) {
 
   const raw = query.data?.data?.settings?.ai;
   const tier = query.data?.data?.premium_tier || 'free';
-  const hasAccess = tier === 'premium_plus_ai';
+  const hasAccess = tier === 'pro' || tier === 'max' || tier === 'premium_plus_ai';
 
   const data = useMemo<AiConfig | undefined>(
     () => query.data ? normalizeAiConfig(raw || {}) : undefined,

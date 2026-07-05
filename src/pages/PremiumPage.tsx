@@ -5,7 +5,7 @@ import { ArrowRight, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lu
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { guildApi } from '@/api/guilds';
-import { subscriptionsApi, type PremiumTier } from '@/api/subscriptions';
+import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
@@ -13,15 +13,17 @@ import type { Guild } from '@/types/guild';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
   free: 'Free',
-  premium: 'Premium',
-  premium_plus_ai: 'Premium + AI',
+  plus: 'Plus',
+  pro: 'Pro',
+  max: 'Max',
 };
 
 const BILLING_ENABLED = false;
 
 interface TierCardDef {
   tier: PremiumTier;
-  price: string;
+  monthlyPrice: string;
+  annualPrice?: string;
   description: string;
   fit: string;
   popular?: boolean;
@@ -34,7 +36,7 @@ interface TierCardDef {
 const TIERS: TierCardDef[] = [
   {
     tier: 'free',
-    price: '$0',
+    monthlyPrice: '$0',
     description: 'Core community systems for getting started.',
     fit: 'For new or casual servers',
     ctaLabel: 'Current Plan',
@@ -52,14 +54,15 @@ const TIERS: TierCardDef[] = [
     ],
   },
   {
-    tier: 'premium',
-    price: '$4.99',
+    tier: 'plus',
+    monthlyPrice: '$4.99',
+    annualPrice: '$49',
     description: 'More automation capacity for active community servers.',
     fit: 'Best for growing Discords',
     popular: true,
     icon: <Gem size={18} />,
     ctaLabel: 'Select Server',
-    ctaNote: BILLING_ENABLED ? 'Billed monthly per server' : 'Checkout opens after billing launch',
+    ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
     features: [
       { text: 'Everything in Free, plus:' },
       { text: '5 Twitch streamers tracking' },
@@ -73,33 +76,55 @@ const TIERS: TierCardDef[] = [
     ],
   },
   {
-    tier: 'premium_plus_ai',
-    price: '$9.99',
-    description: 'Premium limits plus AI tools with clear usage caps.',
+    tier: 'pro',
+    monthlyPrice: '$9.99',
+    annualPrice: '$99',
+    description: 'Plus limits with AI tools and clear usage caps.',
     fit: 'For servers that want AI built in',
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
     ctaLabel: 'Select Server',
-    ctaNote: BILLING_ENABLED ? 'Billed monthly per server' : 'Checkout opens after billing launch',
+    ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
     features: [
-      { text: 'Everything in Premium, plus:' },
-      { text: 'AI chat - mention the bot to talk (100 messages/day)' },
+      { text: 'Everything in Plus, plus:' },
+      { text: 'AI chat - 100/day and 2,000/month' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
       { text: 'AI web search' },
       { text: 'Proactive ambient AI replies' },
-      { text: 'AI image generation (50/month)' },
-      { text: 'AI image analysis & vision (100/month)' },
+      { text: '50 medium images/month' },
+      { text: '100 vision analyses/month' },
+    ],
+  },
+  {
+    tier: 'max',
+    monthlyPrice: '$19.99',
+    annualPrice: '$229',
+    description: 'Higher AI usage for servers with heavier assistant workflows.',
+    fit: 'For AI-heavy communities',
+    icon: <span style={{ display: 'inline-flex', gap: 2 }}><Sparkles size={18} /><Bot size={18} /></span>,
+    ctaLabel: 'Select Server',
+    ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
+    features: [
+      { text: 'Everything in Plus, plus:' },
+      { text: 'AI chat - 300/day and 6,000/month' },
+      { text: 'Custom AI personalities & instructions' },
+      { text: 'Per-user AI memory' },
+      { text: 'AI web search' },
+      { text: 'Proactive ambient AI replies' },
+      { text: '100 medium images/month' },
+      { text: '300 vision analyses/month' },
     ],
   },
 ];
 
-export const PremiumPage: React.FC = () => {
+export const PricingPage: React.FC = () => {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const [searchParams, setSearchParams] = useSearchParams();
   useHydrateAuthUser();
 
   const [pickerTier, setPickerTier] = useState<Exclude<PremiumTier, 'free'> | null>(null);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
   const preselectGuildId = searchParams.get('guild');
 
   const selectTier = (tier: Exclude<PremiumTier, 'free'>) => {
@@ -108,7 +133,7 @@ export const PremiumPage: React.FC = () => {
       return;
     }
     if (!BILLING_ENABLED) {
-      showToast('Premium checkout is coming soon.', 'info');
+      showToast('Pricing checkout is coming soon.', 'info');
       return;
     }
     setPickerTier(tier);
@@ -117,7 +142,7 @@ export const PremiumPage: React.FC = () => {
   // Stripe return params
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
-      showToast('Premium upgrade successful! Your server subscription is active.', 'success');
+      showToast('Upgrade successful! Your server subscription is active.', 'success');
       setSearchParams({}, { replace: true });
     } else if (searchParams.get('canceled') === 'true') {
       showToast('Upgrade canceled. You can upgrade anytime!', 'info');
@@ -128,7 +153,7 @@ export const PremiumPage: React.FC = () => {
   // ?guild= deep link (e.g. from the AI page upsell) opens the picker directly.
   useEffect(() => {
     if (preselectGuildId && token && !pickerTier) {
-      setPickerTier('premium_plus_ai');
+      setPickerTier('pro');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preselectGuildId, token]);
@@ -146,7 +171,7 @@ export const PremiumPage: React.FC = () => {
             color: 'var(--primary-color)', borderRadius: '999px', padding: '6px 16px',
             fontSize: '12px', fontWeight: 800, letterSpacing: '0.08em',
           }}>
-            <Gem size={16} /> PREMIUM
+            <Gem size={16} /> PRICING
           </span>
           <h1 style={{
             fontSize: '42px',
@@ -156,10 +181,10 @@ export const PremiumPage: React.FC = () => {
             margin: '18px auto 12px',
             maxWidth: '860px',
           }}>
-            Unlock the Full Power of Acosmibot
+            Choose the Right Acosmibot Plan
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '17px', lineHeight: 1.65, maxWidth: '690px', margin: '0 auto' }}>
-            Upgrade stream alerts, custom commands, reaction roles, embeds, and optional AI tools without changing how your community already uses Discord.
+            Upgrade stream alerts, custom commands, reaction roles, embeds, and AI tools without changing how your community already uses Discord.
           </p>
           <div style={{
             margin: '18px auto 0',
@@ -174,9 +199,32 @@ export const PremiumPage: React.FC = () => {
           }}>
             <span>Per-server subscriptions</span>
             <span style={{ color: 'var(--border-light)' }}>•</span>
-            <span>Monthly pricing shown</span>
+            <span>{billingInterval === 'monthly' ? 'Monthly pricing shown' : 'Annual pricing shown'}</span>
             <span style={{ color: 'var(--border-light)' }}>•</span>
-            <span>Annual plans coming soon</span>
+            <span>Medium image quality only</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '0 0 24px' }}>
+          <div style={{ display: 'inline-flex', border: '1px solid var(--border-light)', borderRadius: 8, padding: 4, background: 'var(--bg-card)' }}>
+            {(['monthly', 'annual'] as const).map((interval) => (
+              <button
+                key={interval}
+                onClick={() => setBillingInterval(interval)}
+                style={{
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '8px 14px',
+                  cursor: 'pointer',
+                  fontWeight: 800,
+                  color: billingInterval === interval ? '#000' : 'var(--text-secondary)',
+                  background: billingInterval === interval ? 'var(--primary-color)' : 'transparent',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {interval}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -188,7 +236,7 @@ export const PremiumPage: React.FC = () => {
         }}>
           <PremiumStat icon={<Radio size={18} />} value="Twitch, YouTube, Kick" label="Live alerts for creator-led servers" />
           <PremiumStat icon={<ShieldCheck size={18} />} value="Higher limits" label="More commands, role messages, and embeds" />
-          <PremiumStat icon={<Sparkles size={18} />} value="Optional AI tier" label="AI stays separate from core Premium" />
+          <PremiumStat icon={<Sparkles size={18} />} value="AI tiers" label="AI starts on Pro with higher limits on Max" />
         </div>
 
         {/* Pricing cards */}
@@ -200,6 +248,7 @@ export const PremiumPage: React.FC = () => {
             <TierCard
               key={t.tier}
               def={t}
+              interval={billingInterval}
               loggedIn={!!token}
               onSelect={t.tier === 'free' ? undefined : () => selectTier(t.tier as Exclude<PremiumTier, 'free'>)}
             />
@@ -216,15 +265,16 @@ export const PremiumPage: React.FC = () => {
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: '14px',
         }}>
-          <PremiumNote title="Best for growth" text="Premium is for servers that are hitting free limits on creator alerts, commands, roles, or embeds." />
-          <PremiumNote title="AI is separated" text="Premium + AI carries the OpenAI-backed features and keeps explicit daily/monthly usage caps." />
-          <PremiumNote title="Billing status" text="Checkout is paused while prices and annual plans are finalized." />
+          <PremiumNote title="Best for growth" text="Plus is for servers hitting free limits on creator alerts, commands, roles, or embeds." />
+          <PremiumNote title="AI tiers" text="Pro and Max carry OpenAI-backed features with explicit daily and monthly usage caps." />
+          <PremiumNote title="Billing status" text="Checkout is paused while billing configuration is finalized." />
         </div>
       </div>
 
       {pickerTier && (
         <ServerPickerModal
           tier={pickerTier}
+          interval={billingInterval}
           preselectGuildId={preselectGuildId}
           onClose={() => {
             setPickerTier(null);
@@ -240,9 +290,10 @@ export const PremiumPage: React.FC = () => {
 
 const TierCard: React.FC<{
   def: TierCardDef;
+  interval: BillingInterval;
   loggedIn: boolean;
   onSelect?: () => void;
-}> = ({ def, onSelect }) => (
+}> = ({ def, interval, onSelect }) => (
   <div style={{
     position: 'relative',
     background: def.popular
@@ -272,8 +323,12 @@ const TierCard: React.FC<{
         {def.icon && <span style={{ color: 'var(--primary-color)', display: 'inline-flex' }}>{def.icon}</span>}
       </h3>
       <div style={{ marginTop: '8px' }}>
-        <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}>{def.price}</span>
-        <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>/month</span>
+        <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)' }}>
+          {interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice}
+        </span>
+        <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+          {def.tier === 'free' ? '' : interval === 'annual' ? '/year' : '/month'}
+        </span>
       </div>
       <div style={{
         marginTop: '8px',
@@ -385,9 +440,10 @@ const PremiumNote: React.FC<{ title: string; text: string }> = ({ title, text })
 /** Pick which admin/owner server to upgrade (or manage). */
 const ServerPickerModal: React.FC<{
   tier: Exclude<PremiumTier, 'free'>;
+  interval: BillingInterval;
   preselectGuildId: string | null;
   onClose: () => void;
-}> = ({ tier, preselectGuildId, onClose }) => {
+}> = ({ tier, interval, preselectGuildId, onClose }) => {
   const guildsQuery = useQuery({
     queryKey: ['guilds'],
     queryFn: () => guildApi.getGuilds(),
@@ -407,12 +463,13 @@ const ServerPickerModal: React.FC<{
   });
 
   const upgrade = (guild: Guild, targetTier: Exclude<PremiumTier, 'free'>) => {
-    showToast('Premium checkout is coming soon.', 'info');
+    showToast('Pricing checkout is coming soon.', 'info');
 
     // Stripe checkout is intentionally disabled until production prices,
     // annual plans, and live billing configuration are ready.
     void guild;
     void targetTier;
+    void interval;
   };
 
   const manage = (guild: Guild) => {
@@ -469,9 +526,7 @@ const ServerPickerModal: React.FC<{
             const hasPremium = guildTier !== 'free';
             const highlight = g.id === preselectGuildId;
 
-            // Premium server + Premium+AI selected → offer the upgrade path;
-            // otherwise premium servers manage their existing subscription.
-            const showUpgrade = !hasPremium || (guildTier === 'premium' && tier === 'premium_plus_ai');
+            const showUpgrade = !hasPremium || guildTier !== tier;
 
             return (
               <div key={g.id} style={{
@@ -499,7 +554,7 @@ const ServerPickerModal: React.FC<{
                 </div>
                 {showUpgrade ? (
                   <button
-                    onClick={() => upgrade(g, guildTier === 'premium' ? 'premium_plus_ai' : tier)}
+                    onClick={() => upgrade(g, tier)}
                     style={{
                       background: 'var(--primary-color)', color: '#000', border: 'none',
                       borderRadius: '8px', padding: '8px 14px', fontSize: '13px', fontWeight: 700,
@@ -539,10 +594,10 @@ const TierBadge: React.FC<{ tier: PremiumTier }> = ({ tier }) => {
       display: 'inline-flex', alignItems: 'center', gap: '3px',
       fontSize: '11px', fontWeight: 700, color: 'var(--primary-color)',
     }}>
-      {tier === 'premium_plus_ai' && <Bot size={12} />}
+      {(tier === 'pro' || tier === 'max') && <Bot size={12} />}
       <Gem size={12} /> {TIER_LABELS[tier]}
     </span>
   );
 };
 
-export default PremiumPage;
+export default PricingPage;

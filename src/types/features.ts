@@ -50,7 +50,7 @@ export interface StreamPlatformConfig {
   announcement_message: string | null;
   vod_settings: VodSettings;
   tracked_streamers: Streamer[];
-  premium_tier?: 'free' | 'premium' | 'premium_plus_ai';
+  premium_tier?: 'free' | 'plus' | 'pro' | 'max';
   max_streamers?: number;
 }
 

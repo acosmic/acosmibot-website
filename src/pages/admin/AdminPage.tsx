@@ -191,8 +191,9 @@ function SortableTable<T extends Record<string, any>>({
 
 const TIER_COLORS: Record<string, string> = {
   free: 'var(--text-muted)',
-  premium: '#a78bfa',
-  premium_plus_ai: '#f59e0b',
+  plus: '#a78bfa',
+  pro: '#f59e0b',
+  max: '#22d3ee',
 };
 
 const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {

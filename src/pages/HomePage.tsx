@@ -206,7 +206,7 @@ export const HomePage: React.FC = () => {
         </div>
         <ul className="mobile-nav-links">
           <li><a href="#features" onClick={() => setMobileNavOpen(false)}>Features</a></li>
-          <li><Link to="/premium" onClick={() => setMobileNavOpen(false)}>Premium</Link></li>
+          <li><Link to="/pricing" onClick={() => setMobileNavOpen(false)}>Pricing</Link></li>
           <li><Link to="/docs/introduction" onClick={() => setMobileNavOpen(false)}>Documentation</Link></li>
           <li><Link to="/leaderboard" onClick={() => setMobileNavOpen(false)}>Leaderboards</Link></li>
           {isAuthenticated && (
@@ -253,7 +253,7 @@ export const HomePage: React.FC = () => {
 
             <ul className="nav-links">
               <li><a href="#features">Features</a></li>
-              <li><Link to="/premium" className="premium-nav-link">Premium</Link></li>
+              <li><Link to="/pricing" className="premium-nav-link">Pricing</Link></li>
               <li><Link to="/docs/introduction">Documentation</Link></li>
               <li><Link to="/leaderboard">Leaderboards</Link></li>
               {isAuthenticated && (

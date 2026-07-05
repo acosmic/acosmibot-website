@@ -1,6 +1,7 @@
 import { api } from './client';
 
-export type PremiumTier = 'free' | 'premium' | 'premium_plus_ai';
+export type PremiumTier = 'free' | 'plus' | 'pro' | 'max';
+export type BillingInterval = 'monthly' | 'annual';
 
 export interface SubscriptionRecord {
   id: number;
@@ -32,6 +33,7 @@ export const subscriptionsApi = {
   createCheckout: (body: {
     guild_id: string;
     tier: PremiumTier;
+    interval?: BillingInterval;
     success_url: string;
     cancel_url: string;
   }) =>

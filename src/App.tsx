@@ -23,7 +23,7 @@ import { ReactionRolesListPage } from './features/reaction-roles/ReactionRolesLi
 import { ReactionRoleBuilderPage } from './features/reaction-roles/ReactionRoleBuilderPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
-import { PremiumPage } from './pages/PremiumPage';
+import { PricingPage } from './pages/PremiumPage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -91,10 +91,10 @@ const MeRedirect = () => {
 const FeatureOutlet = () => {
   const { feature, guildId } = useParams<{ feature: string; guildId: string }>();
 
-  // Premium lives at the top-level /premium page; carry the guild over so the
+  // Pricing lives at the top-level /pricing page; carry the guild over so the
   // server picker preselects it.
   if (feature === 'premium') {
-    return <Navigate to={`/premium?guild=${guildId}`} replace />;
+    return <Navigate to={`/pricing?guild=${guildId}`} replace />;
   }
 
   if (feature === 'overview') {
@@ -225,7 +225,8 @@ function App() {
       <Route path="/docs/:page" element={<DocsPage />} />
       <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-      <Route path="/premium" element={<PremiumPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/premium" element={<Navigate to={{ pathname: '/pricing', search: window.location.search }} replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

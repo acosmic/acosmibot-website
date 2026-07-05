@@ -51,10 +51,10 @@ export const AiPage: React.FC = () => {
     return (
       <div className="card p-5 text-center mt-5 mx-auto" style={{ maxWidth: '600px', border: '2px solid var(--border-cyan)', background: 'linear-gradient(135deg, var(--bg-primary), var(--bg-secondary))' }}>
         <div style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}><Bot size={64} /></div>
-        <h2 className="mb-3 fs-3 fw-bold text-primary">AI Customization is Premium</h2>
-        <p className="mb-4 text-muted">Personalize your server's AI assistant with unique personalities and behaviors. This feature requires the <strong>Premium + AI</strong> tier.</p>
+        <h2 className="mb-3 fs-3 fw-bold text-primary">AI Customization Requires Pro or Max</h2>
+        <p className="mb-4 text-muted">Personalize your server's AI assistant with unique personalities and behaviors. This feature requires the <strong>Pro</strong> or <strong>Max</strong> plan.</p>
         <div className="d-flex flex-column gap-3">
-          <Link to={`/server/${guildId}/premium`} className="btn primary py-3 fw-bold">Upgrade to Premium + AI</Link>
+          <Link to={`/pricing?guild=${guildId}`} className="btn primary py-3 fw-bold">View Pricing</Link>
           <p className="small text-muted mb-0">Your current tier: <span className="text-white text-capitalize">{tier.replace(/_/g, ' ')}</span></p>
         </div>
       </div>

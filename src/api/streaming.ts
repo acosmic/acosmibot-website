@@ -30,8 +30,9 @@ const DEFAULT_CONFIG: StreamPlatformConfig = {
 
 const STREAMER_LIMITS: Record<string, number> = {
   free: 1,
-  premium: 5,
-  premium_plus_ai: 5,
+  plus: 5,
+  pro: 5,
+  max: 5,
 };
 
 export const streamingApi = {
