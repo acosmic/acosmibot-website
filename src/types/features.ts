@@ -121,6 +121,8 @@ export interface SimpleGameConfig {
 /** Blackjack stores tunables the website doesn't surface yet; preserve them on save. */
 export interface BlackjackConfig {
   enabled: boolean;
+  /** Emoji deck used to render hands. Mirrors CARD_SETS in blackjack_game.py. */
+  card_set?: string;
   [key: string]: unknown;
 }
 

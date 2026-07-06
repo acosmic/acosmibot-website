@@ -8,6 +8,7 @@ import { useGamesConfig } from './useGamesConfig';
 import { SlotsSection } from './SlotsSection';
 import { HeistSection } from './HeistSection';
 import { SimpleGameSection } from './SimpleGameSection';
+import { BlackjackSection } from './BlackjackSection';
 
 export const GamesPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -62,11 +63,9 @@ export const GamesPage: React.FC = () => {
         </CollapsibleSection>
 
         <CollapsibleSection title="Blackjack">
-          <SimpleGameSection
-            command="/blackjack"
-            description="Play blackjack against the dealer."
-            enabled={form.blackjack.enabled}
-            onChange={(v) => setForm({ blackjack: { ...form.blackjack, enabled: v } })}
+          <BlackjackSection
+            value={form.blackjack}
+            onChange={(updates) => setForm({ blackjack: { ...form.blackjack, ...updates } })}
           />
         </CollapsibleSection>
 
