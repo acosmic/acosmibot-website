@@ -23,6 +23,9 @@
         <li>Built-in 3-second per-user cooldown to prevent spam</li>
         <li>Configurable daily usage limit for the entire server</li>
         <li>Custom system prompt to define the AI's personality and rules</li>
+        <li>Saved personalities — switch the bot's persona with <code>/ai-personality</code> or from the dashboard (Pro or Max)</li>
+        <li>Per-user memories — the AI remembers facts members tell it via <code>/ai-memory</code></li>
+        <li>Ambient replies — the AI can occasionally chime into conversation unprompted (Pro or Max)</li>
         <li>Restrict AI responses to specific channels</li>
         <li>Swap the underlying AI model at any time</li>
       </ul>
@@ -101,6 +104,39 @@
         <div class="command-examples">
           <h4>Example:</h4>
           <code>/ai-status</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/ai-personality &lt;list|current|set|reset&gt;</div>
+        <div class="command-description">
+          Manage the server's AI personality. <code>list</code> shows saved personalities, <code>current</code> shows the active one, <code>set</code> switches to a saved personality, and <code>reset</code> returns to the default. Personalities are created and edited in the dashboard's AI settings. <strong>Pro or Max feature</strong>.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai-personality set name:Pirate</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/ai-memory &lt;add|list|clear&gt;</div>
+        <div class="command-description">
+          Manage what the AI remembers about you in this server. <code>add</code> stores a fact, <code>list</code> shows your saved memories, and <code>clear</code> makes the AI forget everything about you here. <strong>Pro or Max feature</strong>.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai-memory add fact:I main support in Overwatch</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/ai-ambient &lt;enable|disable|frequency&gt;</div>
+        <div class="command-description">
+          Control whether the AI occasionally chimes into conversation without being mentioned, and how often. Requires administrator permissions. <strong>Pro or Max feature</strong>.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai-ambient frequency level:low</code>
         </div>
       </div>
 
