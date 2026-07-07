@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices,
+  AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
   FileText, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
   Sparkles, Ticket, TrendingUp, TvMinimalPlay, VenetianMask,
   type LucideIcon,
@@ -49,6 +49,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
     items: [
       { slug: 'slots',     label: 'Slots', icon: Cherry },
       { slug: 'mines',     label: 'Mines', icon: Bomb },
+      { slug: 'keno',      label: 'Keno', icon: Grid3x3 },
       { slug: 'lottery',   label: 'Lottery', icon: Ticket },
       { slug: 'blackjack', label: 'Blackjack', icon: Spade },
       { slug: 'coinflip',  label: 'Coinflip', icon: Coins },

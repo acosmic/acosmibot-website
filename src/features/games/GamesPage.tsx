@@ -104,6 +104,15 @@ export const GamesPage: React.FC = () => {
             onChange={(v) => setForm({ mines: { enabled: v } })}
           />
         </CollapsibleSection>
+
+        <CollapsibleSection title="Keno">
+          <SimpleGameSection
+            command="/keno"
+            description="Pick your lucky numbers and match the draw to win big."
+            enabled={form.keno.enabled}
+            onChange={(v) => setForm({ keno: { enabled: v } })}
+          />
+        </CollapsibleSection>
       </div>
 
       <SaveBar

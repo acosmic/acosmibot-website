@@ -82,6 +82,7 @@ export function useGamesConfig(guildId: string) {
       blackjack: { ...(g['blackjack-config'] ?? {}), enabled: g['blackjack-config']?.enabled !== false },
       coinflip: { enabled: g['coinflip-config']?.enabled !== false },
       mines: { enabled: g['mines-config']?.enabled !== false },
+      keno: { enabled: g['keno-config']?.enabled !== false },
       deathroll: { enabled: g['deathroll-config']?.enabled !== false },
       rps: { enabled: g['rps-config']?.enabled !== false },
       heist: { ...DEFAULT_HEIST, ...heist, enabled: heist.enabled !== false },
@@ -100,6 +101,7 @@ export function useGamesConfig(guildId: string) {
         'blackjack-config': cfg.blackjack,
         'coinflip-config': cfg.coinflip,
         'mines-config': cfg.mines,
+        'keno-config': cfg.keno,
         'deathroll-config': cfg.deathroll,
         'rps-config': cfg.rps,
       };

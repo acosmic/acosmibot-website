@@ -137,6 +137,7 @@ export interface GamesConfig {
   blackjack: BlackjackConfig;
   coinflip: SimpleGameConfig;
   mines: SimpleGameConfig;
+  keno: SimpleGameConfig;
   deathroll: SimpleGameConfig;
   rps: SimpleGameConfig;
   heist: HeistConfig;
