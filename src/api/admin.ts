@@ -6,9 +6,11 @@ export interface AdminAiSettings {
   polymorph_model: string;
   /** Bot-wide fallback timezone (IANA) for the AI clock. */
   timezone: string;
+  web_search_provider: string;
   daily_limit: number;
   monthly_limit: number;
   available_models: string[];
+  available_web_search_providers: string[];
 }
 
 export interface AdminAiSettingsResponse {
@@ -37,6 +39,7 @@ export interface AdminEconomySettingsResponse {
 
 export interface AdminFeatureSettings {
   use_satori_rank_card: boolean;
+  billing_enabled: boolean;
 }
 
 export interface AdminFeatureSettingsResponse {
@@ -177,7 +180,9 @@ export const adminApi = {
   getAiSettings: () =>
     api.fetch<AdminAiSettingsResponse>('/api/admin/ai-settings'),
 
-  updateAiSettings: (payload: Partial<Omit<AdminAiSettings, 'available_models'>>) =>
+  updateAiSettings: (
+    payload: Partial<Omit<AdminAiSettings, 'available_models' | 'available_web_search_providers'>>,
+  ) =>
     api.fetch<{ success: boolean; updated_count: number }>(
       '/api/admin/ai-settings',
       {

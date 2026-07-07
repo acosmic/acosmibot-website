@@ -7,6 +7,7 @@ export interface SubscriptionRecord {
   id: number;
   guild_id: string;
   tier: PremiumTier;
+  billing_interval?: BillingInterval | null;
   status: string;
   current_period_start: string | null;
   current_period_end: string | null;
@@ -27,6 +28,9 @@ export interface GuildSubscription {
 }
 
 export const subscriptionsApi = {
+  getBillingStatus: () =>
+    api.fetch<{ success: boolean; billing_enabled: boolean }>('/api/billing/status'),
+
   getGuildSubscription: (guildId: string) =>
     api.fetch<GuildSubscription>(`/api/guilds/${guildId}/subscription`),
 

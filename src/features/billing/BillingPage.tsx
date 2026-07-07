@@ -2,7 +2,7 @@ import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CreditCard, ExternalLink, Gem, Receipt, ShieldCheck, Sparkles, XCircle } from 'lucide-react';
-import { subscriptionsApi, type PremiumTier } from '@/api/subscriptions';
+import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
 import { LoadingSpinner } from '@/components/ui';
 import { showToast } from '@/utils/toast';
@@ -14,11 +14,21 @@ const TIER_LABELS: Record<PremiumTier, string> = {
   max: 'Max',
 };
 
-const TIER_PRICES: Record<PremiumTier, string> = {
-  free: '$0',
-  plus: '$4.99',
-  pro: '$9.99',
-  max: '$19.99',
+type PaidTier = Exclude<PremiumTier, 'free'>;
+
+const TIER_PRICES: Record<BillingInterval, Record<PremiumTier, string>> = {
+  monthly: { free: '$0', plus: '$4.99', pro: '$9.99', max: '$19.99' },
+  annual: { free: '$0', plus: '$49', pro: '$99', max: '$229' },
+};
+
+const INTERVAL_SUFFIX: Record<BillingInterval, string> = {
+  monthly: '/month',
+  annual: '/year',
+};
+
+const INTERVAL_NOUN: Record<BillingInterval, string> = {
+  monthly: 'month',
+  annual: 'year',
 };
 
 const TIER_DESCRIPTIONS: Record<PremiumTier, string> = {
@@ -80,13 +90,14 @@ export const BillingPage: React.FC = () => {
   });
 
   const changeTier = useMutation({
-    mutationFn: (tier: Exclude<PremiumTier, 'free'>) => subscriptionsApi.createCheckout({
-      guild_id: guildId!,
-      tier,
-      interval: 'monthly',
-      success_url: `${window.location.origin}/server/${guildId}/billing?success=true`,
-      cancel_url: `${window.location.origin}/server/${guildId}/billing?canceled=true`,
-    }),
+    mutationFn: ({ tier, interval }: { tier: PaidTier; interval: BillingInterval }) =>
+      subscriptionsApi.createCheckout({
+        guild_id: guildId!,
+        tier,
+        interval,
+        success_url: `${window.location.origin}/server/${guildId}/billing?success=true`,
+        cancel_url: `${window.location.origin}/server/${guildId}/billing?canceled=true`,
+      }),
     onSuccess: async (data) => {
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
@@ -111,14 +122,15 @@ export const BillingPage: React.FC = () => {
     },
   });
 
-  const [pendingPlan, setPendingPlan] = React.useState<Exclude<PremiumTier, 'free'> | null>(null);
+  const [pendingPlan, setPendingPlan] = React.useState<{ tier: PaidTier; interval: BillingInterval } | null>(null);
+  const [planIntervalOverride, setPlanIntervalOverride] = React.useState<BillingInterval | null>(null);
 
   const preview = useQuery({
-    queryKey: ['guild', guildId, 'preview-change', pendingPlan],
+    queryKey: ['guild', guildId, 'preview-change', pendingPlan?.tier, pendingPlan?.interval],
     queryFn: () => subscriptionsApi.previewChange({
       guild_id: guildId!,
-      tier: pendingPlan!,
-      interval: 'monthly',
+      tier: pendingPlan!.tier,
+      interval: pendingPlan!.interval,
     }),
     enabled: Boolean(pendingPlan && guildId),
     staleTime: 0,
@@ -146,6 +158,8 @@ export const BillingPage: React.FC = () => {
   const record = subscription.data?.subscription ?? null;
   const hasPaidTier = tier !== 'free';
   const isCanceling = Boolean(record?.cancel_at_period_end || record?.cancel_at);
+  const currentInterval: BillingInterval = record?.billing_interval === 'annual' ? 'annual' : 'monthly';
+  const planInterval = planIntervalOverride ?? currentInterval;
 
   const handleCancel = () => {
     if (!window.confirm('Cancel this subscription at the end of the current billing period?')) return;
@@ -154,22 +168,28 @@ export const BillingPage: React.FC = () => {
 
   const TIER_RANK: Record<PremiumTier, number> = { free: 0, plus: 1, pro: 2, max: 3 };
 
-  const handleChangeTier = (plan: Exclude<PremiumTier, 'free'>) => {
+  const handleChangeTier = (plan: PaidTier, interval: BillingInterval) => {
     // Free -> paid goes through Stripe Checkout, which is its own confirmation.
     // An existing paid subscription is modified in place with proration and no
     // checkout step, so confirm via modal before we trigger a billing change.
     if (hasPaidTier) {
-      setPendingPlan(plan);
+      setPendingPlan({ tier: plan, interval });
       return;
     }
-    changeTier.mutate(plan);
+    changeTier.mutate({ tier: plan, interval });
   };
 
-  const pendingIsUpgrade = pendingPlan ? TIER_RANK[pendingPlan] > TIER_RANK[tier] : false;
+  const pendingIsUpgrade = pendingPlan ? TIER_RANK[pendingPlan.tier] > TIER_RANK[tier] : false;
+  const pendingIsIntervalSwitch = pendingPlan ? pendingPlan.tier === tier : false;
+  const pendingGoingForward = pendingPlan
+    ? `${TIER_PRICES[pendingPlan.interval][pendingPlan.tier]} per ${INTERVAL_NOUN[pendingPlan.interval]} going forward`
+    : '';
   const pendingProration = pendingPlan
-    ? pendingIsUpgrade
-      ? `Your card will be charged the prorated difference for the rest of this billing period today, then ${TIER_PRICES[pendingPlan]}/month going forward.`
-      : `You'll be credited the prorated difference to your account balance today, then billed ${TIER_PRICES[pendingPlan]}/month going forward.`
+    ? pendingIsIntervalSwitch
+      ? `Your billing will switch to ${pendingPlan.interval} with a prorated adjustment today, then ${pendingGoingForward}.`
+      : pendingIsUpgrade
+        ? `Your card will be charged the prorated difference for the rest of this billing period today, then ${pendingGoingForward}.`
+        : `You'll be credited the prorated difference to your account balance today, then billed ${pendingGoingForward}.`
     : '';
 
   const confirmPendingChange = () => {
@@ -196,8 +216,8 @@ export const BillingPage: React.FC = () => {
                 <p className="text-muted mb-0">{TIER_DESCRIPTIONS[tier]}</p>
               </div>
               <div className="text-end">
-                <div className="fs-4 fw-bold text-primary">{TIER_PRICES[tier]}</div>
-                <div className="small text-muted">per month</div>
+                <div className="fs-4 fw-bold text-primary">{TIER_PRICES[currentInterval][tier]}</div>
+                <div className="small text-muted">per {hasPaidTier ? INTERVAL_NOUN[currentInterval] : 'month'}</div>
               </div>
             </div>
 
@@ -224,13 +244,51 @@ export const BillingPage: React.FC = () => {
           </div>
 
           <div className="card p-4 mb-4">
-            <h3 className="mb-4">Plans</h3>
+            <div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+              <h3 className="mb-0">Plans</h3>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: 8,
+                  padding: 3,
+                  background: 'rgba(0, 0, 0, 0.12)',
+                }}
+              >
+                {(['monthly', 'annual'] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setPlanIntervalOverride(option)}
+                    aria-pressed={planInterval === option}
+                    style={{
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '4px 10px',
+                      minWidth: 64,
+                      cursor: 'pointer',
+                      fontSize: 12,
+                      fontWeight: 800,
+                      lineHeight: 1.2,
+                      color: planInterval === option ? '#000' : 'var(--text-secondary)',
+                      background: planInterval === option ? 'var(--primary-color)' : 'transparent',
+                      textTransform: 'capitalize',
+                    }}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="row g-3">
               {(['plus', 'pro', 'max'] as const).map((plan) => {
-                const isCurrent = tier === plan;
+                const isCurrent = tier === plan && (!hasPaidTier || currentInterval === planInterval);
+                const isIntervalSwitch = hasPaidTier && tier === plan && currentInterval !== planInterval;
                 const action = tier === 'free'
                   ? `Upgrade to ${TIER_LABELS[plan]}`
-                  : 'Change Plan';
+                  : isIntervalSwitch
+                    ? `Switch to ${planInterval === 'annual' ? 'Annual' : 'Monthly'}`
+                    : 'Change Plan';
 
                 return (
                   <div className="col-md-6" key={plan}>
@@ -240,14 +298,17 @@ export const BillingPage: React.FC = () => {
                           {plan === 'pro' || plan === 'max' ? <Sparkles size={18} /> : <ShieldCheck size={18} />}
                           <div className="fw-bold">{TIER_LABELS[plan]}</div>
                         </div>
-                        <div className="fs-4 fw-bold text-primary">{TIER_PRICES[plan]}</div>
+                        <div className="fs-4 fw-bold text-primary">
+                          {TIER_PRICES[planInterval][plan]}
+                          <span className="small text-muted fw-normal">{INTERVAL_SUFFIX[planInterval]}</span>
+                        </div>
                         <div className="small text-muted">{TIER_DESCRIPTIONS[plan]}</div>
                       </div>
                       <button
                         type="button"
                         className="btn p-3 mt-auto"
                         disabled={isCurrent || changeTier.isPending || isCanceling}
-                        onClick={() => handleChangeTier(plan)}
+                        onClick={() => handleChangeTier(plan, planInterval)}
                       >
                         {isCurrent ? 'Current Plan' : changeTier.isPending ? 'Working...' : action}
                       </button>
@@ -335,7 +396,9 @@ export const BillingPage: React.FC = () => {
             <div className="d-flex align-items-center gap-2 mb-3">
               {pendingIsUpgrade ? <Sparkles size={20} /> : <Gem size={20} />}
               <h3 className="mb-0" style={{ fontSize: '18px', fontWeight: 800 }}>
-                {pendingIsUpgrade ? 'Upgrade' : 'Change'} {TIER_LABELS[tier]} → {TIER_LABELS[pendingPlan]}?
+                {pendingIsIntervalSwitch
+                  ? `Switch ${TIER_LABELS[tier]} to ${pendingPlan.interval} billing?`
+                  : `${pendingIsUpgrade ? 'Upgrade' : 'Change'} ${TIER_LABELS[tier]} → ${TIER_LABELS[pendingPlan.tier]}?`}
               </h3>
             </div>
             <p className="text-muted mb-3">{pendingProration}</p>

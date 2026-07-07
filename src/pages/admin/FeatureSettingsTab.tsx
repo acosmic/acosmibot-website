@@ -16,7 +16,10 @@ export const FeatureSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      setForm({ use_satori_rank_card: query.data.data.use_satori_rank_card });
+      setForm({
+        use_satori_rank_card: query.data.data.use_satori_rank_card,
+        billing_enabled: query.data.data.billing_enabled,
+      });
     }
   }, [query.data]);
 
@@ -62,6 +65,23 @@ export const FeatureSettingsTab: React.FC = () => {
           <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
             Render <code>/rank</code> cards via the Satori Azure service. When off (or if the
             render fails), the bot falls back to the legacy PIL renderer.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={form.billing_enabled}
+              onChange={(e) => setForm({ ...form, billing_enabled: e.target.checked })}
+              style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
+            />
+            <span style={{ fontWeight: 600 }}>Stripe billing</span>
+          </label>
+          <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
+            Enable checkout and plan changes on the website. When off, the pricing page
+            shows &ldquo;coming soon&rdquo; and the API refuses new purchases. Existing
+            subscribers can still cancel and open the billing portal.
           </p>
         </div>
 

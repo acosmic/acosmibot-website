@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, AdminAiSettings } from '@/api/admin';
 import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'timezone' | 'daily_limit' | 'monthly_limit'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'daily_limit' | 'monthly_limit'>;
 
 export const AiSettingsTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -17,8 +17,16 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, model, polymorph_model, timezone, daily_limit, monthly_limit } = query.data.data;
-      setForm({ enabled, model, polymorph_model, timezone: timezone || 'UTC', daily_limit, monthly_limit });
+      const { enabled, model, polymorph_model, timezone, web_search_provider, daily_limit, monthly_limit } = query.data.data;
+      setForm({
+        enabled,
+        model,
+        polymorph_model,
+        timezone: timezone || 'UTC',
+        web_search_provider: web_search_provider || 'tavily',
+        daily_limit,
+        monthly_limit,
+      });
     }
   }, [query.data]);
 
@@ -39,6 +47,7 @@ export const AiSettingsTab: React.FC = () => {
   }
 
   const availableModels = query.data?.data.available_models ?? [];
+  const availableWebSearchProviders = query.data?.data.available_web_search_providers ?? ['tavily', 'exa'];
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -115,6 +124,25 @@ export const AiSettingsTab: React.FC = () => {
           </div>
           <p className="text-muted small mt-2 mb-0">
             Used for the AI clock only when neither the member nor the server has set a timezone.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <label className="form-label mb-2 d-block">Web Search Provider</label>
+          <select
+            className="form-control"
+            value={form.web_search_provider}
+            onChange={(e) => setForm({ ...form, web_search_provider: e.target.value })}
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+          >
+            {availableWebSearchProviders.map((provider) => (
+              <option key={provider} value={provider}>
+                {provider === 'exa' ? 'Exa AI' : 'Tavily'}
+              </option>
+            ))}
+          </select>
+          <p className="text-muted small mt-2 mb-0">
+            Provider used when server AI web search is enabled and a member asks for live web information.
           </p>
         </div>
 

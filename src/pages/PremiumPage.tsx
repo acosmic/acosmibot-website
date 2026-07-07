@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueries } from '@tanstack/react-query';
 import { ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { ProfileNav } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -17,8 +17,6 @@ const TIER_LABELS: Record<PremiumTier, string> = {
   pro: 'Pro',
   max: 'Max',
 };
-
-const BILLING_ENABLED = false;
 
 const parsePriceAmount = (price: string) => Number(price.replace(/[^0-9.]/g, '')) || 0;
 
@@ -64,7 +62,7 @@ const TIERS: TierCardDef[] = [
     fit: 'Best for growing Discords',
     icon: <Gem size={18} />,
     ctaLabel: 'Select Server',
-    ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
+    ctaNote: 'Billed per server',
     features: [
       { text: 'Everything in Free, and:' },
       { text: '5 Twitch streamers tracking' },
@@ -87,7 +85,7 @@ const TIERS: TierCardDef[] = [
     popular: true,
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
     ctaLabel: 'Select Server',
-    ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
+    ctaNote: 'Billed per server',
     features: [
       { text: 'Everything in Plus, and:' },
       { text: 'AI chat - 100/day and 2,000/month' },
@@ -107,7 +105,7 @@ const TIERS: TierCardDef[] = [
     fit: 'For AI-heavy communities',
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Sparkles size={18} /><Bot size={18} /></span>,
     ctaLabel: 'Select Server',
-    ctaNote: BILLING_ENABLED ? 'Billed per server' : 'Checkout opens after billing launch',
+    ctaNote: 'Billed per server',
     features: [
       { text: 'Everything in Plus, plus:' },
       { text: 'AI chat - 300/day and 6,000/month' },
@@ -131,12 +129,22 @@ export const PricingPage: React.FC = () => {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
   const preselectGuildId = searchParams.get('guild');
 
+  // Admin-controlled kill switch; fails closed (coming soon) while loading
+  // or if the API is unreachable.
+  const billingStatus = useQuery({
+    queryKey: ['billing-status'],
+    queryFn: () => subscriptionsApi.getBillingStatus(),
+    staleTime: 60_000,
+    retry: false,
+  });
+  const billingEnabled = billingStatus.data?.billing_enabled ?? false;
+
   const selectTier = (tier: Exclude<PremiumTier, 'free'>) => {
     if (!token) {
       startLogin();
       return;
     }
-    if (!BILLING_ENABLED) {
+    if (!billingEnabled) {
       showToast('Pricing checkout is coming soon.', 'info');
       return;
     }
@@ -230,7 +238,9 @@ export const PricingPage: React.FC = () => {
           {TIERS.map((t) => (
             <TierCard
               key={t.tier}
-              def={t}
+              def={t.tier === 'free' || billingEnabled
+                ? t
+                : { ...t, ctaNote: 'Checkout opens after billing launch' }}
               interval={billingInterval}
               onIntervalChange={setBillingInterval}
               loggedIn={!!token}
@@ -252,7 +262,12 @@ export const PricingPage: React.FC = () => {
           <PremiumNote title="Best for growth" text="Plus is for servers hitting free limits on creator alerts, commands, roles, or embeds." />
           <PremiumNote title="Server insights" text="Every plan includes analytics views for checking community activity and member trends." />
           <PremiumNote title="AI tiers" text="Free and Plus include 3 basic chat messages per day. Pro and Max add tools, memory, personalities, and higher caps." />
-          <PremiumNote title="Billing status" text="Checkout is paused while billing configuration is finalized." />
+          <PremiumNote
+            title="Billing"
+            text={billingEnabled
+              ? "Subscriptions are billed per server through Stripe. Change plans, switch billing intervals, or cancel anytime from your server's billing page."
+              : 'Checkout is paused while billing configuration is finalized.'}
+          />
         </div>
       </div>
 
@@ -260,6 +275,7 @@ export const PricingPage: React.FC = () => {
         <ServerPickerModal
           tier={pickerTier}
           interval={billingInterval}
+          billingEnabled={billingEnabled}
           preselectGuildId={preselectGuildId}
           onClose={() => {
             setPickerTier(null);
@@ -527,9 +543,10 @@ const BillingToggle: React.FC<{
 const ServerPickerModal: React.FC<{
   tier: Exclude<PremiumTier, 'free'>;
   interval: BillingInterval;
+  billingEnabled: boolean;
   preselectGuildId: string | null;
   onClose: () => void;
-}> = ({ tier, interval, preselectGuildId, onClose }) => {
+}> = ({ tier, interval, billingEnabled, preselectGuildId, onClose }) => {
   const guildsQuery = useQuery({
     queryKey: ['guilds'],
     queryFn: () => guildApi.getGuilds(),
@@ -548,22 +565,42 @@ const ServerPickerModal: React.FC<{
     })),
   });
 
-  const upgrade = (guild: Guild, targetTier: Exclude<PremiumTier, 'free'>) => {
-    showToast('Pricing checkout is coming soon.', 'info');
+  const navigate = useNavigate();
 
-    // Stripe checkout is intentionally disabled until production prices,
-    // annual plans, and live billing configuration are ready.
-    void guild;
-    void targetTier;
-    void interval;
+  const checkout = useMutation({
+    mutationFn: (guild: Guild) =>
+      subscriptionsApi.createCheckout({
+        guild_id: guild.id,
+        tier,
+        interval,
+        success_url: `${window.location.origin}/pricing?success=true`,
+        cancel_url: `${window.location.origin}/pricing?canceled=true`,
+      }),
+    onSuccess: (data) => {
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+        return;
+      }
+      showToast(data.message || 'Subscription updated.', 'success');
+      onClose();
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Could not start checkout.', 'error');
+    },
+  });
+
+  const upgrade = (guild: Guild) => {
+    if (!billingEnabled) {
+      showToast('Pricing checkout is coming soon.', 'info');
+      return;
+    }
+    checkout.mutate(guild);
   };
 
+  // Guilds that already pay go to the billing page, which previews the
+  // prorated amount and confirms before changing anything.
   const manage = (guild: Guild) => {
-    showToast('Subscription management is coming soon.', 'info');
-
-    // Stripe customer portal is intentionally disabled until production billing
-    // configuration is ready.
-    void guild;
+    navigate(`/server/${guild.id}/billing`);
   };
 
   return (
@@ -612,8 +649,6 @@ const ServerPickerModal: React.FC<{
             const hasPremium = guildTier !== 'free';
             const highlight = g.id === preselectGuildId;
 
-            const showUpgrade = !hasPremium || guildTier !== tier;
-
             return (
               <div key={g.id} style={{
                 display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
@@ -638,16 +673,18 @@ const ServerPickerModal: React.FC<{
                     <TierBadge tier={guildTier} />
                   </div>
                 </div>
-                {showUpgrade ? (
+                {!hasPremium ? (
                   <button
-                    onClick={() => upgrade(g, tier)}
+                    onClick={() => upgrade(g)}
+                    disabled={checkout.isPending}
                     style={{
                       background: 'var(--primary-color)', color: '#000', border: 'none',
                       borderRadius: '8px', padding: '8px 14px', fontSize: '13px', fontWeight: 700,
-                      cursor: 'pointer',
+                      cursor: checkout.isPending ? 'default' : 'pointer',
+                      opacity: checkout.isPending ? 0.7 : 1,
                     }}
                   >
-                    Coming Soon
+                    {!billingEnabled ? 'Coming Soon' : checkout.isPending ? 'Opening…' : `Upgrade to ${TIER_LABELS[tier]}`}
                   </button>
                 ) : (
                   <button
@@ -659,7 +696,7 @@ const ServerPickerModal: React.FC<{
                       cursor: 'pointer',
                     }}
                   >
-                    Coming Soon
+                    Manage Billing
                   </button>
                 )}
               </div>
