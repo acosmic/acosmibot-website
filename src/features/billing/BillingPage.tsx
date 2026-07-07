@@ -22,9 +22,9 @@ const TIER_PRICES: Record<PremiumTier, string> = {
 };
 
 const TIER_DESCRIPTIONS: Record<PremiumTier, string> = {
-  free: 'Core community systems and starter limits.',
-  plus: 'Higher limits for active community automation.',
-  pro: 'Plus limits with Acosmibot AI features.',
+  free: 'Core community systems, starter limits, and basic AI chat.',
+  plus: 'Higher automation limits with basic AI chat.',
+  pro: 'Plus limits with AI tools, memory, and customization.',
   max: 'Higher AI limits for active AI servers.',
 };
 

@@ -52,7 +52,8 @@ const TIERS: TierCardDef[] = [
       { text: '1 custom command' },
       { text: '1 reaction role message' },
       { text: '5 custom embeds' },
-      { text: 'No AI features', disabled: true },
+      { text: 'Basic AI chat - 3/day' },
+      { text: 'No AI tools, memories, or custom personalities', disabled: true },
     ],
   },
   {
@@ -72,15 +73,16 @@ const TIERS: TierCardDef[] = [
       { text: '25 custom commands' },
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
+      { text: 'Basic AI chat - 3/day' },
       { text: 'Priority support' },
-      { text: 'No AI features', disabled: true },
+      { text: 'No AI tools, memories, or custom personalities', disabled: true },
     ],
   },
   {
     tier: 'pro',
     monthlyPrice: '$9.99',
     annualPrice: '$99',
-    description: 'Plus limits with AI tools and clear usage caps.',
+    description: 'Plus limits with AI tools, memory, and clear usage caps.',
     fit: 'For servers that want AI built in',
     popular: true,
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
@@ -249,7 +251,7 @@ export const PricingPage: React.FC = () => {
         }}>
           <PremiumNote title="Best for growth" text="Plus is for servers hitting free limits on creator alerts, commands, roles, or embeds." />
           <PremiumNote title="Server insights" text="Every plan includes analytics views for checking community activity and member trends." />
-          <PremiumNote title="AI tiers" text="Pro and Max carry OpenAI-backed features with explicit daily and monthly usage caps." />
+          <PremiumNote title="AI tiers" text="Free and Plus include 3 basic chat messages per day. Pro and Max add tools, memory, personalities, and higher caps." />
           <PremiumNote title="Billing status" text="Checkout is paused while billing configuration is finalized." />
         </div>
       </div>
