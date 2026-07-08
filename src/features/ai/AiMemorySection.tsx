@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Brain, Trash2, ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import { CollapsibleSection, LoadingSpinner, MemberSearchInput } from '@/components/ui';
 import { MemberSearchResult } from '@/api/bannedUsers';
@@ -6,17 +6,21 @@ import { AiMemoryUser } from '@/api/aiMemories';
 import { showToast } from '@/utils/toast';
 import {
   useAiMemoryUsers,
-  useAiMemoryFacts,
+  useAiMemoryDoc,
   useAiMemoryMutations,
 } from './useAiMemories';
 
 const FACT_MAX = 300;
+const USER_DOC_MAX = 2000;
 
 const errMsg = (e: unknown, fallback: string) =>
   e instanceof Error ? e.message : fallback;
 
 const displayName = (u: { global_name: string | null; discord_username: string | null; user_id: string }) =>
   u.global_name || u.discord_username || u.user_id;
+
+const formatUpdated = (value: string | null) =>
+  value ? new Date(value).toLocaleDateString() : 'not saved';
 
 const Avatar: React.FC<{ url: string | null; name: string }> = ({ url, name }) =>
   url ? (
@@ -40,17 +44,26 @@ interface UserRowProps {
 
 const UserRow: React.FC<UserRowProps> = ({ guildId, user }) => {
   const [open, setOpen] = useState(false);
-  const { data: facts, isLoading } = useAiMemoryFacts(guildId, open ? user.user_id : null);
-  const { deleteFact, clearUser } = useAiMemoryMutations(guildId);
+  const { data: doc, isLoading, refetch } = useAiMemoryDoc(guildId, open ? user.user_id : null);
+  const { saveDoc, clearUser } = useAiMemoryMutations(guildId);
+  const [draft, setDraft] = useState('');
 
   const name = displayName(user);
+  const dirty = draft !== (doc?.content ?? '');
 
-  const handleDeleteFact = (memoryId: number) => {
-    deleteFact.mutate(
-      { userId: user.user_id, memoryId },
+  useEffect(() => {
+    if (doc) setDraft(doc.content);
+  }, [doc]);
+
+  const handleSave = () => {
+    saveDoc.mutate(
+      { userId: user.user_id, content: draft, expectedVersion: doc?.version ?? 0 },
       {
-        onSuccess: () => showToast('Memory deleted', 'success'),
-        onError: (e) => showToast(errMsg(e, 'Failed to delete memory'), 'error'),
+        onSuccess: () => showToast(`Saved memories for ${name}`, 'success'),
+        onError: (e) => {
+          showToast(errMsg(e, 'Failed to save memories'), 'error');
+          refetch();
+        },
       },
     );
   };
@@ -60,7 +73,10 @@ const UserRow: React.FC<UserRowProps> = ({ guildId, user }) => {
     clearUser.mutate(
       { userId: user.user_id },
       {
-        onSuccess: () => showToast(`Cleared memories for ${name}`, 'success'),
+        onSuccess: () => {
+          setDraft('');
+          showToast(`Cleared memories for ${name}`, 'success');
+        },
         onError: (e) => showToast(errMsg(e, 'Failed to clear memories'), 'error'),
       },
     );
@@ -81,9 +97,10 @@ const UserRow: React.FC<UserRowProps> = ({ guildId, user }) => {
         <Avatar url={user.avatar_url} name={name} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="fw-bold" style={{ color: 'var(--text-primary)' }}>{name}</div>
-          {user.discord_username && user.global_name && (
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{user.discord_username}</div>
-          )}
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            {user.discord_username && user.global_name ? `${user.discord_username} · ` : ''}
+            Updated {formatUpdated(user.updated_at)}
+          </div>
         </div>
         <span
           className="small"
@@ -92,7 +109,7 @@ const UserRow: React.FC<UserRowProps> = ({ guildId, user }) => {
             borderRadius: 12, padding: '2px 10px', whiteSpace: 'nowrap',
           }}
         >
-          {user.fact_count} {user.fact_count === 1 ? 'memory' : 'memories'}
+          {user.doc_length} chars
         </span>
         <button
           className="btn"
@@ -109,45 +126,44 @@ const UserRow: React.FC<UserRowProps> = ({ guildId, user }) => {
       {open && (
         <div style={{ padding: '0 8px 14px 44px' }}>
           {isLoading ? (
-            <p className="text-muted small mb-0">Loading…</p>
-          ) : facts && facts.length > 0 ? (
-            facts.map(fact => (
-              <div
-                key={fact.id}
-                style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0',
-                  borderTop: '1px solid var(--border-light)',
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <span style={{ color: 'var(--text-primary)', fontSize: 14 }}>{fact.content}</span>
-                  {fact.source === 'manual' && (
-                    <span
-                      className="small"
-                      style={{
-                        marginLeft: 8, color: 'var(--primary-color)',
-                        border: '1px solid var(--border-cyan)', borderRadius: 8, padding: '0 6px',
-                        fontSize: '0.68rem',
-                      }}
-                    >
-                      manual
-                    </span>
-                  )}
-                </div>
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() => handleDeleteFact(fact.id)}
-                  disabled={deleteFact.isPending}
-                  title="Delete this memory"
-                  style={{ padding: '2px 6px' }}
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))
+            <p className="text-muted small mb-0">Loading...</p>
           ) : (
-            <p className="text-muted small mb-0">No memories stored.</p>
+            <>
+              <textarea
+                className="form-control"
+                value={draft}
+                maxLength={USER_DOC_MAX}
+                rows={10}
+                onChange={(e) => setDraft(e.target.value)}
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--text-primary)',
+                  fontFamily: 'inherit',
+                }}
+              />
+              <div className="d-flex align-items-center justify-content-between mt-2 gap-2 flex-wrap">
+                <span className="text-muted small">{draft.length} / {USER_DOC_MAX}</span>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn"
+                    type="button"
+                    disabled={!dirty || saveDoc.isPending}
+                    onClick={() => setDraft(doc?.content ?? '')}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn primary"
+                    type="button"
+                    disabled={!dirty || saveDoc.isPending}
+                    onClick={handleSave}
+                  >
+                    {saveDoc.isPending ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -162,7 +178,7 @@ interface AiMemorySectionProps {
 
 export const AiMemorySection: React.FC<AiMemorySectionProps> = ({ guildId, enabled }) => {
   const { data: users, isLoading } = useAiMemoryUsers(guildId);
-  const { addFact } = useAiMemoryMutations(guildId);
+  const { appendFact } = useAiMemoryMutations(guildId);
   const [target, setTarget] = useState<MemberSearchResult | null>(null);
   const [content, setContent] = useState('');
 
@@ -173,7 +189,7 @@ export const AiMemorySection: React.FC<AiMemorySectionProps> = ({ guildId, enabl
       showToast('Memory must be at least 3 characters', 'error');
       return;
     }
-    addFact.mutate(
+    appendFact.mutate(
       { userId: target.user_id, content: trimmed },
       {
         onSuccess: () => {
@@ -189,12 +205,10 @@ export const AiMemorySection: React.FC<AiMemorySectionProps> = ({ guildId, enabl
   return (
     <CollapsibleSection title="Member Memories" defaultOpen={false}>
       <p className="text-muted small mb-4">
-        Review what the AI has remembered about each member in this server, remove anything it
-        shouldn't keep, or add a fact for it to remember.
-        {!enabled && ' Memory is currently disabled — existing facts are kept but won\'t be used until you turn it back on.'}
+        Review and edit the markdown memory document for each member in this server.
+        {!enabled && ' Memory is currently disabled — existing docs are kept but won\'t be used until you turn it back on.'}
       </p>
 
-      {/* Add a memory */}
       <div
         className="mb-4"
         style={{ border: '1px solid var(--border-light)', borderRadius: 8, padding: 16 }}
@@ -223,7 +237,7 @@ export const AiMemorySection: React.FC<AiMemorySectionProps> = ({ guildId, enabl
             <MemberSearchInput
               guildId={guildId}
               onSelect={(m) => setTarget(m)}
-              placeholder="Search for a member…"
+              placeholder="Search for a member..."
             />
           </div>
         )}
@@ -245,15 +259,14 @@ export const AiMemorySection: React.FC<AiMemorySectionProps> = ({ guildId, enabl
               className="btn primary"
               type="button"
               onClick={handleAdd}
-              disabled={addFact.isPending || content.trim().length < 3}
+              disabled={appendFact.isPending || content.trim().length < 3}
             >
-              {addFact.isPending ? 'Adding…' : 'Add'}
+              {appendFact.isPending ? 'Adding...' : 'Add'}
             </button>
           </div>
         )}
       </div>
 
-      {/* User list */}
       {isLoading ? (
         <LoadingSpinner />
       ) : users && users.length > 0 ? (

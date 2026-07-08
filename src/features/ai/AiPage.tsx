@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Bot } from 'lucide-react';
 import { useAiConfig, AiConfig, AiPersonality } from './useAiConfig';
 import { AiMemorySection } from './AiMemorySection';
+import { AiServerMemorySection } from './AiServerMemorySection';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, TimezoneSelect } from '@/components/ui';
 import { detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import { useDirtyState } from '@/hooks/useDirtyState';
@@ -161,6 +162,7 @@ export const AiPage: React.FC = () => {
       />
 
       <AiMemorySection guildId={guildId!} enabled={form.memory_enabled} />
+      <AiServerMemorySection guildId={guildId!} enabled={form.memory_enabled} />
 
       <CollapsibleSection title="Timezone" defaultOpen={false}>
         <p className="text-muted small mb-3">
