@@ -10,6 +10,7 @@ import { useGuildRoles } from '@/hooks/useGuildRoles';
 import { showToast } from '@/utils/toast';
 import type { ActivityRule } from '@/api/activityMonitor';
 import { useActivityMonitorConfig } from './useActivityMonitorConfig';
+import { useModerationConfig } from '@/features/moderation/useModerationConfig';
 
 const ACTIVITY_TYPES: Array<{ value: string; label: string; icon: LucideIcon; description: string }> = [
   { value: 'playing',   label: 'Playing (Game)',    icon: Gamepad2,      description: 'Assign role when playing a game' },
@@ -26,12 +27,18 @@ const roleColor = (color?: number): string =>
 export const ActivityMonitorPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { config, isLoading, save, isSaving } = useActivityMonitorConfig(guildId!);
+  const { data: moderationConfig } = useModerationConfig(guildId!);
   const { data: roles = [] } = useGuildRoles(guildId!);
   const [editing, setEditing] = useState<ActivityRule | 'new' | null>(null);
   const [deleting, setDeleting] = useState<ActivityRule | null>(null);
 
   if (isLoading) return <LoadingSpinner />;
   if (!config) return <div>No data found.</div>;
+
+  const roleChangeLoggingEnabled = Boolean(
+    moderationConfig?.enabled &&
+    moderationConfig.events.on_audit_log_entry?.role_change?.enabled,
+  );
 
   const persist = async (next: typeof config) => {
     try {
@@ -157,6 +164,7 @@ export const ActivityMonitorPage: React.FC = () => {
           rule={editing === 'new' ? null : editing}
           roles={roles}
           busy={isSaving}
+          roleChangeLoggingEnabled={roleChangeLoggingEnabled}
           onCancel={() => setEditing(null)}
           onSave={saveRule}
         />
@@ -193,13 +201,17 @@ const RuleEditorModal: React.FC<{
   rule: ActivityRule | null;
   roles: Array<{ id: string; name: string; color: number }>;
   busy: boolean;
+  roleChangeLoggingEnabled: boolean;
   onCancel: () => void;
   onSave: (rule: ActivityRule) => void;
-}> = ({ rule, roles, busy, onCancel, onSave }) => {
+}> = ({ rule, roles, busy, roleChangeLoggingEnabled, onCancel, onSave }) => {
   const [name, setName] = useState(rule?.name ?? '');
   const [activityType, setActivityType] = useState(rule?.activity_type ?? '');
   const [triggerRoleId, setTriggerRoleId] = useState(rule?.trigger_role_id ?? '');
   const [assignedRoleId, setAssignedRoleId] = useState(rule?.assigned_role_id ?? '');
+  const [excludeFromModerationLog, setExcludeFromModerationLog] = useState(
+    rule?.exclude_from_moderation_log ?? true,
+  );
 
   const typeDef = ACTIVITY_TYPES.find((t) => t.value === activityType);
 
@@ -219,6 +231,7 @@ const RuleEditorModal: React.FC<{
       activity_type: activityType,
       trigger_role_id: triggerRoleId,
       assigned_role_id: assignedRoleId,
+      exclude_from_moderation_log: excludeFromModerationLog,
     });
   };
 
@@ -262,6 +275,33 @@ const RuleEditorModal: React.FC<{
           {roles.map((r) => <option key={r.id} value={r.id}>@{r.name}</option>)}
         </select>
         <p className="text-muted small mt-2 mb-0">Automatically assign this role when the activity is detected</p>
+      </div>
+
+      <div
+        className="mb-3"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+          background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', borderRadius: 10,
+          padding: '12px 14px',
+        }}
+      >
+        <div>
+          <label className="form-label mb-1 d-block">Exclude from moderation log?</label>
+          <p className="text-muted small mb-0">
+            {roleChangeLoggingEnabled
+              ? 'Role change moderation logs are enabled. Leave this on to hide activity role changes there.'
+              : 'Role change moderation logs are not enabled right now, so this only applies if they are enabled later.'}
+          </p>
+        </div>
+        <div className="form-check form-switch mb-0" style={{ flexShrink: 0 }}>
+          <input
+            className="form-check-input"
+            type="checkbox"
+            checked={excludeFromModerationLog}
+            onChange={(e) => setExcludeFromModerationLog(e.target.checked)}
+            style={{ width: '3em', height: '1.5em', cursor: 'pointer' }}
+          />
+        </div>
       </div>
 
       <div style={{

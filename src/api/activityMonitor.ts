@@ -7,6 +7,7 @@ export interface ActivityRule {
   activity_type: string;
   trigger_role_id: string;
   assigned_role_id: string;
+  exclude_from_moderation_log?: boolean;
 }
 
 export interface ActivityMonitorConfig {
