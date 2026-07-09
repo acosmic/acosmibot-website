@@ -100,7 +100,7 @@ const TIERS: TierCardDef[] = [
   {
     tier: 'max',
     monthlyPrice: '$19.99',
-    annualPrice: '$229',
+    annualPrice: '$199',
     description: 'Higher AI usage for servers with heavier assistant workflows.',
     fit: 'For AI-heavy communities',
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Sparkles size={18} /><Bot size={18} /></span>,
