@@ -107,7 +107,7 @@ const TIERS: TierCardDef[] = [
     ctaLabel: 'Select Server',
     ctaNote: 'Billed per server',
     features: [
-      { text: 'Everything in Plus, plus:' },
+      { text: 'Everything in Plus, and:' },
       { text: 'AI chat - 300/day and 6,000/month' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
