@@ -1,5 +1,14 @@
 import { api } from './client';
 
+export type AdminAiTier = 'free' | 'plus' | 'pro' | 'max';
+
+export type AdminAiTierLimits = Record<AdminAiTier, {
+  daily_limit: number;
+  monthly_limit: number;
+  image_monthly_limit: number;
+  image_analysis_monthly_limit: number;
+}>;
+
 export interface AdminAiSettings {
   enabled: boolean;
   model: string;
@@ -7,8 +16,7 @@ export interface AdminAiSettings {
   /** Bot-wide fallback timezone (IANA) for the AI clock. */
   timezone: string;
   web_search_provider: string;
-  daily_limit: number;
-  monthly_limit: number;
+  tier_limits: AdminAiTierLimits;
   available_models: string[];
   available_web_search_providers: string[];
 }

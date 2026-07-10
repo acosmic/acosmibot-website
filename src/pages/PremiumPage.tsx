@@ -50,7 +50,7 @@ const TIERS: TierCardDef[] = [
       { text: '1 custom command' },
       { text: '1 reaction role message' },
       { text: '5 custom embeds' },
-      { text: 'Basic AI chat - 3/day' },
+      { text: 'Basic AI chat - 3/day and 90/month' },
       { text: 'No AI tools, memories, or custom personalities', disabled: true },
     ],
   },
@@ -71,7 +71,7 @@ const TIERS: TierCardDef[] = [
       { text: '25 custom commands' },
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
-      { text: 'Basic AI chat - 3/day' },
+      { text: 'Basic AI chat - 3/day and 90/month' },
       { text: 'Priority support' },
       { text: 'No AI tools, memories, or custom personalities', disabled: true },
     ],
@@ -261,7 +261,7 @@ export const PricingPage: React.FC = () => {
         }}>
           <PremiumNote title="Best for growth" text="Plus is for servers hitting free limits on creator alerts, commands, roles, or embeds." />
           <PremiumNote title="Server insights" text="Every plan includes analytics views for checking community activity and member trends." />
-          <PremiumNote title="AI tiers" text="Free and Plus include 3 basic chat messages per day. Pro and Max add tools, memory, personalities, and higher caps." />
+          <PremiumNote title="AI tiers" text="Free and Plus include 3 basic chat messages per day (90/month). Pro and Max add tools, memory, personalities, and higher caps." />
           <PremiumNote
             title="Billing"
             text={billingEnabled

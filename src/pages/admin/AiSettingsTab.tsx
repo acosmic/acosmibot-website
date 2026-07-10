@@ -1,9 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminApi, AdminAiSettings } from '@/api/admin';
+import { adminApi, AdminAiSettings, AdminAiTier, AdminAiTierLimits } from '@/api/admin';
 import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'daily_limit' | 'monthly_limit'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits'>;
+
+const PLAN_LIMITS: Array<{ tier: AdminAiTier; label: string; description: string }> = [
+  { tier: 'free', label: 'Free', description: 'Basic AI chat' },
+  { tier: 'plus', label: 'Plus', description: 'Basic AI chat' },
+  { tier: 'pro', label: 'Pro', description: 'AI tools, memory, and personalities' },
+  { tier: 'max', label: 'Max', description: 'Higher-volume AI workflows' },
+];
+
+const DAILY_LIMIT_OPTIONS = [1, 3, 5, 10, 25, 50, 100, 200, 300, 500, 1000];
+const MONTHLY_LIMIT_OPTIONS = [30, 90, 100, 250, 500, 1000, 2000, 3000, 6000, 10000, 20000];
+const IMAGE_LIMIT_OPTIONS = [0, 5, 10, 25, 50, 75, 100, 200, 300, 500, 1000];
+
+const limitOptions = (currentValue: number, options: number[]) =>
+  options.includes(currentValue) ? options : [currentValue, ...options].sort((a, b) => a - b);
 
 export const AiSettingsTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -17,15 +31,14 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, model, polymorph_model, timezone, web_search_provider, daily_limit, monthly_limit } = query.data.data;
+      const { enabled, model, polymorph_model, timezone, web_search_provider, tier_limits } = query.data.data;
       setForm({
         enabled,
         model,
         polymorph_model,
         timezone: timezone || 'UTC',
         web_search_provider: web_search_provider || 'tavily',
-        daily_limit,
-        monthly_limit,
+        tier_limits,
       });
     }
   }, [query.data]);
@@ -48,6 +61,15 @@ export const AiSettingsTab: React.FC = () => {
 
   const availableModels = query.data?.data.available_models ?? [];
   const availableWebSearchProviders = query.data?.data.available_web_search_providers ?? ['tavily', 'exa'];
+  const setTierLimit = (tier: AdminAiTier, field: keyof AdminAiTierLimits[AdminAiTier], value: number) => {
+    setForm({
+      ...form,
+      tier_limits: {
+        ...form.tier_limits,
+        [tier]: { ...form.tier_limits[tier], [field]: value },
+      },
+    });
+  };
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -147,29 +169,89 @@ export const AiSettingsTab: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <label className="form-label mb-2 d-block">Daily limit (per server)</label>
-          <input
-            type="number"
-            min={1}
-            className="form-control"
-            value={form.daily_limit}
-            onChange={(e) => setForm({ ...form, daily_limit: parseInt(e.target.value, 10) || 0 })}
-            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', maxWidth: 200 }}
-          />
-          <p className="text-muted small mt-2 mb-0">Each guild may send this many AI chats per day before being rate-limited.</p>
-        </div>
-
-        <div className="mb-4">
-          <label className="form-label mb-2 d-block">Monthly limit (per server)</label>
-          <input
-            type="number"
-            min={1}
-            className="form-control"
-            value={form.monthly_limit}
-            onChange={(e) => setForm({ ...form, monthly_limit: parseInt(e.target.value, 10) || 0 })}
-            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', maxWidth: 200 }}
-          />
-          <p className="text-muted small mt-2 mb-0">Each guild's monthly AI chat ceiling.</p>
+          <label className="form-label mb-2 d-block">AI chat limits by plan</label>
+          <p className="text-muted small mt-0 mb-3">
+            Limits apply per server. Defaults match the limits shown on the pricing page.
+          </p>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {PLAN_LIMITS.map(({ tier, label, description }) => {
+              const limits = form.tier_limits[tier];
+              return (
+                <div
+                  key={tier}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(110px, 1fr) minmax(0, 2fr)',
+                    gap: 12,
+                    alignItems: 'end',
+                    padding: '12px',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 8,
+                    background: 'var(--bg-secondary)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{label}</div>
+                    <div className="text-muted small">{description}</div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(140px, 1fr))', gap: 12 }}>
+                    <label className="small">
+                      Chat daily
+                      <select
+                        className="form-control mt-1"
+                        value={limits.daily_limit}
+                        onChange={(e) => setTierLimit(tier, 'daily_limit', Number(e.target.value))}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+                      >
+                        {limitOptions(limits.daily_limit, DAILY_LIMIT_OPTIONS).map((value) => (
+                          <option key={value} value={value}>{value.toLocaleString()} / day</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="small">
+                      Chat monthly
+                      <select
+                        className="form-control mt-1"
+                        value={limits.monthly_limit}
+                        onChange={(e) => setTierLimit(tier, 'monthly_limit', Number(e.target.value))}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+                      >
+                        {limitOptions(limits.monthly_limit, MONTHLY_LIMIT_OPTIONS).map((value) => (
+                          <option key={value} value={value}>{value.toLocaleString()} / month</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="small">
+                      Image generation monthly
+                      <select
+                        className="form-control mt-1"
+                        value={limits.image_monthly_limit}
+                        onChange={(e) => setTierLimit(tier, 'image_monthly_limit', Number(e.target.value))}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+                      >
+                        {limitOptions(limits.image_monthly_limit, IMAGE_LIMIT_OPTIONS).map((value) => (
+                          <option key={value} value={value}>{value === 0 ? 'Not included' : `${value.toLocaleString()} / month`}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="small">
+                      Image analysis monthly
+                      <select
+                        className="form-control mt-1"
+                        value={limits.image_analysis_monthly_limit}
+                        onChange={(e) => setTierLimit(tier, 'image_analysis_monthly_limit', Number(e.target.value))}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+                      >
+                        {limitOptions(limits.image_analysis_monthly_limit, IMAGE_LIMIT_OPTIONS).map((value) => (
+                          <option key={value} value={value}>{value === 0 ? 'Not included' : `${value.toLocaleString()} / month`}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="d-flex align-items-center gap-3">
