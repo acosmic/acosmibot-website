@@ -37,9 +37,14 @@ export interface AdminEconomySettingsResponse {
   data: AdminEconomySettings;
 }
 
+export type StripeMode = 'test' | 'live';
+
 export interface AdminFeatureSettings {
   use_satori_rank_card: boolean;
   billing_enabled: boolean;
+  stripe_mode: StripeMode;
+  stripe_test_configured: boolean;
+  stripe_live_configured: boolean;
 }
 
 export interface AdminFeatureSettingsResponse {
@@ -168,7 +173,8 @@ export const adminApi = {
   getFeatureSettings: () =>
     api.fetch<AdminFeatureSettingsResponse>('/api/admin/feature-settings'),
 
-  updateFeatureSettings: (payload: Partial<AdminFeatureSettings>) =>
+  updateFeatureSettings: (payload: Partial<Pick<AdminFeatureSettings,
+    'use_satori_rank_card' | 'billing_enabled' | 'stripe_mode'>>) =>
     api.fetch<{ success: boolean; updated_count: number }>(
       '/api/admin/feature-settings',
       {
