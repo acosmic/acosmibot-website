@@ -15,6 +15,7 @@ export interface LevelingConfig {
   level_up_message_with_streak: string;
   daily_announcements_enabled: boolean;
   daily_announcement_channel_id: string | null;
+  daily_announcement_ping_enabled: boolean;
   daily_announcement_message: string;
   daily_announcement_message_with_streak: string;
 }
@@ -49,6 +50,7 @@ const DEFAULT_LEVELING: LevelingConfig = {
   level_up_message_with_streak: '{mention} reached level {level}! +{credits} Credits! ({base_credits} + {streak_bonus} from {streak}x streak!)',
   daily_announcements_enabled: true,
   daily_announcement_channel_id: null,
+  daily_announcement_ping_enabled: false,
   daily_announcement_message: '{username} claimed their daily reward!',
   daily_announcement_message_with_streak: '{mention} claimed their daily reward! +{credits} Credits! ({base_credits} + {streak_bonus} from {streak}x streak!)',
 };

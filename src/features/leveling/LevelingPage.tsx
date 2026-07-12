@@ -243,6 +243,22 @@ export const LevelingPage: React.FC = () => {
           placeholder="Select a channel..."
         />
 
+        <div className="mb-3" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Ping member above embed</label>
+            <p className="text-muted small mb-0">Send a real notification above the reward embed. A {'{mention}'} in a template only appears in the embed description and does not notify the member.</p>
+          </div>
+          <div className="form-check form-switch mb-0 ms-3">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              checked={levelForm.daily_announcement_ping_enabled}
+              onChange={(e) => setLevelForm({ daily_announcement_ping_enabled: e.target.checked })}
+              style={{ width: '3em', height: '1.5em', cursor: 'pointer' }}
+            />
+          </div>
+        </div>
+
         <div className="mb-3">
           <label className="form-label mb-2 d-block">Daily Reward Message</label>
           <textarea
