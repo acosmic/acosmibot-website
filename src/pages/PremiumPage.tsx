@@ -114,7 +114,7 @@ const TIERS: TierCardDef[] = [
       { text: 'AI web search' },
       { text: 'Proactive ambient AI replies' },
       { text: '100 medium images/month' },
-      { text: '300 vision analyses/month' },
+      { text: '200 vision analyses/month' },
     ],
   },
 ];

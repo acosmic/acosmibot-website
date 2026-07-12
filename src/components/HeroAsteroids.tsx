@@ -49,6 +49,10 @@ export const HeroAsteroids: React.FC = () => {
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [best, setBest] = useState(0);
+  // The hero is 100vh but starts below the nav, so its bottom sits one nav-height
+  // under the viewport. Measure that offset and lift the bottom-anchored HUD by it.
+  const [navOffset, setNavOffset] = useState(72);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -310,9 +314,17 @@ export const HeroAsteroids: React.FC = () => {
       W = parent.clientWidth; H = parent.clientHeight;
       canvas.width = W * DPR; canvas.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      // hero.offsetTop == nav height (nav is the in-flow block above the hero)
+      setNavOffset(parent.offsetTop || 72);
       if (modeV === 'ambient') initGame();
       sync();
     };
+
+    // hide the Play affordance where there's no keyboard (matches nav breakpoint)
+    const mq = window.matchMedia('(max-width: 820px)');
+    const onMq = () => setIsMobile(mq.matches);
+    onMq();
+    mq.addEventListener('change', onMq);
 
     // ── input (only intercepts keys while playing) ───────────
     const onKey = (e: KeyboardEvent, down: boolean) => {
@@ -351,6 +363,7 @@ export const HeroAsteroids: React.FC = () => {
       io.disconnect();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      mq.removeEventListener('change', onMq);
       apiRef.current = null;
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -386,20 +399,20 @@ export const HeroAsteroids: React.FC = () => {
           </div>
         )}
 
-        {/* Ambient → invite to play */}
-        {mode === 'ambient' && (
-          <button style={{ ...pillBtn, position: 'absolute', right: 20, bottom: 24 }} onClick={() => apiRef.current?.start()}>
-            ▶ Play Asteroids
+        {/* Ambient → invite to play (hidden on mobile; no keyboard there) */}
+        {mode === 'ambient' && !isMobile && (
+          <button style={{ ...pillBtn, position: 'absolute', right: 20, bottom: navOffset + 24 }} onClick={() => apiRef.current?.start()}>
+            ▶ Play
           </button>
         )}
 
         {/* Playing → controls hint + exit */}
         {mode === 'playing' && (
           <>
-            <div style={{ ...hintText, position: 'absolute', left: 0, right: 0, bottom: 22 }}>
+            <div style={{ ...hintText, position: 'absolute', left: 0, right: 0, bottom: navOffset + 22 }}>
               ← → turn · ↑ thrust · Space fire · Esc exit
             </div>
-            <button style={{ ...ghostBtn, position: 'absolute', right: 20, bottom: 20 }} onClick={() => apiRef.current?.stop()}>
+            <button style={{ ...ghostBtn, position: 'absolute', right: 20, bottom: navOffset + 20 }} onClick={() => apiRef.current?.stop()}>
               Esc · Exit
             </button>
           </>
