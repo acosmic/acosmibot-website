@@ -253,7 +253,7 @@ export const HomePage: React.FC = () => {
 
             <ul className="nav-links">
               <li><a href="#features">Features</a></li>
-              <li><Link to="/pricing" className="premium-nav-link">Pricing</Link></li>
+              <li><Link to="/pricing">Pricing</Link></li>
               <li><Link to="/docs/introduction">Documentation</Link></li>
               <li><Link to="/leaderboard">Leaderboards</Link></li>
               {isAuthenticated && (

@@ -72,8 +72,7 @@ body.home-body {
     background: var(--bg-overlay);
 }
 
-.home-page .nav-links a.active,
-.home-page .nav-links a.premium-nav-link {
+.home-page .nav-links a.active {
     background: var(--bg-overlay-hover);
     color: var(--primary-color);
 }
