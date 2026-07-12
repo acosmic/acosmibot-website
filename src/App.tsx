@@ -23,6 +23,7 @@ import { ReactionRolesListPage } from './features/reaction-roles/ReactionRolesLi
 import { ReactionRoleBuilderPage } from './features/reaction-roles/ReactionRoleBuilderPage';
 import { Platform } from './api/streaming';
 import { HomePage } from './pages/HomePage';
+import { ZTestPage } from './pages/ZTestPage';
 import { PricingPage } from './pages/PremiumPage';
 import { GuildSelectPage } from './pages/GuildSelectPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -199,6 +200,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/z-test" element={<ZTestPage />} />
       <Route path="/dashboard" element={<AuthCallback />} />
       <Route path="/servers" element={<GuildSelectPage />} />
       <Route path="/u/:identifier" element={<ProfilePage />} />
