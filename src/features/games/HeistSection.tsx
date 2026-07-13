@@ -147,7 +147,7 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
       <div className="card p-4 mb-4">
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Pacing</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-          <Field label="Cooldown (hours)" hint="Per-user wait between heists.">
+          <Field label="Cooldown (hours)" hint="Server-wide wait between heists.">
             <input className="form-control" type="number" min={0} step={0.5}
               value={value.cooldown_hours} onChange={(e) => num('cooldown_hours', e.target.value)} />
           </Field>
