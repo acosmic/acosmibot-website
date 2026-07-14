@@ -10,6 +10,7 @@ export interface LevelingConfig {
   reaction_xp_enabled: boolean;
   command_xp_enabled: boolean;
   level_up_announcements: boolean;
+  level_up_announcement_ping_enabled: boolean;
   announcement_channel_id: string | null;
   level_up_message: string;
   level_up_message_with_streak: string;
@@ -45,6 +46,7 @@ const DEFAULT_LEVELING: LevelingConfig = {
   reaction_xp_enabled: true,
   command_xp_enabled: true,
   level_up_announcements: true,
+  level_up_announcement_ping_enabled: false,
   announcement_channel_id: null,
   level_up_message: '{username}, you have reached level {level}!',
   level_up_message_with_streak: '{mention} reached level {level}! +{credits} Credits! ({base_credits} + {streak_bonus} from {streak}x streak!)',
