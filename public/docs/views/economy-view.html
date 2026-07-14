@@ -21,8 +21,8 @@
         <li>Credit wallet per server — earn by playing games and receiving transfers</li>
         <li>Global bank for safe cross-server storage with deposit and withdrawal history</li>
         <li>Give credits to other members with <code>/give</code></li>
-        <li>Server guild bank vault viewable with <code>/guildbank</code> — and robbable with <code>/heist</code></li>
-        <li>Donate to the vault with <code>/donate</code> to fund events and bribe your heist Heat down</li>
+        <li>Server guild bank vault viewable with <code>/guildbank</code> — including current heist availability — and robbable with <code>/heist</code></li>
+        <li>Donate to the vault with <code>/donate</code> to fund events and bribe your heist Heat down; the daily Heat-relief cap resets at midnight UTC</li>
         <li>Integration with all gambling games (slots, mines, blackjack, coinflip, deathroll)</li>
         <li>Leaderboards for Currency, XP, and Level via <code>/leaderboard</code></li>
       </ul>
@@ -134,7 +134,7 @@
       <div class="command-card">
         <div class="command-signature">/guildbank</div>
         <div class="command-description">
-          Check the current credit balance of this server's shared guild vault. The guild vault funds server-wide events like the lottery.
+          Check the current credit balance of this server's shared guild vault. The guild vault funds server-wide events like the lottery, and this command shows whether a heist is available, active, or cooling down with a live timer.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -145,7 +145,7 @@
       <div class="command-card">
         <div class="command-signature">/heist</div>
         <div class="command-description">
-          Rally a crew via a join button, then attempt to rob the server vault. Bigger crews raise the success odds and the total take, but a failed job fines the crew back into the vault. Heists have a per-server cooldown and require a minimum vault balance. Only the guild vault is at stake — personal wallets and the global bank are never touched.
+          Rally a crew via a join button, then attempt to rob the server vault. Bigger crews raise the success odds and the total take, but a failed job fines the crew back into the vault. Only one heist can run at a time, and a completed heist starts a per-server cooldown for everyone. Heists also require a minimum vault balance. Only the guild vault is at stake — personal wallets and the global bank are never touched.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -167,7 +167,7 @@
       <div class="command-card">
         <div class="command-signature">/donate &lt;amount&gt;</div>
         <div class="command-description">
-          Donate credits from your wallet to the server vault. Donations fund server events and heist pots, and bribe your Heat down (up to a daily limit).
+          Donate credits from your wallet to the server vault. Donations fund server events and heist pots, and bribe your Heat down (up to a personal daily limit that resets at midnight UTC). Donations beyond that cap still go to the vault.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
