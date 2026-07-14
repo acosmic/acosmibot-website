@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { FeatureToggle, LoadingSpinner, SaveBar } from '@/components/ui';
+import { FeatureToggle, LoadingSpinner, NumberInput, SaveBar } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { PolymorphConfig } from '@/types/features';
 import { usePolymorphConfig } from './usePolymorphConfig';
@@ -13,10 +13,8 @@ export const PolymorphPage: React.FC = () => {
   if (isLoading) return <LoadingSpinner />;
   if (!form) return <div>No data found.</div>;
 
-  const updateNumber = (field: 'cost' | 'duration_minutes', value: string) => {
-    const parsed = parseInt(value, 10);
-    setForm({ [field]: Number.isFinite(parsed) ? parsed : 0 });
-  };
+  const updateNumber = (field: 'cost' | 'duration_minutes', value: number) =>
+    setForm({ [field]: Math.trunc(value) });
 
   return (
     <div className="feature-page">
@@ -36,23 +34,21 @@ export const PolymorphPage: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <div>
             <label className="form-label mb-2 d-block">Credit Cost</label>
-            <input
+            <NumberInput
               className="form-control"
-              type="number"
               min={0}
               value={form.cost}
-              onChange={(e) => updateNumber('cost', e.target.value)}
+              onValueChange={(value) => updateNumber('cost', value)}
             />
             <p className="text-muted small mt-2 mb-0">Credits charged for each successful polymorph.</p>
           </div>
           <div>
             <label className="form-label mb-2 d-block">Duration Minutes</label>
-            <input
+            <NumberInput
               className="form-control"
-              type="number"
               min={1}
               value={form.duration_minutes}
-              onChange={(e) => updateNumber('duration_minutes', e.target.value)}
+              onValueChange={(value) => updateNumber('duration_minutes', value)}
             />
             <p className="text-muted small mt-2 mb-0">Nickname is restored after this many minutes.</p>
           </div>

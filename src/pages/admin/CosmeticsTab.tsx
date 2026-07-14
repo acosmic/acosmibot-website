@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, type AdminCosmetic } from '@/api/admin';
+import { NumberInput } from '@/components/ui';
 
 /**
  * Admin: rank-card cosmetics catalog. Lets an admin retune the price and
@@ -98,11 +99,10 @@ export const CosmeticsTab: React.FC = () => {
 
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                     Price
-                    <input
-                      type="number"
+                    <NumberInput
                       min={0}
                       value={d.price}
-                      onChange={(e) => setDraft(c.id, { price: Number(e.target.value) })}
+                      onValueChange={(value) => setDraft(c.id, { price: value })}
                       className="form-control"
                       style={{ width: 120, background: 'var(--bg-primary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
                     />

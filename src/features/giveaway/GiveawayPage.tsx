@@ -5,7 +5,7 @@ import { InlineIcon } from '@/components/ui/InlineIcon';
 import { useGiveawayConfig } from './useGiveawayConfig';
 import { RecentGiveaways } from './RecentGiveaways';
 import { useQuery } from '@tanstack/react-query';
-import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
+import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection, NumberInput } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { giveawayApi } from '@/api/giveaway';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
@@ -130,12 +130,11 @@ export const GiveawayPage: React.FC = () => {
           </div>
           <div className="col-md-4 mb-3">
             <label className="form-label mb-2 d-block">Recent Winner Lockout</label>
-            <input
-              type="number"
+            <NumberInput
               className="form-control"
               value={form.recentWinnerLockoutCount}
               min={0}
-              onChange={(e) => setForm({ recentWinnerLockoutCount: parseInt(e.target.value) || 0 })}
+              onValueChange={(value) => setForm({ recentWinnerLockoutCount: Math.trunc(value) })}
             />
             <div className="small text-muted mt-1">How many past giveaways to lock out winners from</div>
           </div>
@@ -160,22 +159,20 @@ export const GiveawayPage: React.FC = () => {
         <div className="row mb-4">
           <div className="col-md-6 mb-3">
             <label className="form-label mb-2 d-block">Min Account Age (days)</label>
-            <input
-              type="number"
+            <NumberInput
               className="form-control"
               value={form.minAccountAgeDays}
               min={0}
-              onChange={(e) => setForm({ minAccountAgeDays: parseInt(e.target.value) || 0 })}
+              onValueChange={(value) => setForm({ minAccountAgeDays: Math.trunc(value) })}
             />
           </div>
           <div className="col-md-6 mb-3">
             <label className="form-label mb-2 d-block">Min Server Join Age (days)</label>
-            <input
-              type="number"
+            <NumberInput
               className="form-control"
               value={form.minServerJoinDays}
               min={0}
-              onChange={(e) => setForm({ minServerJoinDays: parseInt(e.target.value) || 0 })}
+              onValueChange={(value) => setForm({ minServerJoinDays: Math.trunc(value) })}
             />
           </div>
         </div>
@@ -221,13 +218,12 @@ export const GiveawayPage: React.FC = () => {
         {form.boosterMultiplierEnabled && (
           <div className="col-md-4">
             <label className="form-label mb-2 d-block">Booster Multiplier (2–10)</label>
-            <input
-              type="number"
+            <NumberInput
               className="form-control"
               value={form.boosterMultiplier}
               min={2}
               max={10}
-              onChange={(e) => setForm({ boosterMultiplier: parseInt(e.target.value) || 2 })}
+              onValueChange={(value) => setForm({ boosterMultiplier: Math.trunc(value) })}
             />
             <div className="small text-muted mt-1">Server boosters get this many entries.</div>
           </div>
@@ -275,13 +271,12 @@ export const GiveawayPage: React.FC = () => {
           </div>
           <div className="col-md-3">
             <label className="form-label mb-1 d-block small">Multiplier</label>
-            <input
-              type="number"
+            <NumberInput
               className="form-control"
               value={roleMulValue}
               min={2}
               max={10}
-              onChange={(e) => setRoleMulValue(parseInt(e.target.value) || 2)}
+              onValueChange={(value) => setRoleMulValue(Math.trunc(value))}
             />
           </div>
           <div className="col-md-3">

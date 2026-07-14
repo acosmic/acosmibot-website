@@ -7,6 +7,7 @@ import {
   type AdminCosmeticOption,
   type AdminItemOption,
 } from '@/api/admin';
+import { NumberInput } from '@/components/ui';
 
 /**
  * Admin: achievements management. Create brand-new achievements and configure
@@ -137,14 +138,14 @@ const AchievementFields: React.FC<{
             </select>
           </Field>
           <Field label="Threshold">
-            <input type="number" min={0} className="form-control" style={inputStyle} value={draft.threshold ?? 0}
-              onChange={(e) => onChange({ ...draft, threshold: Number(e.target.value) })} />
+            <NumberInput min={0} className="form-control" style={inputStyle} value={draft.threshold ?? 0}
+              onValueChange={(value) => onChange({ ...draft, threshold: value })} />
           </Field>
         </>
       )}
       <Field label="Reward credits">
-        <input type="number" min={0} className="form-control" style={inputStyle} value={draft.reward_credits ?? 0}
-          onChange={(e) => onChange({ ...draft, reward_credits: Number(e.target.value) })} />
+        <NumberInput min={0} className="form-control" style={inputStyle} value={draft.reward_credits ?? 0}
+          onValueChange={(value) => onChange({ ...draft, reward_credits: value })} />
       </Field>
       <Field label="Reward cosmetic">
         <select className="form-select" style={inputStyle}
@@ -163,8 +164,8 @@ const AchievementFields: React.FC<{
         </select>
       </Field>
       <Field label="Sort order">
-        <input type="number" className="form-control" style={inputStyle} value={draft.sort_order ?? 0}
-          onChange={(e) => onChange({ ...draft, sort_order: Number(e.target.value) })} />
+        <NumberInput className="form-control" style={inputStyle} value={draft.sort_order ?? 0}
+          onValueChange={(value) => onChange({ ...draft, sort_order: value })} />
       </Field>
       <Field label="Available until (optional)">
         <input className="form-control" style={inputStyle} placeholder="YYYY-MM-DD or blank"

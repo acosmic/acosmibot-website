@@ -1,5 +1,5 @@
 import React from 'react';
-import { FeatureToggle, LoadingSpinner } from '@/components/ui';
+import { FeatureToggle, LoadingSpinner, NumberInput } from '@/components/ui';
 import { HeistConfig } from '@/types/features';
 import { useHeistOverview, useHeistLeaderboard } from '../heist/useHeistStats';
 
@@ -122,14 +122,12 @@ interface HeistSectionProps {
 }
 
 export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onChange }) => {
-  const num = (field: keyof HeistConfig, raw: string, min = 0, max = Infinity) => {
-    const parsed = parseFloat(raw);
-    onChange({ [field]: Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : min } as Partial<HeistConfig>);
+  const num = (field: keyof HeistConfig, parsed: number, min = 0, max = Infinity) => {
+    onChange({ [field]: Math.min(max, Math.max(min, parsed)) } as Partial<HeistConfig>);
   };
   // success fields are stored 0..1 but shown as percentages
-  const pct = (field: keyof HeistConfig, raw: string) => {
-    const parsed = parseFloat(raw);
-    onChange({ [field]: Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) / 100 : 0 } as Partial<HeistConfig>);
+  const pct = (field: keyof HeistConfig, parsed: number) => {
+    onChange({ [field]: Math.max(0, Math.min(100, parsed)) / 100 } as Partial<HeistConfig>);
   };
   const asPct = (v: number) => Math.round(v * 100);
 
@@ -148,20 +146,20 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Pacing</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <Field label="Cooldown (hours)" hint="Server-wide wait between heists.">
-            <input className="form-control" type="number" min={0} step={0.5}
-              value={value.cooldown_hours} onChange={(e) => num('cooldown_hours', e.target.value)} />
+            <NumberInput className="form-control" min={0} step={0.5}
+              value={value.cooldown_hours} onValueChange={(next) => num('cooldown_hours', next)} />
           </Field>
           <Field label="Join Window (seconds)" hint="How long the crew lobby stays open.">
-            <input className="form-control" type="number" min={10}
-              value={value.join_window_seconds} onChange={(e) => num('join_window_seconds', e.target.value, 10)} />
+            <NumberInput className="form-control" min={10}
+              value={value.join_window_seconds} onValueChange={(next) => num('join_window_seconds', next, 10)} />
           </Field>
           <Field label="Max Crew" hint="Largest lobby allowed (recommended 5, hard cap 20).">
-            <input className="form-control" type="number" min={1} max={20}
-              value={value.max_crew} onChange={(e) => num('max_crew', e.target.value, 1)} />
+            <NumberInput className="form-control" min={1} max={20}
+              value={value.max_crew} onValueChange={(next) => num('max_crew', next, 1)} />
           </Field>
           <Field label="Minimum Vault" hint="Vault must hold at least this to start a heist.">
-            <input className="form-control" type="number" min={0}
-              value={value.min_vault} onChange={(e) => num('min_vault', e.target.value)} />
+            <NumberInput className="form-control" min={0}
+              value={value.min_vault} onValueChange={(next) => num('min_vault', next)} />
           </Field>
         </div>
       </div>
@@ -175,24 +173,24 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         />
         <div className="mt-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <Field label="Briefing Length (seconds)" hint="Job-reveal + ready-up window before the jobs start. Begins early once everyone's ready. 10–120s.">
-            <input className="form-control" type="number" min={10} max={120}
-              value={value.briefing_seconds} onChange={(e) => num('briefing_seconds', e.target.value, 10, 120)} />
+            <NumberInput className="form-control" min={10} max={120}
+              value={value.briefing_seconds} onValueChange={(next) => num('briefing_seconds', next, 10, 120)} />
           </Field>
           <Field label="Turn Length (seconds)" hint="Time each member gets for their job before it's a bust.">
-            <input className="form-control" type="number" min={5}
-              value={value.turn_seconds} onChange={(e) => num('turn_seconds', e.target.value, 5)} />
+            <NumberInput className="form-control" min={5}
+              value={value.turn_seconds} onValueChange={(next) => num('turn_seconds', next, 5)} />
           </Field>
           <Field label="Success per Job Passed (%)" hint="Added to the odds for each job the crew nails.">
-            <input className="form-control" type="number" min={0} max={100}
-              value={asPct(value.success_per_pass)} onChange={(e) => pct('success_per_pass', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100}
+              value={asPct(value.success_per_pass)} onValueChange={(next) => pct('success_per_pass', next)} />
           </Field>
           <Field label="Success per Job Failed (%)" hint="Removed from the odds for each botched or skipped job.">
-            <input className="form-control" type="number" min={0} max={100}
-              value={asPct(value.success_per_fail)} onChange={(e) => pct('success_per_fail', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100}
+              value={asPct(value.success_per_fail)} onValueChange={(next) => pct('success_per_fail', next)} />
           </Field>
           <Field label="Success Floor (%)" hint="Minimum success chance when minigames are on.">
-            <input className="form-control" type="number" min={0} max={100}
-              value={asPct(value.success_floor)} onChange={(e) => pct('success_floor', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100}
+              value={asPct(value.success_floor)} onValueChange={(next) => pct('success_floor', next)} />
           </Field>
         </div>
       </div>
@@ -201,16 +199,16 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Odds</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <Field label="Base Success (%)" hint="Solo success chance with one crew member.">
-            <input className="form-control" type="number" min={0} max={100}
-              value={asPct(value.base_success)} onChange={(e) => pct('base_success', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100}
+              value={asPct(value.base_success)} onValueChange={(next) => pct('base_success', next)} />
           </Field>
           <Field label="Per-Member Success (%)" hint="Added per extra crew member. Only used when minigames are OFF.">
-            <input className="form-control" type="number" min={0} max={100}
-              value={asPct(value.per_member_success)} onChange={(e) => pct('per_member_success', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100}
+              value={asPct(value.per_member_success)} onValueChange={(next) => pct('per_member_success', next)} />
           </Field>
           <Field label="Success Cap (%)" hint="Maximum possible success chance.">
-            <input className="form-control" type="number" min={0} max={100}
-              value={asPct(value.success_cap)} onChange={(e) => pct('success_cap', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100}
+              value={asPct(value.success_cap)} onValueChange={(next) => pct('success_cap', next)} />
           </Field>
         </div>
       </div>
@@ -219,20 +217,20 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Loot &amp; Penalties</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <Field label="Base Loot (% of vault)" hint="Solo take as a share of the vault.">
-            <input className="form-control" type="number" min={0} max={100} step={0.5}
-              value={value.base_loot_percent} onChange={(e) => num('base_loot_percent', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100} step={0.5}
+              value={value.base_loot_percent} onValueChange={(next) => num('base_loot_percent', next)} />
           </Field>
           <Field label="Pie Growth (k)" hint="How much the total loot grows per extra crew member.">
-            <input className="form-control" type="number" min={0} step={0.05}
-              value={value.pie_growth_k} onChange={(e) => num('pie_growth_k', e.target.value)} />
+            <NumberInput className="form-control" min={0} step={0.05}
+              value={value.pie_growth_k} onValueChange={(next) => num('pie_growth_k', next)} />
           </Field>
           <Field label="Max Loot (% of vault)" hint="Hard cap on a single heist's take.">
-            <input className="form-control" type="number" min={0} max={100} step={0.5}
-              value={value.max_loot_percent} onChange={(e) => num('max_loot_percent', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100} step={0.5}
+              value={value.max_loot_percent} onValueChange={(next) => num('max_loot_percent', next)} />
           </Field>
           <Field label="Fine (% of wallet)" hint="Charged to each member when caught; paid into the vault.">
-            <input className="form-control" type="number" min={0} max={100} step={0.5}
-              value={value.fine_percent} onChange={(e) => num('fine_percent', e.target.value)} />
+            <NumberInput className="form-control" min={0} max={100} step={0.5}
+              value={value.fine_percent} onValueChange={(next) => num('fine_percent', next)} />
           </Field>
         </div>
       </div>

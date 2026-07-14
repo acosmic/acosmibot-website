@@ -4,7 +4,7 @@ import { Bot } from 'lucide-react';
 import { useAiConfig, AiConfig, AiPersonality } from './useAiConfig';
 import { AiMemorySection } from './AiMemorySection';
 import { AiServerMemorySection } from './AiServerMemorySection';
-import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, TimezoneSelect } from '@/components/ui';
+import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, TimezoneSelect } from '@/components/ui';
 import { detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
@@ -204,15 +204,14 @@ export const AiPage: React.FC = () => {
             <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
               <label className="form-label mb-1 d-block">Chime-in chance</label>
               <div className="d-flex align-items-center gap-2">
-                <input
+                <NumberInput
                   className="form-control"
-                  type="number"
                   min={0}
                   max={AMBIENT_MAX_FREQ_PCT}
                   step={1}
                   value={Math.round((form.ambient_frequency ?? 0) * 100)}
-                  onChange={(e) => setForm({
-                    ambient_frequency: clamp(parseInt(e.target.value, 10), 0, AMBIENT_MAX_FREQ_PCT) / 100,
+                  onValueChange={(value) => setForm({
+                    ambient_frequency: clamp(Math.trunc(value), 0, AMBIENT_MAX_FREQ_PCT) / 100,
                   })}
                   style={{ maxWidth: '110px' }}
                 />
@@ -224,16 +223,15 @@ export const AiPage: React.FC = () => {
             <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
               <label className="form-label mb-1 d-block">Cooldown</label>
               <div className="d-flex align-items-center gap-2">
-                <input
+                <NumberInput
                   className="form-control"
-                  type="number"
                   min={AMBIENT_MIN_COOLDOWN_MIN}
                   max={AMBIENT_MAX_COOLDOWN_MIN}
                   step={1}
                   value={Math.round((form.ambient_cooldown_seconds ?? 600) / 60)}
-                  onChange={(e) => setForm({
+                  onValueChange={(value) => setForm({
                     ambient_cooldown_seconds: clamp(
-                      parseInt(e.target.value, 10),
+                      Math.trunc(value),
                       AMBIENT_MIN_COOLDOWN_MIN,
                       AMBIENT_MAX_COOLDOWN_MIN,
                     ) * 60,
@@ -247,15 +245,14 @@ export const AiPage: React.FC = () => {
 
             <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
               <label className="form-label mb-1 d-block">Daily limit</label>
-              <input
+              <NumberInput
                 className="form-control"
-                type="number"
                 min={0}
                 max={AMBIENT_MAX_DAILY}
                 step={1}
                 value={form.ambient_daily_limit ?? 50}
-                onChange={(e) => setForm({
-                  ambient_daily_limit: clamp(parseInt(e.target.value, 10), 0, AMBIENT_MAX_DAILY),
+                onValueChange={(value) => setForm({
+                  ambient_daily_limit: clamp(Math.trunc(value), 0, AMBIENT_MAX_DAILY),
                 })}
                 style={{ maxWidth: '110px' }}
               />

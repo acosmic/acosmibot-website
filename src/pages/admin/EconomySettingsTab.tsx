@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, AdminEconomySettings, InterestInterval } from '@/api/admin';
+import { NumberInput } from '@/components/ui';
 
 type FormState = Omit<AdminEconomySettings, 'interest_intervals'>;
+type NumericFormField = {
+  [K in keyof FormState]: FormState[K] extends number ? K : never;
+}[keyof FormState];
 
 const inputStyle: React.CSSProperties = {
   background: 'var(--bg-secondary)',
@@ -47,21 +51,18 @@ export const EconomySettingsTab: React.FC = () => {
 
   const numField = (
     label: string,
-    field: keyof FormState,
+    field: NumericFormField,
     helper: string,
     step = 1,
   ) => (
     <div className="mb-4">
       <label className="form-label mb-2 d-block">{label}</label>
-      <input
-        type="number"
+      <NumberInput
         min={0}
         step={step}
         className="form-control"
-        value={String(form[field])}
-        onChange={(e) =>
-          setForm({ ...form, [field]: e.target.value === '' ? 0 : Number(e.target.value) })
-        }
+        value={form[field]}
+        onValueChange={(value) => setForm({ ...form, [field]: value })}
         style={inputStyle}
       />
       <p className="text-muted small mt-2 mb-0">{helper}</p>

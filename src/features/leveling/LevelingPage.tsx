@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLevelingConfig, LevelingConfig, RolesConfig, XP_RATE_BOUNDS } from './useLevelingConfig';
-import { ChannelSelect, FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner } from '@/components/ui';
+import { ChannelSelect, FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
@@ -60,10 +60,8 @@ export const LevelingPage: React.FC = () => {
     setRoleForm({ role_mappings: mappings });
   };
 
-  const clampRate = (raw: string, bounds: { min: number; max: number }): number => {
-    const n = parseInt(raw, 10);
-    if (Number.isNaN(n)) return bounds.min;
-    return Math.max(bounds.min, Math.min(bounds.max, n));
+  const clampRate = (n: number, bounds: { min: number; max: number }): number => {
+    return Math.max(bounds.min, Math.min(bounds.max, Math.trunc(n)));
   };
 
   const sortedLevels = Object.keys(roleForm.role_mappings).sort((a, b) => parseInt(a) - parseInt(b));
@@ -91,15 +89,14 @@ export const LevelingPage: React.FC = () => {
 
         <div className="mb-3">
           <label className="form-label mb-2 d-block">XP per Message</label>
-          <input
-            type="number"
+          <NumberInput
             className="form-control"
             style={{ maxWidth: '160px' }}
             value={levelForm.exp_per_message}
             min={XP_RATE_BOUNDS.exp_per_message.min}
             max={XP_RATE_BOUNDS.exp_per_message.max}
-            onChange={(e) => setLevelForm({
-              exp_per_message: clampRate(e.target.value, XP_RATE_BOUNDS.exp_per_message),
+            onValueChange={(value) => setLevelForm({
+              exp_per_message: clampRate(value, XP_RATE_BOUNDS.exp_per_message),
             })}
           />
           <p className="text-muted small mt-1">
@@ -122,15 +119,14 @@ export const LevelingPage: React.FC = () => {
         {levelForm.reaction_xp_enabled && (
           <div className="mb-3">
             <label className="form-label mb-2 d-block">XP per Reaction</label>
-            <input
-              type="number"
+            <NumberInput
               className="form-control"
               style={{ maxWidth: '160px' }}
               value={levelForm.exp_per_reaction}
               min={XP_RATE_BOUNDS.exp_per_reaction.min}
               max={XP_RATE_BOUNDS.exp_per_reaction.max}
-              onChange={(e) => setLevelForm({
-                exp_per_reaction: clampRate(e.target.value, XP_RATE_BOUNDS.exp_per_reaction),
+              onValueChange={(value) => setLevelForm({
+                exp_per_reaction: clampRate(value, XP_RATE_BOUNDS.exp_per_reaction),
               })}
             />
             <p className="text-muted small mt-1">
@@ -154,15 +150,14 @@ export const LevelingPage: React.FC = () => {
         {levelForm.command_xp_enabled && (
           <div className="mb-3">
             <label className="form-label mb-2 d-block">XP per Command</label>
-            <input
-              type="number"
+            <NumberInput
               className="form-control"
               style={{ maxWidth: '160px' }}
               value={levelForm.exp_per_command}
               min={XP_RATE_BOUNDS.exp_per_command.min}
               max={XP_RATE_BOUNDS.exp_per_command.max}
-              onChange={(e) => setLevelForm({
-                exp_per_command: clampRate(e.target.value, XP_RATE_BOUNDS.exp_per_command),
+              onValueChange={(value) => setLevelForm({
+                exp_per_command: clampRate(value, XP_RATE_BOUNDS.exp_per_command),
               })}
             />
             <p className="text-muted small mt-1">
@@ -335,13 +330,12 @@ export const LevelingPage: React.FC = () => {
             const mapping = roleForm.role_mappings[level];
             return (
               <div key={level} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
-                <input
-                  type="number"
+                <NumberInput
                   className="form-control"
                   style={{ width: '100px', flexShrink: 0 }}
-                  value={level}
+                  value={Number(level)}
                   min={0}
-                  onChange={(e) => updateMappingLevel(level, e.target.value)}
+                  onValueChange={(value) => updateMappingLevel(level, String(value))}
                   placeholder="Level"
                 />
                 <select

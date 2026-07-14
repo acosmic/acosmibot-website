@@ -6,6 +6,7 @@ import {
   type AdminItemInput,
   type AdminItemEffect,
 } from '@/api/admin';
+import { NumberInput } from '@/components/ui';
 
 /**
  * Admin: items management. Create/edit catalog items, configure the effects
@@ -131,16 +132,17 @@ const EffectsEditor: React.FC<{
             {effectScopes.map((s) => <option key={s} value={s}>{s === 'global' ? 'every server' : 'this server'}</option>)}
           </select>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <input type="number" className="form-control form-control-sm" style={{ ...inputStyle, maxWidth: 80 }}
+            <NumberInput className="form-control form-control-sm" style={{ ...inputStyle, maxWidth: 80 }}
               value={Math.round((e.magnitude ?? 0) * 100)}
-              onChange={(ev) => update(i, { magnitude: Number(ev.target.value) / 100 })} />
+              onValueChange={(value) => update(i, { magnitude: value / 100 })} />
             <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>%</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <input type="number" className="form-control form-control-sm" style={{ ...inputStyle, maxWidth: 90 }}
+            <NumberInput className="form-control form-control-sm" style={{ ...inputStyle, maxWidth: 90 }}
               placeholder="permanent"
-              value={e.duration_seconds == null ? '' : e.duration_seconds / 3600}
-              onChange={(ev) => update(i, { duration_seconds: ev.target.value ? Number(ev.target.value) * 3600 : null })} />
+              value={e.duration_seconds == null ? null : e.duration_seconds / 3600}
+              onValueChange={(value) => update(i, { duration_seconds: value * 3600 })}
+              onEmpty={() => update(i, { duration_seconds: null })} />
             <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>hrs</span>
           </div>
           <button type="button" className="btn btn-sm" style={{ color: '#f87171', border: '1px solid #f87171', background: 'transparent' }}
@@ -191,17 +193,18 @@ const ItemFields: React.FC<{
       </select>
     </Field>
     <Field label="Price (credits, blank = not for sale)">
-      <input type="number" min={0} className="form-control" style={inputStyle}
-        value={draft.price_credits == null ? '' : draft.price_credits}
-        onChange={(e) => onChange({ ...draft, price_credits: e.target.value ? Number(e.target.value) : null })} />
+      <NumberInput min={0} className="form-control" style={inputStyle}
+        value={draft.price_credits}
+        onValueChange={(value) => onChange({ ...draft, price_credits: value })}
+        onEmpty={() => onChange({ ...draft, price_credits: null })} />
     </Field>
     <Field label="Max stack">
-      <input type="number" min={1} className="form-control" style={inputStyle} value={draft.max_stack ?? 99}
-        onChange={(e) => onChange({ ...draft, max_stack: Number(e.target.value) })} />
+      <NumberInput min={1} className="form-control" style={inputStyle} value={draft.max_stack ?? 99}
+        onValueChange={(value) => onChange({ ...draft, max_stack: value })} />
     </Field>
     <Field label="Sort order">
-      <input type="number" className="form-control" style={inputStyle} value={draft.sort_order ?? 0}
-        onChange={(e) => onChange({ ...draft, sort_order: Number(e.target.value) })} />
+      <NumberInput className="form-control" style={inputStyle} value={draft.sort_order ?? 0}
+        onValueChange={(value) => onChange({ ...draft, sort_order: value })} />
     </Field>
     <Field label="Available until (optional)">
       <input className="form-control" style={inputStyle} placeholder="YYYY-MM-DD or blank"
@@ -336,8 +339,8 @@ export const ItemsTab: React.FC = () => {
           </datalist>
         </Field>
         <Field label="Qty">
-          <input type="number" min={1} className="form-control form-control-sm" style={{ ...inputStyle, maxWidth: 80 }}
-            value={grantQty} onChange={(e) => setGrantQty(Number(e.target.value))} />
+          <NumberInput min={1} className="form-control form-control-sm" style={{ ...inputStyle, maxWidth: 80 }}
+            value={grantQty} onValueChange={setGrantQty} />
         </Field>
         <button type="button" className="btn btn-sm primary"
           disabled={!grantUser.trim() || !grantSlug.trim() || grantMutation.isPending}
