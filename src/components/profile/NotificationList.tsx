@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, Gift, Trophy } from 'lucide-react';
+import { Check, ChevronDown, Gift, History, Trophy, X } from 'lucide-react';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import { notificationsApi, type AppNotification } from '@/api/notifications';
 import './DailyReward.css';
@@ -13,11 +13,17 @@ import './DailyReward.css';
 export const NotificationList: React.FC = () => {
   const queryClient = useQueryClient();
   const query = useQuery({
-    queryKey: ['notifications'],
+    queryKey: ['notifications', 'active'],
     queryFn: () => notificationsApi.list(),
   });
 
   const [justClaimed, setJustClaimed] = useState<number | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const historyQuery = useQuery({
+    queryKey: ['notifications', 'dismissed'],
+    queryFn: () => notificationsApi.list('dismissed'),
+    enabled: showHistory,
+  });
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -41,33 +47,89 @@ export const NotificationList: React.FC = () => {
     onSuccess: (_res, id) => { setJustClaimed(id); invalidate(); },
   });
 
+  const dismissMutation = useMutation({
+    mutationFn: (id: number) => notificationsApi.dismiss(id),
+    onSuccess: () => invalidate(),
+  });
+
   const items = query.data?.notifications ?? [];
+  const historyItems = historyQuery.data?.notifications ?? [];
   const hasClaimable = useMemo(() => items.some((n) => n.is_claimable), [items]);
 
   if (query.isLoading) return null;
-  if (!items.length) return null;
 
   return (
     <section id="notifications" style={{ marginBottom: 28, scrollMarginTop: 72 }}>
-      <h3 style={{ color: 'var(--text-primary)', fontSize: 18, marginBottom: 4 }}>Notifications</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
+        <h3 style={{ color: 'var(--text-primary)', fontSize: 18, margin: 0 }}>Notifications</h3>
+        <button
+          type="button"
+          className="btn btn-sm"
+          aria-expanded={showHistory}
+          aria-controls="past-notifications"
+          onClick={() => setShowHistory((shown) => !shown)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          <History size={14} /> Past notifications
+          <ChevronDown
+            size={14}
+            style={{ transform: showHistory ? 'rotate(180deg)' : undefined, transition: 'transform 150ms ease' }}
+          />
+        </button>
+      </div>
       {hasClaimable && (
         <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 0, marginBottom: 12 }}>
           You have rewards to claim <InlineIcon icon={Gift} color="#ffd700" />
         </p>
       )}
-      <div style={{ display: 'grid', gap: 10 }}>
-        {items.map((n) => (
-          <NotificationRow
-            key={n.id}
-            n={n}
-            claimed={justClaimed === n.id}
-            claiming={claimMutation.isPending && claimMutation.variables === n.id}
-            onClaim={() => claimMutation.mutate(n.id)}
-          />
-        ))}
-      </div>
-      {claimMutation.error && (
-        <p style={{ color: '#f87171', fontSize: 13 }}>Error: {String(claimMutation.error)}</p>
+      {items.length ? (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {items.map((n) => (
+            <NotificationRow
+              key={n.id}
+              n={n}
+              claimed={justClaimed === n.id}
+              claiming={claimMutation.isPending && claimMutation.variables === n.id}
+              dismissing={dismissMutation.isPending && dismissMutation.variables === n.id}
+              onClaim={() => claimMutation.mutate(n.id)}
+              onDismiss={() => dismissMutation.mutate(n.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: '10px 0 0' }}>
+          You’re all caught up.
+        </p>
+      )}
+
+      {showHistory && (
+        <div id="past-notifications" style={{ borderTop: '1px solid var(--border-light)', marginTop: 16, paddingTop: 14 }}>
+          <h4 style={{ color: 'var(--text-secondary)', fontSize: 14, margin: '0 0 10px' }}>Past notifications</h4>
+          {historyQuery.isLoading ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>Loading…</p>
+          ) : historyItems.length ? (
+            <div style={{ display: 'grid', gap: 10 }}>
+              {historyItems.map((n) => (
+                <NotificationRow
+                  key={n.id}
+                  n={n}
+                  claimed={justClaimed === n.id}
+                  claiming={claimMutation.isPending && claimMutation.variables === n.id}
+                  dismissing={false}
+                  onClaim={() => claimMutation.mutate(n.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>No past notifications yet.</p>
+          )}
+        </div>
+      )}
+
+      {(claimMutation.error || dismissMutation.error) && (
+        <p role="alert" style={{ color: '#f87171', fontSize: 13 }}>
+          Error: {String(claimMutation.error || dismissMutation.error)}
+        </p>
       )}
     </section>
   );
@@ -79,8 +141,10 @@ const NotificationRow: React.FC<{
   n: AppNotification;
   claimed: boolean;
   claiming: boolean;
+  dismissing: boolean;
   onClaim: () => void;
-}> = ({ n, claimed, claiming, onClaim }) => {
+  onDismiss?: () => void;
+}> = ({ n, claimed, claiming, dismissing, onClaim, onDismiss }) => {
   const credits = n.reward?.credits ?? 0;
   const canClaim = n.is_claimable;
 
@@ -110,9 +174,14 @@ const NotificationRow: React.FC<{
             {n.reward?.cosmetic_id ? <strong style={{ color: '#a855f7' }}>{n.reward?.cosmetic_name || 'a cosmetic'}</strong> : ''}
           </div>
         )}
+        {n.is_dismissed && n.created_at && (
+          <time dateTime={n.created_at} style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11, marginTop: 4 }}>
+            {formatNotificationDate(n.created_at)}
+          </time>
+        )}
       </div>
 
-      <div style={{ marginLeft: 'auto' }}>
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
         {canClaim ? (
           <button type="button" className="btn btn-sm primary" disabled={claiming} onClick={onClaim}>
             {claiming ? 'Claiming…' : 'Claim'}
@@ -122,6 +191,19 @@ const NotificationRow: React.FC<{
             <InlineIcon icon={Check} /> Claimed
           </span>
         ) : null}
+        {onDismiss && (
+          <button
+            type="button"
+            className="btn btn-sm"
+            aria-label={`Dismiss ${n.title}`}
+            title="Move to past notifications"
+            disabled={dismissing}
+            onClick={onDismiss}
+            style={{ width: 30, height: 30, padding: 0, display: 'inline-grid', placeItems: 'center' }}
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {claimed && (
@@ -146,6 +228,15 @@ const NotificationRow: React.FC<{
       )}
     </div>
   );
+};
+
+const formatNotificationDate = (value: string): string => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 };
 
 export default NotificationList;

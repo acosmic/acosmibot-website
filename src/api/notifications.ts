@@ -18,10 +18,12 @@ export interface AppNotification {
   reward: NotificationReward;
   is_read: boolean;
   is_claimed: boolean;
+  is_dismissed: boolean;
   is_claimable: boolean;
   created_at: string | null;
   read_at: string | null;
   claimed_at: string | null;
+  dismissed_at: string | null;
 }
 
 export interface NotificationList {
@@ -38,8 +40,8 @@ export interface ClaimResult {
 
 export const notificationsApi = {
   /** Newest-first list + the unread count for the bell badge. */
-  list: (): Promise<NotificationList> =>
-    api.fetch<NotificationList>('/api/notifications'),
+  list: (status: 'active' | 'dismissed' = 'active'): Promise<NotificationList> =>
+    api.fetch<NotificationList>(`/api/notifications?status=${status}`),
 
   /** Just the unread count — cheap to poll. */
   unreadCount: (): Promise<{ unread_count: number }> =>
@@ -52,6 +54,12 @@ export const notificationsApi = {
 
   markAllRead: (): Promise<{ success: boolean; unread_count: number }> =>
     api.fetch<{ success: boolean; unread_count: number }>('/api/notifications/read-all', {
+      method: 'POST',
+    }),
+
+  /** Move a notification to the past-notifications history. */
+  dismiss: (id: number): Promise<{ success: boolean; unread_count: number }> =>
+    api.fetch<{ success: boolean; unread_count: number }>(`/api/notifications/${id}/dismiss`, {
       method: 'POST',
     }),
 
