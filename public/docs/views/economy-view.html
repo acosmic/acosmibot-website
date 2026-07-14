@@ -86,48 +86,48 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/deposit &lt;amount&gt;</div>
+        <div class="command-signature">/bank deposit &lt;amount&gt;</div>
         <div class="command-description">
           Deposit credits from your server wallet into the global bank for safe keeping. Use <code>all</code> to deposit everything. A small fee may apply depending on server settings.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
-          <code>/deposit 1000</code>
-          <code>/deposit all</code>
+          <code>/bank deposit 1000</code>
+          <code>/bank deposit all</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/withdraw &lt;amount&gt;</div>
+        <div class="command-signature">/bank withdraw &lt;amount&gt;</div>
         <div class="command-description">
-          Withdraw credits from the global bank back to your server wallet. Use <code>all</code> to withdraw everything.
+          Withdraw credits from the global bank back to your server wallet. Use <code>all</code> to withdraw everything. Any withdrawal fee is deducted from the amount you enter.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
-          <code>/withdraw 500</code>
-          <code>/withdraw all</code>
+          <code>/bank withdraw 500</code>
+          <code>/bank withdraw all</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/bank</div>
+        <div class="command-signature">/bank balance</div>
         <div class="command-description">
           View your global bank balance, total deposited, total withdrawn, and account statistics.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/bank</code>
+          <code>/bank balance</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/bank-history</div>
+        <div class="command-signature">/bank history</div>
         <div class="command-description">
           View your recent bank transaction history, including deposits, withdrawals, fees, and dates.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/bank-history</code>
+          <code>/bank history</code>
         </div>
       </div>
 
@@ -192,7 +192,7 @@
   <section class="docs-section">
     <h2>Bank Transaction History</h2>
     <p>
-      All bank transactions are tracked and viewable with <code>/bank-history</code>, including:
+      All bank transactions are tracked and viewable with <code>/bank history</code>, including:
     </p>
     <ul>
       <li>Deposits and the fee charged (if any)</li>
@@ -203,7 +203,7 @@
     <div class="info-card">
       <h3>📊 Viewing Your History</h3>
       <p>
-        Use <code>/bank-history</code> in Discord to see your recent transactions. Your user dashboard at <a href="/dashboard" target="_blank">/dashboard</a> also shows balance history over time.
+        Use <code>/bank history</code> in Discord to see your recent transactions. Your user dashboard at <a href="/dashboard" target="_blank">/dashboard</a> also shows balance history over time.
       </p>
     </div>
   </section>
