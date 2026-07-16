@@ -29,38 +29,38 @@
 
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/remind &lt;time&gt; &lt;message&gt;</div>
+        <div class="command-signature">/reminder set &lt;when&gt; &lt;message&gt;</div>
         <div class="command-description">
           Set a reminder for a future time. The bot will DM you with your message when the time arrives. Time can use any supported format or a combination of units.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
-          <code>/remind 30m Check the oven</code>
-          <code>/remind 2h30m Team meeting starts soon</code>
-          <code>/remind 1d Take out the trash</code>
-          <code>/remind 1w Server event this time next week</code>
+          <code>/reminder set 30m Check the oven</code>
+          <code>/reminder set 2h30m Team meeting starts soon</code>
+          <code>/reminder set 1d Take out the trash</code>
+          <code>/reminder set 1w Server event this time next week</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/reminders</div>
+        <div class="command-signature">/reminder list</div>
         <div class="command-description">
           View a list of all your active reminders, including each reminder's ID, message, and the time remaining until it fires.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/reminders</code>
+          <code>/reminder list</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/cancelreminder &lt;id&gt;</div>
+        <div class="command-signature">/reminder cancel &lt;id&gt;</div>
         <div class="command-description">
-          Cancel an active reminder before it fires. Use <code>/reminders</code> to find the ID of the reminder you want to remove.
+          Cancel an active reminder before it fires. Use <code>/reminder list</code> to find the ID of the reminder you want to remove.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/cancelreminder 42</code>
+          <code>/reminder cancel 42</code>
         </div>
       </div>
     </div>
@@ -138,7 +138,7 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h3>Set your reminder</h3>
-          <p>Run <code>/remind &lt;time&gt; &lt;message&gt;</code> in any channel where the bot is active. The bot confirms your reminder with a timestamp showing exactly when it will fire.</p>
+          <p>Run <code>/reminder set &lt;when&gt; &lt;message&gt;</code> in any channel where the bot is active. The bot confirms your reminder with a timestamp showing exactly when it will fire.</p>
         </div>
       </div>
       <div class="step">
@@ -182,12 +182,12 @@
 
     <div class="faq-item">
       <h4>Q: Can I set multiple reminders at once?</h4>
-      <p>A: Yes. You can have as many active reminders as you like. Use <code>/reminders</code> to see them all listed together.</p>
+      <p>A: Yes. You can have as many active reminders as you like. Use <code>/reminder list</code> to see them all listed together.</p>
     </div>
 
     <div class="faq-item">
       <h4>Q: Can other people see my reminders?</h4>
-      <p>A: No. Your reminders are private — only you can view them with <code>/reminders</code>, and only you receive the DM when they fire.</p>
+      <p>A: No. Your reminders are private — only you can view them with <code>/reminder list</code>, and only you receive the DM when they fire.</p>
     </div>
 
     <div class="faq-item">
