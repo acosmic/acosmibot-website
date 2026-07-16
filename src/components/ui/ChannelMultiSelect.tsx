@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 
@@ -21,10 +21,14 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
   const [open, setOpen] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inContainer = containerRef.current?.contains(target);
+      const inDropdown = dropdownRef.current?.contains(target);
+      if (!inContainer && !inDropdown) {
         setOpen(false);
       }
     };
@@ -32,24 +36,38 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleOpen = () => {
-    if (containerRef.current) {
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom - 12;
+      const spaceAbove = rect.top - 12;
+      const openUp = spaceBelow < 160 && spaceAbove > spaceBelow;
       setDropdownStyle({
         position: 'fixed',
-        top: rect.bottom + 4,
+        ...(openUp
+          ? { bottom: window.innerHeight - rect.top + 4 }
+          : { top: rect.bottom + 4 }),
         left: rect.left,
         width: rect.width,
         zIndex: 9999,
-        maxHeight: '200px',
+        maxHeight: Math.max(100, Math.min(280, openUp ? spaceAbove : spaceBelow)),
         overflowY: 'auto',
         background: 'var(--bg-tertiary)',
         border: '1px solid var(--border-light)',
         borderRadius: '4px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
       });
-    }
-    setOpen(o => !o);
-  };
+    };
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [open]);
 
   const toggle = (id: string) =>
     onChange(value.includes(id) ? value.filter(v => v !== id) : [...value, id]);
@@ -60,7 +78,7 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
       <div
         className="form-control"
         style={{ height: 'auto', minHeight: '42px', display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '8px', cursor: 'pointer' }}
-        onClick={handleOpen}
+        onClick={() => setOpen(o => !o)}
       >
         {value.length === 0 && (
           <span className="text-muted">{isLoading ? 'Loading channels...' : placeholder}</span>
@@ -83,7 +101,7 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
         })}
       </div>
       {open && channels && channels.length > 0 && createPortal(
-        <div className="p-2" style={dropdownStyle}>
+        <div ref={dropdownRef} className="p-2" style={dropdownStyle}>
           {channels.map(ch => (
             <div
               key={ch.id}
