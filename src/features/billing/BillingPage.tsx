@@ -17,8 +17,8 @@ const TIER_LABELS: Record<PremiumTier, string> = {
 type PaidTier = Exclude<PremiumTier, 'free'>;
 
 const TIER_PRICES: Record<BillingInterval, Record<PremiumTier, string>> = {
-  monthly: { free: '$0', plus: '$4.99', pro: '$9.99', max: '$19.99' },
-  annual: { free: '$0', plus: '$49', pro: '$99', max: '$199' },
+  monthly: { free: '$0', plus: '$5.99', pro: '$11.99', max: '$24.99' },
+  annual: { free: '$0', plus: '$59', pro: '$119', max: '$249' },
 };
 
 const INTERVAL_SUFFIX: Record<BillingInterval, string> = {

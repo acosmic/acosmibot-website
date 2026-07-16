@@ -56,8 +56,8 @@ const TIERS: TierCardDef[] = [
   },
   {
     tier: 'plus',
-    monthlyPrice: '$4.99',
-    annualPrice: '$49',
+    monthlyPrice: '$5.99',
+    annualPrice: '$59',
     description: 'More automation capacity for active community servers.',
     fit: 'Best for growing Discords',
     icon: <Gem size={18} />,
@@ -78,8 +78,8 @@ const TIERS: TierCardDef[] = [
   },
   {
     tier: 'pro',
-    monthlyPrice: '$9.99',
-    annualPrice: '$99',
+    monthlyPrice: '$11.99',
+    annualPrice: '$119',
     description: 'Plus limits with AI tools, memory, and clear usage caps.',
     fit: 'For servers that want AI built in',
     popular: true,
@@ -99,8 +99,8 @@ const TIERS: TierCardDef[] = [
   },
   {
     tier: 'max',
-    monthlyPrice: '$19.99',
-    annualPrice: '$199',
+    monthlyPrice: '$24.99',
+    annualPrice: '$249',
     description: 'Higher AI usage for servers with heavier assistant workflows.',
     fit: 'For AI-heavy communities',
     icon: <span style={{ display: 'inline-flex', gap: 2 }}><Sparkles size={18} /><Bot size={18} /></span>,
