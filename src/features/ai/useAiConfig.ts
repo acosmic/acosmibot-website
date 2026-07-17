@@ -19,6 +19,10 @@ export interface AiConfig {
   ambient_cooldown_seconds: number;
   /** Max proactive replies per server per day. 0 = unlimited. */
   ambient_daily_limit: number;
+  /** Opt-in: proactive replies may occasionally generate a meme/image. */
+  ambient_images_enabled: boolean;
+  /** Share (0.01–1) of proactive replies that may include a generated image. */
+  ambient_image_chance: number;
   /** Guild default IANA timezone for the AI's date/time awareness. */
   timezone: string;
 }
@@ -71,6 +75,8 @@ const DEFAULT_AI: AiConfig = {
   ambient_frequency: 0.03,
   ambient_cooldown_seconds: 600,
   ambient_daily_limit: 50,
+  ambient_images_enabled: false,
+  ambient_image_chance: 0.15,
   timezone: 'UTC',
 };
 

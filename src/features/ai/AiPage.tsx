@@ -17,6 +17,8 @@ const AMBIENT_MAX_FREQ_PCT = 25;
 const AMBIENT_MIN_COOLDOWN_MIN = 1;     // 60s
 const AMBIENT_MAX_COOLDOWN_MIN = 1440;  // 24h
 const AMBIENT_MAX_DAILY = 1000;
+const AMBIENT_IMAGE_MIN_PCT = 1;
+const AMBIENT_IMAGE_MAX_PCT = 100;
 
 const clamp = (value: number, min: number, max: number) =>
   Number.isNaN(value) ? min : Math.min(Math.max(value, min), max);
@@ -258,6 +260,45 @@ export const AiPage: React.FC = () => {
               />
               <p className="text-muted small mt-1 mb-0">Max proactive messages/day (0 = unlimited).</p>
             </div>
+          </div>
+        )}
+
+        {form.ambient_enabled && (
+          <div className="mt-4">
+            <FeatureToggle
+              label="Meme images"
+              enabled={form.ambient_images_enabled}
+              onChange={(v) => setForm({ ambient_images_enabled: v })}
+              description="Let a share of proactive replies include an AI-generated meme or image riffing on the conversation (may use participants' avatars). Counts toward the monthly image generation limit."
+            />
+
+            {form.ambient_images_enabled && (
+              <div className="mt-3" style={{ maxWidth: '320px' }}>
+                <label className="form-label mb-1 d-block">Image chance</label>
+                <div className="d-flex align-items-center gap-2">
+                  <NumberInput
+                    className="form-control"
+                    min={AMBIENT_IMAGE_MIN_PCT}
+                    max={AMBIENT_IMAGE_MAX_PCT}
+                    step={1}
+                    value={Math.round((form.ambient_image_chance ?? 0.15) * 100)}
+                    onValueChange={(value) => setForm({
+                      ambient_image_chance: clamp(
+                        Math.trunc(value),
+                        AMBIENT_IMAGE_MIN_PCT,
+                        AMBIENT_IMAGE_MAX_PCT,
+                      ) / 100,
+                    })}
+                    style={{ maxWidth: '110px' }}
+                  />
+                  <span className="text-muted">% of proactive replies</span>
+                </div>
+                <p className="text-muted small mt-1 mb-0">
+                  Share of proactive replies that may generate an image. The AI still
+                  skips it when the moment doesn't call for one.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </CollapsibleSection>
