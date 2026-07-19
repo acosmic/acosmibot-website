@@ -59,7 +59,7 @@ export const BetterEmbedsPage: React.FC = () => {
             tiktok: { ...form.tiktok, enabled },
           })}
           label="TikTok"
-          description="Use fxTikTok for playable videos, photos, and short links."
+          description="Use fxTikTok for playable videos, photos, captions, hashtags, and short links."
         />
 
         <FeatureToggle
