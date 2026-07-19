@@ -45,6 +45,10 @@ interface LogEntry {
   guild_id: string;
   user_id: string;
   channel_id: string;
+  turn_id: string;
+  message_id: string;
+  reply_to_message_id: string;
+  entrypoint: string;
   ip: string;
   method: string;
   path: string;
@@ -121,6 +125,10 @@ function contextItems(entry: LogEntry): { label: string; value: string }[] {
   push('guild', entry.guild_id);
   push('user', entry.user_id);
   push('channel', entry.channel_id);
+  push('turn', entry.turn_id);
+  push('message', entry.message_id);
+  push('reply', entry.reply_to_message_id);
+  push('entry', entry.entrypoint);
   push('ip', entry.ip);
   if (entry.path && !BLANK.has(entry.path)) {
     push('route', `${entry.method && !BLANK.has(entry.method) ? `${entry.method} ` : ''}${entry.path}`);
