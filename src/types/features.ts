@@ -98,6 +98,25 @@ export interface UpdateModerationConfigRequest {
   moderation?: Partial<ModerationConfig>;
 }
 
+export interface BetterEmbedsConfig {
+  enabled: boolean;
+  instagram: {
+    enabled: boolean;
+  };
+  twitter: {
+    enabled: boolean;
+  };
+  bluesky: {
+    enabled: boolean;
+  };
+  tiktok: {
+    enabled: boolean;
+  };
+  reddit: {
+    enabled: boolean;
+  };
+}
+
 export type SlotsTier = 'common' | 'uncommon' | 'rare' | 'legendary' | 'scatter';
 
 export interface SlotsConfig {

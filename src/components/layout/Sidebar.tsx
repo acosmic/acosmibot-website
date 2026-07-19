@@ -128,6 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
               <NavSection title="UTILITIES">
                 <NavItem to={`/server/${guildId}/embeds`} icon="embeds" label="Embeds" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/better-embeds`} icon="embeds" label="Better Social Embeds" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/reaction-roles`} icon="reactionroles" label="Reaction Roles" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/activity-monitor`} icon="activitymonitor" label="Activity Monitor" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/custom-commands`} icon="customcommands" label="Custom Commands" onClick={onClose} />
