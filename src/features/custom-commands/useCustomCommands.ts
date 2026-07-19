@@ -14,22 +14,26 @@ export interface CustomCommand {
   id: string;
   command: string;
   prefix: string;
+  description?: string | null;
   response_type: 'text' | 'embed';
   response_text?: string | null;
   embed_config?: EmbedConfig | null;
   auto_delete_input_seconds?: number;
   auto_delete_output_seconds?: number;
+  allowed_role_ids?: string[];
   created_at?: string;
 }
 
 export interface CommandPayload {
   command: string;
   prefix: string;
+  description: string;
   response_type: 'text' | 'embed';
   response_text?: string;
   embed_config?: EmbedConfig;
   auto_delete_input_seconds?: number;
   auto_delete_output_seconds?: number;
+  allowed_role_ids: string[];
 }
 
 export function useCustomCommands(guildId: string) {

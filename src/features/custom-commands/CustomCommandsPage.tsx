@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCustomCommands, CustomCommand, CommandPayload, EmbedConfig } from './useCustomCommands';
-import { LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner, RoleMultiSelect } from '@/components/ui';
+import { useGuildRoles } from '@/hooks/useGuildRoles';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,6 +28,8 @@ const MAX_AUTO_DELETE_SECONDS = 300;
 interface FormState {
   command: string;
   prefix: string;
+  description: string;
+  allowed_role_ids: string[];
   response_type: 'text' | 'embed';
   response_text: string;
   // flattened embed fields for easier binding
@@ -44,6 +47,8 @@ function emptyForm(): FormState {
   return {
     command: '',
     prefix: '!',
+    description: '',
+    allowed_role_ids: [],
     response_type: 'text',
     response_text: '',
     embed_title: '',
@@ -61,6 +66,8 @@ function formFromCommand(cmd: CustomCommand): FormState {
   return {
     command: cmd.command,
     prefix: cmd.prefix,
+    description: cmd.description ?? '',
+    allowed_role_ids: cmd.allowed_role_ids ?? [],
     response_type: cmd.response_type,
     response_text: cmd.response_text ?? '',
     embed_title: cmd.embed_config?.title ?? '',
@@ -78,6 +85,8 @@ function buildPayload(form: FormState): CommandPayload {
   const base = {
     command: form.command.trim(),
     prefix: form.prefix,
+    description: form.description.trim(),
+    allowed_role_ids: form.allowed_role_ids,
     response_type: form.response_type,
     auto_delete_input_seconds: Number(form.auto_delete_input_seconds),
     auto_delete_output_seconds: Number(form.auto_delete_output_seconds),
@@ -102,6 +111,7 @@ export const CustomCommandsPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { commands, maxCommands, isLoading, addCommand, isAdding, updateCommand, isUpdating, deleteCommand } =
     useCustomCommands(guildId!);
+  const { data: guildRoles = [] } = useGuildRoles(guildId!);
 
   const [form, setForm] = useState<FormState>(emptyForm());
   const [editingId, setEditingId] = useState<string | null>(null); // null = create mode
@@ -136,6 +146,17 @@ export const CustomCommandsPage: React.FC = () => {
 
   const set = (key: keyof FormState, value: string) => setForm(f => ({ ...f, [key]: value }));
 
+  const setAllowedRoles = (allowedRoleIds: string[]) => {
+    setForm(f => ({ ...f, allowed_role_ids: allowedRoleIds }));
+  };
+
+  const accessLabel = (roleIds: string[] | undefined) => {
+    if (!roleIds?.length) return 'Everyone';
+    return roleIds
+      .map(id => `@${guildRoles.find(role => role.id === id)?.name || 'Unknown role'}`)
+      .join(', ');
+  };
+
   const insertVariable = (variable: string) => {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -152,6 +173,8 @@ export const CustomCommandsPage: React.FC = () => {
   const validate = (): string | null => {
     if (!form.command.trim()) return 'Command name is required.';
     if (!/^[a-zA-Z0-9_-]+$/.test(form.command.trim())) return 'Command name can only contain letters, numbers, hyphens, and underscores.';
+    if (!form.description.trim()) return 'Description is required.';
+    if (form.description.trim().length > 100) return 'Description must be 100 characters or less.';
     if (form.response_type === 'text' && !form.response_text.trim()) return 'Response text is required.';
     if (form.response_type === 'embed' && !form.embed_title.trim() && !form.embed_description.trim()) return 'Embed must have at least a title or description.';
     for (const [label, value] of [
@@ -228,6 +251,34 @@ export const CustomCommandsPage: React.FC = () => {
             Preview: <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
               {form.prefix}{form.command || 'command'}
             </span>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label mb-2 d-block">Description</label>
+            <input
+              type="text"
+              className="form-control"
+              maxLength={100}
+              value={form.description}
+              onChange={e => set('description', e.target.value)}
+              placeholder="What this command does (shown in /customcommands)"
+            />
+            <div className="mt-1 text-end" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              {form.description.length} / 100
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <RoleMultiSelect
+              guildId={guildId!}
+              value={form.allowed_role_ids}
+              onChange={setAllowedRoles}
+              label="Allowed Roles"
+              placeholder="No roles selected — everyone can use this command"
+            />
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+              Members need at least one selected role. Server administrators always have access.
+            </div>
           </div>
 
           {/* Response type toggle */}
@@ -432,6 +483,8 @@ export const CustomCommandsPage: React.FC = () => {
                   <tr>
                     <th className="p-3 border-light">Trigger</th>
                     <th className="p-3 border-light">Type</th>
+                    <th className="p-3 border-light">Description</th>
+                    <th className="p-3 border-light">Access</th>
                     <th className="p-3 border-light">Response Preview</th>
                     <th className="p-3 border-light text-end">Actions</th>
                   </tr>
@@ -444,6 +497,12 @@ export const CustomCommandsPage: React.FC = () => {
                       </td>
                       <td className="p-3 align-middle">
                         <span className="badge bg-tertiary text-muted">{cmd.response_type}</span>
+                      </td>
+                      <td className="p-3 align-middle">{cmd.description || 'No description yet'}</td>
+                      <td className="p-3 align-middle">
+                        <div className="text-truncate" style={{ maxWidth: '220px' }}>
+                          {accessLabel(cmd.allowed_role_ids)}
+                        </div>
                       </td>
                       <td className="p-3 align-middle">
                         <div className="text-truncate" style={{ maxWidth: '300px' }}>
@@ -485,6 +544,14 @@ export const CustomCommandsPage: React.FC = () => {
                   <div className="admin-mobile-field">
                     <span className="admin-mobile-label">Type</span>
                     <span className="admin-mobile-value">{cmd.response_type}</span>
+                  </div>
+                  <div className="admin-mobile-field">
+                    <span className="admin-mobile-label">Description</span>
+                    <span className="admin-mobile-value">{cmd.description || 'No description yet'}</span>
+                  </div>
+                  <div className="admin-mobile-field">
+                    <span className="admin-mobile-label">Access</span>
+                    <span className="admin-mobile-value">{accessLabel(cmd.allowed_role_ids)}</span>
                   </div>
                   <div className="admin-mobile-field">
                     <span className="admin-mobile-label">Response</span>
