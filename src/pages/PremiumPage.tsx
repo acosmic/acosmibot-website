@@ -44,6 +44,7 @@ const TIERS: TierCardDef[] = [
       { text: 'Leveling & XP system' },
       { text: 'Economy, games & gambling' },
       { text: 'Server analytics' },
+      { text: 'Better Social Embeds' },
       { text: '1 Twitch streamer tracking' },
       { text: '1 YouTube streamer tracking' },
       { text: '1 Kick streamer tracking' },

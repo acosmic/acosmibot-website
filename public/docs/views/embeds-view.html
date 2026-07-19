@@ -2,7 +2,7 @@
   <header class="docs-page-header">
     <h1>Better Embeds</h1>
     <p class="docs-page-description">
-      Build rich, beautifully formatted embed messages for announcements, information cards, and custom bot responses.
+      Improve social-media previews automatically or build rich custom embed messages for your server.
     </p>
   </header>
 
@@ -28,7 +28,47 @@
   </section>
 
   <section class="docs-section">
-    <h2>Embed Structure</h2>
+    <h2>Better Social Embeds</h2>
+    <p>
+      Better Social Embeds automatically replaces unreliable social-media previews with versions designed to embed properly in Discord. The feature is <strong>free on every plan</strong> with no plan-specific usage quota.
+    </p>
+    <p>
+      Acosmibot keeps the member's original message and suppresses only Discord's original embed, preventing duplicate previews. Its replacement message is silent, so it stays visible without generating another push or desktop notification. Compact links above the preview lead to the original post, the creator profile when available, and the embed provider's version of that exact post.
+    </p>
+
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Supported Links</th>
+            <th>Embed Service</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Instagram</td><td>Posts, reels, stories, and Instagram TV</td><td><a href="https://kkinstagram.com" target="_blank" rel="noopener noreferrer">KKInstagram</a></td></tr>
+          <tr><td>X / Twitter</td><td>Status links</td><td><a href="https://fixupx.com" target="_blank" rel="noopener noreferrer">FixupX</a> / <a href="https://fxtwitter.com" target="_blank" rel="noopener noreferrer">FxTwitter</a></td></tr>
+          <tr><td>Bluesky</td><td>Post links</td><td><a href="https://fxbsky.app" target="_blank" rel="noopener noreferrer">FxBluesky</a></td></tr>
+          <tr><td>TikTok</td><td>Videos, photos, and short links; captions and hashtags when available</td><td><a href="https://tnktok.com" target="_blank" rel="noopener noreferrer">fxTikTok</a></td></tr>
+          <tr><td>Reddit</td><td>Posts, galleries, videos, and share links</td><td><a href="https://vxreddit.com" target="_blank" rel="noopener noreferrer">vxreddit</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="config-steps">
+      <div class="step"><div class="step-number">1</div><div class="step-content"><h3>Select Your Server</h3><p>Open the <a href="/servers">server dashboard</a> and choose the server to configure.</p></div></div>
+      <div class="step"><div class="step-number">2</div><div class="step-content"><h3>Open Better Social Embeds</h3><p>Find <strong>Better Social Embeds</strong> under <strong>Utilities</strong>.</p></div></div>
+      <div class="step"><div class="step-number">3</div><div class="step-content"><h3>Choose Platforms</h3><p>Enable or disable each platform independently, then save your settings.</p></div></div>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>Required Permissions</h3>
+      <p>Acosmibot needs <strong>Send Messages</strong> and <strong>Manage Messages</strong> in each channel where the feature is used. Manage Messages lets the bot suppress Discord's original embed without deleting or changing the member's message.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Custom Embed Structure</h2>
     <p>
       Embeds are defined using a JSON structure. Below is a reference showing all available fields. Only include the fields you need — every field is optional.
     </p>
