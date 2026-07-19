@@ -33,6 +33,7 @@ export const BetterEmbedsPage: React.FC = () => {
           })}
           label="Instagram"
           description="Use KKInstagram for posts, reels, stories, and Instagram TV links."
+          credits={[{ label: 'KKInstagram', href: 'https://kkinstagram.com' }]}
         />
 
         <FeatureToggle
@@ -42,6 +43,10 @@ export const BetterEmbedsPage: React.FC = () => {
           })}
           label="X (Twitter)"
           description="Use FixupX or FxTwitter for X and Twitter status links."
+          credits={[
+            { label: 'FixupX', href: 'https://fixupx.com' },
+            { label: 'FxTwitter', href: 'https://fxtwitter.com' },
+          ]}
         />
 
         <FeatureToggle
@@ -51,6 +56,7 @@ export const BetterEmbedsPage: React.FC = () => {
           })}
           label="Bluesky"
           description="Use FxBluesky for Bluesky post links."
+          credits={[{ label: 'FxBluesky', href: 'https://fxbsky.app' }]}
         />
 
         <FeatureToggle
@@ -60,6 +66,7 @@ export const BetterEmbedsPage: React.FC = () => {
           })}
           label="TikTok"
           description="Use fxTikTok for playable videos, photos, captions, hashtags, and short links."
+          credits={[{ label: 'fxTikTok', href: 'https://tnktok.com' }]}
         />
 
         <FeatureToggle
@@ -69,6 +76,7 @@ export const BetterEmbedsPage: React.FC = () => {
           })}
           label="Reddit"
           description="Use vxreddit for improved Reddit post, gallery, and video embeds."
+          credits={[{ label: 'vxreddit', href: 'https://vxreddit.com' }]}
         />
       </div>
 

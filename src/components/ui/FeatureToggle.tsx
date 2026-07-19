@@ -5,13 +5,18 @@ interface FeatureToggleProps {
   onChange: (enabled: boolean) => void;
   label?: string;
   description?: string;
+  credits?: ReadonlyArray<{
+    label: string;
+    href: string;
+  }>;
 }
 
 export const FeatureToggle: React.FC<FeatureToggleProps> = ({
   enabled,
   onChange,
   label = 'Enabled',
-  description
+  description,
+  credits,
 }) => {
   return (
     <div className="card p-4 mb-4" style={{ background: enabled ? 'var(--bg-overlay)' : 'var(--bg-card)', border: enabled ? '1px solid var(--border-cyan)' : undefined }}>
@@ -19,6 +24,24 @@ export const FeatureToggle: React.FC<FeatureToggleProps> = ({
         <div>
           <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>{label}</h3>
           {description && <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>{description}</p>}
+          {credits && credits.length > 0 && (
+            <div style={{ marginTop: '5px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              Powered by{' '}
+              {credits.map((credit, index) => (
+                <React.Fragment key={credit.href}>
+                  {index > 0 && ' · '}
+                  <a
+                    href={credit.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--primary-color)', textDecoration: 'none' }}
+                  >
+                    {credit.label} ↗
+                  </a>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{
