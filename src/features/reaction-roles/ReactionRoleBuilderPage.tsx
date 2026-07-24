@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
@@ -10,6 +10,7 @@ import {
 } from '@/api/reactionRoles';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 import { useGuildEmojis } from '@/hooks/useGuildEmojis';
+import { useGuildRoles } from '@/hooks/useGuildRoles';
 import { showToast } from '@/utils/toast';
 import { EmojiDisplay, RRPreview } from './RRPreview';
 
@@ -39,6 +40,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
   const { data: channels = [] } = useGuildChannels(guildId!);
   const textChannels = channels.filter((c) => Number(c.type) === 0);
   const { data: serverEmojis = [] } = useGuildEmojis(guildId!);
+  const { data: guildRoles = [] } = useGuildRoles(guildId!);
 
   const existingQuery = useQuery({
     queryKey: ['guild', guildId, 'reaction-roles', rrId],
@@ -71,6 +73,27 @@ export const ReactionRoleBuilderPage: React.FC = () => {
 
   // Emoji picker target: setter to receive the chosen emoji
   const [emojiTarget, setEmojiTarget] = useState<((emoji: string) => void) | null>(null);
+
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
+  /** Insert a real role mention (<@&id>) at the cursor — plain typed @names don't tag. */
+  const insertRoleMention = (roleId: string) => {
+    if (!roleId) return;
+    const mention = `<@&${roleId}>`;
+    const el = messageInputRef.current;
+    const start = el?.selectionStart ?? messageText.length;
+    const end = el?.selectionEnd ?? messageText.length;
+    const next = messageText.slice(0, start) + mention + messageText.slice(end);
+    if (next.length > MESSAGE_MAX) {
+      showToast('Message is too long to fit the mention', 'error');
+      return;
+    }
+    setMessageText(next);
+    requestAnimationFrame(() => {
+      el?.focus();
+      el?.setSelectionRange(start + mention.length, start + mention.length);
+    });
+  };
 
   useEffect(() => {
     const rr = existingQuery.data;
@@ -134,6 +157,14 @@ export const ReactionRoleBuilderPage: React.FC = () => {
     dropdownOptions.filter((o) => o.label && o.roleIds.length > 0)
       .map(({ key: _key, roleIds, ...o }) => ({ ...o, role_ids: roleIds }));
 
+  const hasEmbedContent = [
+    embedTitle,
+    embedDescription,
+    thumbnailUrl,
+    imageUrl,
+    footerText,
+  ].some((value) => value.trim().length > 0);
+
   const buildPayload = (): RRPayload => {
     const payload: RRPayload = {
       name,
@@ -142,7 +173,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
       allow_removal: allowRemoval,
       interaction_type: interactionType,
     };
-    if (embedTitle || embedDescription) {
+    if (hasEmbedContent) {
       // Match legacy save format: the color input's '#RRGGBB' string.
       payload.embed_config = {
         title: embedTitle,
@@ -171,6 +202,10 @@ export const ReactionRoleBuilderPage: React.FC = () => {
     }
     if (!channelId) {
       showToast('Please select a channel', 'error');
+      return false;
+    }
+    if (!messageText.trim() && !hasEmbedContent) {
+      showToast('Add message text or configure an embed', 'error');
       return false;
     }
     const hasMappings =
@@ -264,11 +299,25 @@ export const ReactionRoleBuilderPage: React.FC = () => {
             </div>
             <div className="mb-3">
               <label className="form-label mb-2 d-block">
-                Message Text <span className="text-muted">({messageText.length}/{MESSAGE_MAX})</span>
+                Message Text <span className="text-muted">(or use an embed) * · {messageText.length}/{MESSAGE_MAX}</span>
               </label>
-              <textarea className="form-control" rows={3} maxLength={MESSAGE_MAX} value={messageText}
-                placeholder="Plain text content of the message (optional if you use an embed)"
+              <textarea ref={messageInputRef} className="form-control" rows={3} maxLength={MESSAGE_MAX} value={messageText}
+                aria-describedby="reaction-role-message-help"
+                placeholder="Enter message text, or add an embed below"
                 onChange={(e) => setMessageText(e.target.value)} />
+              <div style={{ marginTop: 8 }}>
+                <select className="form-control" style={{ maxWidth: 280 }} value=""
+                  aria-label="Insert role mention"
+                  onChange={(e) => insertRoleMention(e.target.value)}>
+                  <option value="">Insert @role mention…</option>
+                  {guildRoles.map((r) => <option key={r.id} value={r.id}>@{r.name}</option>)}
+                </select>
+              </div>
+              <div id="reaction-role-message-help" className="form-text">
+                Required: add message text here or configure an embed below.
+                Typing @RoleName by hand won't tag the role — use "Insert @role mention" above,
+                and leave "Suppress role pings" unchecked if you want the send to ping.
+              </div>
             </div>
             <label className="d-flex align-items-center gap-2 m-0" style={{ fontSize: 14, cursor: 'pointer' }}>
               <input type="checkbox" className="form-check-input m-0" checked={allowRemoval}
@@ -277,7 +326,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
             </label>
           </div>
 
-          <CollapsibleSection title="Embed (optional)" defaultOpen={!!(embedTitle || embedDescription)}>
+          <CollapsibleSection title="Embed (alternative to message text)" defaultOpen={hasEmbedContent}>
             <div className="mb-3">
               <label className="form-label mb-2 d-block">Title</label>
               <input className="form-control" type="text" value={embedTitle} maxLength={256}
@@ -480,7 +529,8 @@ export const ReactionRoleBuilderPage: React.FC = () => {
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>Live Preview</h3>
           <RRPreview
             textContent={messageText}
-            embedConfig={(embedTitle || embedDescription) ? {
+            roleNames={Object.fromEntries(guildRoles.map((r) => [r.id, r.name]))}
+            embedConfig={hasEmbedContent ? {
               title: embedTitle, description: embedDescription, color: embedColor,
               thumbnail: thumbnailUrl, image: imageUrl, footer: footerText,
             } : null}

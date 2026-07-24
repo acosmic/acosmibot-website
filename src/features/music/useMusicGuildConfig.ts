@@ -2,17 +2,17 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 
-export interface SpotifyGuildConfig {
+export interface MusicGuildConfig {
   // On by default: members' "Listening to Spotify" presence is recorded in every
-  // server unless an admin turns this off (mirrors the bot's /spotify config command).
+  // server unless an admin turns this off (mirrors the bot's /music config command).
   scrobble_enabled: boolean;
 }
 
-const DEFAULT_SPOTIFY: SpotifyGuildConfig = {
+const DEFAULT_MUSIC: MusicGuildConfig = {
   scrobble_enabled: true,
 };
 
-export function useSpotifyGuildConfig(guildId: string) {
+export function useMusicGuildConfig(guildId: string) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
@@ -24,7 +24,7 @@ export function useSpotifyGuildConfig(guildId: string) {
   const mutation = useMutation({
     // Section-scoped save: merges only the `spotify` slice, leaving other
     // features' settings untouched.
-    mutationFn: (spotify: Partial<SpotifyGuildConfig>) =>
+    mutationFn: (spotify: Partial<MusicGuildConfig>) =>
       configApi.upsertHybridSections(guildId, { spotify }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
@@ -32,8 +32,8 @@ export function useSpotifyGuildConfig(guildId: string) {
   });
 
   const raw = query.data?.data?.settings?.spotify;
-  const data = useMemo<SpotifyGuildConfig | undefined>(
-    () => (query.data ? { ...DEFAULT_SPOTIFY, ...(raw || {}) } : undefined),
+  const data = useMemo<MusicGuildConfig | undefined>(
+    () => (query.data ? { ...DEFAULT_MUSIC, ...(raw || {}) } : undefined),
     [query.data, raw],
   );
 

@@ -22,7 +22,7 @@ export const EmojiDisplay: React.FC<{ emoji: string }> = ({ emoji }) => {
 
 /** Map the RR flat embed config onto the shared DiscordEmbedPreview shape. */
 const toEmbedConfig = (cfg?: RREmbedConfig | null): EmbedConfig => {
-  if (!cfg || (!cfg.title && !cfg.description)) return {};
+  if (!cfg || ![cfg.title, cfg.description, cfg.thumbnail, cfg.image, cfg.footer].some(Boolean)) return {};
   return {
     title: cfg.title || undefined,
     description: cfg.description || undefined,
@@ -40,6 +40,10 @@ const BUTTON_STYLE_CLASSES: Record<number, string> = {
   4: 'discord-button-danger',
 };
 
+/** Show role mentions (<@&id>) the way Discord will render them. */
+const resolveRoleMentions = (text: string, roleNames?: Record<string, string>): string =>
+  text.replace(/<@&(\d+)>/g, (_, id) => `@${roleNames?.[id] ?? 'role'}`);
+
 export const RRPreview: React.FC<{
   textContent?: string | null;
   embedConfig?: RREmbedConfig | null;
@@ -47,10 +51,11 @@ export const RRPreview: React.FC<{
   emojiMappings?: Record<string, string[]>;
   buttonConfigs?: RRButtonConfig[];
   dropdownConfig?: RRDropdownConfig;
-}> = ({ textContent, embedConfig, interactionType, emojiMappings, buttonConfigs, dropdownConfig }) => (
+  roleNames?: Record<string, string>;
+}> = ({ textContent, embedConfig, interactionType, emojiMappings, buttonConfigs, dropdownConfig, roleNames }) => (
   <DiscordEmbedPreview
     config={toEmbedConfig(embedConfig)}
-    messageText={textContent ?? ''}
+    messageText={resolveRoleMentions(textContent ?? '', roleNames)}
     showCharCount={false}
   >
     {interactionType === 'emoji' && emojiMappings && Object.keys(emojiMappings).length > 0 && (

@@ -4,19 +4,19 @@ import { useParams, Link } from 'react-router-dom';
 import { Music, Users, Eye, Shield, type LucideIcon } from 'lucide-react';
 import { FeatureToggle, SaveBar, LoadingSpinner } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
-import { useSpotifyGuildConfig, type SpotifyGuildConfig } from './useSpotifyGuildConfig';
+import { useMusicGuildConfig, type MusicGuildConfig } from './useMusicGuildConfig';
 
 /**
- * Server-owner Spotify configuration.
+ * Server-owner music-listening configuration.
  *
  * The one setting that matters at the guild level is whether members' "Listening to
  * Spotify" presence is recorded here at all — on by default, and an admin can turn it
  * off. Per-member privacy (opt-out) is a personal choice made elsewhere.
  */
-export const SpotifyPage: React.FC = () => {
+export const MusicPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, isLoading, save, isSaving, saveError } = useSpotifyGuildConfig(guildId!);
-  const { form, setForm, isDirty, resetForm } = useDirtyState<SpotifyGuildConfig>(data);
+  const { data, isLoading, save, isSaving, saveError } = useMusicGuildConfig(guildId!);
+  const { form, setForm, isDirty, resetForm } = useDirtyState<MusicGuildConfig>(data);
 
   if (isLoading) return <LoadingSpinner />;
   if (!form) return <div>No data found.</div>;
@@ -24,7 +24,7 @@ export const SpotifyPage: React.FC = () => {
   return (
     <div className="feature-page">
       <div className="page-header text-start mt-0 mb-4">
-        <h1>Spotify</h1>
+        <h1>Music</h1>
         <p>Turn your server into a music leaderboard — track what members listen to and power WhoKnows.</p>
       </div>
 
@@ -46,7 +46,7 @@ export const SpotifyPage: React.FC = () => {
           <InfoRow
             icon={Users}
             title="WhoKnows & stats"
-            text="Members can run /spotify whoknows, /spotify top and /spotify recent to compare listening across your server."
+            text="Members can run /music whoknows, /music top and /music recent to compare listening across your server."
           />
           <InfoRow
             icon={Eye}
@@ -56,14 +56,14 @@ export const SpotifyPage: React.FC = () => {
           <InfoRow
             icon={Shield}
             title="Members stay in control"
-            text="Any member can opt out at any time with /spotify optout (or from their account settings)."
+            text="Any member can manage their listening privacy with /music privacy (or from their account settings)."
           />
         </div>
 
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '16px 0 0' }}>
           Members manage their listening privacy on their{' '}
           <Link to="/settings">account settings</Link> page. See the{' '}
-          <Link to="/docs/spotify">Spotify docs</Link> for the full command list.
+          <Link to="/docs/music">Music docs</Link> for the full command list.
         </p>
       </div>
 
@@ -85,8 +85,8 @@ export const SpotifyPage: React.FC = () => {
             accent="var(--text-secondary)"
             rows={[
               { on: true, text: 'Plays recorded while "Listening to Spotify" shows on Discord' },
-              { on: true, text: 'Appears on /spotify whoknows server leaderboards' },
-              { on: true, text: '/spotify now, top, recent from recorded plays' },
+              { on: true, text: 'Appears on /music whoknows server leaderboards' },
+              { on: true, text: '/music now, top, recent from recorded plays' },
               { on: false, text: 'Mobile / off-Discord listening (only what Discord broadcasts)' },
               { on: false, text: 'Playback control, playlists, genre taste' },
             ]}
@@ -97,10 +97,10 @@ export const SpotifyPage: React.FC = () => {
             accent="#1DB954"
             rows={[
               { on: true, text: 'Fuller coverage — plays pulled from Spotify itself (incl. mobile)' },
-              { on: true, text: '/spotify now works even when Discord isn’t showing it' },
-              { on: true, text: '/spotify top with real ranges (4 weeks / 6 months / all time)' },
-              { on: true, text: '/spotify taste (top genres) and /spotify playlist' },
-              { on: true, text: '/spotify player — pause / resume / skip (Spotify Premium)' },
+              { on: true, text: '/music now works even when Discord isn’t showing it' },
+              { on: true, text: '/music top with real ranges (4 weeks / 6 months / all time)' },
+              { on: true, text: '/music taste (top genres) and /music playlist' },
+              { on: true, text: '/music player — pause / resume / skip (Spotify Premium)' },
             ]}
           />
         </div>
@@ -124,7 +124,7 @@ const InfoRow: React.FC<{ icon: LucideIcon; title: string; text: string }> = ({
   text,
 }) => (
   <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-    <Icon size={18} color="#1DB954" />
+    <Icon size={18} color="var(--primary-color)" />
     <div>
       <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
       <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{text}</div>

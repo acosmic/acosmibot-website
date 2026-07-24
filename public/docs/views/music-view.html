@@ -1,6 +1,6 @@
 <div class="docs-page-container">
   <header class="docs-page-header">
-    <h1>Spotify</h1>
+    <h1>Music</h1>
     <p class="docs-page-description">
       Turn your server into a music leaderboard. Acosmibot records what members listen to and powers WhoKnows leaderboards, now-playing cards, and personal top charts — no Spotify account required to take part.
     </p>
@@ -23,23 +23,23 @@
     <h2>Commands</h2>
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/spotify now [user]</div>
+        <div class="command-signature">/music now [user]</div>
         <div class="command-description">Show what you (or another member) are playing right now.</div>
       </div>
       <div class="command-card">
-        <div class="command-signature">/spotify whoknows [query] [type]</div>
+        <div class="command-signature">/music whoknows [query] [type]</div>
         <div class="command-description">See who in the server listens to an artist, track, or album. Defaults to what you're currently playing.</div>
       </div>
       <div class="command-card">
-        <div class="command-signature">/spotify top [type] [user]</div>
+        <div class="command-signature">/music top [type] [user]</div>
         <div class="command-description">Your most-played artists, tracks, or albums, ranked from your recorded scrobbles.</div>
       </div>
       <div class="command-card">
-        <div class="command-signature">/spotify recent [user]</div>
+        <div class="command-signature">/music recent [user]</div>
         <div class="command-description">A member's most recent scrobbles, newest first.</div>
       </div>
       <div class="command-card">
-        <div class="command-signature">/spotify optout</div>
+        <div class="command-signature">/music privacy</div>
         <div class="command-description">Toggle whether your Spotify listening is tracked and shown to others.</div>
       </div>
     </div>
@@ -53,8 +53,8 @@
     <div class="info-card info-card-info">
       <h3>Your choices</h3>
       <ul>
-        <li>Opt out any time with <code>/spotify optout</code>, or from <a href="https://acosmibot.com/settings">acosmibot.com/settings</a> → "Keep my listening private."</li>
-        <li>Opting out stops new plays from being recorded and hides your listening from other members' <code>/spotify</code> lookups. It takes effect immediately.</li>
+        <li>Manage your listening privacy any time with <code>/music privacy</code>, or from <a href="https://acosmibot.com/settings">acosmibot.com/settings</a> → "Keep my listening private."</li>
+        <li>Opting out stops new plays from being recorded and hides your listening from other members' <code>/music</code> lookups. It takes effect immediately.</li>
       </ul>
     </div>
   </section>
@@ -62,7 +62,7 @@
   <section class="docs-section">
     <h2>For server owners</h2>
     <p>
-      Scrobble tracking is <strong>on by default</strong> in every server. To turn it off, open your server dashboard → <strong>Spotify</strong> (or run <code>/spotify config enabled:false</code>). Turning it off keeps existing history but stops recording new plays. Members can still opt out individually regardless of the server setting.
+      Scrobble tracking is <strong>on by default</strong> in every server. To turn it off, open your server dashboard → <strong>Music</strong> (or run <code>/music config enabled:false</code>). Turning it off keeps existing history but stops recording new plays. Members can still opt out individually regardless of the server setting.
     </p>
   </section>
 </div>

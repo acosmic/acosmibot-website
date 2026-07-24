@@ -43,7 +43,7 @@ export const ConnectedAccountsSettings: React.FC<{
       Your plays are recorded automatically from Discord presence in servers where Spotify
       tracking is on — no account linking needed. That powers WhoKnows leaderboards and your
       stats.{' '}
-      <Link to="/docs/spotify">Learn how it works</Link>.
+      <Link to="/docs/music">Learn how it works</Link>.
     </p>
 
     {/* Privacy opt-out — applies to presence-based tracking. */}
@@ -56,7 +56,7 @@ export const ConnectedAccountsSettings: React.FC<{
           Keep my listening private
         </span>
         <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)' }}>
-          Don't track my Spotify plays or let others see them via <code>/spotify</code>.
+          Don't track my Spotify plays or let others see them via <code>/music</code>.
         </span>
       </span>
       <div className="form-check form-switch mb-0">

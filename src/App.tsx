@@ -14,7 +14,7 @@ import { AiPage } from './features/ai/AiPage';
 import { GamesPage } from './features/games/GamesPage';
 import { PolymorphPage } from './features/polymorph/PolymorphPage';
 import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
-import { SpotifyPage } from './features/spotify/SpotifyPage';
+import { MusicPage } from './features/music/MusicPage';
 import { ActivityMonitorPage } from './features/activity-monitor/ActivityMonitorPage';
 import { BetterEmbedsPage } from './features/better-embeds/BetterEmbedsPage';
 import { BillingPage } from './features/billing/BillingPage';
@@ -151,8 +151,13 @@ const FeatureOutlet = () => {
     return <GuildAnalyticsPage />;
   }
 
+  if (feature === 'music') {
+    return <MusicPage />;
+  }
+
+  // Spotify is the current data source, but the public feature is now Music.
   if (feature === 'spotify') {
-    return <SpotifyPage />;
+    return <Navigate to={`/server/${guildId}/music`} replace />;
   }
 
   if (feature === 'activity-monitor') {
@@ -227,6 +232,7 @@ function App() {
       </Route>
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/docs" element={<DocsPage />} />
+      <Route path="/docs/spotify" element={<Navigate to="/docs/music" replace />} />
       <Route path="/docs/:page" element={<DocsPage />} />
       <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
