@@ -1,0 +1,296 @@
+---
+name: Acosmibot
+description: A confident, energetic command deck for running and growing Discord communities.
+colors:
+  signal-cyan: "#00D9FF"
+  signal-cyan-bright: "#00F0FF"
+  signal-cyan-deep: "#00A0CC"
+  control-black: "#1A1A1A"
+  control-graphite: "#2A2A2A"
+  control-panel: "#2D2D2D"
+  control-raised: "#333333"
+  control-hover: "#3A3A3A"
+  control-overlay: "rgba(0, 217, 255, 0.08)"
+  control-overlay-hover: "rgba(0, 217, 255, 0.15)"
+  polar-white: "#FFFFFF"
+  cool-gray: "#B0B0B0"
+  muted-gray: "#808080"
+  border-subtle: "rgba(255, 255, 255, 0.1)"
+  border-strong: "rgba(255, 255, 255, 0.2)"
+  border-signal: "rgba(0, 217, 255, 0.4)"
+  success: "#00FF88"
+  error: "#FF4444"
+  warning: "#FFB800"
+typography:
+  display:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "clamp(3rem, 6vw, 5rem)"
+    fontWeight: 800
+    lineHeight: 1.1
+  headline:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "32px"
+    fontWeight: 700
+    lineHeight: 1.2
+  title:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "18px"
+    fontWeight: 600
+    lineHeight: 1.35
+  body:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.6
+  label:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "11px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "0.5px"
+rounded:
+  xs: "3px"
+  sm: "4px"
+  md: "8px"
+  menu: "10px"
+  lg: "12px"
+  card: "15px"
+  xl: "16px"
+  modal: "20px"
+  pill: "999px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "20px"
+  "2xl": "24px"
+  "3xl": "32px"
+  "4xl": "40px"
+components:
+  button-primary:
+    backgroundColor: "{colors.signal-cyan}"
+    textColor: "{colors.control-black}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    padding: "12px 24px"
+  button-primary-hover:
+    backgroundColor: "{colors.signal-cyan-bright}"
+    textColor: "{colors.control-black}"
+    rounded: "{rounded.md}"
+    padding: "12px 24px"
+  button-secondary:
+    backgroundColor: "{colors.control-raised}"
+    textColor: "{colors.polar-white}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    padding: "12px 24px"
+  input:
+    backgroundColor: "{colors.control-raised}"
+    textColor: "{colors.polar-white}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    padding: "10px 12px"
+  card:
+    backgroundColor: "{colors.control-panel}"
+    textColor: "{colors.polar-white}"
+    rounded: "{rounded.card}"
+    padding: "24px"
+  card-hover:
+    backgroundColor: "{colors.control-hover}"
+    textColor: "{colors.polar-white}"
+    rounded: "{rounded.card}"
+    padding: "24px"
+  nav-item-active:
+    backgroundColor: "{colors.control-overlay-hover}"
+    textColor: "{colors.polar-white}"
+    typography: "{typography.body}"
+    padding: "10px 20px"
+  status-chip-active:
+    backgroundColor: "rgba(0, 255, 136, 0.15)"
+    textColor: "{colors.success}"
+    typography: "{typography.label}"
+    rounded: "6px"
+    padding: "4px 10px"
+---
+
+# Design System: Acosmibot
+
+## Overview
+
+**Creative North Star: "Cyan Command Deck"**
+
+Acosmibot feels like a live command deck for a busy Discord community: dark, focused, and operational, with Signal Cyan marking the controls and information that deserve attention. The interface is confident, technical, and energetic without becoming noisy. Deep graphite layers create a stable working environment; crisp type, compact labels, and responsive feedback keep dense configuration screens easy to scan.
+
+The system is tactile and confident. Panels separate responsibilities, controls react with short lifts or cyan focus, and the brightest color remains a deliberate signal rather than ambient decoration. Marketing surfaces may increase scale and curvature, while the dashboard stays compact and task-first. Avoid generic enterprise SaaS neutrality: Acosmibot should retain its unmistakable cyan-on-graphite identity and community-tool energy.
+
+**Key Characteristics:**
+
+- Dark operational canvas with clearly stepped graphite surfaces.
+- Signal Cyan reserved for actions, active state, focus, and high-value data.
+- Single-family Poppins typography with strong weight contrast.
+- Rounded, bordered panels that feel substantial without looking soft.
+- Fast, visible interaction feedback through lift, glow, and tonal change.
+
+## Colors
+
+Signal Cyan leads a tightly controlled graphite palette; white and cool gray establish hierarchy while status colors remain literal and easy to distinguish.
+
+### Primary
+
+- **Signal Cyan:** The brand and interaction signal for primary actions, active navigation, focused fields, selected controls, links, and important values.
+- **Bright Signal Cyan:** A higher-energy hover emphasis used sparingly when a control needs a clearer interactive response.
+
+### Secondary
+
+- **Deep Signal Cyan:** The darker endpoint of the primary action gradient and a supporting cyan for depth without introducing another hue.
+
+### Neutral
+
+- **Control Black:** The page, top-level shell, and deepest navigation background.
+- **Control Graphite:** A secondary structural layer for sidebars, disabled controls, and nested regions.
+- **Control Panel:** The default card, popover, and dialog surface.
+- **Control Raised:** Inputs, headers, quiet controls, and inset stat blocks.
+- **Control Hover:** The raised interactive state for cards and neutral buttons.
+- **Polar White:** Primary headings, key labels, and high-priority values.
+- **Cool Gray:** Body copy and secondary information.
+- **Muted Gray:** Metadata, placeholders, disabled text, and tertiary labels.
+- **Subtle Border:** Default separation between surfaces.
+- **Strong Border:** Rarely used when a neutral boundary needs more definition.
+- **Signal Border:** Selected, focused, and brand-emphasized boundaries.
+
+### Tertiary
+
+- **Success:** Enabled, saved, healthy, and positive states.
+- **Error:** Failed, destructive, and invalid states.
+- **Warning:** Admin-only, cautionary, premium, or attention-required states.
+
+### Named Rules
+
+**The Signal, Not Scenery Rule.** Signal Cyan marks action, state, or meaning; it does not become a large decorative wash behind ordinary content.
+
+**The Graphite Ladder Rule.** Adjacent structural layers must move through the established dark surfaces so hierarchy remains legible even without cyan.
+
+**The Literal Status Rule.** Success, error, and warning colors communicate their state directly and never replace the primary brand signal for ordinary actions.
+
+## Typography
+
+**Display Font:** Poppins (with sans-serif fallback)
+
+**Body Font:** Poppins (with sans-serif fallback)
+
+**Label/Mono Font:** Poppins for interface labels; the system monospace stack is reserved for logs and raw data.
+
+**Character:** Poppins gives the product a clean, contemporary geometry that stays friendly at marketing scale and disciplined inside dense controls. Hierarchy comes from size and strong weight contrast rather than multiple typefaces.
+
+### Hierarchy
+
+- **Display** (800, fluid from 3rem to 5rem, 1.1): Homepage hero statements only.
+- **Headline** (700, 32px, 1.2): Primary page titles and major dashboard destinations; reduce to 28px on compact screens.
+- **Title** (600, 18px, 1.35): Card headings, section titles, and important control labels.
+- **Body** (400, 14px, 1.6): Instructions, descriptions, supporting content, and most dashboard data.
+- **Label** (600, 11px, 0.5px tracking, uppercase): Navigation groups, compact status, and metadata categories.
+
+### Named Rules
+
+**The Weight Builds Hierarchy Rule.** Use Poppins weight and size to establish importance; do not introduce a display face to manufacture personality.
+
+**The Uppercase Is Metadata Rule.** Uppercase belongs to short group labels and status chips, never paragraphs or primary actions.
+
+## Layout
+
+The dashboard is a fixed-shell workspace: a 56px top bar, a 72px guild rail, a 280px navigation sidebar, and a flexible content region offset by their combined 352px width. Working pages use a focused 960px maximum where configuration density benefits from a stable reading width, while the main canvas keeps 40px outer padding. Content rhythm is built from 8px and 4px increments, with 16–24px internal panel spacing and 32–40px separation between major groups.
+
+At 768px and below, the guild rail disappears, navigation becomes a left drawer with a dimmed backdrop, current-guild context moves into a 52px mobile bar, and the main region loses its fixed offset and uses 20px padding. Grids collapse by task: dashboard content stacks, admin tables become labeled card rows, and full-width primary actions are preferred when horizontal competition would reduce clarity. Marketing content uses a centered 1200px container with 20px gutters; feature cards flow responsively, while pricing moves from four columns to two at 1180px and one at 640px.
+
+**The Shell Before Page Rule.** Preserve top-bar, rail, sidebar, and content offsets as one responsive system; do not solve page layout by locally compensating for shell geometry.
+
+**The Dense, Never Cramped Rule.** Compact labels and rows may be tight, but interactive targets and panel padding must remain generous enough for confident operation.
+
+## Elevation & Depth
+
+The system is layered at rest and gains cyan lift on interaction. Tonal steps and subtle white borders establish most hierarchy. Dark ambient shadows separate overlays and menus from the canvas; cyan shadows belong to primary actions, selected emphasis, and hover feedback. Backdrop blur is reserved for persistent top bars, mobile backdrops, and intentionally translucent controls.
+
+### Shadow Vocabulary
+
+- **Panel Rest** (`0 2px 10px rgba(0, 0, 0, 0.3)`): Default card separation on the dark canvas.
+- **Signal Lift** (`0 8px 24px rgba(0, 217, 255, 0.3)`): Interactive card hover and brand emphasis.
+- **Primary Control** (`0 4px 16px rgba(0, 217, 255, 0.3)`): Resting primary action; expands on hover.
+- **Overlay** (`0 18px 50px rgba(0, 0, 0, 0.45)`): Menus, dialogs, detail panels, and side editors.
+- **Focus Ring** (`0 0 0 3px rgba(0, 217, 255, 0.3)`): Keyboard and field focus against raised graphite.
+
+### Named Rules
+
+**The Layered-at-Rest Rule.** Establish hierarchy with graphite tone and border before reaching for shadow.
+
+**The Cyan Lift Rule.** Cyan glow must correspond to interaction, selection, or primary action; never apply it indiscriminately to every panel.
+
+## Shapes
+
+Acosmibot uses gently rounded geometry with enough firmness to feel like an operational tool. Standard controls and inputs use an 8px radius, menus use 10px, compact tiles and icons use 12px, and primary cards use the distinctive 15px radius. Larger dialogs and marketing moments may reach 16–20px. Pills are reserved for hero calls to action and true capsule controls; avatars and server identities remain circular.
+
+Borders are typically one pixel and low contrast. Signal borders identify selection and focus. Clipping is functional—used for media, embed previews, cards, and contained header treatments—not as ornamental masking.
+
+**The Radius Has Rank Rule.** Radius increases with component scale: controls are tighter than cards, and cards are tighter than dialogs.
+
+**The Pill Is Exceptional Rule.** Do not turn routine dashboard buttons, fields, tags, or cards into capsules.
+
+## Components
+
+Components should feel tactile and confident: substantial enough to invite action, restrained enough to support long configuration sessions.
+
+### Buttons
+
+- **Shape:** Dashboard buttons use a gently curved control radius (8px); homepage hero calls to action use a deliberate pill.
+- **Primary:** Signal Cyan-to-deep-cyan fill, control-black text in the dashboard, semibold weight, and medium-to-generous horizontal padding.
+- **Hover / Focus:** Lift by 1–2px, strengthen the cyan shadow, and retain a clearly visible focus ring. State changes use approximately 200–300ms ease.
+- **Secondary / Ghost:** Raised graphite or transparent fill, Polar White text, and a subtle border that shifts toward the signal border on hover.
+
+### Chips
+
+- **Style:** Compact uppercase labels use translucent semantic fills, a matching low-opacity border, 6px corners, and the label type role.
+- **State:** Enabled is green and explicit; disabled is neutral and muted. Selection chips use the cyan overlay and signal border rather than inventing another accent.
+
+### Cards / Containers
+
+- **Corner Style:** Firm, gently rounded primary cards (15px), with 12–16px variants for smaller modules.
+- **Background:** Control Panel at rest, Control Hover for interaction, and Control Raised for inset regions or headers.
+- **Shadow Strategy:** Use Panel Rest by default and Signal Lift only when the card is interactive.
+- **Border:** One-pixel subtle border at rest; signal border for selection or hover.
+- **Internal Padding:** 20–24px for dashboard panels and 32px for expansive marketing cards.
+
+### Inputs / Fields
+
+- **Style:** Raised graphite fill, subtle border, Polar White value text, Cool Gray supporting copy, and an 8px radius.
+- **Focus:** Shift the border to Signal Cyan and add the cyan focus ring without changing layout.
+- **Error / Disabled:** Disabled fields move down to Control Graphite with muted text and reduced opacity. Errors use the error color in label, border, or helper text and retain readable contrast.
+
+### Navigation
+
+Navigation is compact and sectional. Body-sized item labels use Cool Gray at rest and Polar White when active. Hover introduces the quiet cyan overlay; active state uses the stronger overlay. Section headers use uppercase label typography and Signal Cyan. On mobile, the navigation becomes a drawer with the same hierarchy rather than a separate visual system.
+
+### Feature Toggle
+
+The feature toggle is a signature configuration pattern: a full card combines title, description, explicit Active/Disabled chip, and native switch. Enabled state changes the entire container to the quiet cyan overlay with a signal border, making system state understandable before the user locates the control.
+
+### Save Bar
+
+Unsaved work appears as a fixed, substantial status surface with direct Save and Discard actions. The same component becomes a semantic success or error confirmation after mutation, using a matching border and ambient status shadow while retaining the Control Panel base.
+
+## Do's and Don'ts
+
+### Do:
+
+- **Do** use Signal Cyan to show where the user can act, what is selected, or which value deserves attention.
+- **Do** step through the established graphite surfaces to separate shell, panel, inset, and hover layers.
+- **Do** keep dashboard pages scan-friendly with compact labels, 20–24px panel padding, and 32–40px major-group spacing.
+- **Do** preserve visible hover, focus-visible, active, disabled, loading, success, and error feedback.
+- **Do** retain Poppins and use weight contrast to connect marketing and product surfaces.
+
+### Don't:
+
+- **Don't** flatten the interface into generic enterprise SaaS white, gray, and brand-blue conventions.
+- **Don't** flood large ordinary surfaces with Signal Cyan or persistent neon glow.
+- **Don't** introduce unrelated accent hues for routine features when cyan or a literal status color already communicates the role.
+- **Don't** use pill geometry for routine dashboard controls or inflate card radius beyond its place in the shape hierarchy.
+- **Don't** create page-local shell offsets, sidebars, or mobile navigation rules that conflict with the shared responsive frame.

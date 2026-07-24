@@ -1,0 +1,522 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-24T05:13:09Z",
+  "title": "Design System: Acosmibot",
+  "extensions": {
+    "colorMeta": {
+      "signal-cyan": {
+        "role": "primary",
+        "displayName": "Signal Cyan",
+        "canonical": "#00D9FF",
+        "tonalRamp": [
+          "oklch(15% 0.06 210)",
+          "oklch(26% 0.10 210)",
+          "oklch(38% 0.13 210)",
+          "oklch(50% 0.15 210)",
+          "oklch(62% 0.15 210)",
+          "oklch(74% 0.13 210)",
+          "oklch(86% 0.09 210)",
+          "oklch(95% 0.04 210)"
+        ]
+      },
+      "signal-cyan-bright": {
+        "role": "primary",
+        "displayName": "Bright Signal Cyan",
+        "canonical": "#00F0FF",
+        "tonalRamp": [
+          "oklch(15% 0.06 203)",
+          "oklch(26% 0.10 203)",
+          "oklch(38% 0.13 203)",
+          "oklch(50% 0.15 203)",
+          "oklch(62% 0.15 203)",
+          "oklch(74% 0.13 203)",
+          "oklch(86% 0.09 203)",
+          "oklch(95% 0.04 203)"
+        ]
+      },
+      "signal-cyan-deep": {
+        "role": "secondary",
+        "displayName": "Deep Signal Cyan",
+        "canonical": "#00A0CC",
+        "tonalRamp": [
+          "oklch(15% 0.05 220)",
+          "oklch(26% 0.09 220)",
+          "oklch(38% 0.12 220)",
+          "oklch(50% 0.14 220)",
+          "oklch(62% 0.13 220)",
+          "oklch(74% 0.11 220)",
+          "oklch(86% 0.07 220)",
+          "oklch(95% 0.03 220)"
+        ]
+      },
+      "control-black": {
+        "role": "neutral",
+        "displayName": "Control Black",
+        "canonical": "#1A1A1A",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#252525",
+          "#2A2A2A",
+          "#2D2D2D",
+          "#333333",
+          "#3A3A3A",
+          "#B0B0B0",
+          "#FFFFFF"
+        ]
+      },
+      "control-graphite": {
+        "role": "neutral",
+        "displayName": "Control Graphite",
+        "canonical": "#2A2A2A",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#252525",
+          "#2A2A2A",
+          "#2D2D2D",
+          "#333333",
+          "#3A3A3A",
+          "#B0B0B0",
+          "#FFFFFF"
+        ]
+      },
+      "control-panel": {
+        "role": "neutral",
+        "displayName": "Control Panel",
+        "canonical": "#2D2D2D",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#252525",
+          "#2A2A2A",
+          "#2D2D2D",
+          "#333333",
+          "#3A3A3A",
+          "#B0B0B0",
+          "#FFFFFF"
+        ]
+      },
+      "control-raised": {
+        "role": "neutral",
+        "displayName": "Control Raised",
+        "canonical": "#333333",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#252525",
+          "#2A2A2A",
+          "#2D2D2D",
+          "#333333",
+          "#3A3A3A",
+          "#B0B0B0",
+          "#FFFFFF"
+        ]
+      },
+      "control-hover": {
+        "role": "neutral",
+        "displayName": "Control Hover",
+        "canonical": "#3A3A3A",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#252525",
+          "#2A2A2A",
+          "#2D2D2D",
+          "#333333",
+          "#3A3A3A",
+          "#B0B0B0",
+          "#FFFFFF"
+        ]
+      },
+      "control-overlay": {
+        "role": "neutral",
+        "displayName": "Quiet Cyan Overlay",
+        "canonical": "rgba(0, 217, 255, 0.08)",
+        "tonalRamp": [
+          "rgba(0, 217, 255, 0.03)",
+          "rgba(0, 217, 255, 0.05)",
+          "rgba(0, 217, 255, 0.08)",
+          "rgba(0, 217, 255, 0.12)",
+          "rgba(0, 217, 255, 0.18)",
+          "rgba(0, 217, 255, 0.28)",
+          "rgba(0, 217, 255, 0.45)",
+          "rgba(0, 217, 255, 0.72)"
+        ]
+      },
+      "control-overlay-hover": {
+        "role": "neutral",
+        "displayName": "Active Cyan Overlay",
+        "canonical": "rgba(0, 217, 255, 0.15)",
+        "tonalRamp": [
+          "rgba(0, 217, 255, 0.03)",
+          "rgba(0, 217, 255, 0.05)",
+          "rgba(0, 217, 255, 0.08)",
+          "rgba(0, 217, 255, 0.12)",
+          "rgba(0, 217, 255, 0.18)",
+          "rgba(0, 217, 255, 0.28)",
+          "rgba(0, 217, 255, 0.45)",
+          "rgba(0, 217, 255, 0.72)"
+        ]
+      },
+      "polar-white": {
+        "role": "neutral",
+        "displayName": "Polar White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#333333",
+          "#525252",
+          "#737373",
+          "#949494",
+          "#B0B0B0",
+          "#D9D9D9",
+          "#FFFFFF"
+        ]
+      },
+      "cool-gray": {
+        "role": "neutral",
+        "displayName": "Cool Gray",
+        "canonical": "#B0B0B0",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#333333",
+          "#525252",
+          "#737373",
+          "#949494",
+          "#B0B0B0",
+          "#D9D9D9",
+          "#FFFFFF"
+        ]
+      },
+      "muted-gray": {
+        "role": "neutral",
+        "displayName": "Muted Gray",
+        "canonical": "#808080",
+        "tonalRamp": [
+          "#1A1A1A",
+          "#2A2A2A",
+          "#404040",
+          "#595959",
+          "#6E6E6E",
+          "#808080",
+          "#B0B0B0",
+          "#E6E6E6"
+        ]
+      },
+      "border-subtle": {
+        "role": "neutral",
+        "displayName": "Subtle Border",
+        "canonical": "rgba(255, 255, 255, 0.1)",
+        "tonalRamp": [
+          "rgba(255, 255, 255, 0.03)",
+          "rgba(255, 255, 255, 0.06)",
+          "rgba(255, 255, 255, 0.1)",
+          "rgba(255, 255, 255, 0.14)",
+          "rgba(255, 255, 255, 0.2)",
+          "rgba(255, 255, 255, 0.32)",
+          "rgba(255, 255, 255, 0.5)",
+          "rgba(255, 255, 255, 0.72)"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Strong Border",
+        "canonical": "rgba(255, 255, 255, 0.2)",
+        "tonalRamp": [
+          "rgba(255, 255, 255, 0.03)",
+          "rgba(255, 255, 255, 0.06)",
+          "rgba(255, 255, 255, 0.1)",
+          "rgba(255, 255, 255, 0.14)",
+          "rgba(255, 255, 255, 0.2)",
+          "rgba(255, 255, 255, 0.32)",
+          "rgba(255, 255, 255, 0.5)",
+          "rgba(255, 255, 255, 0.72)"
+        ]
+      },
+      "border-signal": {
+        "role": "primary",
+        "displayName": "Signal Border",
+        "canonical": "rgba(0, 217, 255, 0.4)",
+        "tonalRamp": [
+          "rgba(0, 217, 255, 0.05)",
+          "rgba(0, 217, 255, 0.1)",
+          "rgba(0, 217, 255, 0.18)",
+          "rgba(0, 217, 255, 0.28)",
+          "rgba(0, 217, 255, 0.4)",
+          "rgba(0, 217, 255, 0.55)",
+          "rgba(0, 217, 255, 0.72)",
+          "rgba(0, 217, 255, 0.9)"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "System Success",
+        "canonical": "#00FF88",
+        "tonalRamp": [
+          "oklch(15% 0.05 155)",
+          "oklch(26% 0.09 155)",
+          "oklch(38% 0.13 155)",
+          "oklch(50% 0.16 155)",
+          "oklch(62% 0.18 155)",
+          "oklch(74% 0.15 155)",
+          "oklch(86% 0.10 155)",
+          "oklch(95% 0.04 155)"
+        ]
+      },
+      "error": {
+        "role": "tertiary",
+        "displayName": "System Error",
+        "canonical": "#FF4444",
+        "tonalRamp": [
+          "oklch(15% 0.06 28)",
+          "oklch(26% 0.11 28)",
+          "oklch(38% 0.16 28)",
+          "oklch(50% 0.20 28)",
+          "oklch(62% 0.21 28)",
+          "oklch(74% 0.17 28)",
+          "oklch(86% 0.10 28)",
+          "oklch(95% 0.04 28)"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "System Warning",
+        "canonical": "#FFB800",
+        "tonalRamp": [
+          "oklch(15% 0.05 80)",
+          "oklch(26% 0.09 80)",
+          "oklch(38% 0.13 80)",
+          "oklch(50% 0.16 80)",
+          "oklch(62% 0.18 80)",
+          "oklch(74% 0.15 80)",
+          "oklch(86% 0.10 80)",
+          "oklch(95% 0.04 80)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Homepage hero statements only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Primary page titles and major dashboard destinations."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card headings, section titles, and important control labels."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Instructions, descriptions, supporting content, and dashboard data."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Navigation groups, compact status, and metadata categories."
+      }
+    },
+    "shadows": [
+      {
+        "name": "panel-rest",
+        "value": "0 2px 10px rgba(0, 0, 0, 0.3)",
+        "purpose": "Default card separation on the dark canvas."
+      },
+      {
+        "name": "signal-lift",
+        "value": "0 8px 24px rgba(0, 217, 255, 0.3)",
+        "purpose": "Interactive card hover and brand emphasis."
+      },
+      {
+        "name": "primary-control",
+        "value": "0 4px 16px rgba(0, 217, 255, 0.3)",
+        "purpose": "Resting primary action; expands on hover."
+      },
+      {
+        "name": "overlay",
+        "value": "0 18px 50px rgba(0, 0, 0, 0.45)",
+        "purpose": "Menus, dialogs, detail panels, and side editors."
+      },
+      {
+        "name": "focus-ring",
+        "value": "0 0 0 3px rgba(0, 217, 255, 0.3)",
+        "purpose": "Keyboard and field focus against raised graphite."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-fast",
+        "value": "0.2s ease",
+        "purpose": "Navigation, links, icons, and compact state transitions."
+      },
+      {
+        "name": "state-standard",
+        "value": "0.3s ease",
+        "purpose": "Buttons, cards, inputs, and general interactive feedback."
+      },
+      {
+        "name": "drawer-standard",
+        "value": "0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Mobile navigation and other positional shell transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "pricing-stack",
+        "value": "640px"
+      },
+      {
+        "name": "mobile-shell",
+        "value": "768px"
+      },
+      {
+        "name": "pricing-two-column",
+        "value": "1180px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The principal dashboard action with gradient signal fill and responsive lift.",
+      "html": "<button class=\"ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn-primary { background: linear-gradient(135deg, var(--primary-color, #00D9FF), var(--secondary-color, #00A0CC)); color: #000; padding: 12px 24px; border: 0; border-radius: 8px; font-family: Poppins, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); transition: transform 0.3s ease, box-shadow 0.3s ease; } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); } .ds-btn-primary:focus-visible { outline: 2px solid var(--primary-hover, #00F0FF); outline-offset: 3px; } .ds-btn-primary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A neutral action that stays present without competing with the primary signal.",
+      "html": "<button class=\"ds-btn-secondary\">Discard</button>",
+      "css": ".ds-btn-secondary { background: var(--bg-tertiary, #333333); color: var(--text-primary, #FFFFFF); padding: 12px 24px; border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 8px; font-family: Poppins, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease; } .ds-btn-secondary:hover { background: var(--bg-card-hover, #3A3A3A); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); transform: translateY(-1px); } .ds-btn-secondary:focus-visible { outline: 3px solid var(--primary-dim, rgba(0, 217, 255, 0.3)); outline-offset: 2px; } .ds-btn-secondary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "The standard raised-graphite field with cyan focus and explicit label.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Channel name</span><input class=\"ds-field-input\" type=\"text\" placeholder=\"general\" /></label>",
+      "css": ".ds-field { display: grid; gap: 6px; width: 100%; max-width: 340px; font-family: Poppins, sans-serif; } .ds-field-label { color: var(--text-primary, #FFFFFF); font-size: 14px; font-weight: 500; } .ds-field-input { background: var(--bg-tertiary, #333333); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 8px; color: var(--text-primary, #FFFFFF); padding: 10px 12px; font: 400 14px/1.6 Poppins, sans-serif; transition: border-color 0.3s ease, box-shadow 0.3s ease; } .ds-field-input::placeholder { color: var(--text-muted, #808080); } .ds-field-input:hover { border-color: var(--border-medium, rgba(255, 255, 255, 0.2)); } .ds-field-input:focus-visible { outline: none; border-color: var(--primary-color, #00D9FF); box-shadow: 0 0 0 3px var(--primary-dim, rgba(0, 217, 255, 0.3)); }"
+    },
+    {
+      "name": "Active Navigation Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "A compact sidebar destination with cyan-overlay state and icon.",
+      "html": "<a class=\"ds-nav-item\" href=\"#\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z\" /></svg><span>Overview</span></a>",
+      "css": ".ds-nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: var(--bg-overlay-hover, rgba(0, 217, 255, 0.15)); color: var(--text-primary, #FFFFFF); text-decoration: none; font: 400 14px/1.4 Poppins, sans-serif; transition: background 0.2s ease; } .ds-nav-item svg { width: 16px; height: 16px; fill: var(--primary-color, #00D9FF); flex: 0 0 auto; } .ds-nav-item:hover { background: rgba(0, 217, 255, 0.2); } .ds-nav-item:focus-visible { outline: 2px solid var(--primary-color, #00D9FF); outline-offset: -2px; } .ds-nav-item:active { background: rgba(0, 217, 255, 0.24); }"
+    },
+    {
+      "name": "Feature Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The bordered graphite panel with a restrained cyan interaction signal.",
+      "html": "<article class=\"ds-feature-card\" tabindex=\"0\"><div class=\"ds-feature-icon\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2 2 7l10 5 8.18-4.09V14h2V7L12 2Zm-6 9.05V16l6 3 6-3v-4.95l-6 3-6-3Z\" /></svg></div><h3>Leveling</h3><p>Reward activity with roles, XP, and server-specific progression.</p></article>",
+      "css": ".ds-feature-card { position: relative; overflow: hidden; max-width: 360px; background: var(--bg-card, #2D2D2D); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 16px; padding: 32px; color: var(--text-primary, #FFFFFF); font-family: Poppins, sans-serif; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease; } .ds-feature-card::before { content: ''; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--primary-color, #00D9FF), transparent); opacity: 0; transition: opacity 0.25s ease; } .ds-feature-card:hover { transform: translateY(-3px); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); background: var(--bg-card-hover, #3A3A3A); } .ds-feature-card:hover::before { opacity: 0.6; } .ds-feature-card:focus-visible { outline: 2px solid var(--primary-color, #00D9FF); outline-offset: 3px; } .ds-feature-icon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 20px; border-radius: 12px; background: rgba(0, 217, 255, 0.08); border: 1px solid rgba(0, 217, 255, 0.2); color: var(--primary-color, #00D9FF); } .ds-feature-icon svg { width: 24px; height: 24px; fill: currentColor; } .ds-feature-card h3 { margin: 0 0 12px; font-size: 20px; font-weight: 700; } .ds-feature-card p { margin: 0; color: var(--text-secondary, #B0B0B0); font-size: 15px; line-height: 1.6; }"
+    },
+    {
+      "name": "Active Status Chip",
+      "kind": "chip",
+      "refersTo": "status-chip-active",
+      "description": "An explicit enabled-state label with semantic tint and compact uppercase type.",
+      "html": "<span class=\"ds-chip-active\">Active</span>",
+      "css": ".ds-chip-active { display: inline-flex; align-items: center; padding: 4px 10px; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; background: rgba(0, 255, 136, 0.15); color: var(--success-color, #00FF88); font: 600 11px/1.2 Poppins, sans-serif; letter-spacing: 0.5px; text-transform: uppercase; transition: background 0.2s ease, border-color 0.2s ease; } .ds-chip-active:hover { background: rgba(0, 255, 136, 0.2); border-color: rgba(0, 255, 136, 0.5); } .ds-chip-active:focus-visible { outline: 2px solid var(--success-color, #00FF88); outline-offset: 2px; }"
+    },
+    {
+      "name": "Feature Toggle",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The signature configuration card that makes enabled state visible across the whole container.",
+      "html": "<section class=\"ds-feature-toggle\"><div><h3>Activity monitor</h3><p>Track participation and inactivity across the server.</p></div><div class=\"ds-feature-state\"><span>Active</span><button type=\"button\" role=\"switch\" aria-checked=\"true\" aria-label=\"Activity monitor enabled\"><i></i></button></div></section>",
+      "css": ".ds-feature-toggle { display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 620px; padding: 24px; background: var(--bg-overlay, rgba(0, 217, 255, 0.08)); border: 1px solid var(--border-cyan, rgba(0, 217, 255, 0.4)); border-radius: 15px; color: var(--text-primary, #FFFFFF); font-family: Poppins, sans-serif; } .ds-feature-toggle h3 { margin: 0 0 4px; font-size: 18px; font-weight: 600; } .ds-feature-toggle p { margin: 0; color: var(--text-secondary, #B0B0B0); font-size: 13px; } .ds-feature-state { display: flex; align-items: center; gap: 12px; } .ds-feature-state > span { padding: 4px 10px; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; background: rgba(0, 255, 136, 0.15); color: var(--success-color, #00FF88); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; } .ds-feature-state button { position: relative; width: 48px; height: 24px; padding: 0; border: 1px solid var(--primary-color, #00D9FF); border-radius: 999px; background: var(--primary-color, #00D9FF); cursor: pointer; transition: filter 0.2s ease; } .ds-feature-state button i { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); } .ds-feature-state button:hover { filter: brightness(1.1); } .ds-feature-state button:focus-visible { outline: 3px solid var(--primary-dim, rgba(0, 217, 255, 0.3)); outline-offset: 2px; } .ds-feature-state button:active { filter: brightness(0.95); }"
+    },
+    {
+      "name": "Unsaved Changes Bar",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A persistent status surface that keeps Save and Discard available while configuration is dirty.",
+      "html": "<aside class=\"ds-save-bar\"><span>Unsaved changes</span><div><button class=\"ds-save-discard\">Discard</button><button class=\"ds-save-confirm\">Save</button></div></aside>",
+      "css": ".ds-save-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 680px; padding: 16px 32px; background: var(--bg-card, #2D2D2D); border: 1px solid var(--border-cyan, rgba(0, 217, 255, 0.4)); border-radius: 16px; color: var(--text-primary, #FFFFFF); font: 600 14px/1.4 Poppins, sans-serif; box-shadow: 0 -10px 40px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); } .ds-save-bar > div { display: flex; gap: 8px; } .ds-save-bar button { padding: 9px 16px; border-radius: 8px; font: 600 13px/1.2 Poppins, sans-serif; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; } .ds-save-discard { background: transparent; color: var(--text-primary, #FFFFFF); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); } .ds-save-confirm { background: var(--primary-color, #00D9FF); color: #000; border: 1px solid var(--primary-color, #00D9FF); } .ds-save-bar button:hover { transform: translateY(-1px); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); } .ds-save-bar button:focus-visible { outline: 2px solid var(--primary-hover, #00F0FF); outline-offset: 2px; } .ds-save-bar button:active { transform: translateY(0); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Cyan Command Deck",
+    "overview": "Acosmibot feels like a live command deck for a busy Discord community: dark, focused, and operational, with Signal Cyan marking the controls and information that deserve attention. The interface is confident, technical, and energetic without becoming noisy. Deep graphite layers create a stable working environment; crisp type, compact labels, and responsive feedback keep dense configuration screens easy to scan.\n\nThe system is tactile and confident. Panels separate responsibilities, controls react with short lifts or cyan focus, and the brightest color remains a deliberate signal rather than ambient decoration. Marketing surfaces may increase scale and curvature, while the dashboard stays compact and task-first. Avoid generic enterprise SaaS neutrality: Acosmibot should retain its unmistakable cyan-on-graphite identity and community-tool energy.",
+    "keyCharacteristics": [
+      "Dark operational canvas with clearly stepped graphite surfaces.",
+      "Signal Cyan reserved for actions, active state, focus, and high-value data.",
+      "Single-family Poppins typography with strong weight contrast.",
+      "Rounded, bordered panels that feel substantial without looking soft.",
+      "Fast, visible interaction feedback through lift, glow, and tonal change."
+    ],
+    "rules": [
+      {
+        "name": "The Signal, Not Scenery Rule",
+        "body": "Signal Cyan marks action, state, or meaning; it does not become a large decorative wash behind ordinary content.",
+        "section": "colors"
+      },
+      {
+        "name": "The Graphite Ladder Rule",
+        "body": "Adjacent structural layers must move through the established dark surfaces so hierarchy remains legible even without cyan.",
+        "section": "colors"
+      },
+      {
+        "name": "The Literal Status Rule",
+        "body": "Success, error, and warning colors communicate their state directly and never replace the primary brand signal for ordinary actions.",
+        "section": "colors"
+      },
+      {
+        "name": "The Weight Builds Hierarchy Rule",
+        "body": "Use Poppins weight and size to establish importance; do not introduce a display face to manufacture personality.",
+        "section": "typography"
+      },
+      {
+        "name": "The Uppercase Is Metadata Rule",
+        "body": "Uppercase belongs to short group labels and status chips, never paragraphs or primary actions.",
+        "section": "typography"
+      },
+      {
+        "name": "The Shell Before Page Rule",
+        "body": "Preserve top-bar, rail, sidebar, and content offsets as one responsive system; do not solve page layout by locally compensating for shell geometry.",
+        "section": "layout"
+      },
+      {
+        "name": "The Dense, Never Cramped Rule",
+        "body": "Compact labels and rows may be tight, but interactive targets and panel padding must remain generous enough for confident operation.",
+        "section": "layout"
+      },
+      {
+        "name": "The Layered-at-Rest Rule",
+        "body": "Establish hierarchy with graphite tone and border before reaching for shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Cyan Lift Rule",
+        "body": "Cyan glow must correspond to interaction, selection, or primary action; never apply it indiscriminately to every panel.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Radius Has Rank Rule",
+        "body": "Radius increases with component scale: controls are tighter than cards, and cards are tighter than dialogs.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Pill Is Exceptional Rule",
+        "body": "Do not turn routine dashboard buttons, fields, tags, or cards into capsules.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do use Signal Cyan to show where the user can act, what is selected, or which value deserves attention.",
+      "Do step through the established graphite surfaces to separate shell, panel, inset, and hover layers.",
+      "Do keep dashboard pages scan-friendly with compact labels, 20–24px panel padding, and 32–40px major-group spacing.",
+      "Do preserve visible hover, focus-visible, active, disabled, loading, success, and error feedback.",
+      "Do retain Poppins and use weight contrast to connect marketing and product surfaces."
+    ],
+    "donts": [
+      "Don't flatten the interface into generic enterprise SaaS white, gray, and brand-blue conventions.",
+      "Don't flood large ordinary surfaces with Signal Cyan or persistent neon glow.",
+      "Don't introduce unrelated accent hues for routine features when cyan or a literal status color already communicates the role.",
+      "Don't use pill geometry for routine dashboard controls or inflate card radius beyond its place in the shape hierarchy.",
+      "Don't create page-local shell offsets, sidebars, or mobile navigation rules that conflict with the shared responsive frame."
+    ]
+  }
+}
