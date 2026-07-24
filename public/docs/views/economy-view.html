@@ -59,6 +59,67 @@
   </section>
 
   <section class="docs-section">
+    <h2>Heist Minigames</h2>
+    <p>
+      After a <code>/heist</code> crew forms, every member receives one random interactive job. The briefing reveals each assignment, then the shared heist message runs the jobs one turn at a time in random order. Only the named member can use the controls for their turn.
+    </p>
+    <p>
+      Each turn has a server-configured timer. Passing a job raises the crew's final success chance; failing or timing out lowers it. A job result only changes the final odds: one passed job does not guarantee a successful heist, and one failed job does not end it immediately.
+    </p>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">🔓 Lockpick</div>
+        <div class="command-description">
+          Press the displayed three-number tumbler sequence in exact order using buttons 1–5. One wrong tumbler jams the lock and fails the job.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">💻 Hack the Mainframe</div>
+        <div class="command-description">
+          Memorize the six-digit access code, press <strong>Enter Code</strong>, then type it into the terminal after the shared message hides it.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">✂️ Cut the Wire</div>
+        <div class="command-description">
+          Compare all clues about color temperature and circuit number, then select the only wire that matches every clue.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🥸 Lookout</div>
+        <div class="command-description">
+          Match the target's hat and glasses to one of four suspects. Identify at least two targets correctly across three rounds.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🎒 Pack the Loot</div>
+        <div class="command-description">
+          Toggle the five bags until their combined weight exactly matches the getaway limit, then press <strong>Load the Van</strong>. Every puzzle has a two- or three-bag solution.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🌡️ Thermal Drill</div>
+        <div class="command-description">
+          Use Vent (-12°), Coast (+2°), Drill (+9°), and Boost (+16°) to reach the 72–82° safe band and stay there for two consecutive moves. You have four moves, and going above 95° fails immediately.
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card info-card-info">
+      <h3>Briefing and Timeouts</h3>
+      <p>
+        <strong>Ready Up</strong> only lets the crew start before the briefing countdown ends; missing it does not fail a job. During the active phase, a turn that runs out of time counts as failed and the heist continues to the next crew member.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
     <h2>Commands</h2>
 
     <div class="command-list">
@@ -145,7 +206,7 @@
       <div class="command-card">
         <div class="command-signature">/heist</div>
         <div class="command-description">
-          Rally a crew via a join button, then attempt to rob the server vault. Bigger crews raise the success odds and the total take, but a failed job fines the crew back into the vault. Only one heist can run at a time, and a completed heist starts a per-server cooldown for everyone. Heists also require a minimum vault balance. Only the guild vault is at stake — personal wallets and the global bank are never touched.
+          Rally a crew via a join button, complete turn-based crew jobs, then attempt to rob the server vault using the final odds. More crew members increase the possible total take and provide more jobs that can improve the odds; botched jobs lower them. Only one heist can run at a time, and a completed heist starts a per-server cooldown for everyone. Heists also require a minimum vault balance. Only the guild vault is at stake — personal wallets and the global bank are never touched.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
