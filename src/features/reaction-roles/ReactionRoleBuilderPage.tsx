@@ -313,7 +313,8 @@ export const ReactionRoleBuilderPage: React.FC = () => {
                   {guildRoles.map((r) => <option key={r.id} value={r.id}>@{r.name}</option>)}
                 </select>
               </div>
-              <div id="reaction-role-message-help" className="form-text">
+              <div id="reaction-role-message-help" className="form-text"
+                style={{ color: 'var(--text-muted)', fontSize: 13 }}>
                 Required: add message text here or configure an embed below.
                 Typing @RoleName by hand won't tag the role — use "Insert @role mention" above,
                 and leave "Suppress role pings" unchecked if you want the send to ping.
@@ -393,16 +394,10 @@ export const ReactionRoleBuilderPage: React.FC = () => {
                   <MappingHeader label={`Emoji ${i + 1}`} onRemove={() => setEmojiMappings(emojiMappings.filter((_, j) => j !== i))} />
                   <div className="mb-2">
                     <label className="form-label mb-2 d-block">Emoji</label>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <input className="form-control" type="text" placeholder="😀 or pick one" value={m.emoji}
-                        onChange={(e) => setEmojiMappings(emojiMappings.map((x, j) => j === i ? { ...x, emoji: e.target.value } : x))} />
-                      <button className="btn btn-sm" style={{ background: '#5865F2', color: '#fff', flexShrink: 0 }}
-                        onClick={() => setEmojiTarget(() => (emoji: string) =>
-                          setEmojiMappings((prev) => prev.map((x, j) => j === i ? { ...x, emoji } : x)))}>
-                        Select
-                      </button>
-                      {m.emoji && <span style={{ fontSize: 20 }}><EmojiDisplay emoji={m.emoji} /></span>}
-                    </div>
+                    <EmojiPickerField value={m.emoji}
+                      onPick={() => setEmojiTarget(() => (emoji: string) =>
+                        setEmojiMappings((prev) => prev.map((x, j) => j === i ? { ...x, emoji } : x)))}
+                      onClear={() => setEmojiMappings(emojiMappings.map((x, j) => j === i ? { ...x, emoji: '' } : x))} />
                   </div>
                   <RoleMultiSelect guildId={guildId!} label="Roles" value={m.roleIds}
                     onChange={(roleIds) => setEmojiMappings(emojiMappings.map((x, j) => j === i ? { ...x, roleIds } : x))} />
@@ -433,16 +428,10 @@ export const ReactionRoleBuilderPage: React.FC = () => {
                   </div>
                   <div className="mb-2">
                     <label className="form-label mb-2 d-block">Emoji (optional)</label>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <input className="form-control" type="text" placeholder="😀" value={b.emoji ?? ''}
-                        onChange={(e) => setButtons(buttons.map((x, j) => j === i ? { ...x, emoji: e.target.value } : x))} />
-                      <button className="btn btn-sm" style={{ background: '#5865F2', color: '#fff', flexShrink: 0 }}
-                        onClick={() => setEmojiTarget(() => (emoji: string) =>
-                          setButtons((prev) => prev.map((x, j) => j === i ? { ...x, emoji } : x)))}>
-                        Select
-                      </button>
-                      {b.emoji && <span style={{ fontSize: 20 }}><EmojiDisplay emoji={b.emoji} /></span>}
-                    </div>
+                    <EmojiPickerField value={b.emoji}
+                      onPick={() => setEmojiTarget(() => (emoji: string) =>
+                        setButtons((prev) => prev.map((x, j) => j === i ? { ...x, emoji } : x)))}
+                      onClear={() => setButtons(buttons.map((x, j) => j === i ? { ...x, emoji: undefined } : x))} />
                   </div>
                   <RoleMultiSelect guildId={guildId!} label="Roles" value={b.roleIds}
                     onChange={(roleIds) => setButtons(buttons.map((x, j) => j === i ? { ...x, roleIds } : x))} />
@@ -476,16 +465,10 @@ export const ReactionRoleBuilderPage: React.FC = () => {
                   </div>
                   <div className="mb-2">
                     <label className="form-label mb-2 d-block">Emoji (optional)</label>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <input className="form-control" type="text" placeholder="😀" value={o.emoji ?? ''}
-                        onChange={(e) => setDropdownOptions(dropdownOptions.map((x, j) => j === i ? { ...x, emoji: e.target.value } : x))} />
-                      <button className="btn btn-sm" style={{ background: '#5865F2', color: '#fff', flexShrink: 0 }}
-                        onClick={() => setEmojiTarget(() => (emoji: string) =>
-                          setDropdownOptions((prev) => prev.map((x, j) => j === i ? { ...x, emoji } : x)))}>
-                        Select
-                      </button>
-                      {o.emoji && <span style={{ fontSize: 20 }}><EmojiDisplay emoji={o.emoji} /></span>}
-                    </div>
+                    <EmojiPickerField value={o.emoji}
+                      onPick={() => setEmojiTarget(() => (emoji: string) =>
+                        setDropdownOptions((prev) => prev.map((x, j) => j === i ? { ...x, emoji } : x)))}
+                      onClear={() => setDropdownOptions(dropdownOptions.map((x, j) => j === i ? { ...x, emoji: undefined } : x))} />
                   </div>
                   <RoleMultiSelect guildId={guildId!} label="Roles" value={o.roleIds}
                     onChange={(roleIds) => setDropdownOptions(dropdownOptions.map((x, j) => j === i ? { ...x, roleIds } : x))} />
@@ -560,6 +543,31 @@ const MappingHeader: React.FC<{ label: string; onRemove: () => void }> = ({ labe
       style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
       <X size={16} />
     </button>
+  </div>
+);
+
+/** Emoji chooser rendered as a button (not a typeable field) — all picking goes through the EmojiPicker modal. */
+const EmojiPickerField: React.FC<{ value?: string; onPick: () => void; onClear: () => void }> = ({ value, onPick, onClear }) => (
+  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <button type="button" className="btn btn-sm" onClick={onPick}
+      style={{
+        border: '1px solid var(--border-light)', background: 'var(--bg-tertiary)',
+        color: value ? 'var(--text-primary)' : 'var(--text-muted)',
+        display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px',
+      }}>
+      {value ? (
+        <>
+          <span style={{ fontSize: 20, lineHeight: 1 }}><EmojiDisplay emoji={value} /></span>
+          Change
+        </>
+      ) : 'Pick an emoji…'}
+    </button>
+    {value && (
+      <button type="button" onClick={onClear} title="Clear emoji" aria-label="Clear emoji"
+        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
+        <X size={16} />
+      </button>
+    )}
   </div>
 );
 

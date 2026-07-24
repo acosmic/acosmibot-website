@@ -6,6 +6,7 @@ interface RoleMultiSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
   label?: string;
+  /** Hint shown while no roles are selected */
   placeholder?: string;
 }
 
@@ -14,7 +15,7 @@ export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
   value,
   onChange,
   label,
-  placeholder = 'Select roles...'
+  placeholder = 'No roles selected — choose from the list below'
 }) => {
   const { data: roles, isLoading } = useGuildRoles(guildId);
 
@@ -29,18 +30,22 @@ export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
   return (
     <div className="form-group mb-3">
       {label && <label className="form-label mb-2 d-block">{label}</label>}
-      <div 
-        className="form-control" 
-        style={{ 
-          height: 'auto', 
-          minHeight: '42px', 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          gap: '8px', 
-          padding: '8px' 
+      {/* Selected-roles summary — deliberately not styled as an input; selection happens in the list below */}
+      <div
+        style={{
+          minHeight: '38px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '4px 2px'
         }}
       >
-        {value.length === 0 && <span className="text-muted">{isLoading ? 'Loading roles...' : placeholder}</span>}
+        {value.length === 0 && (
+          <span style={{ color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic' }}>
+            {isLoading ? 'Loading roles...' : placeholder}
+          </span>
+        )}
         {value.map(id => {
           const role = roles?.find(r => r.id === id);
           return (
