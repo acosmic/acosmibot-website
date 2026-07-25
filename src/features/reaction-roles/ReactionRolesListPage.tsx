@@ -45,7 +45,14 @@ export const ReactionRolesListPage: React.FC = () => {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => reactionRolesApi.remove(guildId!, id),
-    onSuccess: () => { showToast('Reaction role deleted', 'success'); invalidate(); },
+    onSuccess: (res) => {
+      if (res.discord_message_deleted === false) {
+        showToast(res.message || 'Deleted, but the Discord message could not be removed', 'error');
+      } else {
+        showToast('Reaction role deleted', 'success');
+      }
+      invalidate();
+    },
     onError: (e) => showToast(e instanceof Error ? e.message : 'Failed to delete', 'error'),
   });
 

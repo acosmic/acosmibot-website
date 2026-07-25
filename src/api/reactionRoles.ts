@@ -35,7 +35,9 @@ export type RRInteractionType = 'emoji' | 'button' | 'dropdown';
 export interface ReactionRole {
   id: number;
   name: string;
+  /** Snowflake — always a string: as a JS number it would round and corrupt on save. */
   channel_id: string | null;
+  message_id?: string | null;
   text_content: string | null;
   allow_removal: boolean;
   interaction_type: RRInteractionType;
@@ -77,12 +79,16 @@ export const reactionRolesApi = {
     })),
 
   update: (guildId: string, rrId: string | number, payload: RRPayload) =>
-    unwrap<ReactionRole>(api.fetch(`/api/guilds/${guildId}/reaction-roles/${rrId}`, {
-      method: 'PUT', body: JSON.stringify(payload),
-    })),
+    api.fetch<{ success: boolean; message?: string; discord_message_updated?: boolean; data?: ReactionRole }>(
+      `/api/guilds/${guildId}/reaction-roles/${rrId}`, { method: 'PUT', body: JSON.stringify(payload) },
+    ).then((r) => {
+      if (!r.success) throw new Error(r.message || 'Request failed');
+      return r;
+    }),
 
   remove: (guildId: string, rrId: number) =>
-    api.fetch<{ success: boolean }>(`/api/guilds/${guildId}/reaction-roles/${rrId}`, { method: 'DELETE' }),
+    api.fetch<{ success: boolean; message?: string; discord_message_deleted?: boolean }>(
+      `/api/guilds/${guildId}/reaction-roles/${rrId}`, { method: 'DELETE' }),
 
   send: (guildId: string, rrId: string | number, suppressRolePings: boolean) =>
     api.fetch<{ success: boolean; message?: string }>(`/api/guilds/${guildId}/reaction-roles/${rrId}/send`, {

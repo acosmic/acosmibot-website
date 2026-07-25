@@ -263,8 +263,12 @@ export const ReactionRoleBuilderPage: React.FC = () => {
     if (!validate()) return;
     setSaving(true);
     try {
-      await reactionRolesApi.update(guildId!, rrId!, { ...buildPayload(), suppress_role_pings: suppressRolePings });
-      showToast('Message updated successfully!', 'success');
+      const res = await reactionRolesApi.update(guildId!, rrId!, { ...buildPayload(), suppress_role_pings: suppressRolePings });
+      if (res.discord_message_updated === false) {
+        showToast(res.message || 'Saved, but the Discord message could not be updated', 'error');
+      } else {
+        showToast('Message updated successfully!', 'success');
+      }
       navigate(`/server/${guildId}/reaction-roles`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Failed to update message', 'error');
