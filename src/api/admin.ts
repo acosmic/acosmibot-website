@@ -31,6 +31,7 @@ export type InterestInterval = 'daily' | 'weekly' | 'monthly';
 export interface AdminEconomySettings {
   deposit_fee_percent: number;
   withdraw_fee_percent: number;
+  transaction_limits_enabled: boolean;
   min_transaction: number;
   max_transaction: number;
   daily_transfer_limit: number;

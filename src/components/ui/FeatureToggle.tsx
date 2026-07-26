@@ -20,10 +20,16 @@ export const FeatureToggle: React.FC<FeatureToggleProps> = ({
 }) => {
   return (
     <div className="card p-4 mb-4" style={{ background: enabled ? 'var(--bg-overlay)' : 'var(--bg-card)', border: enabled ? '1px solid var(--border-cyan)' : undefined }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+      }}>
+        <div style={{ minWidth: 0, flex: '1 1 280px' }}>
           <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>{label}</h3>
-          {description && <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>{description}</p>}
+          {description && <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>{description}</p>}
           {credits && credits.length > 0 && (
             <div style={{ marginTop: '5px', fontSize: '11px', color: 'var(--text-muted)' }}>
               Powered by{' '}
@@ -48,7 +54,7 @@ export const FeatureToggle: React.FC<FeatureToggleProps> = ({
             fontSize: '11px',
             fontWeight: 600,
             padding: '4px 10px',
-            borderRadius: '6px',
+            borderRadius: '8px',
             textTransform: 'uppercase',
             background: enabled ? 'rgba(0, 255, 136, 0.15)' : 'rgba(255, 255, 255, 0.05)',
             color: enabled ? 'var(--success-color)' : 'var(--text-muted)',
@@ -60,6 +66,8 @@ export const FeatureToggle: React.FC<FeatureToggleProps> = ({
             <input
               className="form-check-input"
               type="checkbox"
+              role="switch"
+              aria-label={label}
               checked={enabled}
               onChange={(e) => onChange(e.target.checked)}
               style={{ width: '3em', height: '1.5em', cursor: 'pointer' }}
