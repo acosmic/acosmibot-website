@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-
-const SUPPORT_URL = 'https://discord.gg/hrj7WhCyEv';
+import { COMPANY_BRAND, SUPPORT_DISCORD_URL as SUPPORT_URL } from '@/lib/company';
 
 /** Slim footer for the public pages (profile, leaderboard, servers, etc.). */
 export const SiteFooter: React.FC = () => (
@@ -16,7 +15,7 @@ export const SiteFooter: React.FC = () => (
     fontSize: '13px',
     color: 'var(--text-muted)',
   }}>
-    <span>© {new Date().getFullYear()} Acosmibot</span>
+    <span>© {new Date().getFullYear()} {COMPANY_BRAND}</span>
     <FooterLink href="/terms-of-service">Terms</FooterLink>
     <FooterLink href="/privacy-policy">Privacy</FooterLink>
     <FooterLink href={SUPPORT_URL} external>Support Discord</FooterLink>

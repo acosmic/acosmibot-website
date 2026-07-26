@@ -19,6 +19,9 @@ const row: React.CSSProperties = {
 const compactRow: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0',
 };
+const rankedList: React.CSSProperties = {
+  height: 320, overflowY: 'auto', paddingRight: 6, scrollbarGutter: 'stable',
+};
 const num: React.CSSProperties = { color: 'var(--text-muted)', fontSize: 13, width: 26 };
 const meta: React.CSSProperties = {
   color: 'var(--text-muted)', fontSize: 13, fontVariantNumeric: 'tabular-nums',
@@ -91,47 +94,51 @@ export const AnalyticsTab: React.FC = () => {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
       <div style={panel}>
         <div style={heading}>Most-used commands (all servers)</div>
-        {topCommands.map((c, i) => (
-          <div key={c.name} style={row}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={num}>{i + 1}</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>/{c.name}</span>
-            </span>
-            <span style={meta}>
-              {c.count.toLocaleString()}
-              {c.guilds ? ` · ${c.guilds.toLocaleString()} servers` : ''}
-            </span>
-          </div>
-        ))}
+        <div style={rankedList}>
+          {topCommands.map((c, i) => (
+            <div key={c.name} style={row}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={num}>{i + 1}</span>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>/{c.name}</span>
+              </span>
+              <span style={meta}>
+                {c.count.toLocaleString()}
+                {c.guilds ? ` · ${c.guilds.toLocaleString()} servers` : ''}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={panel}>
         <div style={heading}>Most active servers (by commands)</div>
-        {topGuilds.length === 0 && (
-          <p className="text-muted" style={{ margin: 0 }}>No data yet.</p>
-        )}
-        {topGuilds.map((g, i) => (
-          <div key={g.guild_id} style={row}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-              <span style={num}>{i + 1}</span>
-              <span style={{
-                color: 'var(--text-primary)', fontWeight: 600,
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {g.name}
+        <div style={rankedList}>
+          {topGuilds.length === 0 && (
+            <p className="text-muted" style={{ margin: 0 }}>No data yet.</p>
+          )}
+          {topGuilds.map((g, i) => (
+            <div key={g.guild_id} style={row}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                <span style={num}>{i + 1}</span>
+                <span style={{
+                  color: 'var(--text-primary)', fontWeight: 600,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {g.name}
+                </span>
               </span>
-            </span>
-            <span style={meta}>
-              {g.count.toLocaleString()}
-              {g.users ? ` · ${g.users.toLocaleString()} users` : ''}
-            </span>
-          </div>
-        ))}
+              <span style={meta}>
+                {g.count.toLocaleString()}
+                {g.users ? ` · ${g.users.toLocaleString()} users` : ''}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={panel}>
         <div style={heading}>Top reactions (all servers)</div>
-        <div style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 6 }}>
+        <div style={rankedList}>
           {topReactions.map((r, i) => (
             <div key={r.emoji_key} style={compactRow}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

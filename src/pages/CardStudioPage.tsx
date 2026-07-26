@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BadgePercent, Check, Hourglass, TriangleAlert } from 'lucide-react';
 import { CenteredMessage } from '@/components/ui/CenteredMessage';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 import { profileApi, type PublicProfile } from '@/api/profile';
 import {
@@ -58,8 +57,6 @@ export const CardStudioPage: React.FC = () => {
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-  useHydrateAuthUser();
 
   // Owner-only: bounce signed-out visitors home.
   useEffect(() => {
@@ -164,7 +161,7 @@ export const CardStudioPage: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={authUser} />
+      <PublicNav />
 
       <div style={{ flex: 1, padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
         <header style={{ marginBottom: '24px' }}>

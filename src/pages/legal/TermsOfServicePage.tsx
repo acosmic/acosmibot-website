@@ -1,18 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LegalLayout, LegalSection } from './LegalLayout';
-
-const SUPPORT_URL = 'https://discord.gg/hrj7WhCyEv';
+import { LegalLayout, LegalSection, LegalSubheading } from './LegalLayout';
+import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL } from '@/lib/company';
 
 export const TermsOfServicePage: React.FC = () => (
   <LegalLayout
     title="Terms of Service"
     subtitle="Please read these terms carefully before using Acosmibot"
-    lastUpdated="October 29, 2025"
+    lastUpdated="July 25, 2026"
   >
     <LegalSection title="1. Introduction">
-      <p>Welcome to Acosmibot! By using our Discord bot and related services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use Acosmibot.</p>
-      <p>These terms govern your access to and use of Acosmibot, including any features, content, and services provided through the bot.</p>
+      <p>Welcome to Acosmibot! Acosmibot is operated by <strong>{COMPANY_NAME}</strong>, a {COMPANY_STATE} limited liability company ("{COMPANY_NAME}", "we", "us", or "our"). By using our Discord bot and related services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use Acosmibot.</p>
+      <p>These terms govern your access to and use of Acosmibot, including any features, content, and services provided through the bot, the Acosmibot website, and any paid subscriptions.</p>
     </LegalSection>
 
     <LegalSection title="2. Service Description">
@@ -62,7 +61,48 @@ export const TermsOfServicePage: React.FC = () => (
       </ul>
     </LegalSection>
 
-    <LegalSection title="6. Gambling & Games Disclaimer">
+    <LegalSection title="6. Subscriptions, Billing & Refunds">
+      <p>Acosmibot offers optional paid subscription tiers. The following terms apply to any purchase you make.</p>
+
+      <LegalSubheading>6.1 Payment Processing</LegalSubheading>
+      <p>Payments are processed by Stripe, Inc. on our behalf. {COMPANY_NAME} does not receive or store your full card number. Your use of Stripe's checkout is additionally subject to Stripe's own terms and privacy policy. Charges will appear on your statement under a descriptor associated with {COMPANY_NAME}.</p>
+
+      <LegalSubheading>6.2 Automatic Renewal</LegalSubheading>
+      <ul>
+        <li>Subscriptions renew automatically at the end of each billing period (monthly or annual, as selected at checkout) until cancelled</li>
+        <li>Your payment method is charged at the start of each new billing period</li>
+        <li>All prices are listed in U.S. dollars and exclude any applicable taxes</li>
+        <li>We may change subscription prices; changes take effect at your next renewal, and we will provide notice before the change applies to you</li>
+      </ul>
+
+      <LegalSubheading>6.3 Cancellation</LegalSubheading>
+      <ul>
+        <li>You may cancel at any time from the billing portal on the Acosmibot website</li>
+        <li>Cancellation stops future renewals; your subscription remains active through the end of the period you already paid for</li>
+        <li>We do not provide prorated refunds for the unused portion of a billing period</li>
+      </ul>
+
+      <LegalSubheading>6.4 Refunds</LegalSubheading>
+      <ul>
+        <li>Payments are generally non-refundable once the billing period has begun</li>
+        <li>We will refund a charge where the service was materially unavailable for an extended period, where you were billed in error, or where a refund is required by applicable law</li>
+        <li>Refund requests must be made within 30 days of the charge, through our{' '}
+          <a href={SUPPORT_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)' }}>Discord support server</a></li>
+        <li>Refunds are issued to the original payment method</li>
+        <li>Nothing here limits statutory cancellation or refund rights you may have as a consumer in your jurisdiction</li>
+      </ul>
+
+      <LegalSubheading>6.5 Failed Payments &amp; Chargebacks</LegalSubheading>
+      <ul>
+        <li>If a payment fails, premium features may be suspended until payment succeeds</li>
+        <li>Initiating a chargeback instead of contacting us may result in termination of access; we ask that you contact us first so we can resolve the issue directly</li>
+      </ul>
+
+      <LegalSubheading>6.6 What a Subscription Is Not</LegalSubheading>
+      <p>A subscription grants access to features of the Acosmibot service for the paid period. It does not purchase virtual currency, virtual items, or any asset with real-world value (see Section 5), and it does not guarantee that any specific feature will remain available indefinitely (see Section 10).</p>
+    </LegalSection>
+
+    <LegalSection title="7. Gambling & Games Disclaimer">
       <p>Acosmibot includes gambling features such as slots, blackjack, and other games of chance. Please note:</p>
       <ul>
         <li>All gambling is conducted with virtual currency that has no real-world value</li>
@@ -73,7 +113,7 @@ export const TermsOfServicePage: React.FC = () => (
       </ul>
     </LegalSection>
 
-    <LegalSection title="7. AI Chat Services">
+    <LegalSection title="8. AI Chat Services">
       <p>Acosmibot uses third-party AI services (OpenAI) to provide chat functionality:</p>
       <ul>
         <li>AI responses are generated automatically and may not always be accurate</li>
@@ -83,7 +123,7 @@ export const TermsOfServicePage: React.FC = () => (
       </ul>
     </LegalSection>
 
-    <LegalSection title="8. Limitations of Liability">
+    <LegalSection title="9. Limitations of Liability">
       <p>Acosmibot is provided "as is" without warranties of any kind, either express or implied. We are not liable for:</p>
       <ul>
         <li>Service interruptions, downtime, or data loss</li>
@@ -92,10 +132,11 @@ export const TermsOfServicePage: React.FC = () => (
         <li>Third-party services or content accessed through the bot</li>
         <li>Actions taken by server administrators using bot management features</li>
       </ul>
-      <p>To the maximum extent permitted by law, our total liability shall not exceed $0.</p>
+      <p>To the maximum extent permitted by law, the total liability of {COMPANY_NAME} arising out of or relating to these terms or your use of Acosmibot shall not exceed the greater of (a) the total amount you paid us in the twelve (12) months preceding the claim, or (b) $50 USD. We are not liable for indirect, incidental, special, consequential, or punitive damages, or for lost profits or lost data.</p>
+      <p>Some jurisdictions do not allow the exclusion of certain warranties or the limitation of certain damages; in those jurisdictions, our liability is limited to the greatest extent permitted by law.</p>
     </LegalSection>
 
-    <LegalSection title="9. Service Modifications">
+    <LegalSection title="10. Service Modifications">
       <p>We reserve the right to:</p>
       <ul>
         <li>Modify, suspend, or discontinue any part of Acosmibot at any time</li>
@@ -106,7 +147,7 @@ export const TermsOfServicePage: React.FC = () => (
       <p>Continued use of Acosmibot after changes constitutes acceptance of the modified terms.</p>
     </LegalSection>
 
-    <LegalSection title="10. Termination">
+    <LegalSection title="11. Termination">
       <p>We reserve the right to terminate or suspend your access to Acosmibot at any time, with or without cause, and with or without notice. Reasons for termination may include:</p>
       <ul>
         <li>Violation of these Terms of Service</li>
@@ -116,13 +157,20 @@ export const TermsOfServicePage: React.FC = () => (
       </ul>
     </LegalSection>
 
-    <LegalSection title="11. Changes to Terms">
+    <LegalSection title="12. Governing Law & Disputes">
+      <p>These Terms of Service are governed by the laws of the State of {COMPANY_STATE}, United States, without regard to its conflict of law principles.</p>
+      <p>Any dispute arising out of or relating to these terms or your use of Acosmibot shall be brought exclusively in the state or federal courts located in {COMPANY_STATE}, and you consent to the personal jurisdiction of those courts. This does not affect any right you may have to bring a claim in your local courts where applicable consumer law grants it.</p>
+      <p>If any provision of these terms is found unenforceable, the remaining provisions remain in full force and effect.</p>
+    </LegalSection>
+
+    <LegalSection title="13. Changes to Terms">
       <p>We may update these Terms of Service from time to time. Changes will be effective immediately upon posting. Your continued use of Acosmibot after changes are posted constitutes acceptance of the new terms.</p>
       <p>We encourage you to review these terms periodically to stay informed about your rights and obligations.</p>
     </LegalSection>
 
-    <LegalSection title="12. Contact Information">
-      <p>If you have questions about these Terms of Service or need support, please contact us through our{' '}
+    <LegalSection title="14. Contact Information">
+      <p>Acosmibot is operated by <strong>{COMPANY_NAME}</strong> ({COMPANY_STATE}, United States).</p>
+      <p>For questions about these Terms of Service, billing, or support, contact us through our{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)' }}>Discord support server</a>.</p>
     </LegalSection>
   </LegalLayout>

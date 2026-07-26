@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { useAuthStore } from '@/store/auth';
+import { COMPANY_BRAND } from '@/lib/company';
 import '@/styles/home.css';
 
 const DISCORD_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
@@ -357,7 +358,7 @@ export const HomePage: React.FC = () => {
             Support Development
           </button>
         </div>
-        <div className="footer-copyright">© 2026 Acosmibot. All rights reserved.</div>
+        <div className="footer-copyright">© {new Date().getFullYear()} {COMPANY_BRAND}. All rights reserved.</div>
       </footer>
 
       {/* ── Donation Modal ──────────────────────────────────── */}

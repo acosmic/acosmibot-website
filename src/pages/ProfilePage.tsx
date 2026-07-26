@@ -5,7 +5,7 @@ import { Flame, Hourglass, Lock, Palette, Settings, Trophy, type LucideIcon } fr
 import { CenteredMessage } from '@/components/ui/CenteredMessage';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import { profileApi, type PublicProfile, type TopCommand, type TopReaction } from '@/api/profile';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { DailyReward } from '@/components/profile/DailyReward';
 import { NotificationList } from '@/components/profile/NotificationList';
@@ -13,7 +13,7 @@ import { TrophyCase } from '@/components/profile/TrophyCase';
 import { InventorySection } from '@/components/profile/InventorySection';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
 import { buildGlobalRankCardData, buildRankCardData } from '@/cards/buildRankCardData';
-import { startLogin, useHydrateAuthUser } from '@/lib/auth';
+import { startLogin } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
 const DOCS_URL = '/docs/introduction';
@@ -32,10 +32,6 @@ export const ProfilePage: React.FC = () => {
   const authUser = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const isAuthed = !!token;
-
-  // /u/<name> isn't wrapped in DashboardShell, so hydrate the logged-in user
-  // from /auth/me — otherwise we can't tell the owner apart from a visitor.
-  useHydrateAuthUser();
 
   // Is the signed-in user looking at their own profile? (username or id match)
   const viewingOwn =
@@ -63,7 +59,7 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={authUser} />
+      <PublicNav />
 
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
         {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading profile…" />}

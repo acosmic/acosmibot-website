@@ -1,17 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { HighlightBox, LegalLayout, LegalSection, LegalSubheading } from './LegalLayout';
-
-const SUPPORT_URL = 'https://discord.gg/hrj7WhCyEv';
+import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL } from '@/lib/company';
 
 export const PrivacyPolicyPage: React.FC = () => (
   <LegalLayout
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="April 18, 2026"
+    lastUpdated="July 25, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
+      <p>Acosmibot is operated by <strong>{COMPANY_NAME}</strong>, a {COMPANY_STATE} limited liability company, which is the data controller responsible for the information described in this policy.</p>
       <p>By using Acosmibot, you consent to the data practices described in this policy. If you do not agree with this policy, please discontinue use of our services.</p>
       <HighlightBox>
         <p style={{ margin: 0 }}><strong>Important:</strong> Acosmibot is not affiliated with Discord Inc. We are an independent third-party bot operating on the Discord platform.</p>
@@ -69,6 +69,17 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Member Count:</strong> Number of members in the server</li>
         <li><strong>Configuration Settings:</strong> Bot feature settings customized by server administrators</li>
       </ul>
+
+      <LegalSubheading>2.7 Subscription &amp; Billing Data</LegalSubheading>
+      <p>If you purchase a paid subscription, we record the information needed to provision and manage it:</p>
+      <ul>
+        <li><strong>Subscription Records:</strong> Tier, billing interval, status, renewal and cancellation dates</li>
+        <li><strong>Processor Identifiers:</strong> The Stripe customer and subscription IDs linked to your account</li>
+        <li><strong>Purchase History:</strong> Which server a subscription applies to and when it was purchased</li>
+      </ul>
+      <HighlightBox>
+        <p style={{ margin: 0 }}><strong>We never see your card details.</strong> Card numbers, billing addresses, and other payment credentials are collected and stored by Stripe, not by {COMPANY_NAME}.</p>
+      </HighlightBox>
     </LegalSection>
 
     <LegalSection title="3. How We Use Your Data">
@@ -80,6 +91,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Analytics:</strong> To understand usage patterns and improve bot features</li>
         <li><strong>Communication:</strong> To send announcements, notifications, and support responses</li>
         <li><strong>Security:</strong> To detect and prevent abuse, fraud, or violations of our Terms of Service</li>
+        <li><strong>Billing:</strong> To provision paid subscriptions, process renewals and cancellations, and meet tax and accounting obligations</li>
       </ul>
       <p>We do <strong>not</strong> sell, rent, or trade your personal information to third parties for marketing purposes.</p>
     </LegalSection>
@@ -99,7 +111,16 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li>OpenAI's data retention policies apply to AI chat interactions</li>
       </ul>
 
-      <LegalSubheading>4.3 Database &amp; Hosting</LegalSubheading>
+      <LegalSubheading>4.3 Stripe (Payments)</LegalSubheading>
+      <p>Paid subscriptions are processed by Stripe, Inc., which acts as our payment processor. When you check out:</p>
+      <ul>
+        <li>Your payment details are submitted directly to Stripe and are never transmitted to or stored on our servers</li>
+        <li>We share your Discord user ID and the relevant server ID with Stripe so that a payment can be matched to the correct account</li>
+        <li>Stripe returns subscription status and customer identifiers to us so we can grant and revoke premium access</li>
+        <li>Stripe's handling of your data is governed by its own privacy policy, and Stripe may use payment data for fraud prevention as an independent controller</li>
+      </ul>
+
+      <LegalSubheading>4.4 Database &amp; Hosting</LegalSubheading>
       <p>Your data is stored on secure database servers provided by trusted hosting providers. These providers have access to infrastructure but do not actively access or use your data.</p>
     </LegalSection>
 
@@ -124,6 +145,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Inactive Users:</strong> Data may be retained indefinitely for historical leaderboards and statistics</li>
         <li><strong>Deleted Accounts:</strong> If you delete your Discord account, associated data may remain until manually requested for deletion</li>
         <li><strong>Server Removal:</strong> When Acosmibot is removed from a server, per-server data is retained for potential re-addition</li>
+        <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
       </ul>
       <p>To request data deletion, please contact us through our Discord support server.</p>
     </LegalSection>
@@ -176,6 +198,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     </LegalSection>
 
     <LegalSection title="12. Contact Information">
+      <p>Acosmibot is operated by <strong>{COMPANY_NAME}</strong> ({COMPANY_STATE}, United States), the data controller for the purposes of this policy.</p>
       <p>If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us through our{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)' }}>Discord support server</a>.</p>
       <p>We will respond to inquiries within a reasonable timeframe and work to address your concerns in accordance with applicable privacy laws.</p>

@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Check, Trophy } from 'lucide-react';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import { achievementsApi, type AchievementCatalogEntry } from '@/api/achievements';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { startLogin, useHydrateAuthUser } from '@/lib/auth';
+import { startLogin } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 
 const TIER_COLORS: Record<string, string> = {
@@ -28,8 +28,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 export const AchievementsPage: React.FC = () => {
   const authUser = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
-  useHydrateAuthUser();
-
   const { data, isLoading } = useQuery({
     queryKey: ['achievements', 'catalog'],
     queryFn: () => achievementsApi.getCatalog(),
@@ -47,7 +45,7 @@ export const AchievementsPage: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={authUser} />
+      <PublicNav />
 
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: 960, margin: '0 auto', width: '100%' }}>
         <nav style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '14px' }}>

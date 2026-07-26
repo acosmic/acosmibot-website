@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowDown, ArrowUp } from 'lucide-react';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import { useAuthStore } from '@/store/auth';
 import { RagTab } from './RagTab';
@@ -226,7 +227,7 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const { token, user } = useAuthStore();
+  const token = useAuthStore((state) => state.token);
   const [tab, setTab] = useState<'signins' | 'servers' | 'rag' | 'botstats' | 'ai' | 'economy' | 'features' | 'cosmetics' | 'achievements' | 'items' | 'analytics'>('signins');
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -277,19 +278,7 @@ export const AdminPage: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {/* Nav */}
-      <nav style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-light)', padding: '12px 0' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 24 }}>
-          <a href="/" style={{ display: 'flex', alignItems: 'center' }}>
-            <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" style={{ height: 32 }} />
-          </a>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>/</span>
-          <span style={{ fontWeight: 600, color: '#f59e0b' }}>Admin</span>
-          <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            {user?.username}
-          </span>
-        </div>
-      </nav>
+      <PublicNav />
 
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '32px 24px' }}>
         <h1 style={{ marginBottom: 8 }}>Admin Dashboard</h1>

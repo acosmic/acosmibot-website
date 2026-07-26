@@ -5,10 +5,9 @@ import { Hourglass, TriangleAlert } from 'lucide-react';
 import { CenteredMessage } from '@/components/ui/CenteredMessage';
 import { profileApi, type PublicProfile, type PrivacySettings } from '@/api/profile';
 import { OwnerSettings } from '@/components/profile/OwnerSettings';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { ConnectedAccountsSettings } from '@/components/profile/ConnectedAccountsSettings';
-import { useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 import { spotifyApi, type SpotifyStatus } from '@/api/spotify';
 import { showToast } from '@/utils/toast';
@@ -20,12 +19,9 @@ import { showToast } from '@/utils/toast';
  * public profile (`/u/<name>`) just links here.
  */
 export const SettingsPage: React.FC = () => {
-  const authUser = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-  useHydrateAuthUser();
 
   // You can only manage your own settings — bounce signed-out visitors home.
   useEffect(() => {
@@ -68,7 +64,7 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={authUser} />
+      <PublicNav />
 
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: '720px', margin: '0 auto', width: '100%' }}>
         {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading settings…" />}

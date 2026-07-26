@@ -11,7 +11,7 @@ import {
 } from '@/api/leaderboard';
 import { profileApi } from '@/api/profile';
 import { PublicNav } from '@/components/layout/PublicNav';
-import { DiscordLogo } from '@/components/profile/ProfileNav';
+import { DiscordLogo } from '@/components/ui/DiscordLogo';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';

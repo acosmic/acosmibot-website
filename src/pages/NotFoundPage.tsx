@@ -1,19 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { useHydrateAuthUser } from '@/lib/auth';
-import { useAuthStore } from '@/store/auth';
 
 /** Shown for any route the SPA doesn't know, instead of silently
  *  redirecting to the home page. */
 export const NotFoundPage: React.FC = () => {
-  const authUser = useAuthStore((s) => s.user);
-  useHydrateAuthUser();
-
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={authUser} />
+      <PublicNav />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 24px', textAlign: 'center' }}>
         <div style={{ fontSize: '64px', fontWeight: 800, color: 'var(--primary-color)', lineHeight: 1 }}>404</div>

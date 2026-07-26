@@ -1,8 +1,6 @@
 import React from 'react';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { useAuthStore } from '@/store/auth';
-import { useHydrateAuthUser } from '@/lib/auth';
 
 /** Shared shell + typography for the Terms / Privacy pages. */
 export const LegalLayout: React.FC<{
@@ -11,12 +9,9 @@ export const LegalLayout: React.FC<{
   lastUpdated: string;
   children: React.ReactNode;
 }> = ({ title, subtitle, lastUpdated, children }) => {
-  const user = useAuthStore((s) => s.user);
-  useHydrateAuthUser();
-
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={user} />
+      <PublicNav />
       <main style={{ flex: 1, padding: '40px 24px', maxWidth: '860px', margin: '0 auto', width: '100%' }}>
         <header style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{title}</h1>
