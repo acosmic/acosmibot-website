@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
   FileText, Gem, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
   Sparkles, Ticket, TrendingUp, TvMinimalPlay, VenetianMask,
   type LucideIcon,
 } from 'lucide-react';
+import { PublicNav } from '@/components/layout/PublicNav';
 import '@/styles/docs.css';
 
 // ── Navigation structure (mirrors docs-search.js) ──────────────
@@ -146,24 +147,16 @@ export const DocsPage: React.FC = () => {
   return (
     <div className="docs-layout">
 
-      {/* ── Top Bar ─────────────────────────────────────────── */}
-      <header className="docs-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            className={`docs-mobile-toggle${sidebarOpen ? ' open' : ''}`}
-            onClick={() => setSidebar(v => !v)}
-            aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-          >
-            <span /><span /><span />
-          </button>
-          <Link to="/" className="docs-topbar-logo">
-            <img src="/images/acosmibot_website-logo.png" alt="Acosmibot" />
-          </Link>
-        </div>
-        <div className="docs-topbar-right">
-          <a href="/servers" style={{ color: 'var(--primary-color)' }}>Dashboard</a>
-        </div>
-      </header>
+      <PublicNav />
+
+      <button
+        className={`docs-mobile-toggle${sidebarOpen ? ' open' : ''}`}
+        onClick={() => setSidebar(v => !v)}
+        aria-label={sidebarOpen ? 'Close documentation sidebar' : 'Open documentation sidebar'}
+        aria-expanded={sidebarOpen}
+      >
+        <span /><span /><span />
+      </button>
 
       {/* ── Mobile Backdrop ─────────────────────────────────── */}
       <div

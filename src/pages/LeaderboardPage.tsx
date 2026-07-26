@@ -10,7 +10,8 @@ import {
   type GuildEntry,
 } from '@/api/leaderboard';
 import { profileApi } from '@/api/profile';
-import { ProfileNav, DiscordLogo } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
+import { DiscordLogo } from '@/components/profile/ProfileNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
@@ -34,7 +35,7 @@ export const LeaderboardPage: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={authUser} />
+      <PublicNav />
       <div style={{ flex: 1, padding: '40px 24px', maxWidth: '760px', margin: '0 auto', width: '100%' }}>
         {guildId ? (
           <GuildBoard guildId={guildId} isAuthed={isAuthed} meId={authUser?.id} />
@@ -326,4 +327,3 @@ const PrimaryButton: React.FC<{ onClick: () => void; children: React.ReactNode }
     {children}
   </button>
 );
-

@@ -1,0 +1,492 @@
+:root {
+  --public-nav-height: 71px;
+}
+
+.public-nav {
+  position: relative;
+  z-index: 1000;
+  height: var(--public-nav-height);
+  padding: 15px 0;
+  background: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 2px 10px var(--shadow-light);
+}
+
+.public-nav__container {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.public-nav__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.public-nav__logo,
+.public-nav__drawer-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.public-nav__logo img {
+  width: auto;
+  height: 40px;
+}
+
+.public-nav__links,
+.public-nav__drawer-links {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.public-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.public-nav__links li,
+.public-nav__drawer-links li {
+  list-style: none;
+}
+
+.public-nav__links a {
+  position: relative;
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.public-nav__links a:hover,
+.public-nav__links a:focus-visible {
+  color: var(--primary-color);
+  background: var(--bg-overlay);
+  transform: translateY(-2px);
+}
+
+.public-nav__links a:focus-visible,
+.public-nav__login:focus-visible,
+.public-nav__hamburger:focus-visible,
+.public-nav__account-trigger:focus-visible,
+.public-nav__drawer-close:focus-visible,
+.public-nav__drawer-links a:focus-visible,
+.public-nav__drawer-account:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
+}
+
+.public-nav__login {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary-color);
+  color: var(--bg-primary);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.public-nav__login:hover {
+  box-shadow: 0 4px 12px rgba(0, 217, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.public-nav__discord-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.public-nav__account {
+  position: relative;
+}
+
+.public-nav__account-trigger {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.public-nav__avatar,
+.public-nav__drawer-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--bg-card);
+  background-position: center;
+  background-size: cover;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.public-nav__avatar {
+  width: 44px;
+  height: 44px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.public-nav__account-trigger:hover .public-nav__avatar {
+  box-shadow: 0 0 0 2px var(--primary-color);
+  transform: scale(1.05);
+}
+
+.public-nav__account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1001;
+  min-width: 200px;
+  padding: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  box-shadow: 0 10px 30px var(--shadow-light);
+}
+
+.public-nav__account-name {
+  padding: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-nav__account-menu a,
+.public-nav__account-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.public-nav__account-menu a:hover,
+.public-nav__account-menu button:hover,
+.public-nav__account-menu a:focus-visible,
+.public-nav__account-menu button:focus-visible {
+  outline: none;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.public-nav__account-divider {
+  height: 1px;
+  margin: 5px 0;
+  background: var(--border-light);
+}
+
+.public-nav__account-menu .public-nav__logout {
+  gap: 8px;
+  color: var(--error-color);
+}
+
+.public-nav__logout svg {
+  width: 16px;
+  height: 16px;
+}
+
+.public-nav__links .public-nav__admin-link,
+.public-nav__drawer-links .public-nav__admin-link,
+.public-nav__account-menu .public-nav__admin-link {
+  color: var(--warning-color);
+}
+
+.public-nav__hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.public-nav__hamburger:hover {
+  background: var(--bg-overlay);
+}
+
+.public-nav__hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 3px;
+  background: var(--text-primary);
+  transform-origin: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.public-nav__hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.public-nav__hamburger.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.public-nav__hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.public-nav__backdrop {
+  position: fixed;
+  inset: var(--public-nav-height) 0 0;
+  z-index: 1090;
+  visibility: hidden;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  backdrop-filter: blur(2px);
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.public-nav__backdrop.open {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.public-nav__drawer {
+  position: fixed;
+  top: var(--public-nav-height);
+  bottom: 0;
+  left: 0;
+  z-index: 1100;
+  display: flex;
+  visibility: hidden;
+  flex-direction: column;
+  width: min(280px, 86vw);
+  overflow-y: auto;
+  border-right: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.3s;
+}
+
+.public-nav__drawer.open {
+  visibility: visible;
+  transform: translateX(0);
+  transition-delay: 0s;
+}
+
+.public-nav__drawer-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+}
+
+.public-nav__drawer-logo img {
+  width: auto;
+  height: 32px;
+}
+
+.public-nav__drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.public-nav__drawer-links {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.public-nav__drawer-links a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  width: 100%;
+  padding: 14px 20px;
+  border-left: 3px solid transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.public-nav__drawer-links a:hover {
+  border-left-color: var(--primary-color);
+  background: var(--bg-overlay);
+  color: var(--primary-color);
+}
+
+.public-nav__drawer-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.public-nav__drawer-login {
+  justify-content: center;
+  width: 100%;
+}
+
+.public-nav__drawer-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-nav__drawer-avatar {
+  width: 34px;
+  height: 34px;
+}
+
+.public-nav__drawer-account-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.public-nav__drawer-account-copy > span {
+  overflow: hidden;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-nav__drawer-account-copy small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+@media (max-width: 960px) {
+  .public-nav__links {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --public-nav-height: 75px;
+  }
+
+  .public-nav {
+    z-index: 1200;
+  }
+
+  .public-nav__container {
+    padding: 0 12px;
+  }
+
+  .public-nav__content {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .public-nav__hamburger {
+    display: flex;
+    order: 1;
+    flex-shrink: 0;
+  }
+
+  .public-nav__logo {
+    order: 2;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .public-nav__logo img {
+    width: auto;
+    max-width: min(230px, 100%);
+    height: 32px;
+    object-fit: contain;
+  }
+
+  .public-nav__links {
+    display: none;
+  }
+
+  .public-nav__login,
+  .public-nav__account {
+    order: 3;
+    flex-shrink: 0;
+  }
+
+  .public-nav__content > .public-nav__login {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .public-nav__content > .public-nav__login .public-nav__discord-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .public-nav__drawer-header {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-nav *,
+  .public-nav__backdrop,
+  .public-nav__drawer {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

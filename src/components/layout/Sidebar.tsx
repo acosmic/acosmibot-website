@@ -149,7 +149,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavItem to={`/server/${guildId}/jail`} icon="jail" label="Jail" onClick={onClose} />
               </NavSection>
 
-              <NavSection title="GAMES AND GAMBLING">
+              <NavSection title="GAMES">
                 <NavItem to={`/server/${guildId}/games`} icon="slots" label="Games" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/lottery`} icon="lottery" label="Lottery" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/giveaway`} icon="giveaway" label="Giveaway" onClick={onClose} />

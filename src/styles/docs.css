@@ -2,58 +2,18 @@
 /* Variables come from globals.css */
 
 .docs-layout {
-  display: flex;
   height: 100vh;
   background: var(--bg-primary);
   font-family: 'Poppins', sans-serif;
 }
 
-/* ── Top Bar ─────────────────────────────────────────────── */
-.docs-topbar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 56px;
-  background: rgba(26, 26, 26, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-light);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  z-index: 200;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.docs-topbar-logo {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-}
-
-.docs-topbar-logo img { height: 32px; width: auto; }
-
-.docs-topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.docs-topbar-right a {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 0.2s;
-}
-
-.docs-topbar-right a:hover { color: var(--primary-color); }
-
 /* ── Sidebar ─────────────────────────────────────────────── */
 .docs-sidebar {
   position: fixed;
-  top: 56px;
+  top: var(--public-nav-height);
   left: 0;
   width: 280px;
-  height: calc(100vh - 56px);
+  height: calc(100vh - var(--public-nav-height));
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-light);
   overflow-y: auto;
@@ -153,10 +113,8 @@
 /* ── Main Content ────────────────────────────────────────── */
 .docs-content {
   margin-left: 280px;
-  margin-top: 56px;
-  flex: 1;
   background: #252525;
-  min-height: calc(100vh - 56px);
+  height: calc(100vh - var(--public-nav-height));
   overflow-y: auto;
 }
 
@@ -373,7 +331,16 @@
 .docs-content-inner .question p { color: #B0B0B0; font-size: 14px; line-height: 1.6; margin: 0; }
 
 @media (max-width: 768px) {
-  .docs-mobile-toggle { display: flex; }
+  .docs-mobile-toggle {
+    position: fixed;
+    top: calc(var(--public-nav-height) + 12px);
+    left: 12px;
+    z-index: 150;
+    display: flex;
+    border: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+    box-shadow: 0 4px 16px var(--shadow-light);
+  }
   .docs-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -381,4 +348,5 @@
   .docs-sidebar.open { transform: translateX(0); }
   .docs-backdrop.open { display: block; }
   .docs-content { margin-left: 0; }
+  .docs-content-inner { padding: 72px 20px 32px; }
 }

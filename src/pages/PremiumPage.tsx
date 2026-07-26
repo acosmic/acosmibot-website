@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueries } from '@tanstack/react-query';
 import { ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { guildApi } from '@/api/guilds';
 import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
-import { startLogin, useHydrateAuthUser } from '@/lib/auth';
+import { startLogin } from '@/lib/auth';
 import type { Guild } from '@/types/guild';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
@@ -121,10 +121,8 @@ const TIERS: TierCardDef[] = [
 ];
 
 export const PricingPage: React.FC = () => {
-  const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const [searchParams, setSearchParams] = useSearchParams();
-  useHydrateAuthUser();
 
   const [pickerTier, setPickerTier] = useState<Exclude<PremiumTier, 'free'> | null>(null);
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
@@ -173,7 +171,7 @@ export const PricingPage: React.FC = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ProfileNav user={user} />
+      <PublicNav />
 
       <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
         {/* Hero */}
