@@ -253,7 +253,7 @@ export const HomePage: React.FC = () => {
 
             <div className="feature-card fade-in">
               <div className="feature-icon-wrapper"><Icon.Dice /></div>
-              <h3>Games & Gambling</h3>
+              <h3>Games</h3>
               <p>A full slate of interactive games and credit-based wagering to keep members engaged.</p>
               <ul className="feature-list">
                 <li>Blackjack, Slots, Mines, and Coinflip</li>
