@@ -4,17 +4,15 @@ import { Bot, Gem, Plus } from 'lucide-react';
 import { useGuildStore } from '@/store/guild';
 import { useAuthStore } from '@/store/auth';
 import { guildApi } from '@/api/guilds';
-import { ProfileNav } from '@/components/profile/ProfileNav';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { useHydrateAuthUser } from '@/lib/auth';
 
 const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 
 export const GuildSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const { guilds, setGuilds, setSelectedGuildId } = useGuildStore();
-  const { isAuthenticated, user } = useAuthStore();
-  useHydrateAuthUser();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -38,7 +36,7 @@ export const GuildSelectPage: React.FC = () => {
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-      <ProfileNav user={user} />
+      <PublicNav />
 
       <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 

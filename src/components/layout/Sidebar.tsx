@@ -1,6 +1,5 @@
 import React from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
-import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { useGuildPermissions } from '@/hooks/useGuildPermissions';
 
@@ -50,7 +49,6 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { guildId } = useParams<{ guildId: string }>();
   const { guilds, setSelectedGuildId } = useGuildStore();
-  const { user } = useAuthStore();
   const navigate = useNavigate();
   const { canManage } = useGuildPermissions(guildId);
 
@@ -64,24 +62,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <div className="d-flex h-100">
       {/* Guild Selector Sidebar — hidden on mobile via CSS */}
       <aside className="guild-selector-sidebar">
-        {/* User avatar */}
-        {user && (
-          <div
-            className="guild-selector-user-avatar"
-            title="Profile"
-            onClick={() => navigate('/me')}
-            style={{
-              backgroundImage: user.avatar ? `url(${user.avatar})` : 'none',
-              width: '40px',
-              height: '40px',
-            }}
-          >
-            {!user.avatar && (user.global_name || user.username).charAt(0).toUpperCase()}
-          </div>
-        )}
-
-        <div className="guild-selector-divider" />
-
         {/* Guild icons */}
         <div className="guild-icon-list">
           {guilds.filter(g => g.owner || g.permissions?.includes('administrator')).map(guild => (

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useParams, useNavigate } from 'react-router-dom';
-import { TopBar } from './TopBar';
+import { PublicNav } from './PublicNav';
+import { ServerContextBar } from './ServerContextBar';
 import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
@@ -10,7 +11,7 @@ import '@/styles/dashboard.css';
 export const DashboardShell: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, user, setUser } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { setGuilds, setSelectedGuildId } = useGuildStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -20,20 +21,10 @@ export const DashboardShell: React.FC = () => {
       return;
     }
 
-    // Fetch user if not already loaded
-    if (!user) {
-      const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-      const token = useAuthStore.getState().token;
-      fetch(`${apiBase}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.ok ? r.json() : Promise.reject())
-        .then(setUser)
-        .catch(() => { /* keep going even if /auth/me fails */ });
-    }
-
     // Load guilds
     guildApi.getGuilds().then(setGuilds).catch(console.error);
 
-  }, [isAuthenticated, navigate, user, setUser, setGuilds]);
+  }, [isAuthenticated, navigate, setGuilds]);
 
   useEffect(() => {
     if (guildId) {
@@ -54,8 +45,14 @@ export const DashboardShell: React.FC = () => {
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
-      <TopBar onMenuClick={() => setSidebarOpen(o => !o)} menuOpen={sidebarOpen} />
+    <div className="dashboard-shell">
+      <div className="dashboard-header-stack">
+        <PublicNav />
+        <ServerContextBar
+          onMenuClick={() => setSidebarOpen((open) => !open)}
+          menuOpen={sidebarOpen}
+        />
+      </div>
       {/* Backdrop — closes sidebar when tapped */}
       {sidebarOpen && (
         <div className="sidebar-backdrop open" onClick={closeSidebar} />

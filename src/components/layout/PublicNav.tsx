@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { NotificationBell } from '@/components/profile/NotificationBell';
 import { startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
 import '@/styles/public-nav.css';
@@ -174,39 +175,42 @@ export const PublicNav: React.FC<PublicNavProps> = ({
             </button>
 
             {isAuthenticated && user ? (
-              <div className="public-nav__account" ref={accountMenuRef}>
-                <button
-                  type="button"
-                  className="public-nav__account-trigger"
-                  onClick={() => setAccountMenuOpen((open) => !open)}
-                  aria-label={`Open account menu for ${user.username}`}
-                  aria-expanded={accountMenuOpen}
-                >
-                  <span
-                    className="public-nav__avatar"
-                    style={{ backgroundImage: user.avatar ? `url(${user.avatar})` : undefined }}
-                    aria-hidden="true"
+              <div className="public-nav__account-area">
+                <NotificationBell username={user.username} />
+                <div className="public-nav__account" ref={accountMenuRef}>
+                  <button
+                    type="button"
+                    className="public-nav__account-trigger"
+                    onClick={() => setAccountMenuOpen((open) => !open)}
+                    aria-label={`Open account menu for ${user.username}`}
+                    aria-expanded={accountMenuOpen}
                   >
-                    {!user.avatar && user.username.slice(0, 1).toUpperCase()}
-                  </span>
-                </button>
+                    <span
+                      className="public-nav__avatar"
+                      style={{ backgroundImage: user.avatar ? `url(${user.avatar})` : undefined }}
+                      aria-hidden="true"
+                    >
+                      {!user.avatar && user.username.slice(0, 1).toUpperCase()}
+                    </span>
+                  </button>
 
-                {accountMenuOpen && (
-                  <div className="public-nav__account-menu">
-                    <div className="public-nav__account-name">{user.username}</div>
-                    <Link to="/me">My Profile</Link>
-                    <Link to="/achievements">Achievements</Link>
-                    <Link to="/leaderboard">Leaderboards</Link>
-                    <Link to="/servers">Servers</Link>
-                    <Link to="/settings">Settings</Link>
-                    <Link to="/docs/introduction">Docs</Link>
-                    {user.is_admin && <Link className="public-nav__admin-link" to="/admin">Admin</Link>}
-                    <div className="public-nav__account-divider" />
-                    <button type="button" className="public-nav__logout" onClick={handleLogout}>
-                      <LogoutIcon /> Logout
-                    </button>
-                  </div>
-                )}
+                  {accountMenuOpen && (
+                    <div className="public-nav__account-menu">
+                      <div className="public-nav__account-name">{user.username}</div>
+                      <Link to="/me">My Profile</Link>
+                      <Link to="/achievements">Achievements</Link>
+                      <Link to="/leaderboard">Leaderboards</Link>
+                      <Link to="/servers">Servers</Link>
+                      <Link to="/settings">Settings</Link>
+                      <Link to="/docs/introduction">Docs</Link>
+                      {user.is_admin && <Link className="public-nav__admin-link" to="/admin">Admin</Link>}
+                      <div className="public-nav__account-divider" />
+                      <button type="button" className="public-nav__logout" onClick={handleLogout}>
+                        <LogoutIcon /> Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <button type="button" className="public-nav__login" onClick={onLogin}>

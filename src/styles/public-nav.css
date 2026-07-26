@@ -116,6 +116,28 @@
   position: relative;
 }
 
+.public-nav__account-area {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.public-nav__account-area > a {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.public-nav__account-area > a:hover,
+.public-nav__account-area > a:focus-visible {
+  background: var(--bg-overlay);
+  color: var(--primary-color) !important;
+}
+
 .public-nav__account-trigger {
   display: block;
   padding: 0;
@@ -457,9 +479,13 @@
   }
 
   .public-nav__login,
-  .public-nav__account {
+  .public-nav__account-area {
     order: 3;
     flex-shrink: 0;
+  }
+
+  .public-nav__account-area {
+    gap: 4px;
   }
 
   .public-nav__content > .public-nav__login {

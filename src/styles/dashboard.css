@@ -1,6 +1,18 @@
 /* Dashboard layout — ported from public/styles/guild-dashboard-new.css
    Global resets (*, body) are intentionally omitted; they live in globals.css */
 
+.dashboard-shell {
+  --server-context-height: 56px;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.dashboard-header-stack {
+  position: sticky;
+  top: 0;
+  z-index: 1002;
+}
+
 /* ============================================
    GUILD SELECTOR SIDEBAR (Far Left)
    ============================================ */
@@ -13,42 +25,12 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
-  height: calc(100vh - 56px);
+  height: calc(100vh - var(--public-nav-height) - var(--server-context-height));
   padding: 16px 0;
   position: fixed;
   left: 0;
-  top: 56px;
+  top: calc(var(--public-nav-height) + var(--server-context-height));
   z-index: 90;
-}
-
-.guild-selector-user-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--bg-card);
-  background-size: cover;
-  background-position: center;
-  margin: 0 auto 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-}
-
-.guild-selector-user-avatar:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 0 2px var(--primary-color);
-}
-
-.guild-selector-divider {
-  width: 32px;
-  height: 2px;
-  background: var(--border-light);
-  margin: 0 auto 24px;
 }
 
 .guild-icon-list {
@@ -103,10 +85,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
-  height: calc(100vh - 56px);
+  height: calc(100vh - var(--public-nav-height) - var(--server-context-height));
   position: fixed;
   left: 72px;
-  top: 56px;
+  top: calc(var(--public-nav-height) + var(--server-context-height));
   z-index: 90;
 }
 
@@ -256,88 +238,9 @@
   padding: 40px;
   background: #252525;
   margin-left: 352px; /* 72px guild icons + 280px nav */
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - var(--public-nav-height) - var(--server-context-height));
   color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
-}
-
-/* ============================================
-   TOP BAR
-   ============================================ */
-
-.user-avatar-nav {
-  width: 44px;
-  height: 44px;
-  background: var(--bg-card);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background-size: cover;
-  background-position: center;
-}
-
-.user-avatar-nav:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 0 2px var(--primary-color);
-}
-
-.user-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 10px;
-  background: var(--bg-overlay);
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  padding: 10px;
-  min-width: 200px;
-  z-index: 1001;
-}
-
-.user-menu .user-info {
-  padding: 10px;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 8px;
-}
-
-.user-menu .user-name {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--text-primary);
-}
-
-.user-menu a {
-  display: block;
-  padding: 10px 12px;
-  color: var(--text-primary);
-  text-decoration: none;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.user-menu a:hover {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.user-menu .logout-btn {
-  color: #ff6b6b;
-}
-
-.login-btn {
-  background: var(--primary-color);
-  color: #000;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.login-btn:hover {
-  opacity: 0.85;
 }
 
 /* ============================================
@@ -399,175 +302,104 @@
 }
 
 /* ============================================
-   HAMBURGER / MOBILE SIDEBAR TOGGLE
+   SERVER CONTEXT BAR
    ============================================ */
 
-.mobile-sidebar-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  width: 44px;
-  height: 44px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-}
-
-.mobile-sidebar-toggle:hover {
-  background: var(--bg-overlay, rgba(255,255,255,0.08));
-}
-
-.mobile-sidebar-toggle span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: #ffffff;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  transform-origin: center;
-}
-
-.mobile-sidebar-toggle.open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.mobile-sidebar-toggle.open span:nth-child(2) {
-  opacity: 0;
-  transform: scaleX(0);
-}
-
-.mobile-sidebar-toggle.open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-.dashboard-topbar-wrap {
-  position: sticky;
-  top: 0;
-  z-index: 1002;
-}
-
-.dashboard-topbar {
-  height: 56px;
-  background: rgba(26, 26, 26, 0.95);
-  backdrop-filter: blur(20px);
+.server-context-bar {
+  height: var(--server-context-height);
   border-bottom: 1px solid var(--border-light);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
+  background: var(--bg-secondary);
 }
 
-.desktop-current-guild {
+.server-context-bar__content {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 0 20px;
 }
 
-.desktop-current-guild img {
+.server-context-bar__menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.server-context-bar__menu:hover,
+.server-context-bar__menu:focus-visible {
+  border-color: var(--border-light);
+  background: var(--bg-overlay);
+  color: var(--primary-color);
+}
+
+.server-breadcrumb {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.server-breadcrumb__guild {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.server-breadcrumb__guild:hover,
+.server-breadcrumb__guild:focus-visible {
+  color: var(--primary-color);
+}
+
+.server-breadcrumb__guild img {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
-}
-
-.desktop-current-guild h2 {
-  color: var(--text-primary);
-}
-
-.topbar-user-avatar {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border-light);
-  border-radius: 50%;
-  background: var(--bg-tertiary);
-  background-position: center;
-  background-size: cover;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
   flex: 0 0 auto;
 }
 
-.topbar-user-menu-wrap {
-  position: relative;
-  display: flex;
+.server-breadcrumb__guild span,
+.server-breadcrumb__section {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.topbar-user-menu {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  width: 220px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
-  z-index: 1100;
+.server-breadcrumb__separator {
+  flex: 0 0 auto;
+  color: var(--text-muted);
 }
 
-.topbar-user-menu .user-info {
-  padding: 10px;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 6px;
-}
-
-.topbar-user-menu .user-name {
-  color: var(--text-primary);
+.server-breadcrumb__section {
+  color: var(--text-secondary);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
-.topbar-user-menu a,
-.topbar-user-menu button {
+.server-context-bar__switcher {
+  display: none;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.server-context-bar__switcher select {
   width: 100%;
-  display: block;
-  padding: 10px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-primary);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.topbar-user-menu a:hover,
-.topbar-user-menu button:hover {
-  background: var(--bg-overlay);
-}
-
-.topbar-user-menu .admin-link {
-  color: #f59e0b;
-}
-
-.topbar-user-menu .logout-btn {
-  color: #ff6b6b;
-  border-top: 1px solid var(--border-light);
-  border-radius: 0 0 7px 7px;
-  margin-top: 6px;
-}
-
-.mobile-guild-bar {
-  display: none;
-}
-
-.mobile-guild-select {
-  display: none;
-  width: 44%;
   min-width: 0;
   appearance: none;
   -webkit-appearance: none;
@@ -605,60 +437,44 @@
    ============================================ */
 
 @media (max-width: 768px) {
-  .mobile-sidebar-toggle { display: flex; }
-
   .guild-selector-sidebar { display: none; }
 
-  .desktop-current-guild { display: none; }
-
-  .dashboard-topbar {
+  .server-context-bar__content {
     padding: 0 12px;
   }
 
-  .mobile-guild-bar {
-    min-height: 52px;
+  .server-context-bar__menu {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 12px;
-    background: rgba(22, 22, 22, 0.97);
-    border-bottom: 1px solid var(--border-light);
   }
 
-  .mobile-current-guild {
+  .server-breadcrumb {
+    flex: 1 1 auto;
     min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 700;
   }
 
-  .mobile-current-guild img {
+  .server-breadcrumb__guild img {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex: 0 0 auto;
   }
 
-  .mobile-current-guild span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .server-breadcrumb__guild {
+    max-width: min(42vw, 190px);
   }
 
-  .mobile-guild-select {
+  .server-breadcrumb__section {
+    max-width: min(28vw, 130px);
+  }
+
+  .server-context-bar__switcher {
     display: block;
+    width: min(34vw, 160px);
     flex: 0 0 auto;
   }
 
   .navigation-sidebar {
     left: 0;
-    top: 108px;
-    height: calc(100vh - 108px);
+    top: calc(var(--public-nav-height) + var(--server-context-height));
+    height: calc(100vh - var(--public-nav-height) - var(--server-context-height));
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1001;
@@ -671,6 +487,20 @@
     margin-left: 0;
     width: 100%;
     padding: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .server-breadcrumb__guild {
+    max-width: 42vw;
+  }
+
+  .server-breadcrumb__section {
+    max-width: 32vw;
+  }
+
+  .server-context-bar__switcher {
+    display: none;
   }
 }
 

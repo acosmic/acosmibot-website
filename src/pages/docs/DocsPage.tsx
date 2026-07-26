@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
   FileText, Gem, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
-  Sparkles, Ticket, TrendingUp, TvMinimalPlay, VenetianMask,
+  Sparkles, Ticket, TrendingUp, TvMinimalPlay, VenetianMask, PanelLeftClose, PanelLeftOpen,
   type LucideIcon,
 } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
@@ -94,6 +94,7 @@ export const DocsPage: React.FC = () => {
   const [searchQuery, setSearch]  = useState('');
   const [sidebarOpen, setSidebar] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const activePageLabel = ALL_ITEMS.find((item) => item.slug === page)?.label ?? 'Documentation';
 
   // ── Patch window.DocsRouter so onclick handlers in view HTML work ──
   useEffect(() => {
@@ -149,14 +150,19 @@ export const DocsPage: React.FC = () => {
 
       <PublicNav />
 
-      <button
-        className={`docs-mobile-toggle${sidebarOpen ? ' open' : ''}`}
-        onClick={() => setSidebar(v => !v)}
-        aria-label={sidebarOpen ? 'Close documentation sidebar' : 'Open documentation sidebar'}
-        aria-expanded={sidebarOpen}
-      >
-        <span /><span /><span />
-      </button>
+      <div className="docs-context-bar">
+        <button
+          type="button"
+          className="docs-context-bar__toggle"
+          onClick={() => setSidebar((open) => !open)}
+          aria-label={sidebarOpen ? 'Close documentation contents' : 'Open documentation contents'}
+          aria-expanded={sidebarOpen}
+        >
+          {sidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+          <span>Contents</span>
+        </button>
+        <span className="docs-context-bar__page">{activePageLabel}</span>
+      </div>
 
       {/* ── Mobile Backdrop ─────────────────────────────────── */}
       <div

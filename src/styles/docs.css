@@ -2,6 +2,7 @@
 /* Variables come from globals.css */
 
 .docs-layout {
+  --docs-context-height: 0px;
   height: 100vh;
   background: var(--bg-primary);
   font-family: 'Poppins', sans-serif;
@@ -10,10 +11,10 @@
 /* ── Sidebar ─────────────────────────────────────────────── */
 .docs-sidebar {
   position: fixed;
-  top: var(--public-nav-height);
+  top: calc(var(--public-nav-height) + var(--docs-context-height));
   left: 0;
   width: 280px;
-  height: calc(100vh - var(--public-nav-height));
+  height: calc(100vh - var(--public-nav-height) - var(--docs-context-height));
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-light);
   overflow-y: auto;
@@ -114,7 +115,7 @@
 .docs-content {
   margin-left: 280px;
   background: #252525;
-  height: calc(100vh - var(--public-nav-height));
+  height: calc(100vh - var(--public-nav-height) - var(--docs-context-height));
   overflow-y: auto;
 }
 
@@ -146,47 +147,50 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Mobile hamburger */
-.docs-mobile-toggle {
+/* Mobile documentation context */
+.docs-context-bar {
+  position: relative;
+  z-index: 150;
   display: none;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 5px;
-  width: 44px;
-  height: 44px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
+  justify-content: space-between;
+  height: var(--docs-context-height);
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.docs-context-bar__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid transparent;
   border-radius: 8px;
+  background: transparent;
   color: var(--text-primary);
-  transition: background 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
-.docs-mobile-toggle:hover { background: var(--bg-overlay); }
-
-.docs-mobile-toggle span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: currentColor;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  transform-origin: center;
+.docs-context-bar__toggle:hover,
+.docs-context-bar__toggle:focus-visible {
+  border-color: var(--border-light);
+  background: var(--bg-overlay);
+  color: var(--primary-color);
 }
 
-.docs-mobile-toggle.open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.docs-mobile-toggle.open span:nth-child(2) {
-  opacity: 0;
-  transform: scaleX(0);
-}
-
-.docs-mobile-toggle.open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
+.docs-context-bar__page {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .docs-backdrop {
@@ -331,16 +335,14 @@
 .docs-content-inner .question p { color: #B0B0B0; font-size: 14px; line-height: 1.6; margin: 0; }
 
 @media (max-width: 768px) {
-  .docs-mobile-toggle {
-    position: fixed;
-    top: calc(var(--public-nav-height) + 12px);
-    left: 12px;
-    z-index: 150;
-    display: flex;
-    border: 1px solid var(--border-light);
-    background: var(--bg-secondary);
-    box-shadow: 0 4px 16px var(--shadow-light);
+  .docs-layout {
+    --docs-context-height: 52px;
   }
+
+  .docs-context-bar {
+    display: flex;
+  }
+
   .docs-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -348,5 +350,5 @@
   .docs-sidebar.open { transform: translateX(0); }
   .docs-backdrop.open { display: block; }
   .docs-content { margin-left: 0; }
-  .docs-content-inner { padding: 72px 20px 32px; }
+  .docs-content-inner { padding: 32px 20px; }
 }

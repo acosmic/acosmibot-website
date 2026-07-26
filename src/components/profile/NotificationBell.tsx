@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/auth';
 /**
  * Bell shown near the avatar in the top nav. Polls the unread count and shows a
  * badge; clicking navigates to the user's profile notifications section where
- * rewards are claimed. Shared by ProfileNav and the dashboard TopBar.
+ * rewards are claimed. Shared by the public and profile navigation bars.
  */
 export const NotificationBell: React.FC<{ username: string | null; size?: number }> = ({ username, size = 20 }) => {
   const token = useAuthStore((s) => s.token);
