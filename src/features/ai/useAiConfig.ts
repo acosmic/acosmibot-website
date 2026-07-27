@@ -23,6 +23,10 @@ export interface AiConfig {
   ambient_images_enabled: boolean;
   /** Share (0.01–0.25) of ambient replies that may include a generated image. */
   ambient_image_chance: number;
+  /** Per-channel quiet period after an ambient meme image, in seconds. */
+  ambient_image_cooldown_seconds: number;
+  /** Max ambient meme images per server per day (tier-capped). */
+  ambient_image_daily_limit: number;
   /** Guild default IANA timezone for the AI's date/time awareness. */
   timezone: string;
 }
@@ -96,6 +100,8 @@ const DEFAULT_AI: AiConfig = {
   ambient_daily_limit: 25,
   ambient_images_enabled: false,
   ambient_image_chance: 0.15,
+  ambient_image_cooldown_seconds: 600,
+  ambient_image_daily_limit: 25,
   timezone: 'UTC',
 };
 
@@ -120,6 +126,12 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
   const ambientDailyMax = tier === 'max' ? 100 : 25;
   const ambientDailyLimit = Number(merged.ambient_daily_limit);
   const ambientImageChance = Number(merged.ambient_image_chance);
+  const ambientImageCooldown = Number(
+    raw?.ambient_image_cooldown_seconds ?? merged.ambient_cooldown_seconds,
+  );
+  const ambientImageDailyLimit = Number(
+    raw?.ambient_image_daily_limit ?? merged.ambient_daily_limit,
+  );
   return {
     ...merged,
     channel_mode: merged.channel_mode === 'include' ? 'specific' : merged.channel_mode,
@@ -138,6 +150,19 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
     ambient_image_chance: Math.min(
       Math.max(Number.isFinite(ambientImageChance) ? ambientImageChance : 0.15, 0.01),
       0.25,
+    ),
+    ambient_image_cooldown_seconds: Math.min(
+      Math.max(Number.isFinite(ambientImageCooldown) ? ambientImageCooldown : 600, 120),
+      86400,
+    ),
+    ambient_image_daily_limit: Math.min(
+      Math.max(
+        Number.isFinite(ambientImageDailyLimit)
+          ? Math.trunc(ambientImageDailyLimit)
+          : 25,
+        1,
+      ),
+      ambientDailyMax,
     ),
   };
 }

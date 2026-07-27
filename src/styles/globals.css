@@ -288,12 +288,12 @@ h1, h2, h3, h4, h5, h6 {
     align-items: start;
 }
 
-.ambient-frequency-control,
+.ambient-chance-control,
 .ambient-number-control {
     min-width: 0;
 }
 
-.ambient-frequency-control .text-muted,
+.ambient-chance-control .text-muted,
 .ambient-number-control .text-muted {
     color: var(--text-secondary) !important;
 }
@@ -306,7 +306,7 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 14px;
 }
 
-.ambient-frequency-value {
+.ambient-chance-value {
     flex: 0 0 auto;
     padding: 4px 8px;
     border: 1px solid var(--border-cyan);
@@ -317,7 +317,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
 }
 
-.ambient-frequency-slider {
+.ambient-chance-slider {
     width: 100%;
     height: 24px;
     margin: 0;
@@ -327,7 +327,7 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
 }
 
-.ambient-frequency-slider::-webkit-slider-runnable-track {
+.ambient-chance-slider::-webkit-slider-runnable-track {
     height: 6px;
     border-radius: 3px;
     background: linear-gradient(
@@ -340,20 +340,20 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid var(--border-light);
 }
 
-.ambient-frequency-slider::-moz-range-track {
+.ambient-chance-slider::-moz-range-track {
     height: 6px;
     border: 1px solid var(--border-light);
     border-radius: 3px;
     background: var(--bg-tertiary);
 }
 
-.ambient-frequency-slider::-moz-range-progress {
+.ambient-chance-slider::-moz-range-progress {
     height: 6px;
     border-radius: 3px;
     background: var(--primary-color);
 }
 
-.ambient-frequency-slider::-webkit-slider-thumb {
+.ambient-chance-slider::-webkit-slider-thumb {
     width: 22px;
     height: 22px;
     margin-top: -9px;
@@ -365,7 +365,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 3px 10px rgba(0, 217, 255, 0.35);
 }
 
-.ambient-frequency-slider::-moz-range-thumb {
+.ambient-chance-slider::-moz-range-thumb {
     width: 18px;
     height: 18px;
     border: 3px solid var(--bg-card);
@@ -374,53 +374,53 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 3px 10px rgba(0, 217, 255, 0.35);
 }
 
-.ambient-frequency-slider:focus-visible {
+.ambient-chance-slider:focus-visible {
     outline: none;
 }
 
-.ambient-frequency-slider:focus-visible::-webkit-slider-thumb {
+.ambient-chance-slider:focus-visible::-webkit-slider-thumb {
     box-shadow: 0 0 0 4px var(--primary-dim), 0 3px 10px rgba(0, 217, 255, 0.35);
 }
 
-.ambient-frequency-slider:focus-visible::-moz-range-thumb {
+.ambient-chance-slider:focus-visible::-moz-range-thumb {
     box-shadow: 0 0 0 4px var(--primary-dim), 0 3px 10px rgba(0, 217, 255, 0.35);
 }
 
-.ambient-frequency-labels {
+.ambient-chance-labels {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     margin-top: 4px;
 }
 
-.ambient-frequency-labels span {
+.ambient-chance-labels span {
     display: grid;
     gap: 1px;
     color: var(--text-muted);
     font-size: 11px;
 }
 
-.ambient-frequency-labels span:nth-child(2) {
+.ambient-chance-labels span:nth-child(2) {
     text-align: center;
 }
 
-.ambient-frequency-labels span:last-child {
+.ambient-chance-labels span:last-child {
     text-align: right;
 }
 
-.ambient-frequency-labels strong {
+.ambient-chance-labels strong {
     color: inherit;
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
 }
 
-.ambient-frequency-labels small {
+.ambient-chance-labels small {
     font-size: 11px;
 }
 
-.ambient-frequency-labels .active,
-.ambient-frequency-labels .active strong {
+.ambient-chance-labels .active,
+.ambient-chance-labels .active strong {
     color: var(--primary-color);
 }
 

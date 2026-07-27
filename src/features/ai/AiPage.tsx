@@ -78,6 +78,15 @@ export const AiPage: React.FC = () => {
   const ambientFrequencyIndex = closestAmbientFrequencyIndex(form.ambient_frequency);
   const ambientFrequencyLevel = AMBIENT_FREQUENCY_LEVELS[ambientFrequencyIndex];
   const ambientDailyMax = tier === 'max' ? 100 : 25;
+  const ambientImageChancePct = clamp(
+    Math.round((form.ambient_image_chance ?? 0.15) * 100),
+    AMBIENT_IMAGE_MIN_PCT,
+    AMBIENT_IMAGE_MAX_PCT,
+  );
+  const ambientImageSliderProgress = (
+    (ambientImageChancePct - AMBIENT_IMAGE_MIN_PCT)
+    / (AMBIENT_IMAGE_MAX_PCT - AMBIENT_IMAGE_MIN_PCT)
+  ) * 100;
 
   const updatePersonalities = (personalities: AiPersonality[], activeId = form.active_personality_id) => {
     const active = personalities.find(p => p.id === activeId) || personalities[0];
@@ -210,19 +219,19 @@ export const AiPage: React.FC = () => {
 
         {form.ambient_enabled && (
           <div className="ambient-settings-grid mt-4">
-            <div className="ambient-frequency-control">
+            <div className="ambient-chance-control">
               <div className="ambient-control-heading">
                 <label className="form-label mb-0" htmlFor="ambient-frequency">
                   Chime-in chance
                 </label>
-                <span className="ambient-frequency-value">
+                <span className="ambient-chance-value">
                   {ambientFrequencyLevel.label} · {Math.round(ambientFrequencyLevel.value * 100)}%
                 </span>
               </div>
 
               <input
                 id="ambient-frequency"
-                className="ambient-frequency-slider"
+                className="ambient-chance-slider"
                 type="range"
                 min={0}
                 max={AMBIENT_FREQUENCY_LEVELS.length - 1}
@@ -239,7 +248,7 @@ export const AiPage: React.FC = () => {
                 }}
               />
 
-              <div className="ambient-frequency-labels" aria-hidden="true">
+              <div className="ambient-chance-labels" aria-hidden="true">
                 {AMBIENT_FREQUENCY_LEVELS.map((level, index) => (
                   <span
                     key={level.id}
@@ -310,30 +319,98 @@ export const AiPage: React.FC = () => {
             />
 
             {form.ambient_images_enabled && (
-              <div className="mt-3" style={{ maxWidth: '320px' }}>
-                <label className="form-label mb-1 d-block">Image chance</label>
-                <div className="d-flex align-items-center gap-2">
-                  <NumberInput
-                    className="form-control"
+              <div className="ambient-settings-grid mt-4">
+                <div className="ambient-chance-control">
+                  <div className="ambient-control-heading">
+                    <label className="form-label mb-0" htmlFor="ambient-image-chance">
+                      Image chance
+                    </label>
+                    <span className="ambient-chance-value">
+                      {ambientImageChancePct}%
+                    </span>
+                  </div>
+
+                  <input
+                    id="ambient-image-chance"
+                    className="ambient-chance-slider"
+                    type="range"
                     min={AMBIENT_IMAGE_MIN_PCT}
                     max={AMBIENT_IMAGE_MAX_PCT}
                     step={1}
-                    value={Math.round((form.ambient_image_chance ?? 0.15) * 100)}
+                    value={ambientImageChancePct}
+                    style={{
+                      '--ambient-slider-progress': `${ambientImageSliderProgress}%`,
+                    } as React.CSSProperties}
+                    aria-describedby="ambient-image-chance-help"
+                    aria-valuetext={`${ambientImageChancePct} percent of ambient replies`}
+                    onChange={(event) => setForm({
+                      ambient_image_chance: Number(event.currentTarget.value) / 100,
+                    })}
+                  />
+
+                  <div className="ambient-chance-labels" aria-hidden="true">
+                    <span><strong>Minimum</strong><small>1%</small></span>
+                    <span><strong>Midpoint</strong><small>13%</small></span>
+                    <span><strong>Maximum</strong><small>25%</small></span>
+                  </div>
+                  <p id="ambient-image-chance-help" className="text-muted small mt-2 mb-0">
+                    Share of ambient replies that may generate an image. The AI may
+                    still skip it when the moment doesn't call for one.
+                  </p>
+                </div>
+
+                <div className="ambient-number-control">
+                  <label className="form-label mb-1 d-block">Image cooldown</label>
+                  <div className="d-flex align-items-center gap-2">
+                    <NumberInput
+                      className="form-control"
+                      min={AMBIENT_MIN_COOLDOWN_MIN}
+                      max={AMBIENT_MAX_COOLDOWN_MIN}
+                      step={1}
+                      value={Math.round(
+                        (form.ambient_image_cooldown_seconds ?? 600) / 60,
+                      )}
+                      onValueChange={(value) => setForm({
+                        ambient_image_cooldown_seconds: clamp(
+                          Math.trunc(value),
+                          AMBIENT_MIN_COOLDOWN_MIN,
+                          AMBIENT_MAX_COOLDOWN_MIN,
+                        ) * 60,
+                      })}
+                      style={{ maxWidth: '110px' }}
+                    />
+                    <span className="text-muted">minutes</span>
+                  </div>
+                  <p className="text-muted small mt-1 mb-0">
+                    Quiet period per channel after a meme image. Minimum 2 minutes.
+                  </p>
+                </div>
+
+                <div className="ambient-number-control">
+                  <label className="form-label mb-1 d-block">Image daily limit</label>
+                  <NumberInput
+                    className="form-control"
+                    min={1}
+                    max={ambientDailyMax}
+                    step={1}
+                    value={Math.min(
+                      form.ambient_image_daily_limit ?? 25,
+                      ambientDailyMax,
+                    )}
                     onValueChange={(value) => setForm({
-                      ambient_image_chance: clamp(
+                      ambient_image_daily_limit: clamp(
                         Math.trunc(value),
-                        AMBIENT_IMAGE_MIN_PCT,
-                        AMBIENT_IMAGE_MAX_PCT,
-                      ) / 100,
+                        1,
+                        ambientDailyMax,
+                      ),
                     })}
                     style={{ maxWidth: '110px' }}
                   />
-                  <span className="text-muted">% of ambient replies</span>
+                  <p className="text-muted small mt-1 mb-0">
+                    Up to {ambientDailyMax} ambient meme images per day on{' '}
+                    {tier === 'max' ? 'Max' : 'Pro'}.
+                  </p>
                 </div>
-                <p className="text-muted small mt-1 mb-0">
-                  Share of ambient replies that may generate an image, up to 25%. The AI still
-                  skips it when the moment doesn't call for one.
-                </p>
               </div>
             )}
           </div>
