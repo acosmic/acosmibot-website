@@ -284,7 +284,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
         <p>Configure the message and role mappings — the live preview updates as you type.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20, alignItems: 'start' }}>
+      <div className="server-builder-grid">
         {/* Left — form */}
         <div>
           <div className="card p-4 mb-4">

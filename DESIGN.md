@@ -13,9 +13,13 @@ colors:
   observatory-space: "#08111A"
   observatory-panel: "#0D151D"
   observatory-node: "#15212B"
+  observatory-raised: "#111C26"
+  observatory-hover: "#13212C"
   constellation-white: "#F4FBFF"
   constellation-text: "#A9BAC7"
   constellation-muted: "#71808D"
+  constellation-muted-bright: "#8293A0"
+  observatory-backdrop: "rgba(0, 0, 0, 0.68)"
   control-black: "#1A1A1A"
   control-graphite: "#2A2A2A"
   control-panel: "#2D2D2D"
@@ -43,6 +47,21 @@ typography:
     fontSize: "32px"
     fontWeight: 700
     lineHeight: 1.2
+  page:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "36px"
+    fontWeight: 750
+    lineHeight: 1.15
+  pageCompact:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "30px"
+    fontWeight: 750
+    lineHeight: 1.15
+  section:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "20px"
+    fontWeight: 650
+    lineHeight: 1.35
   title:
     fontFamily: "Poppins, sans-serif"
     fontSize: "18px"
@@ -53,6 +72,21 @@ typography:
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.6
+  bodyLarge:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.6
+  dense:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "12px"
+    fontWeight: 500
+    lineHeight: 1.5
+  avatarInitial:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "24px"
+    fontWeight: 700
+    lineHeight: 1
   label:
     fontFamily: "Poppins, sans-serif"
     fontSize: "11px"
@@ -80,6 +114,7 @@ rounded:
   menu: "10px"
   node-tile: "11px"
   lg: "12px"
+  operational: "13px"
   mobile-panel: "14px"
   card: "15px"
   xl: "16px"
@@ -286,6 +321,7 @@ Authenticated selection and control surfaces use a restrained operational expres
 
 - **Server catalog:** Server selection groups live guilds by access level before presenting individual destinations. Owner and administrator servers lead to configuration; member servers lead to their public leaderboard. Real guild identity, membership, tier, and permission state are the proof.
 - **Owner console:** The super-admin surface uses a persistent subsystem rail beside one focused workspace. The owner boundary is explicit in the first viewport, modules retain stable positions, and dense data stays on opaque ledger surfaces.
+- **Server control matrix:** Guild administration keeps a compact coordinate rail for manageable servers, a grouped subsystem rail, one persistent server-context bar, and a focused configuration workspace. Live state, permission scope, dirty state, and the save action outrank decorative topology. Builders may use a split form/preview workspace, while ordinary settings remain a stable single reading column.
 - **Member observatory:** Profile, Achievements, Settings, and Card Studio share one compact member-signal navigation strip but keep different working geometries. The profile is a permission-aware dossier anchored by the real rank card; achievements form a tiered progression atlas; settings route visibility and context through grouped signal controls; Card Studio pairs a sticky live rank-card preview with material trays for try-on, equip, and purchase.
 - **Signal restraint:** Cyan marks the active subsystem and primary action. Green, coral, and tier colors keep their literal status meanings. Decorative orbits may frame identity and aggregate counts, but never compete with live rows or controls.
 - **Responsive behavior:** Server bands become one-column catalogs. The owner module rail becomes a compact two-column selector above its workspace, and tables become labeled record cards instead of forcing horizontal page scroll.

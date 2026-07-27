@@ -198,7 +198,7 @@ export const BillingPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="feature-page billing-page">
       <div className="page-header text-start mt-0 mb-4">
         <h1>Billing</h1>
         <p>Manage this server's subscription.</p>
@@ -252,7 +252,7 @@ export const BillingPage: React.FC = () => {
                   border: '1px solid var(--border-light)',
                   borderRadius: 8,
                   padding: 3,
-                  background: 'rgba(0, 0, 0, 0.12)',
+                  background: 'var(--bg-primary)',
                 }}
               >
                 {(['monthly', 'annual'] as const).map((option) => (
@@ -270,7 +270,7 @@ export const BillingPage: React.FC = () => {
                       fontSize: 12,
                       fontWeight: 800,
                       lineHeight: 1.2,
-                      color: planInterval === option ? '#000' : 'var(--text-secondary)',
+                      color: planInterval === option ? 'var(--bg-primary)' : 'var(--text-secondary)',
                       background: planInterval === option ? 'var(--primary-color)' : 'transparent',
                       textTransform: 'capitalize',
                     }}
@@ -379,7 +379,7 @@ export const BillingPage: React.FC = () => {
         <div
           onClick={() => !changeTier.isPending && setPendingPlan(null)}
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1050,
+            position: 'fixed', inset: 0, background: 'var(--server-backdrop)', zIndex: 1050,
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
           }}
           role="dialog"
@@ -438,7 +438,7 @@ export const BillingPage: React.FC = () => {
               <button
                 type="button"
                 className="btn p-3"
-                style={{ background: 'var(--primary-color)', color: '#000', border: 'none', fontWeight: 700 }}
+                style={{ background: 'var(--primary-color)', color: 'var(--bg-primary)', border: 'none', fontWeight: 700 }}
                 disabled={changeTier.isPending}
                 onClick={confirmPendingChange}
               >

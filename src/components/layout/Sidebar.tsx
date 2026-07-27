@@ -1,23 +1,57 @@
 import React from 'react';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  BarChart3,
+  Bot,
+  ChevronDown,
+  CircleDollarSign,
+  Command,
+  CreditCard,
+  Gamepad2,
+  Gift,
+  LayoutDashboard,
+  LockKeyhole,
+  MessageSquareHeart,
+  Music2,
+  Orbit,
+  PanelTop,
+  RadioTower,
+  Radar,
+  Shield,
+  Shuffle,
+  Sparkles,
+  Ticket,
+  Trophy,
+  Tv,
+  UserRoundX,
+  UsersRound,
+  Video,
+  type LucideIcon,
+} from 'lucide-react';
+import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 import { useGuildPermissions } from '@/hooks/useGuildPermissions';
 
 interface NavItemProps {
   to: string;
-  icon: string;
+  icon: LucideIcon;
   label: string;
+  status?: 'soon';
   onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon, label, onClick }) => (
+const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, status, onClick }) => (
   <NavLink
     to={to}
-    className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+    className={({ isActive }) => `nav-item${isActive ? ' active' : ''}${status ? ` is-${status}` : ''}`}
     onClick={onClick}
+    aria-label={status === 'soon' ? `${label}, coming soon` : undefined}
   >
-    <span className={`nav-icon nav-icon-${icon}`}></span>
+    <span className="nav-icon"><Icon aria-hidden="true" /></span>
     <span className="nav-text">{label}</span>
+    {status === 'soon'
+      ? <span className="nav-status" aria-hidden="true">Soon</span>
+      : <span className="nav-signal" aria-hidden="true" />}
   </NavLink>
 );
 
@@ -25,19 +59,18 @@ const NavSection: React.FC<{ title: string; children: React.ReactNode }> = ({ ti
   const [isOpen, setIsOpen] = React.useState(true);
 
   return (
-    <div className={`nav-section ${isOpen ? '' : 'collapsed'}`}>
-      <div className="nav-section-header" onClick={() => setIsOpen(!isOpen)} style={{ cursor: 'pointer' }}>
-        <svg className="collapse-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" style={{
-          transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
-          transition: 'transform 0.2s ease',
-          flexShrink: 0,
-        }}>
-          <path d="M3 5L6 8L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+    <section className={`nav-section${isOpen ? '' : ' collapsed'}`}>
+      <button
+        type="button"
+        className="nav-section-header"
+        onClick={() => setIsOpen((open) => !open)}
+        aria-expanded={isOpen}
+      >
         <span>{title}</span>
-      </div>
+        <ChevronDown className="collapse-arrow" aria-hidden="true" />
+      </button>
       {isOpen && <div className="nav-section-content">{children}</div>}
-    </div>
+    </section>
   );
 };
 
@@ -48,9 +81,12 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { guilds, setSelectedGuildId } = useGuildStore();
+  const { guilds, currentGuild, setSelectedGuildId } = useGuildStore();
   const navigate = useNavigate();
   const { canManage } = useGuildPermissions(guildId);
+  const manageableGuilds = guilds.filter(
+    (guild) => guild.owner || guild.permissions?.includes('administrator'),
+  );
 
   const handleGuildClick = (id: string) => {
     setSelectedGuildId(id);
@@ -59,84 +95,92 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="d-flex h-100">
-      {/* Guild Selector Sidebar — hidden on mobile via CSS */}
-      <aside className="guild-selector-sidebar">
-        {/* Guild icons */}
+    <div className="server-navigation">
+      <aside className="guild-selector-sidebar" aria-label="Manageable servers">
+        <div className="guild-rail__label">Servers</div>
         <div className="guild-icon-list">
-          {guilds.filter(g => g.owner || g.permissions?.includes('administrator')).map(guild => (
-            <div
+          {manageableGuilds.map((guild) => (
+            <button
+              type="button"
               key={guild.id}
-              className={`guild-icon ${guild.id === guildId ? 'active' : ''}`}
+              className={`guild-icon${guild.id === guildId ? ' active' : ''}`}
               title={guild.name}
+              aria-label={`Manage ${guild.name}`}
+              aria-current={guild.id === guildId ? 'page' : undefined}
               onClick={() => handleGuildClick(guild.id)}
               style={{
                 backgroundImage: guild.icon
                   ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png)`
                   : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '18px',
-                fontWeight: 'bold',
               }}
             >
               {!guild.icon && guild.name.charAt(0).toUpperCase()}
-            </div>
+            </button>
           ))}
         </div>
       </aside>
 
-      {/* Navigation Sidebar — slides in as overlay on mobile */}
       <aside className={`navigation-sidebar${isOpen ? ' open' : ''}`}>
-        <nav className="sidebar-nav">
-          <NavSection title="GENERAL">
-            <NavItem to={`/server/${guildId}/overview`} icon="overview" label="Overview" onClick={onClose} />
-            {canManage && <NavItem to={`/server/${guildId}/billing`} icon="premium" label="Billing" onClick={onClose} />}
+        <div className="sidebar-nav__identity">
+          <span>Server control matrix</span>
+          <strong>{currentGuild?.name ?? 'Selected server'}</strong>
+          <small>{canManage ? 'Administrator workspace' : 'Member overview'}</small>
+        </div>
+
+        <nav className="sidebar-nav" aria-label="Server systems">
+          <NavSection title="General">
+            <NavItem to={`/server/${guildId}/overview`} icon={LayoutDashboard} label="Overview" onClick={onClose} />
+            {canManage && <NavItem to={`/server/${guildId}/billing`} icon={CreditCard} label="Billing" onClick={onClose} />}
           </NavSection>
 
           {canManage && (
             <>
-              <NavSection title="SYSTEMS">
-                <NavItem to={`/server/${guildId}/leveling`} icon="leveling" label="Leveling" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/analytics`} icon="activitymonitor" label="Analytics" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/music`} icon="music" label="Music" onClick={onClose} />
+              <NavSection title="Systems">
+                <NavItem to={`/server/${guildId}/leveling`} icon={Trophy} label="Leveling" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/analytics`} icon={BarChart3} label="Analytics" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/music`} icon={Music2} label="Music" onClick={onClose} />
               </NavSection>
 
-              <NavSection title="UTILITIES">
-                <NavItem to={`/server/${guildId}/embeds`} icon="embeds" label="Embeds" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/better-embeds`} icon="embeds" label="Better Social Embeds" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/reaction-roles`} icon="reactionroles" label="Reaction Roles" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/activity-monitor`} icon="activitymonitor" label="Activity Monitor" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/custom-commands`} icon="customcommands" label="Custom Commands" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/moderation`} icon="moderation" label="Moderation" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/banned-users`} icon="bannedusers" label="Banned Users" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/ai`} icon="ai" label="AI Customization" onClick={onClose} />
+              <NavSection title="Utilities">
+                <NavItem to={`/server/${guildId}/embeds`} icon={PanelTop} label="Embeds" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/better-embeds`} icon={MessageSquareHeart} label="Better Social Embeds" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/reaction-roles`} icon={UsersRound} label="Reaction Roles" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/activity-monitor`} icon={Radar} label="Activity Monitor" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/custom-commands`} icon={Command} label="Custom Commands" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/moderation`} icon={Shield} label="Moderation" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/banned-users`} icon={UserRoundX} label="Banned Users" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/ai`} icon={Bot} label="AI Customization" onClick={onClose} />
               </NavSection>
 
-              <NavSection title="SOCIAL ALERTS">
-                <NavItem to={`/server/${guildId}/twitch`} icon="twitch" label="Twitch" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/youtube`} icon="youtube" label="YouTube" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/kick`} icon="kick" label="Kick" onClick={onClose} />
+              <NavSection title="Social alerts">
+                <NavItem to={`/server/${guildId}/twitch`} icon={Tv} label="Twitch" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/youtube`} icon={Video} label="YouTube" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/kick`} icon={RadioTower} label="Kick" onClick={onClose} />
               </NavSection>
 
-              <NavSection title="CHAOS">
-                <NavItem to={`/server/${guildId}/polymorph`} icon="polymorph" label="Polymorph" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/portals`} icon="portals" label="Portals" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/jail`} icon="jail" label="Jail" onClick={onClose} />
+              <NavSection title="Chaos">
+                <NavItem to={`/server/${guildId}/polymorph`} icon={Shuffle} label="Polymorph" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/portals`} icon={Orbit} label="Portals" status="soon" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/jail`} icon={LockKeyhole} label="Jail" status="soon" onClick={onClose} />
               </NavSection>
 
-              <NavSection title="GAMES">
-                <NavItem to={`/server/${guildId}/games`} icon="slots" label="Games" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/lottery`} icon="lottery" label="Lottery" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/giveaway`} icon="giveaway" label="Giveaway" onClick={onClose} />
+              <NavSection title="Games">
+                <NavItem to={`/server/${guildId}/games`} icon={Gamepad2} label="Games" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/lottery`} icon={Ticket} label="Lottery" status="soon" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/giveaway`} icon={Gift} label="Giveaway" onClick={onClose} />
               </NavSection>
             </>
           )}
         </nav>
+
+        <footer className="sidebar-nav__footer">
+          <Link to="/servers" onClick={onClose}>
+            <ArrowLeft aria-hidden="true" />
+            <span>All servers</span>
+          </Link>
+          <span><CircleDollarSign aria-hidden="true" /> Live configuration</span>
+          <span><Sparkles aria-hidden="true" /> Changes apply to Discord</span>
+        </footer>
       </aside>
     </div>
   );

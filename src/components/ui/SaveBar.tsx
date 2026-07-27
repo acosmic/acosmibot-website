@@ -35,31 +35,11 @@ export const SaveBar: React.FC<SaveBarProps> = ({
     }
   }, [isSaving, saveError]);
 
-  const toastBase: React.CSSProperties = {
-    position: 'fixed',
-    bottom: '20px',
-    left: '20px',
-    right: '20px',
-    padding: '16px 32px',
-    borderRadius: '16px',
-    zIndex: 1000,
-    fontWeight: 600,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  };
-
   if (showSuccess) {
     return (
       <div
-        className="status show success"
-        style={{
-          ...toastBase,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--success-color, #3ecf8e)',
-          boxShadow: '0 -10px 40px rgba(62, 207, 142, 0.25)',
-          color: 'var(--success-color, #3ecf8e)',
-        }}
+        className="server-save-bar is-success"
+        role="status"
       >
         <Check size={20} />
         <span>Changes saved successfully</span>
@@ -70,14 +50,8 @@ export const SaveBar: React.FC<SaveBarProps> = ({
   if (showError) {
     return (
       <div
-        className="status show error"
-        style={{
-          ...toastBase,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--error-color, #ef4444)',
-          boxShadow: '0 -10px 40px rgba(239, 68, 68, 0.25)',
-          color: 'var(--error-color, #ef4444)',
-        }}
+        className="server-save-bar is-error"
+        role="alert"
       >
         <TriangleAlert size={20} />
         <span>{saveError?.message || 'Failed to save changes'}</span>
@@ -89,16 +63,14 @@ export const SaveBar: React.FC<SaveBarProps> = ({
 
   return (
     <div
-      className="status show info d-flex justify-content-between align-items-center"
-      style={{
-        ...toastBase,
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-cyan)',
-        boxShadow: '0 -10px 40px var(--shadow-cyan)',
-      }}
+      className="server-save-bar is-dirty"
+      role="status"
     >
-      <div className="text-white fw-bold">Careful! You have unsaved changes.</div>
-      <div className="d-flex gap-3">
+      <div className="server-save-bar__message">
+        <span>Unsaved server changes</span>
+        <small>Review and commit this configuration to Discord.</small>
+      </div>
+      <div className="server-save-bar__actions">
         <button
           className="btn"
           onClick={onDiscard}

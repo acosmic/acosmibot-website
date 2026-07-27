@@ -227,7 +227,7 @@ export const EmbedBuilderPage: React.FC = () => {
 
       <input ref={uploadInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20, alignItems: 'start' }}>
+      <div className="server-builder-grid">
         {/* Left — form */}
         <div>
           <div className="card p-4 mb-4">

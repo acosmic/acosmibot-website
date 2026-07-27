@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { ChevronRight, PanelLeftClose, PanelLeftOpen, ShieldCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 
@@ -64,6 +64,11 @@ export const ServerContextBar: React.FC<ServerContextBarProps> = ({
     ? `https://cdn.discordapp.com/icons/${activeGuild.id}/${activeGuild.icon}.png`
     : '/images/acosmibot-logo.png';
   const sectionLabel = getSectionLabel(pathname, guildId);
+  const accessLabel = activeGuild?.owner
+    ? 'Owner controls'
+    : activeGuild?.permissions?.includes('administrator')
+      ? 'Administrator controls'
+      : 'Member view';
 
   const handleGuildChange = (id: string) => {
     if (!id || id === guildId) return;
@@ -85,6 +90,7 @@ export const ServerContextBar: React.FC<ServerContextBarProps> = ({
         </button>
 
         <nav className="server-breadcrumb" aria-label="Server breadcrumb">
+          <span className="server-breadcrumb__eyebrow">Server control</span>
           <Link className="server-breadcrumb__guild" to={`/server/${guildId}/overview`}>
             <img src={guildIconUrl} alt="" />
             <span>{activeGuild?.name ?? 'Server'}</span>
@@ -92,6 +98,11 @@ export const ServerContextBar: React.FC<ServerContextBarProps> = ({
           <ChevronRight className="server-breadcrumb__separator" size={16} aria-hidden="true" />
           <span className="server-breadcrumb__section" aria-current="page">{sectionLabel}</span>
         </nav>
+
+        <span className="server-context-bar__access">
+          <ShieldCheck aria-hidden="true" />
+          {accessLabel}
+        </span>
 
         {manageableGuilds.length > 1 && (
           <label className="server-context-bar__switcher">

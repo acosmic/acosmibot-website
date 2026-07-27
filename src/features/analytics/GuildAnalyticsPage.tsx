@@ -83,11 +83,13 @@ export const GuildAnalyticsPage: React.FC = () => {
   const channelList = channels.data?.channels ?? [];
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h2 style={{ marginBottom: 4 }}>Server Analytics</h2>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 20 }}>
+    <div className="feature-page analytics-page">
+      <div className="page-header text-start mt-0 mb-4">
+        <h1>Server Analytics</h1>
+        <p>
         What your members actually use — popular commands, untapped features, and favorite reactions.
-      </p>
+        </p>
+      </div>
 
       {recapForm && (
         <div style={{ marginBottom: 16 }}>

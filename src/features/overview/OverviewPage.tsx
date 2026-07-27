@@ -63,7 +63,7 @@ export const OverviewPage: React.FC = () => {
       </div>
 
       <div className="row">
-        <div className="col-md-8">
+        <div className="col-12">
           {currentGuild && (
             <div className="card p-4 mb-4 d-flex flex-row align-items-center justify-content-between gap-3 flex-wrap">
               <div className="d-flex flex-row align-items-center gap-3">
@@ -81,7 +81,7 @@ export const OverviewPage: React.FC = () => {
                   justifyContent: 'center',
                   fontSize: '24px',
                   fontWeight: 'bold',
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   flexShrink: 0,
                 }}>
                   {!currentGuild.icon && currentGuild.name.charAt(0).toUpperCase()}
@@ -196,7 +196,7 @@ export const OverviewPage: React.FC = () => {
                 <span className="small text-muted">
                   Last 30 days:{' '}
                   <span className="text-success">+{memberFlow.data.totals.joins}</span>{' / '}
-                  <span style={{ color: 'var(--bs-danger, #ed4245)' }}>−{memberFlow.data.totals.departures}</span>{' '}
+                  <span style={{ color: 'var(--error-color)' }}>−{memberFlow.data.totals.departures}</span>{' '}
                   (net {memberFlow.data.totals.net >= 0 ? '+' : ''}{memberFlow.data.totals.net})
                 </span>
               )}
