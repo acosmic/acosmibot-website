@@ -9,11 +9,13 @@ import '@/styles/public-nav.css';
 interface PublicNavProps {
   onLogin?: () => void;
   onLogout?: () => void;
+  variant?: 'default' | 'observatory';
 }
 
 export const PublicNav: React.FC<PublicNavProps> = ({
   onLogin = startLogin,
   onLogout,
+  variant = 'default',
 }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -73,7 +75,7 @@ export const PublicNav: React.FC<PublicNavProps> = ({
     navigate('/');
   };
 
-  const featuresHref = pathname === '/' ? '#features' : '/#features';
+  const featuresHref = pathname === '/' ? '#system-map' : '/#system-map';
 
   return (
     <>
@@ -84,7 +86,7 @@ export const PublicNav: React.FC<PublicNavProps> = ({
       />
 
       <aside
-        className={`public-nav__drawer${mobileNavOpen ? ' open' : ''}`}
+        className={`public-nav__drawer${variant === 'observatory' ? ' public-nav__drawer--observatory' : ''}${mobileNavOpen ? ' open' : ''}`}
         aria-hidden={!mobileNavOpen}
       >
         <div className="public-nav__drawer-header">
@@ -147,7 +149,10 @@ export const PublicNav: React.FC<PublicNavProps> = ({
         </div>
       </aside>
 
-      <nav className="public-nav" aria-label="Primary navigation">
+      <nav
+        className={`public-nav${variant === 'observatory' ? ' public-nav--observatory' : ''}`}
+        aria-label="Primary navigation"
+      >
         <div className="public-nav__container">
           <div className="public-nav__content">
             <Link to="/" className="public-nav__logo">

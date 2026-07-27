@@ -23,8 +23,8 @@
         <li>Built-in 3-second per-user cooldown to prevent spam</li>
         <li>Configurable daily usage limit for the entire server</li>
         <li>Custom system prompt to define the AI's personality and rules</li>
-        <li>Saved personalities — switch the bot's persona with <code>/ai-personality</code> or from the dashboard (Pro or Max)</li>
-        <li>Per-user memories — the AI remembers facts members tell it via <code>/ai-memory</code></li>
+        <li>Saved personalities — switch the bot's persona with <code>/ai-admin personality</code> or from the dashboard (Pro or Max)</li>
+        <li>Per-user memories — the AI remembers facts members tell it via <code>/ai memory</code></li>
         <li>Ambient replies — the AI can occasionally chime into conversation unprompted (Pro or Max)</li>
         <li>Restrict AI responses to specific channels</li>
         <li>Swap the underlying AI model at any time</li>
@@ -40,7 +40,7 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h3>Enable AI for Your Server</h3>
-          <p>Use <code>/ai-enable</code> to turn on AI responses. Once enabled, the bot will begin watching for mentions across all channels (or only the channels you restrict it to).</p>
+          <p>Use <code>/ai-admin enable</code> to turn on AI responses. Once enabled, the bot will begin watching for mentions across all channels (or only the channels you restrict it to).</p>
         </div>
       </div>
 
@@ -75,90 +75,101 @@
 
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/ai-enable</div>
+        <div class="command-signature">/ai-admin enable</div>
         <div class="command-description">
-          Enable AI responses for the server. Requires administrator permissions. Once enabled, the bot will respond to mentions in all permitted channels.
+          Enable AI responses for the server. Requires Manage Server permission. Once enabled, the bot will respond to mentions in all permitted channels.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/ai-enable</code>
+          <code>/ai-admin enable</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/ai-disable</div>
+        <div class="command-signature">/ai-admin disable</div>
         <div class="command-description">
           Disable AI responses for the server. The bot will stop responding to mentions until re-enabled. Existing configuration settings are preserved.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/ai-disable</code>
+          <code>/ai-admin disable</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/ai-status</div>
+        <div class="command-signature">/ai status</div>
         <div class="command-description">
           Check whether AI is currently enabled, view usage and the active personality, and see whether ambient replies and meme images are on, including their separate chances, cooldowns, and daily limits.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/ai-status</code>
+          <code>/ai status</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/ai-personality &lt;list|current|set|reset&gt;</div>
+        <div class="command-signature">/ai-admin personality &lt;list|current|set|reset&gt;</div>
         <div class="command-description">
           Manage the server's AI personality. <code>list</code> shows saved personalities, <code>current</code> shows the active one, <code>set</code> switches to a saved personality, and <code>reset</code> returns to the default. Personalities are created and edited in the dashboard's AI settings. <strong>Pro or Max feature</strong>.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/ai-personality set name:Pirate</code>
+          <code>/ai-admin personality set name:Pirate</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/ai-memory &lt;add|list|clear&gt;</div>
+        <div class="command-signature">/ai memory &lt;add|list|clear&gt;</div>
         <div class="command-description">
           Manage what the AI remembers about you in this server. <code>add</code> stores a fact, <code>list</code> shows your saved memories, and <code>clear</code> makes the AI forget everything about you here. <strong>Pro or Max feature</strong>.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/ai-memory add fact:I main support in Overwatch</code>
+          <code>/ai memory add fact:I main support in Overwatch</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/ai-ambient &lt;enable|disable|frequency|images-enable|images-disable|images-chance&gt;</div>
+        <div class="command-signature">/ai-admin ambient &lt;enable|disable|frequency|images-enable|images-disable|images-chance&gt;</div>
         <div class="command-description">
-          Control whether the AI occasionally chimes into conversation without being mentioned, how often, and whether up to 25% of ambient replies may generate a meme image. Requires administrator permissions. <strong>Pro or Max feature</strong>.
+          Control whether the AI occasionally chimes into conversation without being mentioned, how often, and whether up to 25% of ambient replies may generate a meme image. Requires Manage Server permission. <strong>Pro or Max feature</strong>.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/ai-ambient frequency level:low</code>
+          <code>/ai-admin ambient frequency level:low</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/generate-image &lt;prompt&gt;</div>
+        <div class="command-signature">/ai image &lt;prompt&gt;</div>
         <div class="command-description">
           Generate an image using AI (gpt-image-2) based on your text prompt. <strong>Pro or Max feature</strong> — image generation uses medium quality only.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/generate-image a futuristic city at night with neon lights</code>
+          <code>/ai image prompt:a futuristic city at night with neon lights</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/analyze-image &lt;image&gt;</div>
+        <div class="command-signature">/ai analyze &lt;image-url&gt;</div>
         <div class="command-description">
           Analyze an attached image using GPT-4 Vision and receive a detailed description or answer questions about it. <strong>Pro or Max feature</strong>.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/analyze-image [attach an image]</code>
+          <code>/ai analyze image_url:https://example.com/image.jpg</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/ai clip &lt;prompt&gt;</div>
+        <div class="command-description">
+          Generate a short looping AI clip. This is an experimental feature available only to authorized users.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai clip prompt:a paper airplane gliding in a seamless loop</code>
         </div>
       </div>
     </div>
@@ -206,7 +217,7 @@
 
     <div class="faq-item">
       <h4>Q: The bot isn't responding when I mention it</h4>
-      <p>A: Check that AI is enabled with <code>/ai-status</code>. If channel restrictions are configured, confirm you're mentioning the bot in an allowed channel. Also verify the daily usage limit hasn't been reached.</p>
+      <p>A: Check that AI is enabled with <code>/ai status</code>. If channel restrictions are configured, confirm you're mentioning the bot in an allowed channel. Also verify the daily usage limit hasn't been reached.</p>
     </div>
 
     <div class="faq-item">

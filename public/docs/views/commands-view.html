@@ -2,21 +2,21 @@
   <header class="docs-page-header">
     <h1>Command List</h1>
     <p class="docs-page-description">
-      A complete reference of every Acosmibot command, organized by category. Use <code>/commands</code> in Discord for the interactive version.
+      A complete reference of Acosmibot's current public commands, organized by category. Use <code>/commands</code> in Discord for a quick interactive overview.
     </p>
   </header>
 
   <section class="docs-section">
     <h2>In-Discord Help Menu</h2>
     <p>
-      The fastest way to explore commands is directly in Discord. Run <code>/commands</code> and the bot will open an interactive paginated menu organized across four categories. Navigation buttons let you flip between pages, and the menu stays active for three minutes.
+      The fastest way to explore common commands is directly in Discord. Run <code>/commands</code> and the bot will open a four-page interactive overview. Navigation buttons let you flip between pages, and the menu stays active for three minutes.
     </p>
 
     <div class="command-list">
       <div class="command-card">
         <div class="command-signature">/commands</div>
         <div class="command-description">
-          Open the interactive command reference menu. Displays all available commands organized across four pages with navigation buttons. The menu stays active for 3 minutes before timing out.
+          Open the interactive command overview. It groups common commands across four pages with navigation buttons and stays active for 3 minutes before timing out.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -331,36 +331,44 @@
           <td>Get info about Acosmibot and its features (AI-powered with RAG)</td>
         </tr>
         <tr>
-          <td><code>/ai-enable</code></td>
-          <td>Enable AI responses for this server (Administrator)</td>
+          <td><code>/customcommands</code></td>
+          <td>List the enabled custom commands available to your current roles in this server</td>
         </tr>
         <tr>
-          <td><code>/ai-disable</code></td>
-          <td>Disable AI responses for this server (Administrator)</td>
+          <td><code>/ai-admin enable</code></td>
+          <td>Enable AI responses for this server (Manage Server)</td>
         </tr>
         <tr>
-          <td><code>/ai-status</code></td>
+          <td><code>/ai-admin disable</code></td>
+          <td>Disable AI responses for this server (Manage Server)</td>
+        </tr>
+        <tr>
+          <td><code>/ai status</code></td>
           <td>Check AI status, usage, personality, and ambient reply settings</td>
         </tr>
         <tr>
-          <td><code>/ai-personality &lt;list|current|set|reset&gt;</code></td>
+          <td><code>/ai-admin personality &lt;list|current|set|reset&gt;</code></td>
           <td>List and switch the server's saved AI personalities</td>
         </tr>
         <tr>
-          <td><code>/ai-memory &lt;add|list|clear&gt;</code></td>
+          <td><code>/ai memory &lt;add|list|clear&gt;</code></td>
           <td>Manage what the AI remembers about you in this server</td>
         </tr>
         <tr>
-          <td><code>/ai-ambient &lt;enable|disable|frequency|images-enable|images-disable|images-chance&gt;</code></td>
+          <td><code>/ai-admin ambient &lt;enable|disable|frequency|images-enable|images-disable|images-chance&gt;</code></td>
           <td>Control ambient AI replies and meme images (Pro or Max)</td>
         </tr>
         <tr>
-          <td><code>/generate-image &lt;prompt&gt;</code></td>
+          <td><code>/ai image &lt;prompt&gt;</code></td>
           <td>Generate an image using AI / gpt-image-2 (Pro or Max, medium quality)</td>
         </tr>
         <tr>
-          <td><code>/analyze-image</code></td>
+          <td><code>/ai analyze</code></td>
           <td>Analyze an attached image using GPT-4o Vision (Pro or Max)</td>
+        </tr>
+        <tr>
+          <td><code>/ai clip &lt;prompt&gt;</code></td>
+          <td>Generate an experimental looping AI clip (authorized users only)</td>
         </tr>
         <tr>
           <td><code>/admin-start-lotto &lt;hours&gt; &lt;channel&gt;</code></td>
@@ -389,8 +397,8 @@
       <h3>Who Can Use What</h3>
       <ul>
         <li><strong>Everyone</strong> — Games, economy, bank, reminders, rank, stats, utility (ping, avatar, apod, polymorph)</li>
-        <li><strong>Administrator</strong> — AI controls (enable, disable, personality), lottery admin, server dashboard settings</li>
-        <li><strong>Manage Server</strong> — Giveaway controls (start, cancel, reroll)</li>
+        <li><strong>Administrator</strong> — Lottery admin and server dashboard settings</li>
+        <li><strong>Manage Server</strong> — AI controls and giveaway controls (start, cancel, reroll)</li>
         <li><strong>Paid servers</strong> — Plus raises custom command limits; Pro and Max add image generation and analysis</li>
         <li><strong>Server Owner</strong> — Full access to all commands and dashboard settings</li>
       </ul>
@@ -399,7 +407,7 @@
     <div class="info-card info-card-info">
       <h3>AI — Mention-Based Interaction</h3>
       <p>
-        The AI feature does not use a slash command. Members interact with the bot by mentioning it: <code>@Acosmibot what is the leveling system?</code>. The bot must be enabled by an admin first using <code>/ai-enable</code>.
+        AI chat does not require a slash command. Members interact with the bot by mentioning it: <code>@Acosmibot what is the leveling system?</code>. The bot must be enabled by a server manager first using <code>/ai-admin enable</code>.
       </p>
     </div>
   </section>

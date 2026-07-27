@@ -5,6 +5,17 @@ colors:
   signal-cyan: "#00D9FF"
   signal-cyan-bright: "#00F0FF"
   signal-cyan-deep: "#00A0CC"
+  constellation-cyan-bright: "#67ECFF"
+  constellation-violet: "#9F8BFF"
+  constellation-coral: "#FF8F72"
+  constellation-green: "#4FE3A1"
+  observatory-void: "#05080D"
+  observatory-space: "#08111A"
+  observatory-panel: "#0D151D"
+  observatory-node: "#15212B"
+  constellation-white: "#F4FBFF"
+  constellation-text: "#A9BAC7"
+  constellation-muted: "#71808D"
   control-black: "#1A1A1A"
   control-graphite: "#2A2A2A"
   control-panel: "#2D2D2D"
@@ -48,12 +59,28 @@ typography:
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: "0.5px"
+  micro:
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace"
+    fontSize: "8px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "0.08em"
+  compact:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.6
 rounded:
   xs: "3px"
   sm: "4px"
+  instrument: "6px"
+  instrument-lg: "7px"
   md: "8px"
+  action: "9px"
   menu: "10px"
+  node-tile: "11px"
   lg: "12px"
+  mobile-panel: "14px"
   card: "15px"
   xl: "16px"
   modal: "20px"
@@ -234,6 +261,23 @@ Borders are typically one pixel and low contrast. Signal borders identify select
 **The Radius Has Rank Rule.** Radius increases with component scale: controls are tighter than cards, and cards are tighter than dialogs.
 
 **The Pill Is Exceptional Rule.** Do not turn routine dashboard buttons, fields, tags, or cards into capsules.
+
+## Public Constellation Mode
+
+Public marketing surfaces extend the command deck into a spatial observatory. This is the marketing expression of the same product identity, not a separate brand.
+
+- **Physical scene:** A community owner is exploring the product in a dim desktop environment; the page behaves like a living systems map under an instrument panel.
+- **Canvas:** Use Observatory Void (`#05080D`) and Deep Space (`#08111A`) as page-scale fields. Quiet cyan and violet nebula depth may occupy broad background regions because they describe the graph's space, not ordinary content surfaces.
+- **Nodes and links:** Product capabilities are nodes with distinct circle, diamond, square, or hexagonal marks. Fine curved links express real feature relationships. Signal Cyan denotes the selected node and primary action; violet and warm coral separate feature families without replacing semantic status colors.
+- **Panels:** Inspector surfaces use translucent Observatory Panel (`rgba(13, 21, 29, 0.94)`) with blur only where content genuinely floats over the graph. Borders are cool-white at low opacity.
+- **Typography:** Poppins remains the product voice. Monospace is limited to topology readouts, node counts, and graph metadata.
+- **Motion:** The graph breathes through slow orbital drift and link emphasis. Selection resolves into one deliberate inspector transition. Reduced-motion users receive the same topology and content without drift.
+- **Responsive behavior:** Desktop uses spatial positioning and an adjacent inspector. Mobile converts the graph into a horizontally scrollable node rail above the inspector; it never shrinks labels into an unreadable miniature.
+- **Marketing proof:** The homepage proves breadth through the interactive feature topology. It does not add testimonials, customer marks, benchmarks, or fabricated activity data.
+- **Pricing trajectory:** Pricing turns the constellation into a decision instrument. Plans are stations around one shared core, billing cadence is one page-level control, and the comparison reads as accumulating capacity from Free through Max.
+- **Documentation reading mode:** Documentation turns the constellation into an observatory field manual. A compact topic index and optional section-signal rail surround one calm, opaque reading column; article content never competes with a decorative graph. Mobile collapses the topic index into a below-header drawer and keeps a single full-width reading flow.
+- **Leaderboard signal array:** Leaderboards turn live rank data into a connected ascent path. The top three entries are distinct gold, silver, and copper beacons backed by opaque surfaces; ranks four onward use a compact field ledger. Privacy masking, current-user selection, and profile eligibility remain legible before decorative rank signals.
+- **Tier signals:** Free is neutral blue-gray, Plus uses constellation green, Pro uses bright constellation cyan, and Max uses constellation coral. These hues identify plan paths only; they do not replace literal status colors.
 
 ## Components
 

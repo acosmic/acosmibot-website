@@ -1,7 +1,14 @@
+/**
+ * THESIS: Pricing is an orbit-selection instrument, not a stack of isolated sales cards.
+ * OWN-WORLD: Observatory void, cyan trajectories, compact telemetry, and four plan stations.
+ * STORY: See the shared free core, compare added capacity, then select a server for checkout.
+ * FIRST VIEWPORT: Offer copy and billing control sit beside a live four-station orbit diagram.
+ * FORM: Fourth-ranked “plan trajectory” structure; established constellation world; seed 65fbf8bd.
+ */
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueries } from '@tanstack/react-query';
-import { ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Activity, ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { guildApi } from '@/api/guilds';
@@ -10,6 +17,7 @@ import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
 import { startLogin } from '@/lib/auth';
 import type { Guild } from '@/types/guild';
+import '@/styles/pricing.css';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
   free: 'Free',
@@ -84,7 +92,7 @@ const TIERS: TierCardDef[] = [
     description: 'Plus limits with AI tools, memory, and clear usage caps.',
     fit: 'For servers that want AI built in',
     popular: true,
-    icon: <span style={{ display: 'inline-flex', gap: 2 }}><Bot size={18} /><Gem size={18} /></span>,
+    icon: <span className="pricing-icon-cluster"><Bot /><Gem /></span>,
     ctaLabel: 'Select Server',
     ctaNote: 'Billed per server',
     features: [
@@ -104,7 +112,7 @@ const TIERS: TierCardDef[] = [
     annualPrice: '$249',
     description: 'Higher AI usage for servers with heavier assistant workflows.',
     fit: 'For AI-heavy communities',
-    icon: <span style={{ display: 'inline-flex', gap: 2 }}><Sparkles size={18} /><Bot size={18} /></span>,
+    icon: <span className="pricing-icon-cluster"><Sparkles /><Bot /></span>,
     ctaLabel: 'Select Server',
     ctaNote: 'Billed per server',
     features: [
@@ -170,105 +178,99 @@ export const PricingPage: React.FC = () => {
   }, [preselectGuildId, token]);
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <PublicNav />
+    <div className="pricing-page">
+      <PublicNav variant="observatory" />
 
-      <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
-        {/* Hero */}
-        <div style={{ textAlign: 'center', marginBottom: '34px' }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            background: 'rgba(0,217,255,0.1)', border: '1px solid var(--border-cyan)',
-            color: 'var(--primary-color)', borderRadius: '999px', padding: '6px 16px',
-            fontSize: '12px', fontWeight: 800, letterSpacing: '0.08em',
-          }}>
-            <Gem size={16} /> PRICING
-          </span>
-          <h1 style={{
-            fontSize: '42px',
-            lineHeight: 1.05,
-            fontWeight: 900,
-            color: 'var(--text-primary)',
-            margin: '18px auto 12px',
-            maxWidth: '860px',
-          }}>
-            Unlock the Full Power of Acosmibot
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '17px', lineHeight: 1.65, maxWidth: '690px', margin: '0 auto' }}>
-            Upgrade stream alerts, custom commands, reaction roles, embeds, and AI tools without changing how your community already uses Discord.
-          </p>
-          <div style={{
-            margin: '18px auto 0',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            color: 'var(--text-muted)',
-            fontSize: '13px',
-            fontWeight: 600,
-          }}>
-            <span>Per-server subscriptions</span>
-            <span style={{ color: 'var(--border-light)' }}>•</span>
-            <span>{billingInterval === 'monthly' ? 'Monthly pricing shown' : 'Annual pricing shown'}</span>
+      <main className="pricing-main">
+        <section className="pricing-hero">
+          <div className="pricing-hero__copy">
+            <span className="pricing-kicker"><Gem aria-hidden="true" /> Choose your orbit</span>
+            <h1>One community core. Four ways to power it.</h1>
+            <p>
+              Start with every essential system, then add capacity for creator alerts,
+              community tools, and AI when your server is ready.
+            </p>
+            <div className="pricing-hero__meta" aria-label="Subscription details">
+              <span>Per-server plans</span>
+              <i />
+              <span>Monthly or annual</span>
+              <i />
+              <span>Free core included</span>
+            </div>
           </div>
-        </div>
+          <PricingOrbit interval={billingInterval} />
+        </section>
 
-        <div style={{
-          margin: '0 auto 34px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-          gap: '12px',
-        }}>
-          <PremiumStat icon={<Radio size={18} />} value="Twitch, YouTube, Kick" label="Live alerts for creator-led servers" />
-          <PremiumStat icon={<BarChart3 size={18} />} value="Server analytics" label="Activity and member trends for admins" />
-          <PremiumStat icon={<ShieldCheck size={18} />} value="Higher limits" label="More commands, role messages, and embeds" />
-          <PremiumStat icon={<Sparkles size={18} />} value="AI tiers" label="AI starts on Pro with higher limits on Max" />
-        </div>
+        <section className="pricing-control-deck" aria-label="Billing interval">
+          <div>
+            <span className="pricing-control-deck__label">Billing frequency</span>
+            <strong>{billingInterval === 'monthly' ? 'Flexible monthly orbit' : 'Annual orbit · save up to 18%'}</strong>
+          </div>
+          <BillingToggle interval={billingInterval} onChange={setBillingInterval} />
+          <span className={`pricing-billing-status${billingEnabled ? ' is-live' : ''}`}>
+            <i />
+            {billingEnabled ? 'Checkout online' : 'Checkout coming soon'}
+          </span>
+        </section>
 
-        {/* Pricing cards */}
-        <div className="pricing-plans-grid" style={{
-          display: 'grid',
-          gap: '20px', alignItems: 'stretch',
-          overflow: 'visible',
-          paddingTop: '16px',
-          paddingBottom: '4px',
-        }}>
-          {TIERS.map((t) => (
-            <TierCard
-              key={t.tier}
-              def={t.tier === 'free' || billingEnabled
-                ? t
-                : { ...t, ctaNote: 'Checkout opens after billing launch' }}
-              interval={billingInterval}
-              onIntervalChange={setBillingInterval}
-              loggedIn={!!token}
-              onSelect={t.tier === 'free' ? undefined : () => selectTier(t.tier as Exclude<PremiumTier, 'free'>)}
+        <section className="pricing-plans" id="plans" aria-labelledby="pricing-plans-title">
+          <div className="pricing-plans__heading">
+            <div>
+              <span>Plan trajectory</span>
+              <h2 id="pricing-plans-title">Every tier keeps the same connected core.</h2>
+            </div>
+            <p>Capacity grows along the path. AI tools, memory, and personalities enter the system at Pro.</p>
+          </div>
+
+          <div className="pricing-plan-track" aria-hidden="true">
+            <span /><span /><span /><span />
+          </div>
+          <div className="pricing-plans-grid">
+            {TIERS.map((tier) => (
+              <TierCard
+                key={tier.tier}
+                def={tier.tier === 'free' || billingEnabled
+                  ? tier
+                  : { ...tier, ctaNote: 'Checkout opens after billing launch' }}
+                interval={billingInterval}
+                onSelect={tier.tier === 'free' ? undefined : () => selectTier(tier.tier as Exclude<PremiumTier, 'free'>)}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="pricing-briefing" aria-labelledby="pricing-briefing-title">
+          <div className="pricing-briefing__intro">
+            <span>Signal briefing</span>
+            <h2 id="pricing-briefing-title">Pick the pressure point you need to relieve.</h2>
+            <p>No feature maze: Plus raises operating limits. Pro activates the complete AI layer. Max expands AI capacity.</p>
+          </div>
+          <div className="pricing-briefing__signals">
+            <PremiumNote icon={<Radio />} title="Creator growth" text="Plus expands Twitch, YouTube, and Kick tracking from one creator per platform to five." />
+            <PremiumNote icon={<ShieldCheck />} title="Community operations" text="Plus raises custom commands to 25, reaction-role messages to 10, and custom embeds to 100." />
+            <PremiumNote icon={<Sparkles />} title="AI systems" text="Pro adds tools, memory, personalities, web search, ambient replies, images, and vision. Max raises the usage ceilings." />
+            <PremiumNote
+              icon={<BarChart3 />}
+              title="Billing control"
+              text={billingEnabled
+                ? "Subscriptions are billed per server through Stripe. Change plans, switch intervals, or cancel from your server's billing page."
+                : 'Checkout stays paused while billing configuration is finalized.'}
             />
-          ))}
-        </div>
+          </div>
+        </section>
 
-        <div style={{
-          marginTop: '28px',
-          border: '1px solid var(--border-light)',
-          borderRadius: '12px',
-          background: 'var(--bg-card)',
-          padding: '18px 20px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '14px',
-        }}>
-          <PremiumNote title="Best for growth" text="Plus is for servers hitting free limits on creator alerts, commands, roles, or embeds." />
-          <PremiumNote title="Server insights" text="Every plan includes analytics views for checking community activity and member trends." />
-          <PremiumNote title="AI tiers" text="Free and Plus include 3 basic chat messages per day (90/month). Pro and Max add tools, memory, personalities, and higher caps." />
-          <PremiumNote
-            title="Billing"
-            text={billingEnabled
-              ? "Subscriptions are billed per server through Stripe. Change plans, switch billing intervals, or cancel anytime from your server's billing page."
-              : 'Checkout is paused while billing configuration is finalized.'}
-          />
-        </div>
-      </div>
+        <section className="pricing-close">
+          <div className="pricing-close__mark" aria-hidden="true">
+            <span /><span />
+            <img src="/images/acosmibot-logo.png" alt="" />
+          </div>
+          <div>
+            <span>Not ready to upgrade?</span>
+            <h2>Start free. Your community core is already online.</h2>
+          </div>
+          <a href="#plans">Compare plans <ArrowRight aria-hidden="true" /></a>
+        </section>
+      </main>
 
       {pickerTier && (
         <ServerPickerModal
@@ -291,80 +293,45 @@ export const PricingPage: React.FC = () => {
 const TierCard: React.FC<{
   def: TierCardDef;
   interval: BillingInterval;
-  onIntervalChange: (interval: BillingInterval) => void;
-  loggedIn: boolean;
   onSelect?: () => void;
-}> = ({ def, interval, onIntervalChange, onSelect }) => (
-  <div style={{
-    position: 'relative',
-    background: def.popular
-      ? 'linear-gradient(180deg, rgba(0,217,255,0.08), var(--bg-card) 34%)'
-      : 'var(--bg-card)',
-    border: `1px solid ${def.popular ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-    borderRadius: '16px', padding: '30px 24px 24px',
-    display: 'flex', flexDirection: 'column', gap: '16px',
-    boxShadow: def.popular ? '0 16px 42px rgba(0, 217, 255, 0.12)' : 'none',
-  }}>
+}> = ({ def, interval, onSelect }) => {
+  const price = interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice;
+  const monthlyTotal = parsePriceAmount(def.monthlyPrice) * 12;
+  const annualTotal = def.annualPrice ? parsePriceAmount(def.annualPrice) : 0;
+  const annualSavings = annualTotal ? Math.round((1 - annualTotal / monthlyTotal) * 100) : 0;
+
+  return (
+  <article className={`pricing-tier pricing-tier--${def.tier}${def.popular ? ' is-primary' : ''}`}>
     {def.popular && (
-      <span style={{
-        position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
-        background: 'var(--primary-color)', color: '#000', borderRadius: '999px',
-        padding: '3px 14px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em',
-        whiteSpace: 'nowrap',
-      }}>
-        MOST POPULAR
-      </span>
+      <span className="pricing-tier__recommendation">Recommended orbit</span>
     )}
-    <div>
-      <div style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: '12px',
-        minHeight: def.tier === 'free' ? 0 : 34,
-      }}>
-        <h3 style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0,
-        }}>
-          {TIER_LABELS[def.tier]}
-          {def.icon && <span style={{ color: 'var(--primary-color)', display: 'inline-flex' }}>{def.icon}</span>}
-        </h3>
-        {def.tier !== 'free' && (
-          <BillingToggle interval={interval} onChange={onIntervalChange} />
-        )}
+    <div className="pricing-tier__header">
+      <div className="pricing-tier__station" aria-hidden="true">
+        {def.icon ?? <Activity />}
       </div>
-      <div style={{ marginTop: '8px', overflow: 'hidden' }}>
-        <AnimatedPrice price={interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice} />
-        <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-          {def.tier === 'free' ? '' : interval === 'annual' ? '/year' : '/month'}
-        </span>
+      <div>
+        <span className="pricing-tier__sequence">Orbit {String(TIERS.findIndex((tier) => tier.tier === def.tier) + 1).padStart(2, '0')}</span>
+        <h3>{TIER_LABELS[def.tier]}</h3>
       </div>
-      <div style={{
-        marginTop: '8px',
-        color: def.popular ? 'var(--primary-color)' : 'var(--text-secondary)',
-        fontSize: '12px',
-        fontWeight: 800,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-      }}>
-        {def.fit}
-      </div>
-      <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.45 }}>
-        {def.description}
-      </p>
     </div>
 
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="pricing-tier__price">
+      <div>
+        <AnimatedPrice price={price} />
+        <span>{def.tier === 'free' ? 'forever' : interval === 'annual' ? '/year' : '/month'}</span>
+      </div>
+      {interval === 'annual' && annualSavings > 0 && <em>Save {annualSavings}%</em>}
+    </div>
+
+    <div className="pricing-tier__fit">{def.fit}</div>
+    <p className="pricing-tier__description">{def.description}</p>
+
+    <ul className="pricing-tier__features">
       {def.features.map((f) => (
-        <li key={f.text} style={{
-          display: 'flex', alignItems: 'flex-start', gap: '8px',
-          fontSize: '13px',
-          color: f.disabled ? 'var(--text-muted)' : 'var(--text-secondary)',
-        }}>
+        <li key={f.text} className={f.disabled ? 'is-disabled' : undefined}>
           {f.disabled
-            ? <X size={15} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: 2 }} />
-            : <Check size={15} color="var(--success-color, #3ecf8e)" style={{ flexShrink: 0, marginTop: 2 }} />}
+            ? <X aria-hidden="true" />
+            : <Check aria-hidden="true" />}
           <span>{f.text}</span>
         </li>
       ))}
@@ -373,38 +340,25 @@ const TierCard: React.FC<{
     {onSelect ? (
       <>
         <button
+          type="button"
           onClick={onSelect}
-          style={{
-            background: def.popular ? 'var(--primary-color)' : 'transparent',
-            color: def.popular ? '#000' : 'var(--primary-color)',
-            border: def.popular ? 'none' : '1px solid var(--border-cyan)',
-            borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-          }}
+          className="pricing-tier__action"
         >
           {def.ctaLabel ?? 'Select Server'}
-          <ArrowRight size={16} />
+          <ArrowRight aria-hidden="true" />
         </button>
         {def.ctaNote && (
-          <div style={{ minHeight: '16px', color: 'var(--text-muted)', fontSize: '11px', textAlign: 'center' }}>
-            {def.ctaNote}
-          </div>
+          <div className="pricing-tier__note">{def.ctaNote}</div>
         )}
       </>
     ) : (
-      <button disabled style={{
-        background: 'var(--bg-tertiary)', color: 'var(--text-muted)', border: 'none',
-        borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700, cursor: 'default',
-      }}>
-        {def.ctaLabel ?? 'Current Plan'}
+      <button type="button" className="pricing-tier__action pricing-tier__action--free" disabled>
+        Included by default
       </button>
     )}
-  </div>
-);
+  </article>
+  );
+};
 
 const AnimatedPrice: React.FC<{ price: string }> = ({ price }) => {
   const target = parsePriceAmount(price);
@@ -417,9 +371,16 @@ const AnimatedPrice: React.FC<{ price: string }> = ({ price }) => {
     const delta = target - start;
     const duration = 360;
     const startedAt = performance.now();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (frame.current !== null) {
       cancelAnimationFrame(frame.current);
+    }
+
+    if (reducedMotion) {
+      previous.current = target;
+      setDisplayAmount(target);
+      return;
     }
 
     const tick = (now: number) => {
@@ -452,49 +413,42 @@ const AnimatedPrice: React.FC<{ price: string }> = ({ price }) => {
   const label = settled ? price : `$${displayAmount.toFixed(2)}`;
 
   return (
-    <span style={{ display: 'inline-block', fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', minWidth: '4ch' }}>
+    <span className="pricing-animated-price">
       {label}
     </span>
   );
 };
 
-const PremiumStat: React.FC<{ icon: React.ReactNode; value: string; label: string }> = ({ icon, value, label }) => (
-  <div style={{
-    border: '1px solid var(--border-light)',
-    borderRadius: '12px',
-    background: 'var(--bg-card)',
-    padding: '14px 16px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  }}>
-    <div style={{
-      width: 36,
-      height: 36,
-      borderRadius: '10px',
-      border: '1px solid var(--border-cyan)',
-      color: 'var(--primary-color)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    }}>
-      {icon}
-    </div>
+const PremiumNote: React.FC<{ icon: React.ReactNode; title: string; text: string }> = ({ icon, title, text }) => (
+  <article className="pricing-signal">
+    <div className="pricing-signal__icon" aria-hidden="true">{icon}</div>
     <div>
-      <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 800 }}>{value}</div>
-      <div style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.35 }}>{label}</div>
+      <h3>{title}</h3>
+      <p>{text}</p>
     </div>
-  </div>
+  </article>
 );
 
-const PremiumNote: React.FC<{ title: string; text: string }> = ({ title, text }) => (
-  <div>
-    <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 800, marginBottom: '4px' }}>
-      {title}
+const PricingOrbit: React.FC<{ interval: BillingInterval }> = ({ interval }) => (
+  <div className="pricing-orbit" aria-label={`Four pricing tiers with ${interval} billing selected`}>
+    <div className="pricing-orbit__rings" aria-hidden="true"><span /><span /><span /></div>
+    <div className="pricing-orbit__core">
+      <img src="/images/acosmibot-logo.png" alt="" />
+      <span>Core</span>
     </div>
-    <div style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: 1.45 }}>
-      {text}
+    {TIERS.map((tier, index) => (
+      <div
+        key={tier.tier}
+        className={`pricing-orbit__station pricing-orbit__station--${tier.tier}`}
+        style={{ '--station-index': index } as React.CSSProperties}
+      >
+        <i aria-hidden="true">{tier.icon ?? <Activity />}</i>
+        <span>{TIER_LABELS[tier.tier]}</span>
+        <strong>{interval === 'annual' && tier.annualPrice ? tier.annualPrice : tier.monthlyPrice}</strong>
+      </div>
+    ))}
+    <div className="pricing-orbit__readout" aria-hidden="true">
+      <span>4 plans</span><i /> <span>1 connected core</span>
     </div>
   </div>
 );
@@ -503,34 +457,13 @@ const BillingToggle: React.FC<{
   interval: BillingInterval;
   onChange: (interval: BillingInterval) => void;
 }> = ({ interval, onChange }) => (
-  <div
-    style={{
-      display: 'inline-flex',
-      border: '1px solid var(--border-light)',
-      borderRadius: 8,
-      padding: 3,
-      background: 'rgba(0, 0, 0, 0.12)',
-    }}
-  >
+  <div className="pricing-toggle">
     {(['monthly', 'annual'] as const).map((option) => (
       <button
         key={option}
         type="button"
         onClick={() => onChange(option)}
         aria-pressed={interval === option}
-        style={{
-          border: 'none',
-          borderRadius: 6,
-          padding: '4px 8px',
-          minWidth: 58,
-          cursor: 'pointer',
-          fontSize: 11,
-          fontWeight: 800,
-          lineHeight: 1.2,
-          color: interval === option ? '#000' : 'var(--text-secondary)',
-          background: interval === option ? 'var(--primary-color)' : 'transparent',
-          textTransform: 'capitalize',
-        }}
       >
         {option}
       </button>
@@ -546,6 +479,10 @@ const ServerPickerModal: React.FC<{
   preselectGuildId: string | null;
   onClose: () => void;
 }> = ({ tier, interval, billingEnabled, preselectGuildId, onClose }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   const guildsQuery = useQuery({
     queryKey: ['guilds'],
     queryFn: () => guildApi.getGuilds(),
@@ -565,6 +502,60 @@ const ServerPickerModal: React.FC<{
   });
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    const background = Array.from(document.querySelectorAll<HTMLElement>(
+      '.pricing-page > main, .pricing-page > footer, .pricing-page > nav, .pricing-page > aside, .pricing-page > .public-nav__backdrop',
+    ));
+    background.forEach((element) => element.setAttribute('inert', ''));
+    document.body.style.overflow = 'hidden';
+
+    const getFocusable = () => Array.from(dialog.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ));
+    const focusFrame = window.requestAnimationFrame(() => {
+      getFocusable()[0]?.focus();
+    });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener('keydown', handleKeyDown);
+      background.forEach((element) => element.removeAttribute('inert'));
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, []);
 
   const checkout = useMutation({
     mutationFn: (guild: Guild) =>
@@ -604,44 +595,48 @@ const ServerPickerModal: React.FC<{
 
   return (
     <div
+      className="pricing-dialog-backdrop"
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
-      }}
+      role="presentation"
     >
       <div
+        ref={dialogRef}
+        className="pricing-dialog"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border-cyan)', borderRadius: '16px',
-          padding: '24px', maxWidth: '560px', width: '100%', maxHeight: '80vh', overflowY: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pricing-server-picker-title"
+        aria-describedby="pricing-server-picker-description"
+        tabIndex={-1}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
+        <div className="pricing-dialog__header">
+          <div className="pricing-dialog__title">
+            <span><Radio aria-hidden="true" /> Server uplink</span>
+            <h3 id="pricing-server-picker-title">
             Select a server to upgrade to {TIER_LABELS[tier]}
-          </h3>
-          <button onClick={onClose} aria-label="Close" style={{
-            background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex',
-          }}>
-            <X size={20} />
+            </h3>
+            <p id="pricing-server-picker-description">
+              Choose a server where you are the owner or have administrator permission.
+            </p>
+          </div>
+          <button type="button" className="pricing-dialog__close" onClick={onClose} aria-label="Close server picker">
+            <X aria-hidden="true" />
           </button>
         </div>
 
         {guildsQuery.isLoading && (
-          <p style={{ color: 'var(--text-secondary)' }}>Loading your servers…</p>
+          <p className="pricing-dialog__state">Scanning your servers…</p>
         )}
         {guildsQuery.isError && (
-          <p style={{ color: 'var(--error-color, #ef4444)' }}>Failed to load servers. Please try again.</p>
+          <p className="pricing-dialog__state is-error">Failed to load servers. Close this window and try again.</p>
         )}
         {guildsQuery.isSuccess && manageable.length === 0 && (
-          <p style={{ color: 'var(--text-secondary)' }}>
+          <p className="pricing-dialog__state">
             No servers found where you have admin permissions.
           </p>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="pricing-server-list">
           {manageable.map((g, i) => {
             const sub = subQueries[i]?.data;
             const guildTier = (sub?.tier ?? 'free') as PremiumTier;
@@ -649,51 +644,34 @@ const ServerPickerModal: React.FC<{
             const highlight = g.id === preselectGuildId;
 
             return (
-              <div key={g.id} style={{
-                display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
-                background: 'var(--bg-secondary)',
-                border: highlight ? '2px solid #ffd700' : '1px solid var(--border-light)',
-                boxShadow: highlight ? '0 0 20px rgba(255,215,0,0.35)' : 'none',
-                borderRadius: '12px', padding: '12px 14px',
-              }}>
-                <div style={{
-                  width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
-                  backgroundImage: g.icon ? `url(https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=128)` : 'none',
-                  backgroundSize: 'cover', backgroundColor: 'var(--bg-tertiary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontWeight: 700,
-                }}>
+              <div key={g.id} className={`pricing-server${highlight ? ' is-highlighted' : ''}`}>
+                <div
+                  className="pricing-server__avatar"
+                  style={{ backgroundImage: g.icon ? `url(https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=128)` : 'none' }}
+                >
                   {!g.icon && g.name.charAt(0).toUpperCase()}
                 </div>
-                <div style={{ flex: 1, minWidth: '140px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{g.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="pricing-server__copy">
+                  <strong>{g.name}</strong>
+                  <span>
                     {(g.member_count ?? 0).toLocaleString()} members
                     <TierBadge tier={guildTier} />
-                  </div>
+                  </span>
                 </div>
                 {!hasPremium ? (
                   <button
+                    type="button"
                     onClick={() => upgrade(g)}
                     disabled={checkout.isPending}
-                    style={{
-                      background: 'var(--primary-color)', color: '#000', border: 'none',
-                      borderRadius: '8px', padding: '8px 14px', fontSize: '13px', fontWeight: 700,
-                      cursor: checkout.isPending ? 'default' : 'pointer',
-                      opacity: checkout.isPending ? 0.7 : 1,
-                    }}
+                    className="pricing-server__action"
                   >
                     {!billingEnabled ? 'Coming Soon' : checkout.isPending ? 'Opening…' : `Upgrade to ${TIER_LABELS[tier]}`}
                   </button>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => manage(g)}
-                    style={{
-                      background: 'transparent', color: 'var(--text-primary)',
-                      border: '1px solid var(--border-light)',
-                      borderRadius: '8px', padding: '8px 14px', fontSize: '13px', fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
+                    className="pricing-server__action pricing-server__action--quiet"
                   >
                     Manage Billing
                   </button>
@@ -709,15 +687,12 @@ const ServerPickerModal: React.FC<{
 
 const TierBadge: React.FC<{ tier: PremiumTier }> = ({ tier }) => {
   if (tier === 'free') {
-    return <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Free</span>;
+    return <span className="pricing-tier-badge pricing-tier-badge--free">Free</span>;
   }
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '3px',
-      fontSize: '11px', fontWeight: 700, color: 'var(--primary-color)',
-    }}>
-      {(tier === 'pro' || tier === 'max') && <Bot size={12} />}
-      <Gem size={12} /> {TIER_LABELS[tier]}
+    <span className={`pricing-tier-badge pricing-tier-badge--${tier}`}>
+      {(tier === 'pro' || tier === 'max') && <Bot aria-hidden="true" />}
+      <Gem aria-hidden="true" /> {TIER_LABELS[tier]}
     </span>
   );
 };

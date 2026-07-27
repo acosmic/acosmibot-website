@@ -182,7 +182,7 @@ export const AiPage: React.FC = () => {
         label="Memory"
         enabled={form.memory_enabled}
         onChange={(v) => setForm({ memory_enabled: v })}
-        description="Let the AI remember facts members share about themselves (favorite game, timezone, running jokes) and use them in future replies. Members can review or clear their own memory with /ai-memory."
+        description="Let the AI remember facts members share about themselves (favorite game, timezone, running jokes) and use them in future replies. Members can review or clear their own memory with /ai memory."
       />
 
       <AiMemorySection guildId={guildId!} enabled={form.memory_enabled} />

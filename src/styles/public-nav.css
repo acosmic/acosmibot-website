@@ -107,6 +107,53 @@
   transform: translateY(-2px);
 }
 
+/* Shared constellation treatment for public marketing surfaces. */
+.public-nav--observatory {
+  position: relative;
+  background: rgba(5, 8, 13, 0.78);
+  border-bottom-color: rgba(220, 242, 255, 0.11);
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px) saturate(125%);
+}
+
+.public-nav--observatory .public-nav__container {
+  max-width: 1240px;
+}
+
+.public-nav--observatory .public-nav__links a {
+  color: #a9bac7;
+  font-size: 13px;
+}
+
+.public-nav--observatory .public-nav__links a:hover,
+.public-nav--observatory .public-nav__links a:focus-visible {
+  color: #f4fbff;
+  background: rgba(0, 217, 255, 0.08);
+  transform: none;
+}
+
+.public-nav--observatory .public-nav__login {
+  min-height: 40px;
+  padding: 9px 17px;
+  border: 1px solid rgba(0, 217, 255, 0.46);
+  border-radius: 8px;
+  background: rgba(0, 217, 255, 0.12);
+  color: #f4fbff;
+  font-size: 13px;
+}
+
+.public-nav--observatory .public-nav__login:hover {
+  background: rgba(0, 217, 255, 0.19);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+  transform: translateY(-1px);
+}
+
+.public-nav--observatory .public-nav__account-menu,
+.public-nav__drawer--observatory {
+  background: #0d151d;
+  border-color: rgba(220, 242, 255, 0.11);
+}
+
 .public-nav__discord-icon {
   width: 20px;
   height: 20px;
@@ -505,6 +552,12 @@
 
   .public-nav__drawer-header {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .public-nav--observatory {
+    background: rgba(5, 8, 13, 0.94);
   }
 }
 

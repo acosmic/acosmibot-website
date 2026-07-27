@@ -1,0 +1,267 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Heist, Heat &amp; Donations</h1>
+    <p class="docs-page-description">
+      Rally a crew, complete interactive jobs, and rob your server's shared vault while managing the Heat you attract.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Heist is a cooperative game where members team up to rob the server vault. The crew completes one interactive job per member, and every result changes the odds of the final attempt.
+    </p>
+
+    <div class="info-card info-card-info">
+      <h3>Key Details</h3>
+      <ul>
+        <li>Run <code>/heist</code> to open a crew lobby with a join button</li>
+        <li>Every crew member receives one randomly assigned interactive job</li>
+        <li>Passed jobs raise the final success chance; failed or timed-out jobs lower it</li>
+        <li>More crew members increase the possible total take and add more chances to improve the odds</li>
+        <li>Crew Heat applies a separate penalty to the final success chance</li>
+        <li>Only the shared server vault is at stake — personal wallets and the global bank are never taken</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/heist</div>
+        <div class="command-description">
+          Rally a crew through a join button. When the lobby closes, the crew completes turn-based jobs before the bot rolls the final vault attempt.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/heist</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/guildbank</div>
+        <div class="command-description">
+          Check the server vault balance and see whether a heist is available, already in progress, or on cooldown. Active cooldowns appear as a live Discord countdown.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/guildbank</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/heat</div>
+        <div class="command-description">
+          Check your Heat — your heist wanted level in this server. Heat rises when you join heists, rises more when you get caught, and cools off over time.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/heat</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/donate &lt;amount&gt;</div>
+        <div class="command-description">
+          Donate credits from your server wallet to the vault. Donations also bribe your Heat down, up to your daily relief limit.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/donate 5000</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>How a Heist Works</h2>
+
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Build the crew</h3>
+          <p>Members join through the lobby button. Only one heist lobby or active run can exist in a server at a time.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Review the assignments</h3>
+          <p>Every crew member receives one random job. Jobs are dealt without repeats until all six job types have been used.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Ready up</h3>
+          <p>The active phase begins when everyone presses <strong>Ready Up</strong> or when the briefing timer ends. Missing Ready Up does not fail your job.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Complete each turn</h3>
+          <p>Jobs run one at a time in random order. Everyone can watch, but only the member named for the current turn can use its controls.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Roll the final attempt</h3>
+          <p>Passed jobs raise the crew's odds, failed or timed-out jobs lower them, and crew Heat applies an additional penalty before the final roll.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>Jobs Change the Odds</h3>
+      <p>
+        Passing a job does not guarantee the heist succeeds, and failing one does not immediately end the run. Each result changes the crew's final success chance.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Minigame Rules</h2>
+
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">🔐 Lockpick</div>
+        <div class="command-description">
+          Memorize the displayed three-number tumbler sequence, then press the buttons 1 through 5 in that exact order. One wrong tumbler immediately jams the lock.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">💻 Hack the Mainframe</div>
+        <div class="command-description">
+          Memorize the six-digit access code, press <strong>Enter Code</strong>, and type the same digits into the terminal modal before time expires. Opening the terminal hides the code from the shared message.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">✂️ Cut the Wire</div>
+        <div class="command-description">
+          Read every clue about color temperature, odd or even circuit number, and the number range. Select the one wire that matches every clue.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">👀 Lookout</div>
+        <div class="command-description">
+          Match the target's hat color and glasses style to one of four suspects. Identify at least two of the three targets correctly to pass.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🎒 Pack the Loot</div>
+        <div class="command-description">
+          Toggle bags until their combined weight exactly matches the getaway limit, then press <strong>Load the Van</strong>. Every puzzle has a solution using two or three bags.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">🌡️ Thermal Drill</div>
+        <div class="command-description">
+          Use <strong>Vent (-12°)</strong>, <strong>Coast (+2°)</strong>, <strong>Drill (+9°)</strong>, or <strong>Boost (+16°)</strong> to reach the 72–82° safe band and stay there for two consecutive moves. You have four moves; going above 95° fails immediately.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Turns, Timeouts &amp; Ready Up</h2>
+
+    <div class="info-card">
+      <h3>Only the Active Member Can Play</h3>
+      <p>
+        Another crew member cannot take your turn. Interactions from anyone except the active member are rejected.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Timeouts Count as Failed Jobs</h3>
+      <p>
+        Each turn has a server-configured time limit. If you do nothing, your job fails and the heist continues with the next crew member.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Ready Up Is Optional</h3>
+      <p>
+        Ready Up only starts the job phase early when the entire crew is ready. The phase begins automatically when the briefing ends, so missing it does not fail your assignment.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Availability &amp; Cooldowns</h2>
+    <ul>
+      <li>The server vault must hold the configured minimum balance before a heist can begin</li>
+      <li>Only one heist lobby or run can be active in a server at once</li>
+      <li>After a real heist finishes, the configured cooldown applies to the entire server</li>
+      <li>No member can start another heist in that server until the cooldown ends</li>
+      <li>Use <code>/guildbank</code> to see the vault balance and current availability</li>
+    </ul>
+  </section>
+
+  <section class="docs-section">
+    <h2>Heat &amp; Donations</h2>
+    <p>
+      Each member has their own Heat and daily Heat-relief allowance in each server. The crew's average Heat lowers the final heist chance, so laying low or donating can matter before a large job.
+    </p>
+
+    <div class="info-card info-card-success">
+      <h3>Daily Heat Relief</h3>
+      <ul>
+        <li><code>/donate</code> always adds the full donation to the server vault</li>
+        <li>Only the Heat relief is capped; donations continue working after you reach that cap</li>
+        <li>The cap resets at <strong>00:00 UTC</strong>, based on the calendar day rather than a rolling 24-hour timer</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h4>Q: Are the minigames separate commands?</h4>
+      <p>A: No. They are the six cooperative jobs inside <code>/heist</code> and do not require a separate wager or command.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can another member take my turn?</h4>
+      <p>A: No. Only the member assigned to the active turn can use its controls.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Does one failed job end the heist?</h4>
+      <p>A: No. A failed job lowers the final odds, then play continues with the next crew member.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can a heist take credits from my wallet or global bank?</h4>
+      <p>A: No. The shared server vault is the only target.</p>
+    </div>
+  </section>
+
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('deathroll')">
+      <span class="arrow">←</span>
+      <span class="nav-label">Back</span>
+      <span class="nav-page">Deathroll</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('reaction-roles')">
+      <span class="nav-page">Reaction Roles</span>
+      <span class="nav-label">Next</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</div>
