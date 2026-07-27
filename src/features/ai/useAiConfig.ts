@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 
+const AMBIENT_IMAGE_DAILY_MAX = 5;
+
 export interface AiConfig {
   enabled: boolean;
   instructions: string;
@@ -37,25 +39,6 @@ export interface AiPersonality {
   instructions: string;
   built_in: boolean;
 }
-
-export const AMBIENT_FREQUENCY_LEVELS = [
-  { id: 'low', label: 'Low (rare)', value: 0.02 },
-  { id: 'medium', label: 'Medium', value: 0.05 },
-  { id: 'high', label: 'High (chatty)', value: 0.10 },
-] as const;
-
-export const closestAmbientFrequencyIndex = (frequency: number) => {
-  const safeFrequency = Number.isFinite(frequency) ? frequency : 0.02;
-  return AMBIENT_FREQUENCY_LEVELS.reduce(
-    (closestIndex, level, index) => (
-      Math.abs(level.value - safeFrequency)
-        < Math.abs(AMBIENT_FREQUENCY_LEVELS[closestIndex].value - safeFrequency)
-        ? index
-        : closestIndex
-    ),
-    0,
-  );
-};
 
 export const BUILT_IN_PERSONALITIES: AiPersonality[] = [
   {
@@ -95,13 +78,13 @@ const DEFAULT_AI: AiConfig = {
   web_search: false,
   memory_enabled: true,
   ambient_enabled: false,
-  ambient_frequency: AMBIENT_FREQUENCY_LEVELS[0].value,
+  ambient_frequency: 0.03,
   ambient_cooldown_seconds: 600,
   ambient_daily_limit: 25,
   ambient_images_enabled: false,
   ambient_image_chance: 0.15,
   ambient_image_cooldown_seconds: 600,
-  ambient_image_daily_limit: 25,
+  ambient_image_daily_limit: AMBIENT_IMAGE_DAILY_MAX,
   timezone: 'UTC',
 };
 
@@ -120,9 +103,6 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
 
   const active = personalities.find(p => p.id === activeId) || personalities[0];
   const ambientFrequency = Number(merged.ambient_frequency);
-  const ambientFrequencyLevel = AMBIENT_FREQUENCY_LEVELS[
-    closestAmbientFrequencyIndex(ambientFrequency)
-  ];
   const ambientDailyMax = tier === 'max' ? 100 : 25;
   const ambientDailyLimit = Number(merged.ambient_daily_limit);
   const ambientImageChance = Number(merged.ambient_image_chance);
@@ -138,7 +118,10 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
     personalities,
     active_personality_id: active.id,
     instructions: active.instructions,
-    ambient_frequency: ambientFrequencyLevel.value,
+    ambient_frequency: Math.min(
+      Math.max(Number.isFinite(ambientFrequency) ? ambientFrequency : 0.03, 0.01),
+      0.25,
+    ),
     ambient_cooldown_seconds: Math.min(
       Math.max(Number(merged.ambient_cooldown_seconds) || 600, 120),
       86400,
@@ -159,10 +142,10 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
       Math.max(
         Number.isFinite(ambientImageDailyLimit)
           ? Math.trunc(ambientImageDailyLimit)
-          : 25,
+          : AMBIENT_IMAGE_DAILY_MAX,
         1,
       ),
-      ambientDailyMax,
+      AMBIENT_IMAGE_DAILY_MAX,
     ),
   };
 }

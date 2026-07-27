@@ -5,8 +5,6 @@ import {
   useAiConfig,
   AiConfig,
   AiPersonality,
-  AMBIENT_FREQUENCY_LEVELS,
-  closestAmbientFrequencyIndex,
 } from './useAiConfig';
 import { AiMemorySection } from './AiMemorySection';
 import { AiServerMemorySection } from './AiServerMemorySection';
@@ -21,8 +19,9 @@ const NAME_MAX = 48;
 // Ambient chat bounds — must mirror acosmibot-core ai_personalities.
 const AMBIENT_MIN_COOLDOWN_MIN = 2;     // 120s
 const AMBIENT_MAX_COOLDOWN_MIN = 1440;  // 24h
-const AMBIENT_IMAGE_MIN_PCT = 1;
-const AMBIENT_IMAGE_MAX_PCT = 25;
+const AMBIENT_CHANCE_MIN_PCT = 1;
+const AMBIENT_CHANCE_MAX_PCT = 25;
+const AMBIENT_IMAGE_DAILY_MAX = 5;
 
 const clamp = (value: number, min: number, max: number) =>
   Number.isNaN(value) ? min : Math.min(Math.max(value, min), max);
@@ -75,17 +74,24 @@ export const AiPage: React.FC = () => {
 
   const charCount = (activePersonality?.instructions || '').length;
   const customPersonalities = form.personalities.filter(p => !p.built_in);
-  const ambientFrequencyIndex = closestAmbientFrequencyIndex(form.ambient_frequency);
-  const ambientFrequencyLevel = AMBIENT_FREQUENCY_LEVELS[ambientFrequencyIndex];
   const ambientDailyMax = tier === 'max' ? 100 : 25;
+  const ambientFrequencyPct = clamp(
+    Math.round((form.ambient_frequency ?? 0.03) * 100),
+    AMBIENT_CHANCE_MIN_PCT,
+    AMBIENT_CHANCE_MAX_PCT,
+  );
+  const ambientFrequencySliderProgress = (
+    (ambientFrequencyPct - AMBIENT_CHANCE_MIN_PCT)
+    / (AMBIENT_CHANCE_MAX_PCT - AMBIENT_CHANCE_MIN_PCT)
+  ) * 100;
   const ambientImageChancePct = clamp(
     Math.round((form.ambient_image_chance ?? 0.15) * 100),
-    AMBIENT_IMAGE_MIN_PCT,
-    AMBIENT_IMAGE_MAX_PCT,
+    AMBIENT_CHANCE_MIN_PCT,
+    AMBIENT_CHANCE_MAX_PCT,
   );
   const ambientImageSliderProgress = (
-    (ambientImageChancePct - AMBIENT_IMAGE_MIN_PCT)
-    / (AMBIENT_IMAGE_MAX_PCT - AMBIENT_IMAGE_MIN_PCT)
+    (ambientImageChancePct - AMBIENT_CHANCE_MIN_PCT)
+    / (AMBIENT_CHANCE_MAX_PCT - AMBIENT_CHANCE_MIN_PCT)
   ) * 100;
 
   const updatePersonalities = (personalities: AiPersonality[], activeId = form.active_personality_id) => {
@@ -225,7 +231,7 @@ export const AiPage: React.FC = () => {
                   Chime-in chance
                 </label>
                 <span className="ambient-chance-value">
-                  {ambientFrequencyLevel.label} · {Math.round(ambientFrequencyLevel.value * 100)}%
+                  {ambientFrequencyPct}%
                 </span>
               </div>
 
@@ -233,31 +239,24 @@ export const AiPage: React.FC = () => {
                 id="ambient-frequency"
                 className="ambient-chance-slider"
                 type="range"
-                min={0}
-                max={AMBIENT_FREQUENCY_LEVELS.length - 1}
+                min={AMBIENT_CHANCE_MIN_PCT}
+                max={AMBIENT_CHANCE_MAX_PCT}
                 step={1}
-                value={ambientFrequencyIndex}
+                value={ambientFrequencyPct}
                 style={{
-                  '--ambient-slider-progress': `${ambientFrequencyIndex * 50}%`,
+                  '--ambient-slider-progress': `${ambientFrequencySliderProgress}%`,
                 } as React.CSSProperties}
                 aria-describedby="ambient-frequency-help"
-                aria-valuetext={`${ambientFrequencyLevel.label}, ${Math.round(ambientFrequencyLevel.value * 100)} percent`}
-                onChange={(event) => {
-                  const level = AMBIENT_FREQUENCY_LEVELS[Number(event.currentTarget.value)];
-                  setForm({ ambient_frequency: level.value });
-                }}
+                aria-valuetext={`${ambientFrequencyPct} percent of eligible messages`}
+                onChange={(event) => setForm({
+                  ambient_frequency: Number(event.currentTarget.value) / 100,
+                })}
               />
 
               <div className="ambient-chance-labels" aria-hidden="true">
-                {AMBIENT_FREQUENCY_LEVELS.map((level, index) => (
-                  <span
-                    key={level.id}
-                    className={index === ambientFrequencyIndex ? 'active' : undefined}
-                  >
-                    <strong>{level.label}</strong>
-                    <small>{Math.round(level.value * 100)}%</small>
-                  </span>
-                ))}
+                <span><strong>Minimum</strong><small>1%</small></span>
+                <span><strong>Midpoint</strong><small>13%</small></span>
+                <span><strong>Maximum</strong><small>25%</small></span>
               </div>
               <p id="ambient-frequency-help" className="text-muted small mt-2 mb-0">
                 Applies to eligible messages with at least 25 characters.
@@ -334,8 +333,8 @@ export const AiPage: React.FC = () => {
                     id="ambient-image-chance"
                     className="ambient-chance-slider"
                     type="range"
-                    min={AMBIENT_IMAGE_MIN_PCT}
-                    max={AMBIENT_IMAGE_MAX_PCT}
+                    min={AMBIENT_CHANCE_MIN_PCT}
+                    max={AMBIENT_CHANCE_MAX_PCT}
                     step={1}
                     value={ambientImageChancePct}
                     style={{
@@ -391,24 +390,23 @@ export const AiPage: React.FC = () => {
                   <NumberInput
                     className="form-control"
                     min={1}
-                    max={ambientDailyMax}
+                    max={AMBIENT_IMAGE_DAILY_MAX}
                     step={1}
                     value={Math.min(
-                      form.ambient_image_daily_limit ?? 25,
-                      ambientDailyMax,
+                      form.ambient_image_daily_limit ?? AMBIENT_IMAGE_DAILY_MAX,
+                      AMBIENT_IMAGE_DAILY_MAX,
                     )}
                     onValueChange={(value) => setForm({
                       ambient_image_daily_limit: clamp(
                         Math.trunc(value),
                         1,
-                        ambientDailyMax,
+                        AMBIENT_IMAGE_DAILY_MAX,
                       ),
                     })}
                     style={{ maxWidth: '110px' }}
                   />
                   <p className="text-muted small mt-1 mb-0">
-                    Up to {ambientDailyMax} ambient meme images per day on{' '}
-                    {tier === 'max' ? 'Max' : 'Pro'}.
+                    Up to {AMBIENT_IMAGE_DAILY_MAX} ambient meme images per day.
                   </p>
                 </div>
               </div>
