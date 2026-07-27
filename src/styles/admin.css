@@ -888,6 +888,54 @@
   margin-bottom: 36px;
 }
 
+.admin-log-tools {
+  display: grid;
+  grid-template-columns: auto auto auto auto minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+
+.admin-log-tools h5 {
+  margin: 0 4px 0 0;
+  color: var(--text-muted);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-log-tools select,
+.admin-log-tools input {
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  outline: none;
+  background: #111c26;
+  color: var(--text-secondary);
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+}
+
+.admin-log-tools select:focus,
+.admin-log-tools input:focus {
+  border-color: var(--border-cyan);
+  box-shadow: 0 0 0 3px rgba(97, 218, 241, 0.08);
+}
+
+.admin-log-tools input::placeholder {
+  color: var(--text-muted);
+}
+
+.admin-log-tools__count {
+  justify-self: start;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
 .admin-data-table {
   width: 100%;
   border-collapse: collapse;
@@ -934,6 +982,127 @@
 
 .admin-data-table tbody tr:hover {
   background: rgba(97, 218, 241, 0.035);
+}
+
+.admin-log-table {
+  table-layout: fixed;
+}
+
+.admin-log-table__time-col {
+  width: 154px;
+}
+
+.admin-log-table__source-col {
+  width: 62px;
+}
+
+.admin-log-table__level-col {
+  width: 78px;
+}
+
+.admin-log-table__logger-col {
+  width: 148px;
+}
+
+.admin-log-table__context-col {
+  width: 228px;
+}
+
+.admin-log-table th {
+  color: #91a4af;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.admin-log-table th > span {
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.admin-log-table tbody tr {
+  cursor: pointer;
+}
+
+.admin-log-table tbody tr:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+  background: rgba(97, 218, 241, 0.055);
+}
+
+.admin-log-table__time,
+.admin-log-table__source,
+.admin-log-table__logger {
+  color: var(--text-muted);
+}
+
+.admin-log-table__source {
+  text-transform: uppercase;
+}
+
+.admin-log-table__level {
+  display: inline-flex;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.admin-log-table__message {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.admin-log-table__message > span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-log-table__message small {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.admin-log-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.admin-log-context.is-nowrap {
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+
+.admin-log-context__chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 1px 5px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.admin-log-context__empty {
+  color: var(--text-muted);
 }
 
 .admin-ip-toggle,
@@ -1278,6 +1447,16 @@
   .admin-page .admin-stats-grid {
     grid-template-columns: 1fr;
     gap: 18px;
+  }
+
+  .admin-log-tools {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-log-tools h5,
+  .admin-log-tools input,
+  .admin-log-tools__count {
+    grid-column: 1 / -1;
   }
 
   .admin-page .admin-card-list {

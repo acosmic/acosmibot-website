@@ -139,16 +139,11 @@ function contextItems(entry: LogEntry): { label: string; value: string }[] {
 
 function ContextChips({ entry, wrap = true }: { entry: LogEntry; wrap?: boolean }) {
   const items = contextItems(entry);
-  if (items.length === 0) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
+  if (items.length === 0) return <span className="admin-log-context__empty">—</span>;
   return (
-    <div style={{ display: 'flex', flexWrap: wrap ? 'wrap' : 'nowrap', gap: 4 }}>
+    <div className={`admin-log-context${wrap ? '' : ' is-nowrap'}`}>
       {items.map(({ label, value }) => (
-        <span key={label} style={{
-          display: 'inline-flex', gap: 4, alignItems: 'baseline',
-          background: 'var(--bg-secondary)', border: '1px solid var(--border-light)',
-          borderRadius: 4, padding: '1px 6px', fontSize: '0.72rem', fontFamily: 'monospace',
-          color: 'var(--text-muted)', whiteSpace: 'nowrap',
-        }}>
+        <span key={label} className="admin-log-context__chip">
           <span style={{ opacity: 0.6 }}>{label}</span>
           <span style={{ color: 'var(--text-primary)' }}>{value}</span>
         </span>
@@ -325,15 +320,12 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       )}
 
       {/* ── Logs ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-        <h5 style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
-          Runtime Logs
-        </h5>
+      <div className="admin-log-tools">
+        <h5>Runtime Logs</h5>
         <select
           aria-label="Runtime log source"
           value={logSource}
           onChange={e => setLogSource(e.target.value as LogSource)}
-          style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
         >
           <option value="bot">Bot</option>
           <option value="api">API</option>
@@ -342,7 +334,6 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           aria-label="Minimum runtime log level"
           value={logLevel}
           onChange={e => setLogLevel(e.target.value as LogLevel)}
-          style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
         >
           {(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] as LogLevel[]).map(level => (
             <option key={level} value={level}>{level}+</option>
@@ -352,7 +343,6 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           aria-label="Runtime log entry limit"
           value={logLimit}
           onChange={e => setLogLimit(Number(e.target.value))}
-          style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
         >
           {[50, 100, 200, 500].map(n => <option key={n} value={n}>Last {n}</option>)}
         </select>
@@ -361,9 +351,8 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           value={logSearch}
           onChange={e => setLogSearch(e.target.value)}
           placeholder="Search logs..."
-          style={{ minWidth: 220, background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '3px 8px', fontSize: '0.78rem' }}
         />
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{logs.length} entries</span>
+        <span className="admin-log-tools__count">{logs.length} entries</span>
       </div>
 
       {logsError ? (
@@ -373,15 +362,23 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       ) : (
         <>
         <div className="admin-table-desktop">
-          <table className="table table-dark table-hover" style={{ fontSize: '0.82rem', tableLayout: 'fixed', width: '100%' }}>
+          <table className="admin-data-table admin-log-table">
+            <colgroup>
+              <col className="admin-log-table__time-col" />
+              <col className="admin-log-table__source-col" />
+              <col className="admin-log-table__level-col" />
+              <col className="admin-log-table__logger-col" />
+              <col className="admin-log-table__message-col" />
+              <col className="admin-log-table__context-col" />
+            </colgroup>
             <thead>
               <tr>
-                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', width: 180 }}>Timestamp <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>(CT)</span></th>
-                <th style={{ borderColor: 'var(--border-light)', width: 64 }}>Source</th>
-                <th style={{ borderColor: 'var(--border-light)', width: 84 }}>Level</th>
-                <th style={{ borderColor: 'var(--border-light)', width: 150 }}>Logger</th>
-                <th style={{ borderColor: 'var(--border-light)' }}>Message</th>
-                <th style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', width: 280 }}>Context</th>
+                <th>Timestamp <span>(CT)</span></th>
+                <th>Source</th>
+                <th>Level</th>
+                <th>Logger</th>
+                <th>Message</th>
+                <th>Context</th>
               </tr>
             </thead>
             <tbody>
@@ -401,51 +398,34 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                     }}
                     tabIndex={0}
                     aria-label={`Open ${entry.level.toLowerCase()} log from ${formatCentral(entry.timestamp)}`}
-                    style={{ cursor: 'pointer' }}
                     title="Click to expand"
                   >
-                    <td style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
+                    <td className="admin-log-table__time">
                       {formatCentral(entry.timestamp)}
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    <td className="admin-log-table__source">
                       {entry.source ?? logSource}
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)' }}>
-                      <span style={{
-                        background: style.bg,
-                        color: style.color,
-                        borderRadius: 4,
-                        padding: '1px 6px',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                      }}>
+                    <td>
+                      <span
+                        className="admin-log-table__level"
+                        style={{ background: style.bg, color: style.color }}
+                      >
                         {entry.level}
                       </span>
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)', color: 'var(--text-muted)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td className="admin-log-table__logger">
                       {entry.logger}
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <pre style={{
-                          margin: 0,
-                          flex: 1,
-                          minWidth: 0,
-                          fontFamily: 'inherit',
-                          fontSize: 'inherit',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          color: 'var(--text-primary)',
-                        }}>
-                          {displayMsg}
-                        </pre>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                    <td>
+                      <div className="admin-log-table__message">
+                        <span>{displayMsg}</span>
+                        <small>
                           {isMultiline ? 'open traceback ›' : '›'}
-                        </span>
+                        </small>
                       </div>
                     </td>
-                    <td style={{ borderColor: 'var(--border-light)', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                    <td>
                       <ContextChips entry={entry} wrap={false} />
                     </td>
                   </tr>
