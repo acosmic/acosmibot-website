@@ -642,9 +642,13 @@ const ServerPickerModal: React.FC<{
             const guildTier = (sub?.tier ?? 'free') as PremiumTier;
             const hasPremium = guildTier !== 'free';
             const highlight = g.id === preselectGuildId;
+            const isOpening = checkout.isPending && checkout.variables?.id === g.id;
 
             return (
-              <div key={g.id} className={`pricing-server${highlight ? ' is-highlighted' : ''}`}>
+              <div
+                key={g.id}
+                className={`pricing-server${highlight ? ' is-highlighted' : ''}${isOpening ? ' is-opening' : ''}`}
+              >
                 <div
                   className="pricing-server__avatar"
                   style={{ backgroundImage: g.icon ? `url(https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=128)` : 'none' }}
@@ -664,8 +668,9 @@ const ServerPickerModal: React.FC<{
                     onClick={() => upgrade(g)}
                     disabled={checkout.isPending}
                     className="pricing-server__action"
+                    aria-busy={isOpening}
                   >
-                    {!billingEnabled ? 'Coming Soon' : checkout.isPending ? 'Opening…' : `Upgrade to ${TIER_LABELS[tier]}`}
+                    {!billingEnabled ? 'Coming Soon' : isOpening ? 'Opening…' : `Upgrade to ${TIER_LABELS[tier]}`}
                   </button>
                 ) : (
                   <button
