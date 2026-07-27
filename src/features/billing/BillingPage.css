@@ -1,3 +1,44 @@
+.billing-resume-action {
+  color: var(--text-primary) !important;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-tertiary)) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 38%, var(--border-light)) !important;
+}
+
+.billing-resume-action > svg {
+  flex: 0 0 auto;
+  color: var(--primary-color);
+}
+
+.billing-resume-action .small {
+  color: var(--text-secondary);
+}
+
+.billing-resume-action:hover,
+.billing-resume-action:focus-visible {
+  color: var(--text-primary) !important;
+  background: color-mix(in srgb, var(--primary-color) 14%, var(--bg-tertiary)) !important;
+  border-color: var(--border-cyan) !important;
+}
+
+.billing-resume-action:focus-visible {
+  box-shadow: 0 0 0 3px var(--primary-dim);
+}
+
+.billing-resume-action:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.billing-resume-action:disabled > svg {
+  animation: billing-resume-spin 0.9s linear infinite;
+}
+
+@keyframes billing-resume-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .billing-cancel-backdrop {
   position: fixed;
   inset: 0;
@@ -230,6 +271,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .billing-resume-action:disabled > svg {
+    animation: none;
+  }
+
   .billing-cancel-dialog__close,
   .billing-cancel-dialog__actions .btn {
     transition: none;

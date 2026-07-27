@@ -2,7 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CalendarClock, CreditCard, ExternalLink, Gem, Receipt, ShieldCheck, Sparkles, X, XCircle } from 'lucide-react';
+import { CalendarClock, CreditCard, ExternalLink, Gem, Receipt, RefreshCw, ShieldCheck, Sparkles, X, XCircle } from 'lucide-react';
 import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
 import { LoadingSpinner } from '@/components/ui';
@@ -295,6 +295,17 @@ export const BillingPage: React.FC = () => {
     },
   });
 
+  const resume = useMutation({
+    mutationFn: () => subscriptionsApi.resume({ guild_id: guildId! }),
+    onSuccess: async (data) => {
+      showToast(data.message || 'Subscription resumed.', 'success');
+      await queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'subscription'] });
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Could not resume subscription.', 'error');
+    },
+  });
+
   const [pendingPlan, setPendingPlan] = React.useState<{ tier: PaidTier; interval: BillingInterval } | null>(null);
   const [planIntervalOverride, setPlanIntervalOverride] = React.useState<BillingInterval | null>(null);
 
@@ -528,18 +539,37 @@ export const BillingPage: React.FC = () => {
           <div className="card p-4 mb-4">
             <h3 className="mb-4">Subscription</h3>
             {hasPaidTier ? (
-              <button
-                type="button"
-                className="btn text-start p-3 d-flex align-items-center gap-3 w-100"
-                disabled={cancel.isPending || isCanceling}
-                onClick={handleCancel}
-              >
-                <XCircle size={20} />
-                <div>
-                  <div className="fw-bold">{isCanceling ? 'Cancellation Scheduled' : 'Cancel Subscription'}</div>
-                  <div className="small text-muted">Keep access through the paid period</div>
-                </div>
-              </button>
+              isCanceling ? (
+                <button
+                  type="button"
+                  className="btn billing-resume-action text-start p-3 d-flex align-items-center gap-3 w-100"
+                  disabled={resume.isPending}
+                  onClick={() => resume.mutate()}
+                >
+                  <RefreshCw size={20} aria-hidden="true" />
+                  <div>
+                    <div className="fw-bold">
+                      {resume.isPending ? 'Resuming…' : 'Resume Subscription'}
+                    </div>
+                    <div className="small">
+                      Keep {TIER_LABELS[tier]} and renew on {formatDate(record?.cancel_at || record?.current_period_end)}
+                    </div>
+                  </div>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn text-start p-3 d-flex align-items-center gap-3 w-100"
+                  disabled={cancel.isPending}
+                  onClick={handleCancel}
+                >
+                  <XCircle size={20} aria-hidden="true" />
+                  <div>
+                    <div className="fw-bold">Cancel Subscription</div>
+                    <div className="small text-muted">Keep access through the paid period</div>
+                  </div>
+                </button>
+              )
             ) : (
               <p className="text-muted mb-0">This server is on the Free plan.</p>
             )}

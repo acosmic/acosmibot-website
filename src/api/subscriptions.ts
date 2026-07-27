@@ -69,4 +69,10 @@ export const subscriptionsApi = {
       '/api/subscriptions/cancel',
       { method: 'POST', body: JSON.stringify(body) },
     ),
+
+  resume: (body: { guild_id: string }) =>
+    api.fetch<{ success: boolean; message: string }>(
+      '/api/subscriptions/resume',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
 };
