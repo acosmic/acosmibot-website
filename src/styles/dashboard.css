@@ -26,7 +26,7 @@
   --server-backdrop: rgba(0, 0, 0, 0.68);
   --server-violet: #9f8bff;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   background: var(--bg-primary);
   color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
