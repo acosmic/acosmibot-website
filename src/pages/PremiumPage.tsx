@@ -480,8 +480,10 @@ const ServerPickerModal: React.FC<{
   onClose: () => void;
 }> = ({ tier, interval, billingEnabled, preselectGuildId, onClose }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const continueButtonRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const [checkoutGuild, setCheckoutGuild] = useState<Guild | null>(null);
 
   const guildsQuery = useQuery({
     queryKey: ['guilds'],
@@ -502,6 +504,10 @@ const ServerPickerModal: React.FC<{
   });
 
   const navigate = useNavigate();
+  const selectedPlan = TIERS.find((plan) => plan.tier === tier);
+  const selectedPrice = interval === 'annual'
+    ? selectedPlan?.annualPrice
+    : selectedPlan?.monthlyPrice;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -557,6 +563,12 @@ const ServerPickerModal: React.FC<{
     };
   }, []);
 
+  useEffect(() => {
+    if (!checkoutGuild) return;
+    const focusFrame = window.requestAnimationFrame(() => continueButtonRef.current?.focus());
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [checkoutGuild]);
+
   const checkout = useMutation({
     mutationFn: (guild: Guild) =>
       subscriptionsApi.createCheckout({
@@ -584,7 +596,7 @@ const ServerPickerModal: React.FC<{
       showToast('Pricing checkout is coming soon.', 'info');
       return;
     }
-    checkout.mutate(guild);
+    setCheckoutGuild(guild);
   };
 
   // Guilds that already pay go to the billing page, which previews the
@@ -613,10 +625,14 @@ const ServerPickerModal: React.FC<{
           <div className="pricing-dialog__title">
             <span><Radio aria-hidden="true" /> Server uplink</span>
             <h3 id="pricing-server-picker-title">
-            Select a server to upgrade to {TIER_LABELS[tier]}
+              {checkoutGuild
+                ? 'Confirm your server and plan'
+                : `Select a server to upgrade to ${TIER_LABELS[tier]}`}
             </h3>
             <p id="pricing-server-picker-description">
-              Choose a server where you are the owner or have administrator permission.
+              {checkoutGuild
+                ? 'This subscription applies only to the Discord server shown below.'
+                : 'Choose a server where you are the owner or have administrator permission.'}
             </p>
           </div>
           <button type="button" className="pricing-dialog__close" onClick={onClose} aria-label="Close server picker">
@@ -624,67 +640,129 @@ const ServerPickerModal: React.FC<{
           </button>
         </div>
 
-        {guildsQuery.isLoading && (
-          <p className="pricing-dialog__state">Scanning your servers…</p>
-        )}
-        {guildsQuery.isError && (
-          <p className="pricing-dialog__state is-error">Failed to load servers. Close this window and try again.</p>
-        )}
-        {guildsQuery.isSuccess && manageable.length === 0 && (
-          <p className="pricing-dialog__state">
-            No servers found where you have admin permissions.
-          </p>
-        )}
-
-        <div className="pricing-server-list">
-          {manageable.map((g, i) => {
-            const sub = subQueries[i]?.data;
-            const guildTier = (sub?.tier ?? 'free') as PremiumTier;
-            const hasPremium = guildTier !== 'free';
-            const highlight = g.id === preselectGuildId;
-            const isOpening = checkout.isPending && checkout.variables?.id === g.id;
-
-            return (
+        {checkoutGuild ? (
+          <div className="pricing-checkout-confirmation">
+            <div className="pricing-checkout-confirmation__server">
               <div
-                key={g.id}
-                className={`pricing-server${highlight ? ' is-highlighted' : ''}${isOpening ? ' is-opening' : ''}`}
+                className="pricing-server__avatar"
+                style={{
+                  backgroundImage: checkoutGuild.icon
+                    ? `url(https://cdn.discordapp.com/icons/${checkoutGuild.id}/${checkoutGuild.icon}.png?size=128)`
+                    : 'none',
+                }}
               >
-                <div
-                  className="pricing-server__avatar"
-                  style={{ backgroundImage: g.icon ? `url(https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=128)` : 'none' }}
-                >
-                  {!g.icon && g.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="pricing-server__copy">
-                  <strong>{g.name}</strong>
-                  <span>
-                    {(g.member_count ?? 0).toLocaleString()} members
-                    <TierBadge tier={guildTier} />
-                  </span>
-                </div>
-                {!hasPremium ? (
-                  <button
-                    type="button"
-                    onClick={() => upgrade(g)}
-                    disabled={checkout.isPending}
-                    className="pricing-server__action"
-                    aria-busy={isOpening}
-                  >
-                    {!billingEnabled ? 'Coming Soon' : isOpening ? 'Opening…' : `Upgrade to ${TIER_LABELS[tier]}`}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => manage(g)}
-                    className="pricing-server__action pricing-server__action--quiet"
-                  >
-                    Manage Billing
-                  </button>
-                )}
+                {!checkoutGuild.icon && checkoutGuild.name.charAt(0).toUpperCase()}
               </div>
-            );
-          })}
-        </div>
+              <div className="pricing-server__copy">
+                <span>Discord server</span>
+                <strong>{checkoutGuild.name}</strong>
+              </div>
+              <ShieldCheck aria-hidden="true" />
+            </div>
+
+            <dl className="pricing-checkout-confirmation__plan">
+              <div>
+                <dt>Plan</dt>
+                <dd>Acosmibot {TIER_LABELS[tier]}</dd>
+              </div>
+              <div>
+                <dt>Billing</dt>
+                <dd>{interval === 'annual' ? 'Annual' : 'Monthly'}</dd>
+              </div>
+              <div>
+                <dt>Price</dt>
+                <dd>{selectedPrice ?? '—'}{interval === 'annual' ? '/year' : '/month'}</dd>
+              </div>
+            </dl>
+
+            <p className="pricing-checkout-confirmation__note">
+              Stripe will securely collect payment. The selected server is also attached to the
+              Checkout Session for automatic activation.
+            </p>
+
+            <div className="pricing-checkout-confirmation__actions">
+              <button
+                type="button"
+                className="pricing-server__action pricing-server__action--quiet"
+                onClick={() => setCheckoutGuild(null)}
+                disabled={checkout.isPending}
+              >
+                Back
+              </button>
+              <button
+                ref={continueButtonRef}
+                type="button"
+                className="pricing-server__action"
+                onClick={() => checkout.mutate(checkoutGuild)}
+                disabled={checkout.isPending}
+                aria-busy={checkout.isPending}
+              >
+                {checkout.isPending ? 'Opening Stripe…' : 'Continue to Stripe'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {guildsQuery.isLoading && (
+              <p className="pricing-dialog__state">Scanning your servers…</p>
+            )}
+            {guildsQuery.isError && (
+              <p className="pricing-dialog__state is-error">Failed to load servers. Close this window and try again.</p>
+            )}
+            {guildsQuery.isSuccess && manageable.length === 0 && (
+              <p className="pricing-dialog__state">
+                No servers found where you have admin permissions.
+              </p>
+            )}
+
+            <div className="pricing-server-list">
+              {manageable.map((g, i) => {
+                const sub = subQueries[i]?.data;
+                const guildTier = (sub?.tier ?? 'free') as PremiumTier;
+                const hasPremium = guildTier !== 'free';
+                const highlight = g.id === preselectGuildId;
+
+                return (
+                  <div
+                    key={g.id}
+                    className={`pricing-server${highlight ? ' is-highlighted' : ''}`}
+                  >
+                    <div
+                      className="pricing-server__avatar"
+                      style={{ backgroundImage: g.icon ? `url(https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=128)` : 'none' }}
+                    >
+                      {!g.icon && g.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="pricing-server__copy">
+                      <strong>{g.name}</strong>
+                      <span>
+                        {(g.member_count ?? 0).toLocaleString()} members
+                        <TierBadge tier={guildTier} />
+                      </span>
+                    </div>
+                    {!hasPremium ? (
+                      <button
+                        type="button"
+                        onClick={() => upgrade(g)}
+                        className="pricing-server__action"
+                      >
+                        {!billingEnabled ? 'Coming Soon' : `Upgrade to ${TIER_LABELS[tier]}`}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => manage(g)}
+                        className="pricing-server__action pricing-server__action--quiet"
+                      >
+                        Manage Billing
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
