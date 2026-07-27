@@ -1,40 +1,41 @@
+/**
+ * THESIS: Member settings are a signal-routing board, not a long undifferentiated form.
+ * OWN-WORLD: Restrained observatory console, sticky scope index, grouped control ledgers, and literal save state.
+ * STORY: Confirm identity, understand what is public, then route profile, server, AI-clock, and listening signals.
+ * FIRST VIEWPORT: A compact owner header leads into a left scope rail and a focused privacy workspace.
+ * FORM: Third-ranked signal-routing-board structure; established world; seed 44f65275.
+ */
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Hourglass, TriangleAlert } from 'lucide-react';
-import { CenteredMessage } from '@/components/ui/CenteredMessage';
-import { profileApi, type PublicProfile, type PrivacySettings } from '@/api/profile';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Clock3, Eye, Link2, LockKeyhole, Settings2, TriangleAlert } from 'lucide-react';
+import { profileApi, type PrivacySettings, type PublicProfile } from '@/api/profile';
+import { spotifyApi, type SpotifyStatus } from '@/api/spotify';
+import { ConnectedAccountsSettings } from '@/components/profile/ConnectedAccountsSettings';
+import { MemberNav } from '@/components/profile/MemberNav';
 import { OwnerSettings } from '@/components/profile/OwnerSettings';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { ConnectedAccountsSettings } from '@/components/profile/ConnectedAccountsSettings';
 import { useAuthStore } from '@/store/auth';
-import { spotifyApi, type SpotifyStatus } from '@/api/spotify';
 import { showToast } from '@/utils/toast';
+import '@/styles/member.css';
 
-/**
- * Owner-only account settings (`/settings`). Renders the shared `OwnerSettings`
- * panel against the private `/api/profile/me` payload. This is the home that
- * per-user premium / billing / rank-card customization will grow into; the
- * public profile (`/u/<name>`) just links here.
- */
 export const SettingsPage: React.FC = () => {
-  const token = useAuthStore((s) => s.token);
+  const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // You can only manage your own settings — bounce signed-out visitors home.
   useEffect(() => {
     if (!token) navigate('/', { replace: true });
   }, [token, navigate]);
 
-  const { data: profile, isLoading, isError } = useQuery<PublicProfile>({
+  const profileQuery = useQuery<PublicProfile>({
     queryKey: ['profile', 'me'],
     queryFn: () => profileApi.getMyProfile(),
     enabled: !!token,
   });
 
-  const { data: spotifyStatus, isLoading: spotifyLoading } = useQuery<SpotifyStatus>({
+  const spotifyQuery = useQuery<SpotifyStatus>({
     queryKey: ['spotify', 'status'],
     queryFn: () => spotifyApi.status(),
     enabled: !!token,
@@ -42,7 +43,6 @@ export const SettingsPage: React.FC = () => {
 
   const privacyMutation = useMutation({
     mutationFn: (updates: Partial<PrivacySettings>) => profileApi.updateMyPrivacy(updates),
-    // Prefix match keeps both this page and the /u/<name> profile in sync.
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
 
@@ -51,9 +51,6 @@ export const SettingsPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
 
-  // SPOTIFY OAUTH DEFERRED — account linking (link/unlink) is disabled until we
-  // qualify for Spotify Extended Quota Mode. See SPOTIFY_OAUTH_DEFERRED.md. Only the
-  // presence-based privacy opt-out remains.
   const spotifyOptOutMutation = useMutation({
     mutationFn: (optedOut: boolean) => spotifyApi.setOptOut(optedOut),
     onSuccess: ({ opted_out }) => {
@@ -62,62 +59,122 @@ export const SettingsPage: React.FC = () => {
     },
   });
 
+  const profile = profileQuery.data;
+  const privacy = profile?.privacy;
+  const visibleSignals = privacy
+    ? [
+        privacy.profile_public,
+        privacy.show_avatar,
+        privacy.show_xp,
+        privacy.show_messages,
+        privacy.show_reactions,
+        privacy.show_commands,
+        privacy.show_economy,
+        privacy.show_guilds,
+        privacy.show_achievements,
+        privacy.public_identity,
+      ].filter(Boolean).length
+    : 0;
+  const saveError = privacyMutation.error || timezoneMutation.error || spotifyOptOutMutation.error;
+
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <PublicNav />
+    <div className="member-page settings-page">
+      <PublicNav variant="observatory" />
+      <MemberNav />
 
-      <div style={{ flex: 1, padding: '40px 24px', maxWidth: '720px', margin: '0 auto', width: '100%' }}>
-        {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading settings…" />}
+      <main className="member-main settings-main">
+        <header className="member-header">
+          <div>
+            <p className="member-kicker">Personal control plane</p>
+            <h1>Route your member signals.</h1>
+            <p>Control what your profile reveals, how servers appear, and which personal context Acosmibot can use.</p>
+          </div>
+          {profile && (
+            <a className="member-header__action" href={`/u/${profile.username}`}>
+              <Eye aria-hidden="true" /> View public profile
+            </a>
+          )}
+        </header>
 
-        {isError && (
-          <CenteredMessage
-            icon={<TriangleAlert size={48} />}
-            title="Couldn’t load your settings"
-            subtitle="Try refreshing, or sign in again."
-          />
-        )}
+        {profileQuery.isLoading ? (
+          <SettingsSkeleton />
+        ) : profileQuery.isError ? (
+          <section className="member-error">
+            <TriangleAlert aria-hidden="true" />
+            <h2>Couldn’t load your settings.</h2>
+            <p>Refresh your member data or sign in again.</p>
+            <button type="button" onClick={() => profileQuery.refetch()}>Retry settings</button>
+          </section>
+        ) : profile ? (
+          <div className="settings-console">
+            <aside className="settings-scope" aria-label="Settings overview">
+              <div className="settings-scope__identity">
+                <span><LockKeyhole aria-hidden="true" /></span>
+                <div><strong>@{profile.username}</strong><small>Authenticated owner</small></div>
+              </div>
+              <div className="settings-scope__signals">
+                <div><Eye aria-hidden="true" /><span><strong>{visibleSignals}/10</strong> public signals</span></div>
+                <div><Clock3 aria-hidden="true" /><span><strong>{profile.timezone || 'Server default'}</strong> AI clock</span></div>
+                <div><Link2 aria-hidden="true" /><span><strong>Discord presence</strong> connected source</span></div>
+              </div>
+              <p>Changes save immediately. Visibility rules are enforced by the profile API, not only by this page.</p>
+            </aside>
 
-        {profile && (
-          <>
-            <header style={{ marginBottom: '20px' }}>
-              <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                Profile Settings
-              </h1>
-              <a href={`/u/${profile.username}`} style={{
-                display: 'inline-block', marginTop: '6px', fontSize: '14px',
-                color: 'var(--primary-color)', textDecoration: 'none',
-              }}>
-                View your public profile →
-              </a>
-            </header>
+            <section className="settings-workspace" aria-labelledby="settings-workspace-title">
+              <header>
+                <span><Settings2 aria-hidden="true" /></span>
+                <div>
+                  <p>Member preferences</p>
+                  <h2 id="settings-workspace-title">Visibility & context</h2>
+                </div>
+                <small aria-live="polite">
+                  {privacyMutation.isPending || timezoneMutation.isPending || spotifyOptOutMutation.isPending
+                    ? 'Saving changes…'
+                    : 'Changes save automatically'}
+                </small>
+              </header>
 
-            <OwnerSettings
-              privacy={profile.privacy}
-              guilds={profile.guilds}
-              timezone={profile.timezone ?? ''}
-              saving={privacyMutation.isPending}
-              timezoneSaving={timezoneMutation.isPending}
-              onToggle={(key, value) =>
-                privacyMutation.mutate({ [key]: value } as Partial<PrivacySettings>)}
-              onToggleGuild={(guildId, hidden) => {
-                const current = profile.privacy.hidden_guilds ?? [];
-                const next = hidden
-                  ? [...current.filter((g) => g !== guildId), guildId]
-                  : current.filter((g) => g !== guildId);
-                privacyMutation.mutate({ hidden_guilds: next });
-              }}
-              onTimezoneChange={(tz) => timezoneMutation.mutate(tz)}
-            />
-            <ConnectedAccountsSettings
-              spotify={spotifyStatus}
-              loading={spotifyLoading}
-              optOutSaving={spotifyOptOutMutation.isPending}
-              onToggleOptOut={(optedOut) => spotifyOptOutMutation.mutate(optedOut)}
-            />
-          </>
-        )}
-      </div>
+              {saveError && (
+                <p className="settings-save-error" role="alert">
+                  A change could not be saved. Your previous setting is still active.
+                </p>
+              )}
+
+              <OwnerSettings
+                privacy={profile.privacy}
+                guilds={profile.guilds}
+                timezone={profile.timezone ?? ''}
+                saving={privacyMutation.isPending}
+                timezoneSaving={timezoneMutation.isPending}
+                onToggle={(key, value) =>
+                  privacyMutation.mutate({ [key]: value } as Partial<PrivacySettings>)}
+                onToggleGuild={(guildId, hidden) => {
+                  const current = profile.privacy.hidden_guilds ?? [];
+                  const next = hidden
+                    ? [...current.filter((id) => id !== guildId), guildId]
+                    : current.filter((id) => id !== guildId);
+                  privacyMutation.mutate({ hidden_guilds: next });
+                }}
+                onTimezoneChange={(timezone) => timezoneMutation.mutate(timezone)}
+              />
+              <ConnectedAccountsSettings
+                spotify={spotifyQuery.data}
+                loading={spotifyQuery.isLoading}
+                optOutSaving={spotifyOptOutMutation.isPending}
+                onToggleOptOut={(optedOut) => spotifyOptOutMutation.mutate(optedOut)}
+              />
+            </section>
+          </div>
+        ) : null}
+      </main>
       <SiteFooter />
     </div>
   );
 };
+
+const SettingsSkeleton: React.FC = () => (
+  <div className="settings-skeleton" aria-label="Loading settings">
+    <span />
+    <div>{Array.from({ length: 6 }, (_, index) => <i key={index} />)}</div>
+  </div>
+);

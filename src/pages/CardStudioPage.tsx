@@ -1,8 +1,16 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BadgePercent, Check, Hourglass, TriangleAlert } from 'lucide-react';
+/**
+ * THESIS: Card Studio is a live material workbench, not a shop grid with a preview appended beside it.
+ * OWN-WORLD: Observatory workbench, sticky card stage, three cosmetic trays, physical swatches, and literal ownership states.
+ * STORY: Read balance, try a material, see the real rank card change, then equip owned pieces or confirm a purchase.
+ * FIRST VIEWPORT: The live equipped card holds the left stage while balance and the first material tray begin on the right.
+ * FORM: Fourth-ranked sticky-preview workbench structure; established world; seed 0038e941.
+ */
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { BadgePercent, Check, Coins, Hourglass, Palette, TriangleAlert } from 'lucide-react';
 import { CenteredMessage } from '@/components/ui/CenteredMessage';
+import { MemberNav } from '@/components/profile/MemberNav';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { useAuthStore } from '@/store/auth';
@@ -17,29 +25,25 @@ import { ScaledRankCard } from '@/cards/ScaledRankCard';
 import { buildRankCardData } from '@/cards/buildRankCardData';
 import { OG_FRAME_DATA_URI } from '@/cards/ogOrnament';
 import type { RankCardData } from '@/cards/types';
-
-/**
- * Card Studio (`/card-studio`) — owner-only cosmetics shop + live rank-card
- * preview. Users spend their global bank balance on value-based cosmetics
- * (accent / background / ring) and equip one loadout; the same `<RankCard>`
- * the Discord `/rank` card renders is shown live as they configure it.
- */
+import '@/styles/member.css';
 
 const SLOT_LABELS: Record<CosmeticType, string> = {
-  accent: 'Accent',
-  background: 'Background',
-  ring: 'Avatar Ring',
+  accent: 'Accent signals',
+  background: 'Background fields',
+  ring: 'Avatar rings',
+};
+
+const SLOT_NOTES: Record<CosmeticType, string> = {
+  accent: 'Sets the primary signal color throughout the card.',
+  background: 'Changes the card field while keeping data legible.',
+  ring: 'Frames the member identity at the center of the card.',
 };
 
 const SLOT_ORDER: CosmeticType[] = ['accent', 'background', 'ring'];
-
-const fmt = (n: number): string => n.toLocaleString('en-US');
-
-/** Price after the active shop discount (matches the backend's ceil rounding). */
+const fmt = (value: number): string => value.toLocaleString('en-US');
 const discounted = (price: number, discount: number): number =>
   discount > 0 ? Math.max(Math.ceil(price * (1 - discount)), 0) : price;
 
-/** Build the live preview payload from the user's real stats + selected loadout. */
 function buildPreview(
   profile: PublicProfile | undefined,
   selected: Record<CosmeticType, Cosmetic | null>,
@@ -53,392 +57,386 @@ function buildPreview(
 }
 
 export const CardStudioPage: React.FC = () => {
-  const authUser = useAuthStore((s) => s.user);
-  const token = useAuthStore((s) => s.token);
+  const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Owner-only: bounce signed-out visitors home.
   useEffect(() => {
     if (!token) navigate('/', { replace: true });
   }, [token, navigate]);
 
-  const { data: profile } = useQuery<PublicProfile>({
+  const profileQuery = useQuery<PublicProfile>({
     queryKey: ['profile', 'me'],
     queryFn: () => profileApi.getMyProfile(),
     enabled: !!token,
   });
 
-  const {
-    data: catalog,
-    isLoading,
-    isError,
-  } = useQuery<CosmeticCatalog>({
+  const catalogQuery = useQuery<CosmeticCatalog>({
     queryKey: ['cosmetics', 'catalog'],
     queryFn: () => cosmeticsApi.getCatalog(),
     enabled: !!token,
   });
 
-  // Locally-selected cosmetic per slot — drives the live preview. Includes
-  // "try-on" of unowned cosmetics so users can see them before buying.
   const [selected, setSelected] = useState<Record<CosmeticType, Cosmetic | null>>({
     accent: null,
     background: null,
     ring: null,
   });
-
-  // A purchase confirmation pending the user's OK (custom modal), and a notice
-  // (error/info) message shown in its own modal.
   const [pendingBuy, setPendingBuy] = useState<Cosmetic | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  // Seed the selection from the catalog's `equipped` flags ONCE. After that the
-  // user's clicks drive `selected`, so a refetch (after equip/purchase) doesn't
-  // clobber an in-progress try-on of an unowned cosmetic.
+  const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
   const seededRef = useRef(false);
+
   useEffect(() => {
-    if (!catalog || seededRef.current) return;
-    const next: Record<CosmeticType, Cosmetic | null> = { accent: null, background: null, ring: null };
-    for (const c of catalog.cosmetics) {
-      if (c.equipped) next[c.type] = c;
+    if (!catalogQuery.data || seededRef.current) return;
+    const next: Record<CosmeticType, Cosmetic | null> = {
+      accent: null,
+      background: null,
+      ring: null,
+    };
+    for (const cosmetic of catalogQuery.data.cosmetics) {
+      if (cosmetic.equipped) next[cosmetic.type] = cosmetic;
     }
     setSelected(next);
     seededRef.current = true;
-  }, [catalog]);
+  }, [catalogQuery.data]);
 
   const equipMutation = useMutation({
     mutationFn: ({ type, cosmeticId }: { type: CosmeticType; cosmeticId: number | null }) =>
       cosmeticsApi.equip(type, cosmeticId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cosmetics'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cosmetics'] }),
   });
 
   const purchaseMutation = useMutation({
     mutationFn: (cosmeticId: number) => cosmeticsApi.purchase(cosmeticId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cosmetics'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cosmetics'] }),
   });
 
-  // Clicking a tile previews it. Owned cosmetics also persist the equip (so the
-  // change reaches Discord); unowned ones are a local "try-on" only.
-  const handleTileClick = (c: Cosmetic) => {
-    const isSelected = selected[c.type]?.id === c.id;
-    if (c.owned) {
-      // Toggle: re-clicking the equipped one clears the slot back to default.
-      const nextId = isSelected ? null : c.id;
-      setSelected((s) => ({ ...s, [c.type]: isSelected ? null : c }));
-      equipMutation.mutate({ type: c.type, cosmeticId: nextId });
+  const handlePreview = async (cosmetic: Cosmetic) => {
+    const isSelected = selected[cosmetic.type]?.id === cosmetic.id;
+    if (cosmetic.owned) {
+      const previous = selected[cosmetic.type];
+      const next = isSelected ? null : cosmetic;
+      setSelected((current) => ({
+        ...current,
+        [cosmetic.type]: next,
+      }));
+      try {
+        await equipMutation.mutateAsync({
+          type: cosmetic.type,
+          cosmeticId: next?.id ?? null,
+        });
+      } catch (error) {
+        setSelected((current) => (
+          current[cosmetic.type]?.id === next?.id
+            ? { ...current, [cosmetic.type]: previous }
+            : current
+        ));
+        setNotice({
+          title: 'Couldn’t update your loadout',
+          body: error instanceof Error ? error.message : 'The cosmetic could not be equipped.',
+        });
+      }
     } else {
-      // Try-on: preview locally without touching the server.
-      setSelected((s) => ({ ...s, [c.type]: c }));
+      setSelected((current) => ({ ...current, [cosmetic.type]: cosmetic }));
     }
   };
 
-  // The Buy button opens the confirmation modal; the actual purchase runs on OK.
   const confirmBuy = async () => {
-    const c = pendingBuy;
+    const cosmetic = pendingBuy;
     setPendingBuy(null);
-    if (!c) return;
+    if (!cosmetic) return;
+    const previous = selected[cosmetic.type];
+    let purchased = false;
     try {
-      await purchaseMutation.mutateAsync(c.id);
-      // Auto-equip the freshly bought cosmetic.
-      setSelected((s) => ({ ...s, [c.type]: c }));
-      await equipMutation.mutateAsync({ type: c.type, cosmeticId: c.id });
-    } catch (e) {
-      setNotice(e instanceof Error ? e.message : 'Purchase failed');
+      await purchaseMutation.mutateAsync(cosmetic.id);
+      purchased = true;
+      setSelected((current) => ({ ...current, [cosmetic.type]: cosmetic }));
+      await equipMutation.mutateAsync({ type: cosmetic.type, cosmeticId: cosmetic.id });
+    } catch (error) {
+      if (purchased) {
+        setSelected((current) => (
+          current[cosmetic.type]?.id === cosmetic.id
+            ? { ...current, [cosmetic.type]: previous }
+            : current
+        ));
+      }
+      setNotice({
+        title: purchased ? 'Purchased, but not equipped' : 'Purchase unavailable',
+        body: purchased
+          ? `${cosmetic.name} is now in your collection, but it could not be equipped. Try selecting it again.`
+          : error instanceof Error ? error.message : 'The purchase could not be completed.',
+      });
     }
   };
 
-  const preview = useMemo(() => buildPreview(profile, selected), [profile, selected]);
-
+  const catalog = catalogQuery.data;
+  const preview = useMemo(
+    () => buildPreview(profileQuery.data, selected),
+    [profileQuery.data, selected],
+  );
   const byType = useMemo(() => {
     const map: Record<CosmeticType, Cosmetic[]> = { accent: [], background: [], ring: [] };
-    for (const c of catalog?.cosmetics ?? []) map[c.type].push(c);
+    for (const cosmetic of catalog?.cosmetics ?? []) map[cosmetic.type].push(cosmetic);
     return map;
   }, [catalog]);
 
-  return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <PublicNav />
+  const busy = equipMutation.isPending || purchaseMutation.isPending;
+  const studioLoading = catalogQuery.isLoading || profileQuery.isLoading;
+  const studioError = catalogQuery.isError || profileQuery.isError;
 
-      <div style={{ flex: 1, padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
-        <header style={{ marginBottom: '24px' }}>
-          <nav style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '14px' }}>
-            {authUser?.username && (
-              <Link to={`/u/${authUser.username}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
-                ← Back to profile
-              </Link>
-            )}
-            <Link to="/settings" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-              Settings
-            </Link>
-          </nav>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-            Card Studio
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', margin: '6px 0 0', fontSize: '14px' }}>
-            Customize your <code>/rank</code> card. Changes apply instantly to Discord.
-          </p>
+  return (
+    <div className="member-page studio-page">
+      <PublicNav variant="observatory" />
+      <MemberNav />
+
+      <main className="member-main studio-main">
+        <header className="member-header">
+          <div>
+            <p className="member-kicker">Rank-card workbench</p>
+            <h1>Build your visible identity.</h1>
+            <p>Try materials against your real <code>/rank</code> card. Owned pieces equip immediately in Discord.</p>
+          </div>
+          {catalog && <BalanceReadout balance={catalog.bank_balance} discount={catalog.shop_discount} />}
         </header>
 
-        {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading the shop…" />}
-        {isError && <CenteredMessage icon={<TriangleAlert size={48} />} title="Couldn’t load cosmetics" subtitle="Try refreshing, or sign in again." />}
+        {studioLoading ? (
+          <CenteredMessage icon={<Hourglass size={48} />} title="Loading the studio…" />
+        ) : studioError ? (
+          <section className="member-error">
+            <TriangleAlert aria-hidden="true" />
+            <h2>Couldn’t load the live studio.</h2>
+            <p>Your profile and cosmetic catalog both need to be available before changes can be applied.</p>
+            <button
+              type="button"
+              onClick={() => {
+                profileQuery.refetch();
+                catalogQuery.refetch();
+              }}
+            >
+              Retry studio
+            </button>
+          </section>
+        ) : catalog && profileQuery.data ? (
+          <div className="studio-workbench">
+            <aside className="studio-stage">
+              <div className="studio-stage__heading">
+                <span><Palette aria-hidden="true" /></span>
+                <div><p>Live output</p><h2>Your rank card</h2></div>
+                <small>{busy ? 'Applying…' : 'Preview ready'}</small>
+              </div>
+              <div className="studio-stage__card">
+                <span className="studio-stage__orbit" aria-hidden="true" />
+                <ScaledRankCard data={preview} />
+              </div>
+              <p>
+                Select any material to preview it. Owned items equip immediately;
+                unowned pieces remain a local try-on until purchase.
+              </p>
+              <dl>
+                {SLOT_ORDER.map((type) => (
+                  <div key={type}>
+                    <dt>{SLOT_LABELS[type]}</dt>
+                    <dd>{selected[type]?.name ?? 'Card default'}</dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
 
-        {catalog && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '24px', alignItems: 'start' }}>
-            {/* Left — configurator */}
-            <div>
-              <BalanceBadge balance={catalog.bank_balance} discount={catalog.shop_discount} />
+            <section className="studio-trays" aria-label="Cosmetic materials">
               {SLOT_ORDER.map((type) => (
-                <SlotSection
+                <SlotTray
                   key={type}
-                  title={SLOT_LABELS[type]}
+                  type={type}
                   items={byType[type]}
                   selectedId={selected[type]?.id ?? null}
-                  busy={equipMutation.isPending || purchaseMutation.isPending}
+                  busy={busy}
                   discount={catalog.shop_discount}
-                  onTileClick={handleTileClick}
+                  onPreview={handlePreview}
                   onBuy={setPendingBuy}
                 />
               ))}
-            </div>
-
-            {/* Right — live preview (sticky on tall viewports) */}
-            <div style={{ position: 'sticky', top: '24px' }}>
-              <SectionTitle>Live Preview</SectionTitle>
-              <ScaledRankCard data={preview} />
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
-                Click any tile to preview it here. Owned items equip instantly;
-                locked items are a try-on until you buy them.
-              </p>
-            </div>
+            </section>
           </div>
-        )}
-      </div>
+        ) : null}
+      </main>
 
-      {/* Purchase confirmation */}
       {pendingBuy && (
-        <Modal onClose={() => setPendingBuy(null)}>
-          <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
-            {pendingBuy.price === 0 ? 'Add to your collection' : 'Confirm purchase'}
-          </h3>
-          <p style={{ margin: '0 0 20px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+        <StudioDialog
+          title={pendingBuy.price === 0 ? 'Add to your collection' : 'Confirm purchase'}
+          onClose={() => setPendingBuy(null)}
+        >
+          <p>
             {pendingBuy.price === 0
               ? <>Get <strong>{pendingBuy.name}</strong> for free?</>
               : (catalog?.shop_discount ?? 0) > 0
                 ? <>Buy <strong>{pendingBuy.name}</strong> for{' '}
-                    <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>{fmt(pendingBuy.price)}</span>{' '}
-                    <strong>{fmt(discounted(pendingBuy.price, catalog!.shop_discount))}</strong> credits?{' '}
-                    <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>({Math.round(catalog!.shop_discount * 100)}% off)</span></>
+                    <del>{fmt(pendingBuy.price)}</del>{' '}
+                    <strong>{fmt(discounted(pendingBuy.price, catalog!.shop_discount))}</strong> credits?
+                  </>
                 : <>Buy <strong>{pendingBuy.name}</strong> for <strong>{fmt(pendingBuy.price)}</strong> credits?</>}
           </p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-            <ModalButton variant="ghost" onClick={() => setPendingBuy(null)}>Cancel</ModalButton>
-            <ModalButton variant="primary" onClick={confirmBuy}>
+          <div className="studio-dialog__actions">
+            <button type="button" onClick={() => setPendingBuy(null)}>Cancel</button>
+            <button type="button" className="is-primary" onClick={confirmBuy}>
               {pendingBuy.price === 0 ? 'Get it' : 'Buy'}
-            </ModalButton>
+            </button>
           </div>
-        </Modal>
+        </StudioDialog>
       )}
 
-      {/* Error / info notice */}
       {notice && (
-        <Modal onClose={() => setNotice(null)}>
-          <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
-            Something went wrong
-          </h3>
-          <p style={{ margin: '0 0 20px', color: 'var(--text-secondary)', fontSize: '14px' }}>{notice}</p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <ModalButton variant="primary" onClick={() => setNotice(null)}>OK</ModalButton>
+        <StudioDialog title={notice.title} onClose={() => setNotice(null)}>
+          <p>{notice.body}</p>
+          <div className="studio-dialog__actions">
+            <button type="button" className="is-primary" onClick={() => setNotice(null)}>Close</button>
           </div>
-        </Modal>
+        </StudioDialog>
       )}
       <SiteFooter />
     </div>
   );
 };
 
-const BalanceBadge: React.FC<{ balance: number; discount: number }> = ({ balance, discount }) => (
-  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-    <div style={{
-      display: 'inline-flex', alignItems: 'baseline', gap: '8px',
-      background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
-      borderRadius: '12px', padding: '12px 16px',
-    }}>
-      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Bank balance</span>
-      <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary-color)' }}>{fmt(balance)}</span>
-      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>credits</span>
-    </div>
-    {discount > 0 && (
-      <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: '6px',
-        background: 'rgba(245,158,11,0.12)', border: '1px solid #f59e0b',
-        borderRadius: '12px', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: '#f59e0b',
-      }}>
-        <BadgePercent size={16} /> {Math.round(discount * 100)}% shop discount active
-      </div>
-    )}
+const BalanceReadout: React.FC<{ balance: number; discount: number }> = ({ balance, discount }) => (
+  <div className="studio-balance">
+    <Coins aria-hidden="true" />
+    <div><small>Bank balance</small><strong>{fmt(balance)} credits</strong></div>
+    {discount > 0 && <span><BadgePercent aria-hidden="true" /> {Math.round(discount * 100)}% off</span>}
   </div>
 );
 
-const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>{children}</h2>
-);
-
-const SlotSection: React.FC<{
-  title: string;
+const SlotTray: React.FC<{
+  type: CosmeticType;
   items: Cosmetic[];
   selectedId: number | null;
   busy: boolean;
   discount: number;
-  onTileClick: (c: Cosmetic) => void;
-  onBuy: (c: Cosmetic) => void;
-}> = ({ title, items, selectedId, busy, discount, onTileClick, onBuy }) => (
-  <div style={{ marginBottom: '24px' }}>
-    <SectionTitle>{title}</SectionTitle>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '12px' }}>
-      {items.map((c) => (
-        <Swatch key={c.id} cosmetic={c} selected={selectedId === c.id} busy={busy} discount={discount} onTileClick={onTileClick} onBuy={onBuy} />
-      ))}
-    </div>
-  </div>
+  onPreview: (cosmetic: Cosmetic) => void;
+  onBuy: (cosmetic: Cosmetic) => void;
+}> = ({ type, items, selectedId, busy, discount, onPreview, onBuy }) => (
+  <section className="studio-tray">
+    <header>
+      <div><p>{SLOT_NOTES[type]}</p><h2>{SLOT_LABELS[type]}</h2></div>
+      <span>{items.length} materials</span>
+    </header>
+    {items.length > 0 ? (
+      <div className="studio-tray__grid">
+        {items.map((cosmetic) => (
+          <CosmeticSwatch
+            key={cosmetic.id}
+            cosmetic={cosmetic}
+            selected={selectedId === cosmetic.id}
+            busy={busy}
+            discount={discount}
+            onPreview={onPreview}
+            onBuy={onBuy}
+          />
+        ))}
+      </div>
+    ) : (
+      <p className="studio-tray__empty">No materials are available for this slot.</p>
+    )}
+  </section>
 );
 
-/**
- * A single cosmetic tile. Clicking the tile previews it (owned items equip
- * instantly; unowned ones are a local try-on). Locked items also show a Buy
- * action that opens the purchase confirmation.
- */
-const Swatch: React.FC<{
+const CosmeticSwatch: React.FC<{
   cosmetic: Cosmetic;
   selected: boolean;
   busy: boolean;
   discount: number;
-  onTileClick: (c: Cosmetic) => void;
-  onBuy: (c: Cosmetic) => void;
-}> = ({ cosmetic, selected, busy, discount, onTileClick, onBuy }) => {
+  onPreview: (cosmetic: Cosmetic) => void;
+  onBuy: (cosmetic: Cosmetic) => void;
+}> = ({ cosmetic, selected, busy, discount, onPreview, onBuy }) => {
   const swatchStyle: React.CSSProperties =
     cosmetic.type === 'background' && /gradient/i.test(cosmetic.value)
       ? { background: cosmetic.value }
       : { backgroundColor: cosmetic.value };
-
   const hasDiscount = discount > 0 && cosmetic.price > 0;
   const finalPrice = discounted(cosmetic.price, discount);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onTileClick(cosmetic)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTileClick(cosmetic); } }}
-      style={{
-        background: 'var(--bg-card)',
-        border: `1px solid ${selected ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-        boxShadow: selected ? '0 0 0 1px var(--border-cyan)' : 'none',
-        borderRadius: '12px',
-        padding: '10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        cursor: 'pointer',
-      }}
-    >
-      {cosmetic.achievement_key === 'og_member' ? (
-        // Preview the OG card's actual ornamentation: gold gradient + filigree
-        // frame (scaled to the tile) + a small embossed "OG".
-        <div style={{ ...swatchStyle, position: 'relative', height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-          <span style={{
-            position: 'absolute', right: '8px', top: '50%',
-            transform: 'translateY(-50%) rotate(-10deg)', transformOrigin: 'center',
-            fontFamily: 'Urbanist, sans-serif', fontWeight: 800, fontSize: '30px', lineHeight: 1,
-            color: '#b98e1f', opacity: 0.55, textShadow: '-1px -1px 0 rgba(255,240,176,0.6), 1px 1px 0 rgba(20,14,0,0.7)',
-          }}>OG</span>
-          <img src={OG_FRAME_DATA_URI} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
-        </div>
-      ) : (
-        <div style={{ ...swatchStyle, position: 'relative', height: '52px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          {hasDiscount && !cosmetic.owned && (
-            <span style={{
-              position: 'absolute', top: '4px', right: '4px',
-              background: '#f59e0b', color: '#1a1a1a', borderRadius: '6px',
-              padding: '1px 6px', fontSize: '10px', fontWeight: 800,
-            }}>-{Math.round(discount * 100)}%</span>
+    <article className={`studio-swatch${selected ? ' is-selected' : ''}${cosmetic.owned ? ' is-owned' : ''}`}>
+      <button
+        type="button"
+        className="studio-swatch__preview"
+        disabled={busy}
+        onClick={() => onPreview(cosmetic)}
+        aria-pressed={selected}
+      >
+        <span className="studio-swatch__material" style={swatchStyle}>
+          {cosmetic.achievement_key === 'og_member' && (
+            <>
+              <strong>OG</strong>
+              <img src={OG_FRAME_DATA_URI} alt="" />
+            </>
           )}
-        </div>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{cosmetic.name}</span>
-        {cosmetic.owned && selected && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 700, color: 'var(--primary-color)' }}>
-            Equipped <Check size={12} />
-          </span>
-        )}
-      </div>
-
+          {hasDiscount && !cosmetic.owned && <i>-{Math.round(discount * 100)}%</i>}
+        </span>
+        <span className="studio-swatch__identity">
+          <strong>{cosmetic.name}</strong>
+          <small>{cosmetic.owned ? (selected ? 'Equipped' : 'Owned') : cosmetic.rarity}</small>
+        </span>
+        {selected && <Check aria-hidden="true" />}
+      </button>
       {cosmetic.owned ? (
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-          {selected ? 'Click to remove' : 'Owned — click to equip'}
-        </div>
+        <small className="studio-swatch__hint">{selected ? 'Select again to clear' : 'Select to equip'}</small>
       ) : (
         <button
           type="button"
+          className="studio-swatch__buy"
           disabled={busy}
-          onClick={(e) => { e.stopPropagation(); onBuy(cosmetic); }}
-          style={{
-            cursor: busy ? 'default' : 'pointer',
-            border: '1px solid var(--border-cyan)', borderRadius: '8px', padding: '6px 10px',
-            fontSize: '12px', fontWeight: 700, color: 'var(--primary-color)', background: 'transparent',
-          }}
+          onClick={() => onBuy(cosmetic)}
+          aria-label={
+            cosmetic.price === 0
+              ? `Get ${cosmetic.name} free`
+              : `Buy ${cosmetic.name} for ${fmt(finalPrice)} credits`
+          }
         >
-          {cosmetic.price === 0 ? (
-            'Get — Free'
-          ) : hasDiscount ? (
-            <>Buy — <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>{fmt(cosmetic.price)}</span> {fmt(finalPrice)}</>
-          ) : (
-            `Buy — ${fmt(cosmetic.price)}`
-          )}
+          {cosmetic.price === 0
+            ? 'Get free'
+            : hasDiscount
+              ? <><del>{fmt(cosmetic.price)}</del> {fmt(finalPrice)} credits</>
+              : `${fmt(cosmetic.price)} credits`}
         </button>
       )}
-    </div>
+    </article>
   );
 };
 
-/** A lightweight centered modal with a dimmed backdrop (click-out to close). */
-const Modal: React.FC<{ onClose: () => void; children: React.ReactNode }> = ({ onClose, children }) => (
-  <div
-    onClick={onClose}
-    style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1000,
-    }}
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      style={{
-        background: 'var(--bg-card)', border: '1px solid var(--border-cyan)', borderRadius: '16px',
-        padding: '24px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+const StudioDialog: React.FC<{
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}> = ({ title, onClose, children }) => {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    dialog.showModal();
+    return () => dialog.close();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="studio-dialog"
+      aria-labelledby={titleId}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
       }}
     >
-      {children}
-    </div>
-  </div>
-);
-
-const ModalButton: React.FC<{ variant: 'primary' | 'ghost'; onClick: () => void; children: React.ReactNode }> = ({ variant, onClick, children }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    style={{
-      cursor: 'pointer', borderRadius: '10px', padding: '8px 18px', fontSize: '14px', fontWeight: 700,
-      ...(variant === 'primary'
-        ? { border: 'none', background: 'var(--primary-color)', color: '#001014' }
-        : { border: '1px solid var(--border-light)', background: 'transparent', color: 'var(--text-primary)' }),
-    }}
-  >
-    {children}
-  </button>
-);
+      <div>
+        <h2 id={titleId}>{title}</h2>
+        {children}
+      </div>
+    </dialog>
+  );
+};
 
 export default CardStudioPage;

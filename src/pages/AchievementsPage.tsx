@@ -1,19 +1,26 @@
+/**
+ * THESIS: Achievement progress is a navigable atlas, not a wall of interchangeable badge cards.
+ * OWN-WORLD: Observatory field, tier signals, category sectors, compact progress tracks, and literal reward labels.
+ * STORY: See total completion, enter a category, understand what is unlocked, and identify the next attainable badge.
+ * FIRST VIEWPORT: A completion orbit anchors the right side while the catalog thesis and category index lead on the left.
+ * FORM: Fifth-ranked achievement-atlas structure; established world; seed 61a84eab.
+ */
 import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Check, Trophy } from 'lucide-react';
-import { InlineIcon } from '@/components/ui/InlineIcon';
+import { Check, ChevronRight, LockKeyhole, Sparkles, Trophy } from 'lucide-react';
 import { achievementsApi, type AchievementCatalogEntry } from '@/api/achievements';
+import { MemberNav } from '@/components/profile/MemberNav';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { startLogin } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
+import '@/styles/member.css';
 
 const TIER_COLORS: Record<string, string> = {
   bronze: '#cd7f32',
-  silver: '#c0c0c0',
-  gold: '#ffd700',
-  legendary: '#a855f7',
+  silver: '#b7c5cf',
+  gold: '#ffd166',
+  legendary: '#9f8bff',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -24,11 +31,17 @@ const CATEGORY_LABELS: Record<string, string> = {
   special: 'Special',
 };
 
-/** Browse the full achievements catalog with your unlock state + progress. */
+const CATEGORY_NOTES: Record<string, string> = {
+  leveling: 'XP, levels, and long-term progression.',
+  social: 'Conversation, reactions, and community participation.',
+  economy: 'Credits, banking, collecting, and trade.',
+  games: 'Play, wins, streaks, and risk.',
+  special: 'Events, milestones, and rare moments.',
+};
+
 export const AchievementsPage: React.FC = () => {
-  const authUser = useAuthStore((s) => s.user);
-  const token = useAuthStore((s) => s.token);
-  const { data, isLoading } = useQuery({
+  const token = useAuthStore((state) => state.token);
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['achievements', 'catalog'],
     queryFn: () => achievementsApi.getCatalog(),
     enabled: !!token,
@@ -36,120 +49,161 @@ export const AchievementsPage: React.FC = () => {
 
   const grouped = useMemo(() => {
     const map: Record<string, AchievementCatalogEntry[]> = {};
-    for (const a of data?.achievements ?? []) (map[a.category] ??= []).push(a);
+    for (const achievement of data?.achievements ?? []) {
+      (map[achievement.category] ??= []).push(achievement);
+    }
     return map;
   }, [data]);
 
   const unlocked = data?.unlocked_count ?? 0;
   const total = data?.achievements.length ?? 0;
+  const completion = total > 0 ? Math.round((unlocked / total) * 100) : 0;
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <PublicNav />
+    <div className="member-page achievements-page">
+      <PublicNav variant="observatory" />
+      <MemberNav />
 
-      <div style={{ flex: 1, padding: '40px 24px', maxWidth: 960, margin: '0 auto', width: '100%' }}>
-        <nav style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '14px' }}>
-          {authUser?.username && (
-            <Link to={`/u/${authUser.username}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
-              ← Back to profile
-            </Link>
-          )}
-          <Link to="/settings" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-            Settings
-          </Link>
-        </nav>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <h1 style={{ color: 'var(--text-primary)', margin: 0 }}><InlineIcon icon={Trophy} color="#ffd700" /> Achievements</h1>
-          {token && <span style={{ color: 'var(--text-muted)' }}>{unlocked} / {total} unlocked</span>}
-        </div>
-        <p style={{ color: 'var(--text-muted)', marginTop: 8, marginBottom: 28 }}>
-          Earn badges by leveling up, chatting, and staying active. Rewards are claimed from your profile notifications.
-        </p>
+      <main className="member-main achievements-main">
+        <header className="achievements-hero">
+          <div className="achievements-hero__copy">
+            <p className="member-kicker">Progression atlas</p>
+            <h1>Every signal you’ve earned—and what comes next.</h1>
+            <p>
+              Explore badges across leveling, community, economy, games, and special events.
+              Rewards are claimed from your profile notifications.
+            </p>
+            {token && Object.keys(grouped).length > 0 && (
+              <nav className="achievement-category-index" aria-label="Achievement categories">
+                {Object.entries(grouped).map(([category, entries]) => (
+                  <a key={category} href={`#achievement-${category}`}>
+                    <span>{CATEGORY_LABELS[category] ?? category}</span>
+                    <small>{entries.filter((entry) => entry.unlocked).length}/{entries.length}</small>
+                  </a>
+                ))}
+              </nav>
+            )}
+          </div>
+
+          <div className="achievement-orbit" aria-label={`${unlocked} of ${total} achievements unlocked`}>
+            <div className="achievement-orbit__ring" style={{ '--completion': `${completion * 3.6}deg` } as React.CSSProperties}>
+              <div className="achievement-orbit__core">
+                <Trophy aria-hidden="true" />
+                <strong>{token ? `${completion}%` : '—'}</strong>
+                <span>{token ? `${unlocked} / ${total} unlocked` : 'Sign in to sync'}</span>
+              </div>
+            </div>
+            <span className="achievement-orbit__node is-bronze" />
+            <span className="achievement-orbit__node is-silver" />
+            <span className="achievement-orbit__node is-gold" />
+            <span className="achievement-orbit__node is-legendary" />
+          </div>
+        </header>
 
         {!token ? (
-          <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <p style={{ color: 'var(--text-secondary)' }}>Sign in to track your achievement progress.</p>
-            <button className="btn primary" onClick={startLogin}>Sign in with Discord</button>
-          </div>
+          <section className="member-gate">
+            <span><LockKeyhole aria-hidden="true" /></span>
+            <div>
+              <p className="member-kicker">Personal progress</p>
+              <h2>Connect your Discord signal.</h2>
+              <p>Sign in to see unlocked badges, live metric progress, limited-time availability, and rewards.</p>
+            </div>
+            <button type="button" onClick={startLogin}>Sign in with Discord</button>
+          </section>
         ) : isLoading ? (
-          <p style={{ color: 'var(--text-muted)' }}>Loading…</p>
+          <AchievementSkeleton />
+        ) : isError ? (
+          <section className="member-error">
+            <Sparkles aria-hidden="true" />
+            <h2>Achievement signals are unavailable.</h2>
+            <p>The catalog could not be loaded. Try the request again.</p>
+            <button type="button" onClick={() => refetch()}>Retry catalog</button>
+          </section>
+        ) : total === 0 ? (
+          <section className="member-empty">
+            <Trophy aria-hidden="true" />
+            <h2>The atlas is quiet.</h2>
+            <p>No achievements are currently available.</p>
+          </section>
         ) : (
-          Object.keys(grouped).map((category) => (
-            <section key={category} style={{ marginBottom: 32 }}>
-              <h3 style={{ color: 'var(--text-primary)', fontSize: 18, marginBottom: 14 }}>
-                {CATEGORY_LABELS[category] ?? category}
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-                {grouped[category].map((a) => <AchievementCard key={a.key} a={a} />)}
-              </div>
-            </section>
-          ))
+          <div className="achievement-atlas">
+            {Object.entries(grouped).map(([category, entries]) => (
+              <section className="achievement-sector" id={`achievement-${category}`} key={category}>
+                <header>
+                  <div>
+                    <p>{CATEGORY_NOTES[category] ?? 'Community milestones and rewards.'}</p>
+                    <h2>{CATEGORY_LABELS[category] ?? category}</h2>
+                  </div>
+                  <span>{entries.filter((entry) => entry.unlocked).length} of {entries.length} complete</span>
+                </header>
+                <div className="achievement-sector__track">
+                  {entries.map((achievement) => (
+                    <AchievementNode key={achievement.key} achievement={achievement} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         )}
-      </div>
+      </main>
       <SiteFooter />
     </div>
   );
 };
 
-const AchievementCard: React.FC<{ a: AchievementCatalogEntry }> = ({ a }) => {
-  const tierColor = TIER_COLORS[a.tier] ?? 'var(--border-light)';
-  const pct = a.progress && a.progress.threshold > 0
-    ? Math.min(100, Math.round((a.progress.current / a.progress.threshold) * 100))
+const AchievementNode: React.FC<{ achievement: AchievementCatalogEntry }> = ({ achievement }) => {
+  const tierColor = TIER_COLORS[achievement.tier] ?? 'var(--member-border)';
+  const progress = achievement.progress;
+  const percent = progress && progress.threshold > 0
+    ? Math.min(100, Math.round((progress.current / progress.threshold) * 100))
     : 0;
 
   return (
-    <div
-      style={{
-        display: 'flex', gap: 12, alignItems: 'flex-start',
-        background: 'var(--bg-secondary)',
-        border: `1px solid ${a.unlocked ? `${tierColor}88` : 'var(--border-light)'}`,
-        borderRadius: 12, padding: 14,
-        opacity: a.unlocked ? 1 : 0.92,
-      }}
+    <article
+      className={`achievement-node${achievement.unlocked ? ' is-unlocked' : ''}`}
+      style={{ '--tier-color': tierColor } as React.CSSProperties}
     >
-      <span style={{ fontSize: 30, lineHeight: 1, filter: a.unlocked ? 'none' : 'grayscale(0.7)' }}>
-        {a.icon || <Trophy size={30} color={tierColor} />}
-      </span>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>{a.name}</strong>
-          {a.unlocked && <Check size={14} color="#4ade80" />}
-          {a.available_until && !a.unlocked && (
-            <span style={{
-              color: '#f59e0b', fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-              border: '1px solid #f59e0b66', borderRadius: 6, padding: '1px 6px',
-            }}>
-              Limited — ends {new Date(a.available_until).toLocaleDateString()}
-            </span>
-          )}
+      <span className="achievement-node__connector" aria-hidden="true" />
+      <div className="achievement-node__mark" aria-hidden="true">
+        <span>{achievement.icon || <Trophy />}</span>
+        {achievement.unlocked && <i><Check /></i>}
+      </div>
+      <div className="achievement-node__body">
+        <div className="achievement-node__title">
+          <div>
+            <span>{achievement.tier}</span>
+            <h3>{achievement.name}</h3>
+          </div>
+          <ChevronRight aria-hidden="true" />
         </div>
-        <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>{a.description}</div>
-
-        {!a.unlocked && a.progress && (
-          <div style={{ marginTop: 8 }}>
-            <div style={{ height: 6, background: 'var(--bg-primary)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: tierColor }} />
-            </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 4 }}>
-              {a.progress.current.toLocaleString()} / {a.progress.threshold.toLocaleString()}
-            </div>
+        <p>{achievement.description}</p>
+        {achievement.available_until && !achievement.unlocked && (
+          <strong className="achievement-node__limited">
+            Limited · ends {new Date(achievement.available_until).toLocaleDateString()}
+          </strong>
+        )}
+        {!achievement.unlocked && progress && (
+          <div className="achievement-node__progress">
+            <div><span style={{ width: `${percent}%` }} /></div>
+            <small>{progress.current.toLocaleString()} / {progress.threshold.toLocaleString()}</small>
           </div>
         )}
-
-        {(a.reward_credits ? a.reward_credits > 0 : false) || a.reward_cosmetic_id ? (
-          <div style={{ color: 'var(--text-secondary)', fontSize: 11, marginTop: 8 }}>
-            Reward:{' '}
-            {a.reward_credits ? <span style={{ color: '#ffd700' }}>{a.reward_credits.toLocaleString()} credits</span> : ''}
-            {a.reward_credits && a.reward_cosmetic_id ? ' + ' : ''}
-            {a.reward_cosmetic_id ? <span style={{ color: '#a855f7' }}>cosmetic</span> : ''}
+        {(achievement.reward_credits || achievement.reward_cosmetic_id) && (
+          <div className="achievement-node__reward">
+            Reward · {achievement.reward_credits ? `${achievement.reward_credits.toLocaleString()} credits` : ''}
+            {achievement.reward_credits && achievement.reward_cosmetic_id ? ' + ' : ''}
+            {achievement.reward_cosmetic_id ? 'cosmetic' : ''}
           </div>
-        ) : null}
+        )}
       </div>
-      <span style={{ color: tierColor, fontSize: 10, textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5 }}>
-        {a.tier}
-      </span>
-    </div>
+    </article>
   );
 };
+
+const AchievementSkeleton: React.FC = () => (
+  <div className="achievement-skeleton" aria-label="Loading achievement catalog">
+    {Array.from({ length: 6 }, (_, index) => <span key={index} />)}
+  </div>
+);
 
 export default AchievementsPage;

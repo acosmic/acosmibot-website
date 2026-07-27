@@ -1,26 +1,14 @@
 import React from 'react';
-import { Clock, Palette, Sparkles } from 'lucide-react';
-import { InlineIcon } from '@/components/ui/InlineIcon';
+import { Bell, Clock3, Eye, Palette, Server } from 'lucide-react';
 import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
-import type { PublicProfile, PrivacySettings } from '@/api/profile';
+import type { PrivacySettings, PublicProfile } from '@/api/profile';
 
-/**
- * Owner-only profile settings panel (privacy toggles + per-server visibility).
- *
- * Deliberately self-contained and **props-only** — it does no data fetching of
- * its own. Today it renders inline on the owner's profile page; when a dedicated
- * `/settings` route lands (alongside per-user premium / billing / rank-card
- * customization) it can be rendered there against the same `/api/profile/me`
- * payload with no changes.
- */
+const fmt = (value: number | null | undefined): string =>
+  value === null || value === undefined ? '—' : value.toLocaleString();
 
-const fmt = (n: number | null | undefined): string =>
-  n === null || n === undefined ? '—' : n.toLocaleString();
+const ordinal = (value: number | null | undefined): string =>
+  value === null || value === undefined ? '—' : `#${value.toLocaleString()}`;
 
-const ordinal = (n: number | null | undefined): string =>
-  n === null || n === undefined ? '—' : `#${n.toLocaleString()}`;
-
-/** Boolean privacy keys (everything except the hidden_guilds list). */
 export type BoolPrivacyKey = Exclude<keyof PrivacySettings, 'hidden_guilds'>;
 
 export const OwnerSettings: React.FC<{
@@ -32,139 +20,130 @@ export const OwnerSettings: React.FC<{
   onToggle: (key: BoolPrivacyKey, value: boolean) => void;
   onToggleGuild: (guildId: string, hidden: boolean) => void;
   onTimezoneChange: (timezone: string) => void;
-}> = ({ privacy, guilds, timezone, saving, timezoneSaving, onToggle, onToggleGuild, onTimezoneChange }) => (
-  <>
-  <div style={{
-    background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
-    borderRadius: '16px', padding: '20px', marginBottom: '20px',
-  }}>
-    <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
-      This is you <InlineIcon icon={Sparkles} color="var(--primary-color)" />
-    </h2>
-    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
-      Your profile is public so others can find you. Your name &amp; global level always
-      show — toggle everything else below.
-    </p>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <Toggle label="Public profile" hint="Anyone can view this page"
-        checked={privacy.profile_public} disabled={saving}
-        onChange={(v) => onToggle('profile_public', v)} />
-      <Toggle label="Avatar" hint="Show your Discord avatar (vs anonymous)"
-        checked={privacy.show_avatar} disabled={saving}
-        onChange={(v) => onToggle('show_avatar', v)} />
-      <Toggle label="XP & global rank" hint="Your global XP and leaderboard rank"
-        checked={privacy.show_xp} disabled={saving}
-        onChange={(v) => onToggle('show_xp', v)} />
-      <Toggle label="Messages" hint="Total messages sent"
-        checked={privacy.show_messages} disabled={saving}
-        onChange={(v) => onToggle('show_messages', v)} />
-      <Toggle label="Reactions" hint="Total reactions given"
-        checked={privacy.show_reactions} disabled={saving}
-        onChange={(v) => onToggle('show_reactions', v)} />
-      <Toggle label="Commands" hint="Total commands used"
-        checked={privacy.show_commands} disabled={saving}
-        onChange={(v) => onToggle('show_commands', v)} />
-      <Toggle label="Economy" hint="Currency, bank balance & ranks"
-        checked={privacy.show_economy} disabled={saving}
-        onChange={(v) => onToggle('show_economy', v)} />
-      <Toggle label="Show servers" hint="Your per-server levels & ranks"
-        checked={privacy.show_guilds} disabled={saving}
-        onChange={(v) => onToggle('show_guilds', v)} />
-      <Toggle label="Achievements" hint="Your unlocked-achievements trophy case"
-        checked={privacy.show_achievements} disabled={saving}
-        onChange={(v) => onToggle('show_achievements', v)} />
-      <Toggle label="Public identity" hint="Show your name & avatar to people who don’t share a server with you (leaderboards & profile). Off = they see you masked."
-        checked={privacy.public_identity} disabled={saving}
-        onChange={(v) => onToggle('public_identity', v)} />
+}> = ({
+  privacy,
+  guilds,
+  timezone,
+  saving,
+  timezoneSaving,
+  onToggle,
+  onToggleGuild,
+  onTimezoneChange,
+}) => (
+  <div className="settings-groups">
+    <SettingsGroup
+      icon={Eye}
+      title="Public profile"
+      description="Your name and global level always identify the member record. Route every other public signal here."
+    >
+      <Toggle label="Public profile" hint="Allow anyone to open your profile page" checked={privacy.profile_public} disabled={saving} onChange={(value) => onToggle('profile_public', value)} />
+      <Toggle label="Avatar" hint="Show your Discord avatar instead of the anonymous identity" checked={privacy.show_avatar} disabled={saving} onChange={(value) => onToggle('show_avatar', value)} />
+      <Toggle label="Public identity" hint="Show your name and avatar to people who do not share a server with you" checked={privacy.public_identity} disabled={saving} onChange={(value) => onToggle('public_identity', value)} />
+    </SettingsGroup>
 
-      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 -2px' }}>
-        Notifications
-      </div>
-      <Toggle label="Achievement DMs" hint="Get a direct message when you unlock an achievement, so you can claim your reward"
-        checked={privacy.dm_achievements} disabled={saving}
-        onChange={(v) => onToggle('dm_achievements', v)} />
-    </div>
+    <SettingsGroup
+      icon={Palette}
+      title="Activity & progression"
+      description="Choose which earned stats become part of your public member dossier."
+    >
+      <Toggle label="XP & global rank" hint="Global XP and leaderboard position" checked={privacy.show_xp} disabled={saving} onChange={(value) => onToggle('show_xp', value)} />
+      <Toggle label="Messages" hint="Total messages sent" checked={privacy.show_messages} disabled={saving} onChange={(value) => onToggle('show_messages', value)} />
+      <Toggle label="Reactions" hint="Total reactions given" checked={privacy.show_reactions} disabled={saving} onChange={(value) => onToggle('show_reactions', value)} />
+      <Toggle label="Commands" hint="Total commands used" checked={privacy.show_commands} disabled={saving} onChange={(value) => onToggle('show_commands', value)} />
+      <Toggle label="Economy" hint="Net worth and economy leaderboard rank" checked={privacy.show_economy} disabled={saving} onChange={(value) => onToggle('show_economy', value)} />
+      <Toggle label="Achievements" hint="Unlocked badge collection" checked={privacy.show_achievements} disabled={saving} onChange={(value) => onToggle('show_achievements', value)} />
+    </SettingsGroup>
 
-    {/* Per-server visibility: choose exactly which servers appear. */}
-    {privacy.show_guilds && guilds && guilds.length > 0 && (
-      <div style={{ marginTop: '18px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-          Which servers show
-        </div>
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-          Hide individual servers while keeping the rest visible.
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {guilds.map((gu) => (
+    <SettingsGroup
+      icon={Server}
+      title="Server identity"
+      description="Expose per-server levels and ranks, then hide individual communities when needed."
+    >
+      <Toggle label="Show servers" hint="Display your visible server identities" checked={privacy.show_guilds} disabled={saving} onChange={(value) => onToggle('show_guilds', value)} />
+      {privacy.show_guilds && guilds && guilds.length > 0 && (
+        <div className="settings-server-list">
+          {guilds.map((guild) => (
             <Toggle
-              key={gu.guild_id}
-              label={gu.guild_name || 'Unknown Server'}
-              hint={`Lvl ${fmt(gu.level)} · ${ordinal(gu.rank)}`}
-              checked={!gu.hidden}
+              key={guild.guild_id}
+              label={guild.guild_name || 'Unknown Server'}
+              hint={`Level ${fmt(guild.level)} · rank ${ordinal(guild.rank)}`}
+              checked={!guild.hidden}
               disabled={saving}
-              onChange={(visible) => onToggleGuild(gu.guild_id, !visible)}
+              onChange={(visible) => onToggleGuild(guild.guild_id, !visible)}
+              compact
             />
           ))}
         </div>
+      )}
+    </SettingsGroup>
+
+    <SettingsGroup
+      icon={Bell}
+      title="Notifications"
+      description="Choose whether achievement unlocks should reach you outside the website."
+    >
+      <Toggle label="Achievement DMs" hint="Receive a Discord DM when a reward is ready to claim" checked={privacy.dm_achievements} disabled={saving} onChange={(value) => onToggle('dm_achievements', value)} />
+    </SettingsGroup>
+
+    <SettingsGroup
+      icon={Clock3}
+      title="Personal timezone"
+      description="The AI uses this clock for dates and times. No preference falls back to each server’s default."
+    >
+      <div className="settings-timezone">
+        <label htmlFor="member-timezone">Timezone</label>
+        <TimezoneSelect
+          id="member-timezone"
+          value={timezone}
+          onChange={onTimezoneChange}
+          allowEmpty
+          emptyLabel="No preference (use server default)"
+          disabled={timezoneSaving}
+        />
+        <button
+          type="button"
+          disabled={timezoneSaving}
+          onClick={() => onTimezoneChange(detectBrowserTimezone())}
+        >
+          Use current timezone · {detectBrowserTimezone().replace(/_/g, ' ')}
+        </button>
       </div>
-    )}
-
-    <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
-      <InlineIcon icon={Palette} /> Rank card customization coming soon.
-    </div>
+    </SettingsGroup>
   </div>
+);
 
-  {/* Personal timezone — drives the AI's clock when you chat with it. */}
-  <div style={{
-    background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
-    borderRadius: '16px', padding: '20px', marginBottom: '20px',
-  }}>
-    <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
-      Timezone <InlineIcon icon={Clock} color="var(--primary-color)" />
-    </h2>
-    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
-      When you chat with the AI, it uses this timezone for dates and times. Leave it on
-      “No preference” to use each server’s default instead.
-    </p>
-    <TimezoneSelect
-      value={timezone}
-      onChange={onTimezoneChange}
-      allowEmpty
-      emptyLabel="No preference (use server default)"
-      disabled={timezoneSaving}
-    />
-    <div style={{ marginTop: '10px' }}>
-      <button
-        type="button"
-        className="btn btn-sm"
-        disabled={timezoneSaving}
-        onClick={() => onTimezoneChange(detectBrowserTimezone())}
-      >
-        Use my current timezone ({detectBrowserTimezone().replace(/_/g, ' ')})
-      </button>
-    </div>
-  </div>
-  </>
+const SettingsGroup: React.FC<{
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}> = ({ icon: Icon, title, description, children }) => (
+  <section className="settings-group">
+    <header>
+      <span><Icon aria-hidden="true" /></span>
+      <div><h3>{title}</h3><p>{description}</p></div>
+    </header>
+    <div className="settings-group__controls">{children}</div>
+  </section>
 );
 
 const Toggle: React.FC<{
-  label: string; hint: string; checked: boolean; disabled?: boolean;
+  label: string;
+  hint: string;
+  checked: boolean;
+  disabled?: boolean;
+  compact?: boolean;
   onChange: (value: boolean) => void;
-}> = ({ label, hint, checked, disabled, onChange }) => (
-  <label style={{
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    gap: '12px', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.6 : 1,
-  }}>
-    <span>
-      <span style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{label}</span>
-      <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)' }}>{hint}</span>
-    </span>
+}> = ({ label, hint, checked, disabled, compact, onChange }) => (
+  <label className={`member-toggle${compact ? ' is-compact' : ''}${disabled ? ' is-disabled' : ''}`}>
+    <span><strong>{label}</strong><small>{hint}</small></span>
     <input
       type="checkbox"
+      role="switch"
       checked={checked}
       disabled={disabled}
-      onChange={(e) => onChange(e.target.checked)}
-      style={{ width: '18px', height: '18px', accentColor: 'var(--primary-color)', cursor: disabled ? 'default' : 'pointer' }}
+      onChange={(event) => onChange(event.target.checked)}
     />
+    <i aria-hidden="true"><span /></i>
   </label>
 );

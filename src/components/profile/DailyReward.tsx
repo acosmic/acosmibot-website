@@ -36,7 +36,7 @@ export const DailyReward: React.FC = () => {
 
   return (
     <div
-      className={justClaimed ? 'dr-card--claimed' : undefined}
+      className={`profile-daily${justClaimed ? ' dr-card--claimed' : ''}`}
       style={{
         position: 'relative',
         display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap',

@@ -55,7 +55,7 @@ export const InventorySection: React.FC = () => {
   const equippedIds = new Set(equippedItems.map((e) => e.item_id));
 
   return (
-    <div style={{ marginTop: 24 }}>
+    <section className="profile-inventory">
       <h3 style={{ color: 'var(--text-primary)', marginBottom: 12 }}><InlineIcon icon={Backpack} /> Inventory</h3>
 
       {/* Active boosts (timed + passive equipped) */}
@@ -137,6 +137,6 @@ export const InventorySection: React.FC = () => {
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 };

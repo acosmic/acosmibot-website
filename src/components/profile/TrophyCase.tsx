@@ -4,75 +4,52 @@ import type { UnlockedAchievement } from '@/api/achievements';
 
 const TIER_COLORS: Record<string, string> = {
   bronze: '#cd7f32',
-  silver: '#c0c0c0',
-  gold: '#ffd700',
-  legendary: '#a855f7',
+  silver: '#b7c5cf',
+  gold: '#ffd166',
+  legendary: '#9f8bff',
 };
 
-/**
- * The profile trophy case — a grid of unlocked achievement badges. Public
- * (gated server-side by the show_achievements privacy flag). Returns null when
- * there's nothing earned or the section is hidden.
- */
-export const TrophyCase: React.FC<{ achievements?: UnlockedAchievement[] | null; isOwner?: boolean }> = ({
-  achievements,
-  isOwner,
-}) => {
+export const TrophyCase: React.FC<{
+  achievements?: UnlockedAchievement[] | null;
+  isOwner?: boolean;
+}> = ({ achievements, isOwner }) => {
   if (!achievements || achievements.length === 0) {
     if (!isOwner) return null;
     return (
-      <section style={{ marginBottom: 28 }}>
-        <SectionHeader />
-        <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          No achievements yet — keep chatting, leveling and claiming your daily reward.{' '}
-          <a href="/achievements" style={{ color: 'var(--primary-color)' }}>See what you can earn →</a>
+      <section className="profile-trophies is-empty">
+        <TrophyHeader />
+        <p>
+          No achievements yet—keep chatting, leveling, and claiming your daily reward.
+          <a href="/achievements">See what you can earn</a>
         </p>
       </section>
     );
   }
 
   return (
-    <section style={{ marginBottom: 28 }}>
-      <SectionHeader count={achievements.length} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
-        {achievements.map((a) => (
-          <div
-            key={a.key}
-            title={a.description}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              background: 'var(--bg-secondary)',
-              border: `1px solid ${TIER_COLORS[a.tier] ?? 'var(--border-light)'}55`,
-              borderRadius: 10, padding: '10px 12px',
-            }}
+    <section className="profile-trophies">
+      <TrophyHeader count={achievements.length} />
+      <div className="profile-trophies__grid">
+        {achievements.map((achievement) => (
+          <article
+            key={achievement.key}
+            title={achievement.description}
+            style={{ '--trophy-color': TIER_COLORS[achievement.tier] } as React.CSSProperties}
           >
-            {a.icon
-              ? <span style={{ fontSize: 26, lineHeight: 1 }}>{a.icon}</span>
-              : <Trophy size={26} color={TIER_COLORS[a.tier] ?? '#ffd700'} />}
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {a.name}
-              </div>
-              <div style={{ color: TIER_COLORS[a.tier], fontSize: 11, textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.4 }}>
-                {a.tier}
-              </div>
-            </div>
-          </div>
+            <span>{achievement.icon || <Trophy aria-hidden="true" />}</span>
+            <div><strong>{achievement.name}</strong><small>{achievement.tier}</small></div>
+          </article>
         ))}
       </div>
     </section>
   );
 };
 
-const SectionHeader: React.FC<{ count?: number }> = ({ count }) => (
-  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-    <h3 style={{ color: 'var(--text-primary)', fontSize: 18, margin: 0 }}>
-      Achievements{count ? ` (${count})` : ''}
-    </h3>
-    <a href="/achievements" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>
-      View all →
-    </a>
-  </div>
+const TrophyHeader: React.FC<{ count?: number }> = ({ count }) => (
+  <header>
+    <div><p>Collected milestones</p><h2>Achievements{count ? ` · ${count}` : ''}</h2></div>
+    <a href="/achievements">View atlas</a>
+  </header>
 );
 
 export default TrophyCase;

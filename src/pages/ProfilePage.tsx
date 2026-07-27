@@ -1,74 +1,83 @@
+/**
+ * THESIS: A member profile is a living dossier anchored by the real rank card, not a dashboard of isolated stat tiles.
+ * OWN-WORLD: Observatory dossier, card stage, signal ledger, ranked activity traces, and permission-aware reveals.
+ * STORY: Recognize the member, read their visible global signals, trace shared communities, and continue into owner tools.
+ * FIRST VIEWPORT: The equipped rank card occupies the left stage while identity, membership, and visible stats resolve on the right.
+ * FORM: Third-ranked member-dossier structure; established world; seed db474ee8.
+ */
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Flame, Hourglass, Lock, Palette, Settings, Trophy, type LucideIcon } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Flame,
+  Hourglass,
+  Lock,
+  Palette,
+  Settings,
+  Trophy,
+  type LucideIcon,
+} from 'lucide-react';
 import { CenteredMessage } from '@/components/ui/CenteredMessage';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import { profileApi, type PublicProfile, type TopCommand, type TopReaction } from '@/api/profile';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { DailyReward } from '@/components/profile/DailyReward';
+import { InventorySection } from '@/components/profile/InventorySection';
+import { MemberNav } from '@/components/profile/MemberNav';
 import { NotificationList } from '@/components/profile/NotificationList';
 import { TrophyCase } from '@/components/profile/TrophyCase';
-import { InventorySection } from '@/components/profile/InventorySection';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
 import { buildGlobalRankCardData, buildRankCardData } from '@/cards/buildRankCardData';
 import { startLogin } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
+import '@/styles/member.css';
 
 const DOCS_URL = '/docs/introduction';
 const SUPPORT_URL = 'https://discord.gg/hrj7WhCyEv';
 
-const fmt = (n: number | null | undefined): string =>
-  n === null || n === undefined ? '—' : n.toLocaleString();
+const fmt = (value: number | null | undefined): string =>
+  value === null || value === undefined ? '—' : value.toLocaleString();
 
-const ordinal = (n: number | null | undefined): string =>
-  n === null || n === undefined ? '—' : `#${n.toLocaleString()}`;
+const ordinal = (value: number | null | undefined): string =>
+  value === null || value === undefined ? '—' : `#${value.toLocaleString()}`;
 
-/** Catches /u/<username>, fetching the public profile (falling back to the
- *  owner view if the visitor is the owner of a hidden profile). */
 export const ProfilePage: React.FC = () => {
   const { identifier = '' } = useParams<{ identifier: string }>();
-  const authUser = useAuthStore((s) => s.user);
-  const token = useAuthStore((s) => s.token);
-  const isAuthed = !!token;
-
-  // Is the signed-in user looking at their own profile? (username or id match)
+  const authUser = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
   const viewingOwn =
     !!authUser &&
-    (authUser.username?.toLowerCase() === identifier.toLowerCase() ||
-      authUser.id === identifier);
+    (authUser.username?.toLowerCase() === identifier.toLowerCase() || authUser.id === identifier);
 
-  const { data: profile, isLoading, isError, error } = useQuery<PublicProfile>({
-    // viewingOwn is part of the key so the query refetches the *private* owner
-    // payload (full stats + all servers) once auth hydrates.
+  const profileQuery = useQuery<PublicProfile>({
     queryKey: ['profile', identifier, viewingOwn],
-    queryFn: async () => {
-      // Owner view: /api/profile/me returns the un-gated payload (every stat,
-      // including servers the owner has hidden from the public).
-      if (viewingOwn) {
-        return await profileApi.getMyProfile();
-      }
-      return await profileApi.getPublicProfile(identifier);
-    },
+    queryFn: () => viewingOwn
+      ? profileApi.getMyProfile()
+      : profileApi.getPublicProfile(identifier),
     enabled: identifier.length > 0,
   });
 
+  const profile = profileQuery.data;
   const isOwner =
     !!profile && (profile.is_owner || (!!authUser && authUser.id === profile.id));
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <PublicNav />
+    <div className="member-page profile-page">
+      <PublicNav variant="observatory" />
+      {!!token && <MemberNav />}
 
-      <div style={{ flex: 1, padding: '40px 24px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
-        {isLoading && <CenteredMessage icon={<Hourglass size={48} />} title="Loading profile…" />}
+      <main className="member-main profile-main">
+        {profileQuery.isLoading && (
+          <CenteredMessage icon={<Hourglass size={48} />} title="Loading profile…" />
+        )}
 
-        {isError && (
+        {profileQuery.isError && (
           <CenteredMessage
             icon={<Lock size={48} />}
             title="Profile unavailable"
-            subtitle={(error as Error)?.message?.includes('403')
+            subtitle={(profileQuery.error as Error)?.message?.includes('403')
               ? 'This profile is private.'
               : 'We couldn’t find a profile with that name.'}
           />
@@ -76,11 +85,29 @@ export const ProfilePage: React.FC = () => {
 
         {profile && (
           <>
-            <RankCardHeader profile={profile} />
-            {isOwner && <NotificationList />}
-            {isAuthed ? (
-              <>
+            <section className="profile-dossier">
+              <RankCardStage profile={profile} />
+              <div className="profile-dossier__signals">
+                <div className="profile-identity">
+                  <div>
+                    <p className="member-kicker">{isOwner ? 'Your member signal' : 'Community member'}</p>
+                    <h1>{profile.global_name || profile.username}</h1>
+                    <span>@{profile.username}</span>
+                  </div>
+                  {isOwner && <strong>Owner view</strong>}
+                </div>
+                <div className="profile-identity__meta">
+                  {profile.member_since && <span>Member since {profile.member_since}</span>}
+                  {profile.mutual_guild && <span>Connected through {profile.mutual_guild.guild_name}</span>}
+                </div>
                 <GlobalStats profile={profile} />
+              </div>
+            </section>
+
+            {isOwner && <NotificationList />}
+
+            {!!token ? (
+              <>
                 <TopUsage profile={profile} />
                 {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
                 <TrophyCase achievements={profile.achievements} isOwner={isOwner} />
@@ -93,298 +120,187 @@ export const ProfilePage: React.FC = () => {
             )}
           </>
         )}
-      </div>
+      </main>
       <SiteFooter />
     </div>
   );
 };
 
-/** Profile header: the user's rank card (rendered with their equipped
- *  cosmetics — the exact <RankCard> the Discord /rank card uses), with the
- *  "member since" line beneath it. Falls back to a plain identity line when
- *  there are no stats to render a card from (e.g. a viewer who hid XP & servers). */
-const RankCardHeader: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
-  // The card needs either global XP or a mutual-guild XP to drive off of; if
-  // both are hidden/absent, fall back to the plain identity line rather than
-  // rendering a card with placeholder XP.
+const RankCardStage: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
   const hasStats = profile.global.exp !== undefined || !!profile.mutual_guild;
-
   if (!hasStats) {
     return (
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-          {profile.global_name || profile.username}
-        </h1>
-        <div style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '2px' }}>
-          @{profile.username}
-        </div>
-        {profile.member_since && (
-          <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '10px' }}>
-            Member since {profile.member_since}
-          </div>
-        )}
+      <div className="profile-card-stage is-identity-only">
+        <span className="profile-card-stage__avatar">
+          <img src={profile.avatar_url} alt="" />
+        </span>
+        <strong>{profile.global_name || profile.username}</strong>
+        <small>Level {profile.global.level}</small>
       </div>
     );
   }
 
-  // Prefer the highest-XP server the viewer and this user actually share —
-  // it's more relevant than global stats when you know someone from a server.
-  // Falls back to the global card for strangers, signed-out visitors, and
-  // when viewing your own profile.
   const data = profile.mutual_guild
     ? buildRankCardData({ ...profile, guilds: [profile.mutual_guild] }, profile.loadout)
     : buildGlobalRankCardData(profile, profile.loadout);
+
   return (
-    <div style={{ marginBottom: '20px' }}>
+    <div className="profile-card-stage">
+      <div className="profile-card-stage__orbit" aria-hidden="true"><span /><span /><span /></div>
       <ScaledRankCard data={data} />
-      {profile.member_since && (
-        <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '12px' }}>
-          Member since {profile.member_since}
-        </div>
-      )}
+      <small>Live equipped rank card</small>
     </div>
   );
 };
 
 const GlobalStats: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
-  const g = profile.global;
-  // Each stat is only present when its privacy toggle is on; hidden ones simply
-  // don't render. Level lives in the identity header and is always shown.
-  const cards: Array<[string, string]> = [];
-  if (g.exp !== undefined) {
-    cards.push(['Global Rank', ordinal(g.exp_rank)]);
-    cards.push(['Global XP', fmt(g.exp)]);
+  const global = profile.global;
+  const signals: Array<[string, string]> = [];
+  if (global.exp !== undefined) {
+    signals.push(['Global rank', ordinal(global.exp_rank)]);
+    signals.push(['Global XP', fmt(global.exp)]);
   }
-  if (g.total_messages !== undefined) cards.push(['Messages', fmt(g.total_messages)]);
-  if (g.total_reactions !== undefined) cards.push(['Reactions', fmt(g.total_reactions)]);
-  if (g.total_commands !== undefined) cards.push(['Commands', fmt(g.total_commands)]);
-  if (g.currency !== undefined) {
-    // Net Worth = wallet + bank, the same total the economy leaderboard ranks on
-    // (so currency_rank is the net-worth rank).
-    cards.push(['Net Worth', fmt((g.currency ?? 0) + (g.bank_balance ?? 0))]);
-    cards.push(['Net Worth Rank', ordinal(g.currency_rank)]);
+  if (global.total_messages !== undefined) signals.push(['Messages', fmt(global.total_messages)]);
+  if (global.total_reactions !== undefined) signals.push(['Reactions', fmt(global.total_reactions)]);
+  if (global.total_commands !== undefined) signals.push(['Commands', fmt(global.total_commands)]);
+  if (global.currency !== undefined) {
+    signals.push(['Net worth', fmt((global.currency ?? 0) + (global.bank_balance ?? 0))]);
+    signals.push(['Economy rank', ordinal(global.currency_rank)]);
   }
 
-  if (cards.length === 0) return null;
+  if (signals.length === 0) return null;
 
   return (
-    <div style={{
-      display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-      gap: '12px', marginBottom: '20px',
-    }}>
-      {cards.map(([label, value]) => (
-        <div key={label} style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border-light)',
-          borderRadius: '14px', padding: '18px',
-        }}>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{label}</div>
-        </div>
+    <dl className="profile-signal-ledger">
+      {signals.map(([label, value]) => (
+        <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
       ))}
-    </div>
+    </dl>
   );
 };
 
-/** Renders a custom Discord emoji from the CDN, or the unicode char directly. */
 const Emoji: React.FC<{ reaction: TopReaction }> = ({ reaction }) => {
   if (reaction.emoji_id) {
-    const ext = reaction.animated ? 'gif' : 'png';
+    const extension = reaction.animated ? 'gif' : 'png';
     return (
       <img
-        src={`https://cdn.discordapp.com/emojis/${reaction.emoji_id}.${ext}?size=32`}
+        src={`https://cdn.discordapp.com/emojis/${reaction.emoji_id}.${extension}?size=32`}
         alt={reaction.emoji_display}
         title={`:${reaction.emoji_display}:`}
-        style={{ width: 20, height: 20, verticalAlign: 'middle' }}
       />
     );
   }
-  return <span style={{ fontSize: '18px' }}>{reaction.emoji_display}</span>;
+  return <span>{reaction.emoji_display}</span>;
 };
 
-/** Two side-by-side "Top Commands" / "Top Reactions" ranked lists. Each section
- *  renders only when its data is present (gated server-side by privacy toggles)
- *  and non-empty, so brand-new users don't see empty boxes. */
 const TopUsage: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
-  const topCommands = profile.global.top_commands ?? [];
-  const topReactions = profile.global.top_reactions ?? [];
-  if (topCommands.length === 0 && topReactions.length === 0) return null;
-
-  const panel: React.CSSProperties = {
-    background: 'var(--bg-card)', border: '1px solid var(--border-light)',
-    borderRadius: '14px', padding: '18px', flex: '1 1 240px',
-  };
-  const heading: React.CSSProperties = {
-    fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase',
-    letterSpacing: '0.05em', marginBottom: '12px',
-  };
-  const row: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '6px 0',
-  };
-  const rankNum: React.CSSProperties = {
-    color: 'var(--text-muted)', fontSize: '13px', width: '20px', flexShrink: 0,
-  };
-  const count: React.CSSProperties = {
-    color: 'var(--text-muted)', fontSize: '13px', fontVariantNumeric: 'tabular-nums',
-  };
+  const commands = profile.global.top_commands ?? [];
+  const reactions = profile.global.top_reactions ?? [];
+  if (commands.length === 0 && reactions.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-      {topCommands.length > 0 && (
-        <div style={panel}>
-          <div style={heading}>Top Commands</div>
-          {topCommands.map((c: TopCommand, i: number) => (
-            <div key={c.name} style={row}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                <span style={rankNum}>{i + 1}</span>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  /{c.name}
-                </span>
-              </span>
-              <span style={count}>{c.count.toLocaleString()}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {topReactions.length > 0 && (
-        <div style={panel}>
-          <div style={heading}>Top Reactions</div>
-          {topReactions.map((r: TopReaction, i: number) => (
-            <div key={r.emoji_key} style={row}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={rankNum}>{i + 1}</span>
-                <Emoji reaction={r} />
-              </span>
-              <span style={count}>{r.count.toLocaleString()}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-/** Signed-out view: the identity header stays visible (the share hook), but
- *  the detailed stats are blurred behind a "sign in with Discord" wall to
- *  convert visitors into users. */
-const LockedTeaser: React.FC<{ profile: PublicProfile }> = ({ profile }) => {
-  const name = profile.global_name || profile.username;
-  return (
-    <div style={{ position: 'relative' }}>
-      <div aria-hidden style={{ filter: 'blur(7px)', pointerEvents: 'none', userSelect: 'none' }}>
-        <GlobalStats profile={profile} />
-        {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}
-      </div>
-      <div style={{
-        position: 'absolute', inset: 0, display: 'flex',
-        alignItems: 'center', justifyContent: 'center', padding: '20px',
-      }}>
-        <div style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border-cyan)',
-          borderRadius: '20px', padding: '32px', maxWidth: '420px', textAlign: 'center',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-        }}>
-          <div style={{ marginBottom: '8px', color: 'var(--text-secondary)' }}><Lock size={40} /></div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-            See {name}’s full profile
-          </h2>
-          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 20px' }}>
-            Sign in with Discord to unlock full stats, server ranks &amp; streaks — and claim your own profile.
-          </p>
-          <button onClick={startLogin} style={{
-            background: 'var(--primary-color)', color: '#000', border: 'none', cursor: 'pointer',
-            fontWeight: 700, fontSize: '15px', borderRadius: '10px', padding: '12px 28px',
-          }}>
-            Sign in with Discord
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) => {
-  // Owner payloads include hidden servers (for the toggle panel); the public
-  // strip should only show the ones that are actually visible.
-  const visible = (guilds ?? []).filter((gu) => !gu.hidden);
-  if (visible.length === 0) return null;
-  return (
-  <div style={{
-    background: 'var(--bg-card)', border: '1px solid var(--border-light)',
-    borderRadius: '16px', padding: '20px', marginBottom: '20px',
-  }}>
-    <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
-      Server Identity
-    </h2>
-    <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
-      {visible.map((gu) => (
-        <a key={gu.guild_id} href={`/leaderboard/${gu.guild_id}`} title="View this server's leaderboard" style={{
-          flexShrink: 0, minWidth: '160px', background: 'var(--bg-tertiary)', textDecoration: 'none',
-          border: '1px solid var(--border-light)', borderRadius: '12px', padding: '14px', display: 'block',
-        }}>
-          <div style={{
-            fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>
-            {gu.guild_name || 'Unknown Server'}
+    <section className="profile-traces">
+      <header>
+        <div><p>Activity traces</p><h2>Most-used signals</h2></div>
+        <span>Visible by member preference</span>
+      </header>
+      <div className="profile-traces__grid">
+        {commands.length > 0 && (
+          <div className="profile-trace">
+            <h3>Commands</h3>
+            {commands.map((command: TopCommand, index: number) => (
+              <div key={command.name}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <strong>/{command.name}</strong>
+                <small>{command.count.toLocaleString()}</small>
+              </div>
+            ))}
           </div>
-          <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
-            <Chip>Lvl {fmt(gu.level)}</Chip>
-            <Chip highlight>{ordinal(gu.rank)}</Chip>
-            {gu.streak > 0 && <Chip><InlineIcon icon={Flame} color="#ff9f43" /> {fmt(gu.streak)}</Chip>}
+        )}
+        {reactions.length > 0 && (
+          <div className="profile-trace">
+            <h3>Reactions</h3>
+            {reactions.map((reaction: TopReaction, index: number) => (
+              <div key={reaction.emoji_key}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <strong><Emoji reaction={reaction} /></strong>
+                <small>{reaction.count.toLocaleString()}</small>
+              </div>
+            ))}
           </div>
-        </a>
-      ))}
-    </div>
-  </div>
+        )}
+      </div>
+    </section>
   );
 };
 
-const Chip: React.FC<{ children: React.ReactNode; highlight?: boolean }> = ({ children, highlight }) => (
-  <span style={{
-    fontSize: '12px', fontWeight: 600, padding: '3px 10px', borderRadius: '10px',
-    background: highlight ? 'rgba(0,217,255,0.15)' : 'rgba(255,255,255,0.06)',
-    color: highlight ? 'var(--primary-color)' : 'var(--text-secondary)',
-    border: `1px solid ${highlight ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-  }}>
-    {children}
-  </span>
+const LockedTeaser: React.FC<{ profile: PublicProfile }> = ({ profile }) => (
+  <section className="profile-gate">
+    <div aria-hidden="true"><GlobalStats profile={profile} /></div>
+    <div className="profile-gate__prompt">
+      <Lock aria-hidden="true" />
+      <h2>See {(profile.global_name || profile.username)}’s full profile.</h2>
+      <p>Sign in with Discord to reveal permitted stats, shared server ranks, streaks, and your own member profile.</p>
+      <button type="button" onClick={startLogin}>Sign in with Discord</button>
+    </div>
+  </section>
 );
 
-/** Owner-only navigation shortcuts — carries over the legacy /profile page's
- *  "Quick Links" so the consolidated profile is also the account jumping-off
- *  point. These are navigation (not settings) and stay on the profile. */
-const OwnerShortcuts: React.FC = () => {
-  const links: Array<{ label: string; icon?: LucideIcon; desc: string; href: string; external?: boolean; primary?: boolean }> = [
-    { label: 'Profile Settings', icon: Settings, desc: 'Privacy & what others can see', href: '/settings', primary: true },
-    { label: 'Customize your card', icon: Palette, desc: 'Shop cosmetics & style your rank card', href: '/card-studio', primary: true },
-    { label: 'Achievements', icon: Trophy, desc: 'Track badges & rewards to earn', href: '/achievements', primary: true },
-    { label: 'Manage Servers', desc: 'Configure the bot in your servers', href: '/servers' },
-    { label: 'Documentation', desc: 'Learn how to use the bot', href: DOCS_URL },
-    { label: 'Support', desc: 'Join our Discord server', href: SUPPORT_URL, external: true },
-  ];
+const GuildStrip: React.FC<{ guilds: PublicProfile['guilds'] }> = ({ guilds }) => {
+  const visibleGuilds = (guilds ?? []).filter((guild) => !guild.hidden);
+  if (visibleGuilds.length === 0) return null;
+
   return (
-    <div style={{
-      display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-      gap: '12px', marginBottom: '20px',
-    }}>
-      {links.map((l) => (
-        <a
-          key={l.label}
-          href={l.href}
-          {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          style={{
-            background: 'var(--bg-card)',
-            border: `1px solid ${l.primary ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-            borderRadius: '14px', padding: '16px', textDecoration: 'none', display: 'block',
-          }}
-        >
-          <div style={{ fontSize: '14px', fontWeight: 700, color: l.primary ? 'var(--primary-color)' : 'var(--text-primary)' }}>
-            {l.icon && <><InlineIcon icon={l.icon} /> </>}{l.label}
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{l.desc}</div>
-        </a>
-      ))}
-    </div>
+    <section className="profile-guilds">
+      <header><div><p>Community coordinates</p><h2>Server identity</h2></div><span>{visibleGuilds.length} visible</span></header>
+      <div className="profile-guilds__track">
+        {visibleGuilds.map((guild) => (
+          <a key={guild.guild_id} href={`/leaderboard/${guild.guild_id}`}>
+            <span className="profile-guilds__node" aria-hidden="true"><i /></span>
+            <strong>{guild.guild_name || 'Unknown Server'}</strong>
+            <small>Level {fmt(guild.level)}</small>
+            <span>{ordinal(guild.rank)} rank</span>
+            {guild.streak > 0 && <em><InlineIcon icon={Flame} /> {fmt(guild.streak)} streak</em>}
+          </a>
+        ))}
+      </div>
+    </section>
   );
 };
+
+const OwnerShortcuts: React.FC = () => {
+  const links: Array<{
+    label: string;
+    icon?: LucideIcon;
+    description: string;
+    href: string;
+    external?: boolean;
+    primary?: boolean;
+  }> = [
+    { label: 'Profile Settings', icon: Settings, description: 'Privacy and visible member signals', href: '/settings', primary: true },
+    { label: 'Card Studio', icon: Palette, description: 'Equip rank-card cosmetics', href: '/card-studio', primary: true },
+    { label: 'Achievements', icon: Trophy, description: 'Track badges and claimable rewards', href: '/achievements', primary: true },
+    { label: 'Manage Servers', description: 'Configure connected communities', href: '/servers' },
+    { label: 'Documentation', description: 'Learn every Acosmibot system', href: DOCS_URL },
+    { label: 'Support', description: 'Join the Acosmibot Discord', href: SUPPORT_URL, external: true },
+  ];
+
+  return (
+    <nav className="profile-shortcuts" aria-label="Profile shortcuts">
+      {links.map((link) => (
+        <a
+          key={link.label}
+          href={link.href}
+          className={link.primary ? 'is-primary' : ''}
+          {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        >
+          <span>{link.icon && <link.icon aria-hidden="true" />}<strong>{link.label}</strong></span>
+          <small>{link.description}</small>
+          <ArrowUpRight aria-hidden="true" />
+        </a>
+      ))}
+    </nav>
+  );
+};
+
+export default ProfilePage;

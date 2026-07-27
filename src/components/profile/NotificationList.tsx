@@ -57,9 +57,28 @@ export const NotificationList: React.FC = () => {
   const hasClaimable = useMemo(() => items.some((n) => n.is_claimable), [items]);
 
   if (query.isLoading) return null;
+  if (query.isError) {
+    return (
+      <section
+        id="notifications"
+        className="profile-notifications"
+        style={{ marginBottom: 28, scrollMarginTop: 72 }}
+      >
+        <h3 style={{ color: 'var(--text-primary)', fontSize: 18, margin: '0 0 4px' }}>
+          Notifications
+        </h3>
+        <p role="alert" style={{ color: 'var(--text-muted)', fontSize: 13, margin: '0 0 12px' }}>
+          Rewards and notifications couldn’t be loaded.
+        </p>
+        <button type="button" className="btn btn-sm" onClick={() => query.refetch()}>
+          Retry notifications
+        </button>
+      </section>
+    );
+  }
 
   return (
-    <section id="notifications" style={{ marginBottom: 28, scrollMarginTop: 72 }}>
+    <section id="notifications" className="profile-notifications" style={{ marginBottom: 28, scrollMarginTop: 72 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
         <h3 style={{ color: 'var(--text-primary)', fontSize: 18, margin: 0 }}>Notifications</h3>
         <button
@@ -150,7 +169,7 @@ const NotificationRow: React.FC<{
 
   return (
     <div
-      className={claimed ? 'dr-card--claimed' : undefined}
+      className={`profile-notification${claimed ? ' dr-card--claimed' : ''}`}
       style={{
         position: 'relative',
         display: 'flex', alignItems: 'center', gap: 14,
