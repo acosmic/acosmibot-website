@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AdminDetailDialog } from './AdminDetailDialog';
 
 interface PerformanceTotals {
   messages_processed: number;
@@ -291,7 +292,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       </div>
 
       {report && (
-        <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px', marginBottom: 36 }}>
+        <div className="admin-stats-grid">
           {/* ── Left column: activity ── */}
           <div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -329,6 +330,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           Runtime Logs
         </h5>
         <select
+          aria-label="Runtime log source"
           value={logSource}
           onChange={e => setLogSource(e.target.value as LogSource)}
           style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
@@ -337,6 +339,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           <option value="api">API</option>
         </select>
         <select
+          aria-label="Minimum runtime log level"
           value={logLevel}
           onChange={e => setLogLevel(e.target.value as LogLevel)}
           style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
@@ -346,6 +349,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           ))}
         </select>
         <select
+          aria-label="Runtime log entry limit"
           value={logLimit}
           onChange={e => setLogLimit(Number(e.target.value))}
           style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', borderRadius: 4, padding: '2px 6px', fontSize: '0.78rem' }}
@@ -353,6 +357,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
           {[50, 100, 200, 500].map(n => <option key={n} value={n}>Last {n}</option>)}
         </select>
         <input
+          aria-label="Search runtime logs"
           value={logSearch}
           onChange={e => setLogSearch(e.target.value)}
           placeholder="Search logs..."
@@ -388,6 +393,14 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                   <tr
                     key={i}
                     onClick={() => setDetailLog(entry)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setDetailLog(entry);
+                      }
+                    }}
+                    tabIndex={0}
+                    aria-label={`Open ${entry.level.toLowerCase()} log from ${formatCentral(entry.timestamp)}`}
                     style={{ cursor: 'pointer' }}
                     title="Click to expand"
                   >
@@ -452,6 +465,15 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
                 className="admin-mobile-row"
                 key={i}
                 onClick={() => setDetailLog(entry)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setDetailLog(entry);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open ${entry.level.toLowerCase()} log from ${formatCentral(entry.timestamp)}`}
                 style={{ cursor: 'pointer' }}
               >
                 <div className="admin-mobile-row-header">
@@ -491,26 +513,25 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
         </>
       )}
       {detailLog && (
-        <div className="admin-detail-backdrop" onClick={() => setDetailLog(null)}>
-          <div className="admin-detail-panel admin-log-detail" role="dialog" aria-modal="true" aria-label="Runtime log detail" onClick={(event) => event.stopPropagation()}>
-            <div className="admin-detail-header">
-              <h4>{detailLog.level} Log</h4>
-              <button onClick={() => setDetailLog(null)} aria-label="Close log detail">×</button>
-            </div>
-            <div className="admin-log-meta">
-              <span>{formatCentral(detailLog.timestamp)}</span>
-              <span>{relativeLogTime(detailLog.timestamp)}</span>
-              <span style={{ textTransform: 'uppercase' }}>{detailLog.source ?? logSource}</span>
-              <span>{detailLog.logger}</span>
-            </div>
-            {contextItems(detailLog).length > 0 && (
-              <div style={{ margin: '4px 0 12px' }}>
-                <ContextChips entry={detailLog} />
-              </div>
-            )}
-            <pre>{detailLog.message}</pre>
+        <AdminDetailDialog
+          title={`${detailLog.level} Log`}
+          label="runtime log detail"
+          className="admin-log-detail"
+          onClose={() => setDetailLog(null)}
+        >
+          <div className="admin-log-meta">
+            <span>{formatCentral(detailLog.timestamp)}</span>
+            <span>{relativeLogTime(detailLog.timestamp)}</span>
+            <span style={{ textTransform: 'uppercase' }}>{detailLog.source ?? logSource}</span>
+            <span>{detailLog.logger}</span>
           </div>
-        </div>
+          {contextItems(detailLog).length > 0 && (
+            <div style={{ margin: '4px 0 12px' }}>
+              <ContextChips entry={detailLog} />
+            </div>
+          )}
+          <pre>{detailLog.message}</pre>
+        </AdminDetailDialog>
       )}
     </div>
   );

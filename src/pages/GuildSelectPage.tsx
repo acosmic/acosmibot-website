@@ -1,247 +1,292 @@
-import React, { useEffect } from 'react';
+/**
+ * THESIS: Server selection is a permission-aware constellation catalog, not a generic card grid.
+ * OWN-WORLD: Observatory void, restrained cyan signals, server identity nodes, and compact telemetry.
+ * STORY: Find a community, understand your access, then manage it or open its public leaderboard.
+ * FIRST VIEWPORT: Real access counts orbit the Acosmibot core beside the server search and roster.
+ * FORM: Sixth-ranked constellation catalog structure; established world; seed 244f3f11.
+ */
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Gem, Plus } from 'lucide-react';
+import { ArrowRight, Bot, Crown, Gem, Plus, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
 import { useGuildStore } from '@/store/guild';
 import { useAuthStore } from '@/store/auth';
 import { guildApi } from '@/api/guilds';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import type { Guild } from '@/types/guild';
+import '@/styles/servers.css';
 
 const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+
+type LoadState = 'loading' | 'ready' | 'error';
+
+const canManageGuild = (guild: Guild) =>
+  guild.owner || guild.permissions?.includes('administrator');
+
+const accessLabel = (guild: Guild) =>
+  guild.owner ? 'Owner' : guild.permissions?.includes('administrator') ? 'Admin' : 'Member';
+
+const planLabel = (tier?: string) => {
+  if (!tier || tier === 'free') return null;
+  if (tier === 'premium_plus_ai') return 'Pro';
+  return tier.charAt(0).toUpperCase() + tier.slice(1);
+};
 
 export const GuildSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const { guilds, setGuilds, setSelectedGuildId } = useGuildStore();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [loadState, setLoadState] = useState<LoadState>('loading');
+  const [query, setQuery] = useState('');
+
+  const loadGuilds = useCallback(async () => {
+    setLoadState('loading');
+    try {
+      const nextGuilds = await guildApi.getGuilds();
+      setGuilds(nextGuilds);
+      setLoadState('ready');
+    } catch (error) {
+      console.error(error);
+      setLoadState('error');
+    }
+  }, [setGuilds]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
       return;
     }
-    guildApi.getGuilds().then(setGuilds).catch(console.error);
-  }, [isAuthenticated, navigate, setGuilds]);
+    void loadGuilds();
+  }, [isAuthenticated, loadGuilds, navigate]);
 
-  const handleManage = (guildId: string) => {
-    setSelectedGuildId(guildId);
-    navigate(`/server/${guildId}/overview`);
+  const sorted = useMemo(() => [...guilds].sort((a, b) => {
+    const score = (guild: Guild) =>
+      guild.owner ? 2 : guild.permissions?.includes('administrator') ? 1 : 0;
+    return score(b) - score(a) || a.name.localeCompare(b.name);
+  }), [guilds]);
+
+  const filtered = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return normalizedQuery
+      ? sorted.filter((guild) => guild.name.toLowerCase().includes(normalizedQuery))
+      : sorted;
+  }, [query, sorted]);
+
+  const manageable = filtered.filter(canManageGuild);
+  const memberGuilds = filtered.filter((guild) => !canManageGuild(guild));
+  const totalManageable = sorted.filter(canManageGuild).length;
+  const totalMember = sorted.length - totalManageable;
+
+  const openGuild = (guild: Guild) => {
+    if (canManageGuild(guild)) {
+      setSelectedGuildId(guild.id);
+      navigate(`/server/${guild.id}/overview`);
+      return;
+    }
+    navigate(`/leaderboard/${guild.id}`);
   };
 
-  const sorted = [...guilds].sort((a, b) => {
-    const score = (g: typeof a) =>
-      g.owner ? 2 : g.permissions?.includes('administrator') ? 1 : 0;
-    return score(b) - score(a);
-  });
+  const inviteBot = () => {
+    window.open(INVITE_URL, '_blank', 'noopener,noreferrer');
+  };
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="servers-page">
+      <PublicNav variant="observatory" />
 
-      <PublicNav />
-
-      <div style={{ flex: 1, padding: '48px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-            Your Discord Servers
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>
-            Choose a server to manage its settings and view stats.
-          </p>
-        </div>
-
-        {/* Empty state */}
-        {sorted.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}><Bot size={64} /></div>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '12px' }}>No servers found</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-              Add Acosmibot to a server you own or manage to get started.
+      <main className="servers-main">
+        <section className="servers-hero">
+          <div className="servers-hero__copy">
+            <p className="servers-kicker">Community constellation</p>
+            <h1>Your servers, aligned by access.</h1>
+            <p>
+              Open configuration where you manage the community, or move directly
+              to the public leaderboard where you participate as a member.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-              {[
-                ['1', 'Own or manage a Discord server', 'Create one at discord.com if you don\'t have one.'],
-                ['2', 'Add Acosmibot to your server', 'Click the button below to invite the bot.'],
-                ['3', 'Come back and configure', 'Refresh this page to see your server.'],
-              ].map(([n, title, desc]) => (
-                <div key={n} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', maxWidth: '400px', textAlign: 'left' }}>
-                  <span style={{
-                    width: '28px', height: '28px', borderRadius: '50%', background: 'var(--primary-color)',
-                    color: '#000', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', flexShrink: 0,
-                  }}>{n}</span>
-                  <div>
-                    <div style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '2px' }}>{title}</div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => window.open(INVITE_URL, '_blank')}
-              style={{
-                background: 'var(--primary-color)', color: '#000', border: 'none',
-                borderRadius: '10px', padding: '14px 32px', fontSize: '15px',
-                fontWeight: 700, cursor: 'pointer',
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-              }}
-            >
-              <Plus size={18} /> Add Acosmibot to a Server
-            </button>
           </div>
-        )}
 
-        {/* Guild grid */}
-        {sorted.length > 0 && (
-          <>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: '16px',
-              marginBottom: '32px',
-            }}>
-              {sorted.map(guild => {
-                const isOwner = guild.owner;
-                const isAdmin = guild.permissions?.includes('administrator');
-                const canManage = isOwner || isAdmin;
-                // Members can't use the admin dashboard — send them to the
-                // guild leaderboard instead.
-                const open = () => canManage
-                  ? handleManage(guild.id)
-                  : navigate(`/leaderboard/${guild.id}`);
-
-                return (
-                  <div
-                    key={guild.id}
-                    onClick={open}
-                    style={{
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border-light)',
-                      borderRadius: '16px',
-                      padding: '24px 16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '12px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      position: 'relative',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--primary-color)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
-                  >
-                    {/* Paid plan badge */}
-                    {guild.premium_tier && guild.premium_tier !== 'free' && (
-                      <span style={{
-                        position: 'absolute', top: '10px', right: '10px', display: 'flex',
-                        alignItems: 'center', gap: '3px', color: 'var(--primary-color)',
-                      }}
-                        title={guild.premium_tier === 'max' ? 'Max' : guild.premium_tier === 'pro' || guild.premium_tier === 'premium_plus_ai' ? 'Pro' : 'Plus'}>
-                        {(guild.premium_tier === 'pro' || guild.premium_tier === 'max' || guild.premium_tier === 'premium_plus_ai') && <Bot size={16} />}
-                        <Gem size={16} />
-                      </span>
-                    )}
-
-                    {/* Guild icon */}
-                    <div style={{
-                      width: '72px', height: '72px', borderRadius: '50%',
-                      backgroundImage: guild.icon
-                        ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128)`
-                        : 'none',
-                      backgroundSize: 'cover',
-                      backgroundColor: 'var(--bg-tertiary)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '28px', fontWeight: 'bold', color: 'white', flexShrink: 0,
-                    }}>
-                      {!guild.icon && guild.name.charAt(0).toUpperCase()}
-                    </div>
-
-                    {/* Name */}
-                    <div style={{
-                      fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)',
-                      textAlign: 'center', wordBreak: 'break-word', lineHeight: 1.3,
-                    }}>
-                      {guild.name}
-                    </div>
-
-                    {/* Member count */}
-                    {guild.member_count !== undefined && (
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {guild.member_count.toLocaleString()} members
-                      </div>
-                    )}
-
-                    {/* Role badge */}
-                    <span style={{
-                      fontSize: '11px', fontWeight: 600, padding: '2px 10px', borderRadius: '12px',
-                      background: isOwner ? 'rgba(0,217,255,0.15)' : 'rgba(255,255,255,0.08)',
-                      color: isOwner ? 'var(--primary-color)' : 'var(--text-secondary)',
-                      border: `1px solid ${isOwner ? 'var(--border-cyan)' : 'var(--border-light)'}`,
-                      textTransform: 'uppercase', letterSpacing: '0.5px',
-                    }}>
-                      {isOwner ? 'Owner' : isAdmin ? 'Admin' : 'Member'}
-                    </span>
-
-                    {/* Action button */}
-                    {canManage ? (
-                      <button style={{
-                        background: 'var(--primary-color)', color: '#000', border: 'none',
-                        borderRadius: '8px', padding: '8px 20px', fontSize: '13px',
-                        fontWeight: 700, cursor: 'pointer', width: '100%', marginTop: '4px',
-                      }}>
-                        Manage
-                      </button>
-                    ) : (
-                      <button style={{
-                        background: 'transparent', color: 'var(--text-primary)',
-                        border: '1px solid var(--border-light)',
-                        borderRadius: '8px', padding: '8px 20px', fontSize: '13px',
-                        fontWeight: 600, cursor: 'pointer', width: '100%', marginTop: '4px',
-                      }}>
-                        View Leaderboard
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Add to another server card */}
-              <div
-                onClick={() => window.open(INVITE_URL, '_blank')}
-                style={{
-                  background: 'transparent',
-                  border: '2px dashed var(--border-light)',
-                  borderRadius: '16px',
-                  padding: '24px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  minHeight: '220px',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--primary-color)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
-              >
-                <div style={{
-                  width: '48px', height: '48px', borderRadius: '50%',
-                  background: 'var(--bg-overlay)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--text-secondary)',
-                }}>
-                  <Plus size={24} />
-                </div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '14px', textAlign: 'center', fontWeight: 500 }}>
-                  Add to another server
-                </div>
-              </div>
+          <div className="servers-orbit" aria-label={`${sorted.length} connected servers`}>
+            <span className="servers-orbit__ring servers-orbit__ring--outer" aria-hidden="true" />
+            <span className="servers-orbit__ring servers-orbit__ring--inner" aria-hidden="true" />
+            <div className="servers-orbit__core">
+              <img src="/images/acosmibot-logo.png" alt="" />
+              <span>Connected</span>
             </div>
-          </>
+            <div className="servers-orbit__node servers-orbit__node--manage">
+              <ShieldCheck aria-hidden="true" />
+              <strong>{totalManageable}</strong>
+              <span>Manage</span>
+            </div>
+            <div className="servers-orbit__node servers-orbit__node--member">
+              <Users aria-hidden="true" />
+              <strong>{totalMember}</strong>
+              <span>Member</span>
+            </div>
+            <div className="servers-orbit__readout">
+              <span>{sorted.length} signals</span><i /><span>1 account</span>
+            </div>
+          </div>
+        </section>
+
+        {loadState === 'loading' && <ServerSkeletons />}
+
+        {loadState === 'error' && (
+          <section className="servers-state" aria-live="polite">
+            <span className="servers-state__signal"><RefreshCw aria-hidden="true" /></span>
+            <div>
+              <h2>Server signals could not be loaded.</h2>
+              <p>Check your connection and try the Discord server scan again.</p>
+            </div>
+            <button type="button" onClick={() => void loadGuilds()}>
+              Retry scan <RefreshCw aria-hidden="true" />
+            </button>
+          </section>
         )}
-      </div>
+
+        {loadState === 'ready' && sorted.length === 0 && (
+          <section className="servers-empty">
+            <div className="servers-empty__map" aria-hidden="true">
+              <span /><span /><span />
+              <img src="/images/acosmibot-logo.png" alt="" />
+            </div>
+            <div className="servers-empty__copy">
+              <p className="servers-kicker">No connected communities</p>
+              <h2>Bring your first server into orbit.</h2>
+              <p>Add Acosmibot to a Discord server you own or manage, then return here to configure it.</p>
+              <ol>
+                <li><span>1</span><div><strong>Choose a server</strong><small>You need ownership or administrator permission.</small></div></li>
+                <li><span>2</span><div><strong>Authorize Acosmibot</strong><small>Discord will show the requested bot permissions.</small></div></li>
+                <li><span>3</span><div><strong>Configure the community</strong><small>Your new server appears here after the bot joins.</small></div></li>
+              </ol>
+              <button type="button" onClick={inviteBot}>
+                <Plus aria-hidden="true" /> Add Acosmibot to a server
+              </button>
+            </div>
+          </section>
+        )}
+
+        {loadState === 'ready' && sorted.length > 0 && (
+          <section className="servers-catalog" aria-labelledby="servers-catalog-title">
+            <div className="servers-toolbar">
+              <div>
+                <p className="servers-kicker">Server signals</p>
+                <h2 id="servers-catalog-title">Choose your destination.</h2>
+              </div>
+              <label className="servers-search">
+                <Search aria-hidden="true" />
+                <span className="visually-hidden">Search servers</span>
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search your servers"
+                />
+              </label>
+              <button type="button" className="servers-add-button" onClick={inviteBot}>
+                <Plus aria-hidden="true" /> Add server
+              </button>
+            </div>
+
+            {manageable.length > 0 && (
+              <ServerBand
+                title="Configuration access"
+                description="Servers where you are the owner or an administrator."
+                guilds={manageable}
+                onOpen={openGuild}
+              />
+            )}
+
+            {memberGuilds.length > 0 && (
+              <ServerBand
+                title="Member access"
+                description="Communities you can explore through their public leaderboard."
+                guilds={memberGuilds}
+                onOpen={openGuild}
+              />
+            )}
+
+            {filtered.length === 0 && (
+              <div className="servers-no-results">
+                <Search aria-hidden="true" />
+                <strong>No server matches “{query}”.</strong>
+                <button type="button" onClick={() => setQuery('')}>Clear search</button>
+              </div>
+            )}
+          </section>
+        )}
+      </main>
+
       <SiteFooter />
     </div>
   );
 };
+
+const ServerBand: React.FC<{
+  title: string;
+  description: string;
+  guilds: Guild[];
+  onOpen: (guild: Guild) => void;
+}> = ({ title, description, guilds, onOpen }) => (
+  <section className="servers-band">
+    <header className="servers-band__header">
+      <div>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <span>{guilds.length} {guilds.length === 1 ? 'server' : 'servers'}</span>
+    </header>
+    <div className="servers-grid">
+      {guilds.map((guild) => (
+        <ServerCard key={guild.id} guild={guild} onOpen={() => onOpen(guild)} />
+      ))}
+    </div>
+  </section>
+);
+
+const ServerCard: React.FC<{ guild: Guild; onOpen: () => void }> = ({ guild, onOpen }) => {
+  const manageable = canManageGuild(guild);
+  const tier = planLabel(guild.premium_tier);
+  const TierIcon = tier === 'Pro' || tier === 'Max' ? Bot : Gem;
+
+  return (
+    <button type="button" className={`server-node${manageable ? ' can-manage' : ''}`} onClick={onOpen}>
+      <span className="server-node__line" aria-hidden="true" />
+      <span
+        className="server-node__avatar"
+        style={{
+          backgroundImage: guild.icon
+            ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128)`
+            : 'none',
+        }}
+        aria-hidden="true"
+      >
+        {!guild.icon && guild.name.charAt(0).toUpperCase()}
+      </span>
+      <span className="server-node__identity">
+        <strong>{guild.name}</strong>
+        <small>{guild.member_count?.toLocaleString() ?? '—'} members</small>
+      </span>
+      <span className={`server-node__access server-node__access--${accessLabel(guild).toLowerCase()}`}>
+        {guild.owner && <Crown aria-hidden="true" />}
+        {accessLabel(guild)}
+      </span>
+      {tier && (
+        <span className={`server-node__tier server-node__tier--${tier.toLowerCase()}`} title={`${tier} plan`}>
+          <TierIcon aria-hidden="true" /> {tier}
+        </span>
+      )}
+      <span className="server-node__action">
+        {manageable ? 'Manage server' : 'View leaderboard'} <ArrowRight aria-hidden="true" />
+      </span>
+    </button>
+  );
+};
+
+const ServerSkeletons: React.FC = () => (
+  <section className="servers-loading" aria-label="Loading servers" aria-busy="true">
+    <div className="servers-loading__header"><span /><span /></div>
+    <div className="servers-loading__grid">
+      {Array.from({ length: 6 }, (_, index) => <span key={index} />)}
+    </div>
+  </section>
+);

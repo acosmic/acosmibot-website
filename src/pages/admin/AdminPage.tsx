@@ -1,6 +1,29 @@
+/**
+ * THESIS: Owner administration is a subsystem console, not a long strip of interchangeable tabs.
+ * OWN-WORLD: Restrained observatory shell, persistent module rail, dense ledgers, and literal status signals.
+ * STORY: Verify the owner boundary, select one operational subsystem, inspect or change it with confidence.
+ * FIRST VIEWPORT: An owner-only header resolves into a module rail and one focused workspace.
+ * FORM: Third-ranked subsystem-console structure; established world; seed 04af1d35.
+ */
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import {
+  Activity,
+  ArrowDown,
+  ArrowUp,
+  BarChart3,
+  Bot,
+  BrainCircuit,
+  Coins,
+  Fingerprint,
+  Flag,
+  LockKeyhole,
+  Package,
+  Palette,
+  Server,
+  Sparkles,
+  Trophy,
+} from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import { useAuthStore } from '@/store/auth';
@@ -13,21 +36,37 @@ import { CosmeticsTab } from './CosmeticsTab';
 import { AchievementsTab } from './AchievementsTab';
 import { ItemsTab } from './ItemsTab';
 import { AnalyticsTab } from './AnalyticsTab';
+import { AdminDetailDialog } from './AdminDetailDialog';
 import '@/styles/admin.css';
 
-const OWNER_ID = '110637665128325120';
+const ADMIN_TABS = [
+  { id: 'signins', label: 'Sign-In Log', group: 'Security', description: 'Review recent website authentication events and reveal network details only when needed.', icon: Fingerprint },
+  { id: 'servers', label: 'Servers', group: 'Network', description: 'Inspect every connected Discord server, its status, subscription, and stored configuration.', icon: Server },
+  { id: 'rag', label: 'RAG Documents', group: 'Knowledge', description: 'Operate the retrieval document catalog, chunks, indexing, and query diagnostics.', icon: BrainCircuit },
+  { id: 'botstats', label: 'Bot Stats', group: 'Telemetry', description: 'Observe bot health, runtime signals, and system-wide operating totals.', icon: Activity },
+  { id: 'ai', label: 'AI Settings', group: 'Intelligence', description: 'Configure the shared AI model policy, limits, and system behavior.', icon: Bot },
+  { id: 'economy', label: 'Economy', group: 'Systems', description: 'Manage global economy behavior and operational defaults.', icon: Coins },
+  { id: 'features', label: 'Feature Flags', group: 'Systems', description: 'Control global feature availability and release-state switches.', icon: Flag },
+  { id: 'cosmetics', label: 'Cosmetics', group: 'Catalog', description: 'Maintain the global cosmetic catalog and presentation metadata.', icon: Palette },
+  { id: 'achievements', label: 'Achievements', group: 'Catalog', description: 'Manage achievement definitions, requirements, and rewards.', icon: Trophy },
+  { id: 'items', label: 'Items', group: 'Catalog', description: 'Operate item definitions, effects, availability, and grants.', icon: Package },
+  { id: 'analytics', label: 'Analytics', group: 'Telemetry', description: 'Inspect global usage patterns across commands, AI, and community activity.', icon: BarChart3 },
+] as const;
+
+type AdminTab = typeof ADMIN_TABS[number]['id'];
 
 function IpCell({ ip }: { ip: string | null }) {
   const [revealed, setRevealed] = useState(false);
   if (!ip) return <span>—</span>;
-  if (revealed) return <span style={{ cursor: 'pointer', fontFamily: 'monospace' }} onClick={() => setRevealed(false)}>{ip}</span>;
   return (
-    <span
-      onClick={() => setRevealed(true)}
-      style={{ cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.8rem', userSelect: 'none' }}
+    <button
+      type="button"
+      className={`admin-ip-toggle${revealed ? ' is-revealed' : ''}`}
+      onClick={() => setRevealed((current) => !current)}
+      aria-label={revealed ? 'Hide IP address' : 'Reveal IP address'}
     >
-      click to show
-    </span>
+      {revealed ? ip : 'Reveal'}
+    </button>
   );
 }
 
@@ -61,12 +100,36 @@ function useAdminData<T>(url: string, token: string | null) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
     const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-    fetch(`${apiBase}${url}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(e => { setError(String(e)); setLoading(false); });
+    setLoading(true);
+    setError(null);
+    fetch(`${apiBase}${url}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then(async response => {
+        const body = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(body?.error ?? body?.message ?? `Request failed (${response.status})`);
+        }
+        return body as T;
+      })
+      .then(d => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(error => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setData(null);
+        setError(error instanceof Error ? error.message : String(error));
+        setLoading(false);
+      });
+    return () => controller.abort();
   }, [url, token]);
 
   return { data, loading, error };
@@ -111,37 +174,41 @@ function SortableTable<T extends Record<string, any>>({
   };
 
   return (
-    <div>
-      <div className="d-flex gap-3 mb-3 align-items-center flex-wrap">
-        <input
-          className="form-control"
-          style={{ maxWidth: 320, background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
-          placeholder="Search..."
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(0); }}
-        />
-        <span className="text-muted small">{filtered.length} results</span>
-        <select
-          className="form-select"
-          style={{ maxWidth: 100, background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
-          value={perPage}
-          onChange={e => { setPerPage(Number(e.target.value)); setPage(0); }}
-        >
-          {[25, 50, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
-        </select>
+    <div className="admin-ledger">
+      <div className="admin-table-tools">
+        <label className="admin-table-search">
+          <span>Search ledger</span>
+          <input
+            placeholder="Search all columns"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(0); }}
+          />
+        </label>
+        <span className="admin-result-count">{filtered.length} results</span>
+        <label className="admin-page-size">
+          <span>Rows</span>
+          <select
+            value={perPage}
+            onChange={e => { setPerPage(Number(e.target.value)); setPage(0); }}
+          >
+            {[25, 50, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
+          </select>
+        </label>
       </div>
 
       <div className="admin-table-desktop">
-        <table className="table table-dark table-hover" style={{ fontSize: '0.85rem' }}>
+        <table className="admin-data-table">
           <thead>
             <tr>
               {columns.map(c => (
                 <th
                   key={c.key}
-                  onClick={() => handleSort(c.key)}
-                  style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap', borderColor: 'var(--border-light)' }}
+                  aria-sort={sortKey === c.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
                 >
-                  {c.label} {sortKey === c.key ? <InlineIcon icon={sortDir === 'asc' ? ArrowUp : ArrowDown} size={12} /> : ''}
+                  <button type="button" onClick={() => handleSort(c.key)}>
+                    {c.label}
+                    {sortKey === c.key && <InlineIcon icon={sortDir === 'asc' ? ArrowUp : ArrowDown} size={12} />}
+                  </button>
                 </th>
               ))}
             </tr>
@@ -152,7 +219,7 @@ function SortableTable<T extends Record<string, any>>({
             ) : pageRows.map((row, i) => (
               <tr key={i}>
                 {columns.map(c => (
-                  <td key={c.key} style={{ borderColor: 'var(--border-light)', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td key={c.key}>
                     {c.render ? c.render(row) : String(row[c.key] ?? '—')}
                   </td>
                 ))}
@@ -160,6 +227,28 @@ function SortableTable<T extends Record<string, any>>({
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="admin-mobile-sort">
+        <label>
+          <span>Sort by</span>
+          <select value={sortKey} onChange={(event) => handleSort(event.target.value)}>
+            {columns.map(column => (
+              <option key={column.key} value={column.key}>{column.label}</option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          onClick={() => {
+            setSortDir(direction => direction === 'asc' ? 'desc' : 'asc');
+            setPage(0);
+          }}
+          aria-label={`Sort ${sortDir === 'asc' ? 'descending' : 'ascending'}`}
+        >
+          <InlineIcon icon={sortDir === 'asc' ? ArrowUp : ArrowDown} size={14} />
+          {sortDir === 'asc' ? 'Ascending' : 'Descending'}
+        </button>
       </div>
 
       <div className="admin-card-list">
@@ -178,12 +267,12 @@ function SortableTable<T extends Record<string, any>>({
       </div>
 
       {totalPages > 1 && (
-        <div className="d-flex gap-2 align-items-center justify-content-center mt-3">
-          <button className="btn btn-sm btn-outline-secondary" disabled={page === 0} onClick={() => setPage(0)}>«</button>
-          <button className="btn btn-sm btn-outline-secondary" disabled={page === 0} onClick={() => setPage(p => p - 1)}>‹</button>
-          <span className="text-muted small">Page {page + 1} of {totalPages}</span>
-          <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>›</button>
-          <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages - 1} onClick={() => setPage(totalPages - 1)}>»</button>
+        <div className="admin-pagination" aria-label="Table pagination">
+          <button type="button" disabled={page === 0} onClick={() => setPage(0)} aria-label="First page">«</button>
+          <button type="button" disabled={page === 0} onClick={() => setPage(p => p - 1)} aria-label="Previous page">‹</button>
+          <span>Page {page + 1} of {totalPages}</span>
+          <button type="button" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} aria-label="Next page">›</button>
+          <button type="button" disabled={page >= totalPages - 1} onClick={() => setPage(totalPages - 1)} aria-label="Last page">»</button>
         </div>
       )}
     </div>
@@ -192,9 +281,9 @@ function SortableTable<T extends Record<string, any>>({
 
 const TIER_COLORS: Record<string, string> = {
   free: 'var(--text-muted)',
-  plus: '#a78bfa',
-  pro: '#f59e0b',
-  max: '#22d3ee',
+  plus: '#4fe3a1',
+  pro: '#61daf1',
+  max: '#ff8f72',
 };
 
 const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
@@ -205,21 +294,20 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
   return (
     <div>
       <button
+        type="button"
+        className="admin-settings-trigger"
         onClick={() => setOpen(v => !v)}
-        style={{ background: 'none', border: '1px solid var(--border-light)', borderRadius: 4, padding: '2px 8px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
       >
         {open ? 'Hide' : 'View'}
       </button>
       {open && (
-        <div className="admin-detail-backdrop" onClick={() => setOpen(false)}>
-          <div className="admin-detail-panel" role="dialog" aria-modal="true" aria-label="Server settings" onClick={(event) => event.stopPropagation()}>
-            <div className="admin-detail-header">
-              <h4>Server Settings</h4>
-              <button onClick={() => setOpen(false)} aria-label="Close settings">×</button>
-            </div>
-            <pre>{pretty}</pre>
-          </div>
-        </div>
+        <AdminDetailDialog
+          title="Server Settings"
+          label="server settings"
+          onClose={() => setOpen(false)}
+        >
+          <pre>{pretty}</pre>
+        </AdminDetailDialog>
       )}
     </div>
   );
@@ -228,11 +316,25 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
-  const [tab, setTab] = useState<'signins' | 'servers' | 'rag' | 'botstats' | 'ai' | 'economy' | 'features' | 'cosmetics' | 'achievements' | 'items' | 'analytics'>('signins');
+  const [tab, setTab] = useState<AdminTab>('signins');
   const [authChecked, setAuthChecked] = useState(false);
+  const activeTab = ADMIN_TABS.find((item) => item.id === tab) ?? ADMIN_TABS[0];
+  const ActiveIcon = activeTab.icon;
 
   const signinResult = useAdminData<{ logs: SigninLog[] }>('/api/admin/signin-logs?limit=1000', token);
   const guildsResult = useAdminData<{ guilds: Guild[] }>('/api/admin/guilds?limit=100', token);
+  const activeDataResult = tab === 'signins'
+    ? signinResult
+    : tab === 'servers'
+      ? guildsResult
+      : null;
+  const workspaceState = activeDataResult
+    ? activeDataResult.loading
+      ? { label: 'Loading data', tone: 'loading' }
+      : activeDataResult.error
+        ? { label: 'Data unavailable', tone: 'error' }
+        : { label: 'Live data', tone: 'live' }
+    : { label: 'Owner module', tone: 'neutral' };
 
   useEffect(() => {
     if (!token) { navigate('/'); return; }
@@ -246,12 +348,19 @@ export const AdminPage: React.FC = () => {
         else setAuthChecked(true);
       })
       .catch(() => navigate('/'));
-  }, [token]);
+  }, [navigate, token]);
 
   if (!authChecked) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-        Verifying access...
+      <div className="admin-access-check" role="status" aria-live="polite">
+        <div className="admin-access-check__orbit" aria-hidden="true">
+          <span /><span />
+          <img src="/images/acosmibot-logo.png" alt="" />
+        </div>
+        <div>
+          <span><LockKeyhole aria-hidden="true" /> Owner boundary</span>
+          <strong>Verifying control access…</strong>
+        </div>
       </div>
     );
   }
@@ -270,51 +379,82 @@ export const AdminPage: React.FC = () => {
     { key: 'id', label: 'Server ID' },
     { key: 'owner_id', label: 'Owner ID' },
     { key: 'member_count', label: 'Members', render: (r: Guild) => r.member_count?.toLocaleString() ?? '—' },
-    { key: 'active', label: 'Active', render: (r: Guild) => r.active ? <span style={{ color: '#4ade80' }}>Yes</span> : <span style={{ color: '#f87171' }}>No</span> },
+    { key: 'active', label: 'Active', render: (r: Guild) => r.active ? <span className="admin-status admin-status--active">Yes</span> : <span className="admin-status admin-status--inactive">No</span> },
     { key: 'subscription_tier', label: 'Tier', render: (r: Guild) => <span style={{ color: TIER_COLORS[r.subscription_tier] ?? 'inherit', fontWeight: 600, textTransform: 'capitalize' }}>{r.subscription_tier?.replace(/_/g, ' ') ?? '—'}</span> },
     { key: 'joined_at', label: 'Date Joined', render: (r: Guild) => r.joined_at ? new Date(r.joined_at).toLocaleDateString() : '—' },
     { key: 'settings', label: 'Settings', render: (r: Guild) => <SettingsCell json={r.settings} /> },
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      <PublicNav />
+    <div className="admin-page">
+      <PublicNav variant="observatory" />
 
-      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '32px 24px' }}>
-        <h1 style={{ marginBottom: 8 }}>Admin Dashboard</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>Site-wide oversight</p>
+      <main className="admin-main">
+        <header className="admin-header">
+          <div>
+            <p className="admin-kicker">Owner control plane</p>
+            <h1>Acosmibot operations.</h1>
+            <p>Site-wide oversight for the systems behind every connected community.</p>
+          </div>
+          <div className="admin-header__status">
+            <span className="admin-header__lock"><LockKeyhole aria-hidden="true" /></span>
+            <div>
+              <strong>Super-admin verified</strong>
+              <span>Owner-only surface · {ADMIN_TABS.length} modules</span>
+            </div>
+          </div>
+        </header>
 
-        {/* Tabs */}
-        <div className="admin-tabs" style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid var(--border-light)', paddingBottom: 0 }}>
-          {(['signins', 'servers', 'rag', 'botstats', 'ai', 'economy', 'features', 'cosmetics', 'achievements', 'items', 'analytics'] as const).map(t => (
+        <div className="admin-console">
+          <aside className="admin-module-rail" aria-label="Admin modules">
+            <div className="admin-module-rail__core">
+              <img src="/images/acosmibot-logo.png" alt="" />
+              <div><strong>Control core</strong><span><i /> Owner verified</span></div>
+            </div>
+            <nav className="admin-tabs">
+              {ADMIN_TABS.map((item) => {
+                const Icon = item.icon;
+                return (
             <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{
-                padding: '8px 20px',
-                background: 'none',
-                border: 'none',
-                borderBottom: tab === t ? '2px solid #5865F2' : '2px solid transparent',
-                color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
-                fontWeight: tab === t ? 600 : 400,
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                marginBottom: -1,
-              }}
+              type="button"
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className={tab === item.id ? 'is-active' : ''}
+              aria-current={tab === item.id ? 'page' : undefined}
             >
-              {t === 'signins' ? 'Sign-In Log' : t === 'servers' ? 'Servers' : t === 'rag' ? 'RAG Docs' : t === 'botstats' ? 'Bot Stats' : t === 'ai' ? 'AI Settings' : t === 'economy' ? 'Economy' : t === 'features' ? 'Feature Flags' : t === 'cosmetics' ? 'Cosmetics' : t === 'achievements' ? 'Achievements' : t === 'items' ? 'Items' : 'Analytics'}
+                    <Icon aria-hidden="true" />
+                    <span><strong>{item.label}</strong><small>{item.group}</small></span>
+                    <i aria-hidden="true" />
             </button>
-          ))}
-        </div>
+                );
+              })}
+            </nav>
+            <div className="admin-module-rail__footer">
+              <Sparkles aria-hidden="true" />
+              <span>Global changes affect every server.</span>
+            </div>
+          </aside>
 
-        {/* Sign-In Log */}
+          <section className="admin-workspace" aria-labelledby="admin-workspace-title">
+            <header className="admin-workspace__header">
+              <span className="admin-workspace__icon"><ActiveIcon aria-hidden="true" /></span>
+              <div>
+                <p>{activeTab.group} subsystem</p>
+                <h2 id="admin-workspace-title">{activeTab.label}</h2>
+                <span>{activeTab.description}</span>
+              </div>
+              <div className={`admin-workspace__readout is-${workspaceState.tone}`} aria-live="polite">
+                <i /> {workspaceState.label}
+              </div>
+            </header>
+
+            <div className="admin-workspace__body">
         {tab === 'signins' && (
-          <div className="card p-4">
-            <h3 className="mb-4">Sign-In Log</h3>
+          <div className="admin-surface">
             {signinResult.loading ? (
-              <p className="text-muted">Loading...</p>
+              <AdminLoadingState label="Loading authentication events" />
             ) : signinResult.error ? (
-              <p style={{ color: '#f87171' }}>Error: {signinResult.error}</p>
+              <AdminErrorState error={signinResult.error} />
             ) : (
               <SortableTable rows={signinResult.data?.logs ?? []} columns={signinColumns} />
             )}
@@ -323,12 +463,11 @@ export const AdminPage: React.FC = () => {
 
         {/* Servers */}
         {tab === 'servers' && (
-          <div className="card p-4">
-            <h3 className="mb-4">Servers</h3>
+          <div className="admin-surface">
             {guildsResult.loading ? (
-              <p className="text-muted">Loading...</p>
+              <AdminLoadingState label="Loading connected servers" />
             ) : guildsResult.error ? (
-              <p style={{ color: '#f87171' }}>Error: {guildsResult.error}</p>
+              <AdminErrorState error={guildsResult.error} />
             ) : (
               <SortableTable rows={guildsResult.data?.guilds ?? []} columns={guildColumns} />
             )}
@@ -336,65 +475,80 @@ export const AdminPage: React.FC = () => {
         )}
 
         {/* RAG Docs */}
-        {tab === 'rag' && <RagTab token={token} />}
+        {tab === 'rag' && <div className="admin-surface"><RagTab token={token} /></div>}
 
         {/* Bot Stats */}
         {tab === 'botstats' && (
-          <div className="card p-4">
-            <h3 className="mb-4">Bot Stats</h3>
+          <div className="admin-surface">
             <BotStatsTab token={token} />
           </div>
         )}
 
         {/* AI Settings */}
         {tab === 'ai' && (
-          <div className="card p-4">
+          <div className="admin-surface">
             <AiSettingsTab />
           </div>
         )}
 
         {/* Economy Settings */}
         {tab === 'economy' && (
-          <div className="card p-4">
+          <div className="admin-surface">
             <EconomySettingsTab />
           </div>
         )}
 
         {/* Feature Flags */}
         {tab === 'features' && (
-          <div className="card p-4">
+          <div className="admin-surface">
             <FeatureSettingsTab />
           </div>
         )}
 
         {/* Cosmetics */}
         {tab === 'cosmetics' && (
-          <div className="card p-4">
+          <div className="admin-surface">
             <CosmeticsTab />
           </div>
         )}
 
         {/* Achievements */}
         {tab === 'achievements' && (
-          <div className="card p-4">
+          <div className="admin-surface">
             <AchievementsTab />
           </div>
         )}
 
         {/* Items */}
         {tab === 'items' && (
-          <div className="card p-4">
+          <div className="admin-surface">
             <ItemsTab />
           </div>
         )}
 
         {tab === 'analytics' && (
-          <div className="card p-4">
-            <h3 className="mb-4">Usage Analytics</h3>
+          <div className="admin-surface">
             <AnalyticsTab />
           </div>
         )}
-      </div>
+            </div>
+          </section>
+        </div>
+      </main>
     </div>
   );
 };
+
+const AdminLoadingState: React.FC<{ label: string }> = ({ label }) => (
+  <div className="admin-loading-state" role="status" aria-live="polite">
+    <span /><span /><span />
+    <strong>{label}…</strong>
+  </div>
+);
+
+const AdminErrorState: React.FC<{ error: string }> = ({ error }) => (
+  <div className="admin-error-state" role="alert">
+    <strong>Subsystem data could not be loaded.</strong>
+    <span>{error}</span>
+  </div>
+);

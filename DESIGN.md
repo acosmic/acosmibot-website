@@ -279,6 +279,16 @@ Public marketing surfaces extend the command deck into a spatial observatory. Th
 - **Leaderboard signal array:** Leaderboards turn live rank data into a connected ascent path. The top three entries are distinct gold, silver, and copper beacons backed by opaque surfaces; ranks four onward use a compact field ledger. Privacy masking, current-user selection, and profile eligibility remain legible before decorative rank signals.
 - **Tier signals:** Free is neutral blue-gray, Plus uses constellation green, Pro uses bright constellation cyan, and Max uses constellation coral. These hues identify plan paths only; they do not replace literal status colors.
 
+## Operational Observatory Mode
+
+Authenticated selection and control surfaces use a restrained operational expression of the constellation language. They share the observatory canvas, typography, and signal vocabulary while making identity, permission, state, and the next action more important than spectacle.
+
+- **Server catalog:** Server selection groups live guilds by access level before presenting individual destinations. Owner and administrator servers lead to configuration; member servers lead to their public leaderboard. Real guild identity, membership, tier, and permission state are the proof.
+- **Owner console:** The super-admin surface uses a persistent subsystem rail beside one focused workspace. The owner boundary is explicit in the first viewport, modules retain stable positions, and dense data stays on opaque ledger surfaces.
+- **Signal restraint:** Cyan marks the active subsystem and primary action. Green, coral, and tier colors keep their literal status meanings. Decorative orbits may frame identity and aggregate counts, but never compete with live rows or controls.
+- **Responsive behavior:** Server bands become one-column catalogs. The owner module rail becomes a compact two-column selector above its workspace, and tables become labeled record cards instead of forcing horizontal page scroll.
+- **Motion and depth:** Operational surfaces animate only state changes, loading signals, and deliberate hover or focus feedback. Panels are opaque enough for sustained reading; blur is reserved for true overlays.
+
 ## Components
 
 Components should feel tactile and confident: substantial enough to invite action, restrained enough to support long configuration sessions.
