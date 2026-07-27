@@ -5,6 +5,7 @@ import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL } from 
 
 export const TermsOfServicePage: React.FC = () => (
   <LegalLayout
+    kind="terms"
     title="Terms of Service"
     subtitle="Please read these terms carefully before using Acosmibot"
     lastUpdated="July 25, 2026"

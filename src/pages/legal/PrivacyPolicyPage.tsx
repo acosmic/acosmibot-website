@@ -5,6 +5,7 @@ import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL } from 
 
 export const PrivacyPolicyPage: React.FC = () => (
   <LegalLayout
+    kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
     lastUpdated="July 25, 2026"
