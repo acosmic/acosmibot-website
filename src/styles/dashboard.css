@@ -925,6 +925,90 @@
   color: #4fe3a1;
 }
 
+/* Basic-plan AI control and advanced-plan path */
+.ai-upgrade-panel {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  border-radius: 13px;
+  background: var(--bg-card);
+}
+
+.ai-upgrade-panel__signal {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--border-light);
+  background: #0a121a;
+  color: var(--primary-color);
+}
+
+.ai-upgrade-panel__content {
+  padding: 26px 28px 28px;
+}
+
+.ai-upgrade-panel__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.ai-upgrade-panel__kicker {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--primary-color);
+  font: 700 11px/1.3 'SFMono-Regular', Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ai-upgrade-panel h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ai-upgrade-panel__tier {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid var(--border-light);
+  border-radius: 7px;
+  color: var(--text-secondary);
+  font: 700 11px/1.25 'SFMono-Regular', Consolas, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ai-upgrade-panel__content > p {
+  max-width: 68ch;
+  margin: 10px 0 18px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ai-upgrade-panel__features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-upgrade-panel__features li {
+  padding: 6px 9px;
+  border: 1px solid var(--border-light);
+  border-radius: 7px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* Configuration sections */
 .control-section {
   margin-bottom: 18px;
@@ -1260,6 +1344,28 @@
   .feature-toggle__control {
     flex-direction: column-reverse;
     align-items: flex-end;
+  }
+
+  .ai-upgrade-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-upgrade-panel__signal {
+    display: none;
+  }
+
+  .ai-upgrade-panel__content {
+    padding: 20px;
+  }
+
+  .ai-upgrade-panel__heading {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .ai-upgrade-panel .btn {
+    width: 100%;
   }
 
   .control-section__body {

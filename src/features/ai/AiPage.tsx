@@ -53,21 +53,64 @@ export const AiPage: React.FC = () => {
 
   if (isLoading) return <LoadingSpinner />;
 
+  if (!form) return <div>No data found.</div>;
+
   if (!hasAccess) {
     return (
-      <div className="card p-5 text-center mt-5 mx-auto" style={{ maxWidth: '600px', border: '2px solid var(--border-cyan)', background: 'linear-gradient(135deg, var(--bg-primary), var(--bg-secondary))' }}>
-        <div style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}><Bot size={64} /></div>
-        <h2 className="mb-3 fs-3 fw-bold text-primary">Advanced AI Requires Pro or Max</h2>
-        <p className="mb-4 text-muted">Free and Plus include basic AI chat. Custom personalities, memories, web search, ambient chat, and AI media tools require the <strong>Pro</strong> or <strong>Max</strong> plan.</p>
-        <div className="d-flex flex-column gap-3">
-          <Link to={`/pricing?guild=${guildId}`} className="btn primary py-3 fw-bold">View Pricing</Link>
-          <p className="small text-muted mb-0">Your current tier: <span className="text-white text-capitalize">{tier.replace(/_/g, ' ')}</span></p>
+      <div className="feature-page">
+        <div className="page-header text-start mt-0 mb-4">
+          <h1>AI Customization</h1>
+          <p>Control whether members can mention Acosmibot for AI replies.</p>
         </div>
+
+        <FeatureToggle
+          label="AI Chat"
+          enabled={form.enabled}
+          onChange={(enabled) => setForm({ enabled })}
+          description="Allow members to mention Acosmibot for basic AI chat. This is enabled by default and uses your plan's daily and monthly reply limits."
+        />
+
+        <section className="ai-upgrade-panel" aria-labelledby="advanced-ai-heading">
+          <div className="ai-upgrade-panel__signal" aria-hidden="true">
+            <Bot size={30} strokeWidth={1.8} />
+          </div>
+          <div className="ai-upgrade-panel__content">
+            <div className="ai-upgrade-panel__heading">
+              <div>
+                <span className="ai-upgrade-panel__kicker">Pro / Max controls</span>
+                <h2 id="advanced-ai-heading">Unlock advanced AI customization</h2>
+              </div>
+              <span className="ai-upgrade-panel__tier">
+                {tier.replace(/_/g, ' ')} plan
+              </span>
+            </div>
+            <p>
+              Upgrade to shape how your server's AI behaves and give it richer
+              ways to join the conversation.
+            </p>
+            <ul className="ai-upgrade-panel__features" aria-label="Advanced AI features">
+              <li>Custom personalities</li>
+              <li>Memory</li>
+              <li>Web search</li>
+              <li>Ambient chat</li>
+              <li>AI media tools</li>
+            </ul>
+            <Link to={`/pricing?guild=${guildId}`} className="btn primary">
+              View Pro and Max plans
+            </Link>
+          </div>
+        </section>
+
+        <SaveBar
+          isDirty={isDirty}
+          onSave={() => save({ enabled: form.enabled })}
+          onDiscard={resetForm}
+          isSaving={isSaving}
+          saveError={saveError}
+        />
       </div>
     );
   }
-
-  if (!form) return <div>No data found.</div>;
 
   const activePersonality = form.personalities.find(p => p.id === form.active_personality_id) || form.personalities[0];
   if (!activePersonality) return <div>No AI personalities found.</div>;
@@ -166,6 +209,7 @@ export const AiPage: React.FC = () => {
       </div>
 
       <FeatureToggle
+        label="AI Chat"
         enabled={form.enabled}
         onChange={(v) => setForm({ enabled: v })}
         description="Enable AI chat and advanced AI tools for this server."

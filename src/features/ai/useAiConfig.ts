@@ -68,7 +68,7 @@ export const BUILT_IN_PERSONALITIES: AiPersonality[] = [
 ];
 
 const DEFAULT_AI: AiConfig = {
-  enabled: false,
+  enabled: true,
   instructions: BUILT_IN_PERSONALITIES[0].instructions,
   active_personality_id: 'default',
   personalities: BUILT_IN_PERSONALITIES,
