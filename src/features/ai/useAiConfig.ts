@@ -15,13 +15,13 @@ export interface AiConfig {
   ambient_enabled: boolean;
   /** Probability (0–0.25) of chiming in on an eligible message. */
   ambient_frequency: number;
-  /** Per-channel quiet period after a proactive reply, in seconds (60–86400). */
+  /** Per-channel quiet period after an ambient reply, in seconds (120–86400). */
   ambient_cooldown_seconds: number;
-  /** Max proactive replies per server per day. 0 = unlimited. */
+  /** Max ambient replies per server per day (tier-capped). */
   ambient_daily_limit: number;
-  /** Opt-in: proactive replies may occasionally generate a meme/image. */
+  /** Opt-in: ambient replies may occasionally generate a meme/image. */
   ambient_images_enabled: boolean;
-  /** Share (0.01–1) of proactive replies that may include a generated image. */
+  /** Share (0.01–0.25) of ambient replies that may include a generated image. */
   ambient_image_chance: number;
   /** Guild default IANA timezone for the AI's date/time awareness. */
   timezone: string;
@@ -33,6 +33,25 @@ export interface AiPersonality {
   instructions: string;
   built_in: boolean;
 }
+
+export const AMBIENT_FREQUENCY_LEVELS = [
+  { id: 'low', label: 'Low (rare)', value: 0.02 },
+  { id: 'medium', label: 'Medium', value: 0.05 },
+  { id: 'high', label: 'High (chatty)', value: 0.10 },
+] as const;
+
+export const closestAmbientFrequencyIndex = (frequency: number) => {
+  const safeFrequency = Number.isFinite(frequency) ? frequency : 0.02;
+  return AMBIENT_FREQUENCY_LEVELS.reduce(
+    (closestIndex, level, index) => (
+      Math.abs(level.value - safeFrequency)
+        < Math.abs(AMBIENT_FREQUENCY_LEVELS[closestIndex].value - safeFrequency)
+        ? index
+        : closestIndex
+    ),
+    0,
+  );
+};
 
 export const BUILT_IN_PERSONALITIES: AiPersonality[] = [
   {
@@ -72,15 +91,15 @@ const DEFAULT_AI: AiConfig = {
   web_search: false,
   memory_enabled: true,
   ambient_enabled: false,
-  ambient_frequency: 0.03,
+  ambient_frequency: AMBIENT_FREQUENCY_LEVELS[0].value,
   ambient_cooldown_seconds: 600,
-  ambient_daily_limit: 50,
+  ambient_daily_limit: 25,
   ambient_images_enabled: false,
   ambient_image_chance: 0.15,
   timezone: 'UTC',
 };
 
-function normalizeAiConfig(raw?: Partial<AiConfig>): AiConfig {
+function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
   const merged = { ...DEFAULT_AI, ...(raw || {}) };
   const custom = (merged.personalities || []).filter(p => !p.built_in && p.instructions);
   const personalities = [
@@ -94,12 +113,32 @@ function normalizeAiConfig(raw?: Partial<AiConfig>): AiConfig {
   }
 
   const active = personalities.find(p => p.id === activeId) || personalities[0];
+  const ambientFrequency = Number(merged.ambient_frequency);
+  const ambientFrequencyLevel = AMBIENT_FREQUENCY_LEVELS[
+    closestAmbientFrequencyIndex(ambientFrequency)
+  ];
+  const ambientDailyMax = tier === 'max' ? 100 : 25;
+  const ambientDailyLimit = Number(merged.ambient_daily_limit);
+  const ambientImageChance = Number(merged.ambient_image_chance);
   return {
     ...merged,
     channel_mode: merged.channel_mode === 'include' ? 'specific' : merged.channel_mode,
     personalities,
     active_personality_id: active.id,
     instructions: active.instructions,
+    ambient_frequency: ambientFrequencyLevel.value,
+    ambient_cooldown_seconds: Math.min(
+      Math.max(Number(merged.ambient_cooldown_seconds) || 600, 120),
+      86400,
+    ),
+    ambient_daily_limit: Math.min(
+      Math.max(Number.isFinite(ambientDailyLimit) ? Math.trunc(ambientDailyLimit) : 25, 1),
+      ambientDailyMax,
+    ),
+    ambient_image_chance: Math.min(
+      Math.max(Number.isFinite(ambientImageChance) ? ambientImageChance : 0.15, 0.01),
+      0.25,
+    ),
   };
 }
 
@@ -125,8 +164,8 @@ export function useAiConfig(guildId: string) {
   const hasAccess = tier === 'pro' || tier === 'max' || tier === 'premium_plus_ai';
 
   const data = useMemo<AiConfig | undefined>(
-    () => query.data ? normalizeAiConfig(raw || {}) : undefined,
-    [query.data, raw],
+    () => query.data ? normalizeAiConfig(raw || {}, tier) : undefined,
+    [query.data, raw, tier],
   );
 
   return {

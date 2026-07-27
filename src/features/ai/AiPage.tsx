@@ -1,7 +1,13 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Bot } from 'lucide-react';
-import { useAiConfig, AiConfig, AiPersonality } from './useAiConfig';
+import {
+  useAiConfig,
+  AiConfig,
+  AiPersonality,
+  AMBIENT_FREQUENCY_LEVELS,
+  closestAmbientFrequencyIndex,
+} from './useAiConfig';
 import { AiMemorySection } from './AiMemorySection';
 import { AiServerMemorySection } from './AiServerMemorySection';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, TimezoneSelect } from '@/components/ui';
@@ -12,13 +18,11 @@ import { useGuildChannels } from '@/hooks/useGuildChannels';
 const INSTRUCTIONS_MAX = 2000;
 const NAME_MAX = 48;
 
-// Proactive (ambient) chat bounds — must mirror acosmibot-core ai_personalities.
-const AMBIENT_MAX_FREQ_PCT = 25;
-const AMBIENT_MIN_COOLDOWN_MIN = 1;     // 60s
+// Ambient chat bounds — must mirror acosmibot-core ai_personalities.
+const AMBIENT_MIN_COOLDOWN_MIN = 2;     // 120s
 const AMBIENT_MAX_COOLDOWN_MIN = 1440;  // 24h
-const AMBIENT_MAX_DAILY = 1000;
 const AMBIENT_IMAGE_MIN_PCT = 1;
-const AMBIENT_IMAGE_MAX_PCT = 100;
+const AMBIENT_IMAGE_MAX_PCT = 25;
 
 const clamp = (value: number, min: number, max: number) =>
   Number.isNaN(value) ? min : Math.min(Math.max(value, min), max);
@@ -55,7 +59,7 @@ export const AiPage: React.FC = () => {
       <div className="card p-5 text-center mt-5 mx-auto" style={{ maxWidth: '600px', border: '2px solid var(--border-cyan)', background: 'linear-gradient(135deg, var(--bg-primary), var(--bg-secondary))' }}>
         <div style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}><Bot size={64} /></div>
         <h2 className="mb-3 fs-3 fw-bold text-primary">Advanced AI Requires Pro or Max</h2>
-        <p className="mb-4 text-muted">Free and Plus include basic AI chat. Custom personalities, memories, web search, proactive chat, and AI media tools require the <strong>Pro</strong> or <strong>Max</strong> plan.</p>
+        <p className="mb-4 text-muted">Free and Plus include basic AI chat. Custom personalities, memories, web search, ambient chat, and AI media tools require the <strong>Pro</strong> or <strong>Max</strong> plan.</p>
         <div className="d-flex flex-column gap-3">
           <Link to={`/pricing?guild=${guildId}`} className="btn primary py-3 fw-bold">View Pricing</Link>
           <p className="small text-muted mb-0">Your current tier: <span className="text-white text-capitalize">{tier.replace(/_/g, ' ')}</span></p>
@@ -71,6 +75,9 @@ export const AiPage: React.FC = () => {
 
   const charCount = (activePersonality?.instructions || '').length;
   const customPersonalities = form.personalities.filter(p => !p.built_in);
+  const ambientFrequencyIndex = closestAmbientFrequencyIndex(form.ambient_frequency);
+  const ambientFrequencyLevel = AMBIENT_FREQUENCY_LEVELS[ambientFrequencyIndex];
+  const ambientDailyMax = tier === 'max' ? 100 : 25;
 
   const updatePersonalities = (personalities: AiPersonality[], activeId = form.active_personality_id) => {
     const active = personalities.find(p => p.id === activeId) || personalities[0];
@@ -188,41 +195,67 @@ export const AiPage: React.FC = () => {
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Proactive Chat" defaultOpen={false}>
+      <CollapsibleSection title="Ambient Chat" defaultOpen={false}>
         <p className="text-muted small mb-4">
           When enabled, the AI will occasionally join conversations on its own — without being
           mentioned — in your server's chosen personality. Tune how often and how much it does so below.
         </p>
 
         <FeatureToggle
-          label="Enable proactive chat"
+          label="Enable ambient chat"
           enabled={form.ambient_enabled}
           onChange={(v) => setForm({ ambient_enabled: v })}
           description="Allow the AI to chime in unprompted on eligible messages."
         />
 
         {form.ambient_enabled && (
-          <div className="d-flex gap-4 flex-wrap mt-4">
-            <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
-              <label className="form-label mb-1 d-block">Chime-in chance</label>
-              <div className="d-flex align-items-center gap-2">
-                <NumberInput
-                  className="form-control"
-                  min={0}
-                  max={AMBIENT_MAX_FREQ_PCT}
-                  step={1}
-                  value={Math.round((form.ambient_frequency ?? 0) * 100)}
-                  onValueChange={(value) => setForm({
-                    ambient_frequency: clamp(Math.trunc(value), 0, AMBIENT_MAX_FREQ_PCT) / 100,
-                  })}
-                  style={{ maxWidth: '110px' }}
-                />
-                <span className="text-muted">% of messages</span>
+          <div className="ambient-settings-grid mt-4">
+            <div className="ambient-frequency-control">
+              <div className="ambient-control-heading">
+                <label className="form-label mb-0" htmlFor="ambient-frequency">
+                  Chime-in chance
+                </label>
+                <span className="ambient-frequency-value">
+                  {ambientFrequencyLevel.label} · {Math.round(ambientFrequencyLevel.value * 100)}%
+                </span>
               </div>
-              <p className="text-muted small mt-1 mb-0">How often it joins (max {AMBIENT_MAX_FREQ_PCT}%).</p>
+
+              <input
+                id="ambient-frequency"
+                className="ambient-frequency-slider"
+                type="range"
+                min={0}
+                max={AMBIENT_FREQUENCY_LEVELS.length - 1}
+                step={1}
+                value={ambientFrequencyIndex}
+                style={{
+                  '--ambient-slider-progress': `${ambientFrequencyIndex * 50}%`,
+                } as React.CSSProperties}
+                aria-describedby="ambient-frequency-help"
+                aria-valuetext={`${ambientFrequencyLevel.label}, ${Math.round(ambientFrequencyLevel.value * 100)} percent`}
+                onChange={(event) => {
+                  const level = AMBIENT_FREQUENCY_LEVELS[Number(event.currentTarget.value)];
+                  setForm({ ambient_frequency: level.value });
+                }}
+              />
+
+              <div className="ambient-frequency-labels" aria-hidden="true">
+                {AMBIENT_FREQUENCY_LEVELS.map((level, index) => (
+                  <span
+                    key={level.id}
+                    className={index === ambientFrequencyIndex ? 'active' : undefined}
+                  >
+                    <strong>{level.label}</strong>
+                    <small>{Math.round(level.value * 100)}%</small>
+                  </span>
+                ))}
+              </div>
+              <p id="ambient-frequency-help" className="text-muted small mt-2 mb-0">
+                Applies to eligible messages with at least 25 characters.
+              </p>
             </div>
 
-            <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
+            <div className="ambient-number-control">
               <label className="form-label mb-1 d-block">Cooldown</label>
               <div className="d-flex align-items-center gap-2">
                 <NumberInput
@@ -242,23 +275,27 @@ export const AiPage: React.FC = () => {
                 />
                 <span className="text-muted">minutes</span>
               </div>
-              <p className="text-muted small mt-1 mb-0">Quiet period per channel after it speaks.</p>
+              <p className="text-muted small mt-1 mb-0">
+                Quiet period per channel after it speaks. Minimum 2 minutes.
+              </p>
             </div>
 
-            <div style={{ flex: '1 1 180px', minWidth: '160px' }}>
+            <div className="ambient-number-control">
               <label className="form-label mb-1 d-block">Daily limit</label>
               <NumberInput
                 className="form-control"
-                min={0}
-                max={AMBIENT_MAX_DAILY}
+                min={1}
+                max={ambientDailyMax}
                 step={1}
-                value={form.ambient_daily_limit ?? 50}
+                value={Math.min(form.ambient_daily_limit ?? 25, ambientDailyMax)}
                 onValueChange={(value) => setForm({
-                  ambient_daily_limit: clamp(Math.trunc(value), 0, AMBIENT_MAX_DAILY),
+                  ambient_daily_limit: clamp(Math.trunc(value), 1, ambientDailyMax),
                 })}
                 style={{ maxWidth: '110px' }}
               />
-              <p className="text-muted small mt-1 mb-0">Max proactive messages/day (0 = unlimited).</p>
+              <p className="text-muted small mt-1 mb-0">
+                Up to {ambientDailyMax} ambient replies per day on {tier === 'max' ? 'Max' : 'Pro'}.
+              </p>
             </div>
           </div>
         )}
@@ -269,7 +306,7 @@ export const AiPage: React.FC = () => {
               label="Meme images"
               enabled={form.ambient_images_enabled}
               onChange={(v) => setForm({ ambient_images_enabled: v })}
-              description="Let a share of proactive replies include an AI-generated meme or image riffing on the conversation (may use participants' avatars). Counts toward the monthly image generation limit."
+              description="Let a share of ambient replies include an AI-generated meme or image riffing on the conversation (may use participants' avatars). Counts toward the monthly image generation limit."
             />
 
             {form.ambient_images_enabled && (
@@ -291,10 +328,10 @@ export const AiPage: React.FC = () => {
                     })}
                     style={{ maxWidth: '110px' }}
                   />
-                  <span className="text-muted">% of proactive replies</span>
+                  <span className="text-muted">% of ambient replies</span>
                 </div>
                 <p className="text-muted small mt-1 mb-0">
-                  Share of proactive replies that may generate an image. The AI still
+                  Share of ambient replies that may generate an image, up to 25%. The AI still
                   skips it when the moment doesn't call for one.
                 </p>
               </div>

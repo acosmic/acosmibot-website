@@ -280,6 +280,150 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0;
 }
 
+/* ── Ambient AI controls ────────────────────────────────────── */
+.ambient-settings-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 1.35fr) repeat(2, minmax(170px, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+.ambient-frequency-control,
+.ambient-number-control {
+    min-width: 0;
+}
+
+.ambient-frequency-control .text-muted,
+.ambient-number-control .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.ambient-control-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ambient-frequency-value {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border: 1px solid var(--border-cyan);
+    border-radius: 8px;
+    background: var(--bg-overlay);
+    color: var(--primary-color);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ambient-frequency-slider {
+    width: 100%;
+    height: 24px;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.ambient-frequency-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        90deg,
+        var(--primary-color) 0%,
+        var(--primary-color) var(--ambient-slider-progress, 0%),
+        var(--bg-tertiary) var(--ambient-slider-progress, 0%),
+        var(--bg-tertiary) 100%
+    );
+    border: 1px solid var(--border-light);
+}
+
+.ambient-frequency-slider::-moz-range-track {
+    height: 6px;
+    border: 1px solid var(--border-light);
+    border-radius: 3px;
+    background: var(--bg-tertiary);
+}
+
+.ambient-frequency-slider::-moz-range-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--primary-color);
+}
+
+.ambient-frequency-slider::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 3px solid var(--bg-card);
+    border-radius: 50%;
+    background: var(--primary-color);
+    box-shadow: 0 3px 10px rgba(0, 217, 255, 0.35);
+}
+
+.ambient-frequency-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--bg-card);
+    border-radius: 50%;
+    background: var(--primary-color);
+    box-shadow: 0 3px 10px rgba(0, 217, 255, 0.35);
+}
+
+.ambient-frequency-slider:focus-visible {
+    outline: none;
+}
+
+.ambient-frequency-slider:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px var(--primary-dim), 0 3px 10px rgba(0, 217, 255, 0.35);
+}
+
+.ambient-frequency-slider:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px var(--primary-dim), 0 3px 10px rgba(0, 217, 255, 0.35);
+}
+
+.ambient-frequency-labels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.ambient-frequency-labels span {
+    display: grid;
+    gap: 1px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.ambient-frequency-labels span:nth-child(2) {
+    text-align: center;
+}
+
+.ambient-frequency-labels span:last-child {
+    text-align: right;
+}
+
+.ambient-frequency-labels strong {
+    color: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ambient-frequency-labels small {
+    font-size: 11px;
+}
+
+.ambient-frequency-labels .active,
+.ambient-frequency-labels .active strong {
+    color: var(--primary-color);
+}
+
 /* ── Content sections (match old site .content-section) ─────── */
 .content-section {
     margin-bottom: 40px;
@@ -567,6 +711,10 @@ h1, h2, h3, h4, h5, h6 {
 
     .page-header.d-flex .btn {
         width: 100%;
+    }
+
+    .ambient-settings-grid {
+        grid-template-columns: 1fr;
     }
 
     .admin-tabs {
