@@ -1,3 +1,91 @@
+.billing-recovery {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 18px;
+  background:
+    linear-gradient(
+      110deg,
+      color-mix(in srgb, var(--warning-color) 9%, var(--bg-card)),
+      var(--bg-card) 68%
+    );
+  border: 1px solid color-mix(in srgb, var(--warning-color) 42%, var(--border-light));
+  border-radius: 14px;
+}
+
+.billing-recovery__icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  align-self: start;
+  color: var(--warning-color);
+  background: color-mix(in srgb, var(--warning-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning-color) 32%, transparent);
+  border-radius: 11px;
+}
+
+.billing-recovery__icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.billing-recovery__copy span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--warning-color);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.billing-recovery__copy h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.billing-recovery__copy p {
+  max-width: 760px;
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.billing-recovery__action {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  white-space: nowrap;
+  color: var(--text-primary) !important;
+  background: color-mix(in srgb, var(--warning-color) 13%, var(--bg-tertiary)) !important;
+  border-color: color-mix(in srgb, var(--warning-color) 54%, transparent) !important;
+}
+
+.billing-recovery__action:hover,
+.billing-recovery__action:focus-visible {
+  background: color-mix(in srgb, var(--warning-color) 20%, var(--bg-tertiary)) !important;
+  border-color: var(--warning-color) !important;
+}
+
+.billing-recovery__action:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning-color) 22%, transparent);
+}
+
+.billing-recovery__action svg {
+  width: 16px;
+  height: 16px;
+}
+
 .billing-resume-action {
   color: var(--text-primary) !important;
   background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-tertiary)) !important;
@@ -238,6 +326,15 @@
 }
 
 @media (max-width: 560px) {
+  .billing-recovery {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .billing-recovery__action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
   .billing-cancel-backdrop {
     align-items: end;
     padding: 12px;

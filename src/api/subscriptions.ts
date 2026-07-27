@@ -50,6 +50,9 @@ export const subscriptionsApi = {
     api.fetch<{
       success: boolean;
       net_amount?: number;
+      proration_amount?: number;
+      invoice_total?: number;
+      account_credit_applied?: number;
       is_charge?: boolean;
       currency?: string;
       message?: string;

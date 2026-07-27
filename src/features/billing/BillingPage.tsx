@@ -2,7 +2,19 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CalendarClock, CreditCard, ExternalLink, Gem, Receipt, RefreshCw, ShieldCheck, Sparkles, X, XCircle } from 'lucide-react';
+import {
+  AlertTriangle,
+  CalendarClock,
+  CreditCard,
+  ExternalLink,
+  Gem,
+  Receipt,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  X,
+  XCircle,
+} from 'lucide-react';
 import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
 import { LoadingSpinner } from '@/components/ui';
@@ -337,10 +349,20 @@ export const BillingPage: React.FC = () => {
 
   if (subscription.isLoading) return <LoadingSpinner />;
 
-  const tier = normalizeTier(subscription.data?.tier ?? currentGuild?.premium_tier);
   const status = subscription.data?.status ?? 'active';
   const record = subscription.data?.subscription ?? null;
+  const effectiveTier = normalizeTier(subscription.data?.tier ?? currentGuild?.premium_tier);
+  const recordTier = normalizeTier(record?.tier);
+  const isPaymentRecovery = (
+    ['past_due', 'unpaid', 'incomplete'].includes(status)
+    && recordTier !== 'free'
+    && Boolean(record?.stripe_subscription_id)
+  );
+  // The API correctly removes paid entitlements while payment is unresolved,
+  // but the billing screen still needs to identify the subscription to recover.
+  const tier = isPaymentRecovery ? recordTier : effectiveTier;
   const hasPaidTier = tier !== 'free';
+  const canOpenPortal = hasPaidTier && Boolean(record?.stripe_subscription_id);
   const isCanceling = Boolean(record?.cancel_at_period_end || record?.cancel_at);
   const currentInterval: BillingInterval = record?.billing_interval === 'annual' ? 'annual' : 'monthly';
   const planInterval = planIntervalOverride ?? currentInterval;
@@ -369,9 +391,9 @@ export const BillingPage: React.FC = () => {
     : '';
   const pendingProration = pendingPlan
     ? pendingIsIntervalSwitch
-      ? `Your billing will switch to ${pendingPlan.interval} with a prorated adjustment today, then ${pendingGoingForward}.`
+      ? `Stripe will apply a prorated adjustment for the billing switch today, then ${pendingGoingForward}.`
       : pendingIsUpgrade
-        ? `Your card will be charged the prorated difference for the rest of this billing period today, then ${pendingGoingForward}.`
+        ? `Stripe will apply the prorated difference for the rest of this billing period today, then ${pendingGoingForward}.`
         : `You'll be credited the prorated difference to your account balance today, then billed ${pendingGoingForward}.`
     : '';
 
@@ -386,6 +408,32 @@ export const BillingPage: React.FC = () => {
         <h1>Billing</h1>
         <p>Manage this server's subscription.</p>
       </div>
+
+      {isPaymentRecovery && (
+        <section className="billing-recovery" role="alert" aria-live="polite">
+          <div className="billing-recovery__icon" aria-hidden="true">
+            <AlertTriangle />
+          </div>
+          <div className="billing-recovery__copy">
+            <span>Payment action needed</span>
+            <h2>Restore {TIER_LABELS[tier]} access</h2>
+            <p>
+              The latest renewal did not complete, so paid features are paused. Open Stripe
+              billing to authenticate the payment or update the payment method. Access returns
+              automatically after Stripe confirms payment.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn billing-recovery__action"
+            disabled={!canOpenPortal || openPortal.isPending}
+            onClick={() => openPortal.mutate()}
+          >
+            {openPortal.isPending ? 'Opening Stripe…' : 'Resolve in Stripe'}
+            <ExternalLink aria-hidden="true" />
+          </button>
+        </section>
+      )}
 
       <div className="row g-4">
         <div className="col-lg-8">
@@ -490,7 +538,7 @@ export const BillingPage: React.FC = () => {
                       <button
                         type="button"
                         className="btn p-3 mt-auto"
-                        disabled={isCurrent || changeTier.isPending || isCanceling}
+                        disabled={isCurrent || changeTier.isPending || isCanceling || isPaymentRecovery}
                         onClick={() => handleChangeTier(plan, planInterval)}
                       >
                         {isCurrent ? 'Current Plan' : changeTier.isPending ? 'Working...' : action}
@@ -510,7 +558,7 @@ export const BillingPage: React.FC = () => {
               <button
                 type="button"
                 className="btn text-start p-3 d-flex align-items-center gap-3"
-                disabled={!hasPaidTier || openPortal.isPending}
+                disabled={!canOpenPortal || openPortal.isPending}
                 onClick={() => openPortal.mutate()}
               >
                 <CreditCard size={20} />
@@ -523,7 +571,7 @@ export const BillingPage: React.FC = () => {
               <button
                 type="button"
                 className="btn text-start p-3 d-flex align-items-center gap-3"
-                disabled={!hasPaidTier || openPortal.isPending}
+                disabled={!canOpenPortal || openPortal.isPending}
                 onClick={() => openPortal.mutate()}
               >
                 <Receipt size={20} />
@@ -620,6 +668,17 @@ export const BillingPage: React.FC = () => {
                     {preview.data.is_charge ? '' : '−'}
                     {formatMoney(preview.data.net_amount, preview.data.currency)}
                   </div>
+                  {preview.data.is_charge
+                    && typeof preview.data.account_credit_applied === 'number'
+                    && preview.data.account_credit_applied > 0
+                    && typeof preview.data.invoice_total === 'number' && (
+                      <div className="small text-muted mt-1">
+                        {formatMoney(preview.data.account_credit_applied, preview.data.currency)}
+                        {' '}account credit applied to the{' '}
+                        {formatMoney(preview.data.invoice_total, preview.data.currency)}
+                        {' '}prorated total.
+                      </div>
+                    )}
                 </>
               )}
               {!preview.isLoading && !(preview.data?.success && typeof preview.data?.net_amount === 'number') && (
