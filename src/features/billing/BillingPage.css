@@ -1,0 +1,237 @@
+.billing-cancel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--server-backdrop, rgba(0, 0, 0, 0.68));
+  backdrop-filter: blur(7px);
+}
+
+.billing-cancel-dialog {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 28px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: 16px;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.58);
+}
+
+.billing-cancel-dialog__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.billing-cancel-dialog__close:hover,
+.billing-cancel-dialog__close:focus-visible {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+  border-color: var(--border-cyan);
+  outline: none;
+}
+
+.billing-cancel-dialog__close:focus-visible,
+.billing-cancel-dialog__actions .btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--primary-dim);
+}
+
+.billing-cancel-dialog__close:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.billing-cancel-dialog__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.billing-cancel-dialog__heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 44px;
+}
+
+.billing-cancel-dialog__icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--warning-color);
+  background: color-mix(in srgb, var(--warning-color) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning-color) 36%, transparent);
+  border-radius: 12px;
+}
+
+.billing-cancel-dialog__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.billing-cancel-dialog__heading span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--primary-color);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.billing-cancel-dialog__heading h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.billing-cancel-dialog__copy {
+  margin: 22px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.billing-cancel-dialog__copy strong {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+.billing-cancel-dialog__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 20px 0 0;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+}
+
+.billing-cancel-dialog__facts > div {
+  min-width: 0;
+  padding: 14px;
+}
+
+.billing-cancel-dialog__facts > div + div {
+  border-left: 1px solid var(--border-light);
+}
+
+.billing-cancel-dialog__facts dt {
+  color: var(--text-muted);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.billing-cancel-dialog__facts dd {
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.billing-cancel-dialog__notice {
+  margin: 16px 0 0;
+  padding-left: 12px;
+  color: var(--text-muted);
+  border-left: 2px solid var(--border-cyan);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.billing-cancel-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.billing-cancel-dialog__actions .btn {
+  min-height: 44px;
+  padding: 10px 16px;
+}
+
+.billing-cancel-dialog__confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff !important;
+  background: color-mix(in srgb, var(--error-color) 18%, var(--bg-tertiary)) !important;
+  border-color: color-mix(in srgb, var(--error-color) 62%, transparent) !important;
+}
+
+.billing-cancel-dialog__confirm:hover,
+.billing-cancel-dialog__confirm:focus-visible {
+  color: #fff !important;
+  background: color-mix(in srgb, var(--error-color) 28%, var(--bg-tertiary)) !important;
+  border-color: var(--error-color) !important;
+}
+
+.billing-cancel-dialog__confirm svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 560px) {
+  .billing-cancel-backdrop {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .billing-cancel-dialog {
+    padding: 24px 20px;
+    border-radius: 14px;
+  }
+
+  .billing-cancel-dialog__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-cancel-dialog__facts > div + div {
+    border-top: 1px solid var(--border-light);
+    border-left: 0;
+  }
+
+  .billing-cancel-dialog__facts dd {
+    white-space: normal;
+  }
+
+  .billing-cancel-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .billing-cancel-dialog__actions .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .billing-cancel-dialog__close,
+  .billing-cancel-dialog__actions .btn {
+    transition: none;
+  }
+}

@@ -1,11 +1,13 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CreditCard, ExternalLink, Gem, Receipt, ShieldCheck, Sparkles, XCircle } from 'lucide-react';
+import { CalendarClock, CreditCard, ExternalLink, Gem, Receipt, ShieldCheck, Sparkles, X, XCircle } from 'lucide-react';
 import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
 import { LoadingSpinner } from '@/components/ui';
 import { showToast } from '@/utils/toast';
+import './BillingPage.css';
 
 const TIER_LABELS: Record<PremiumTier, string> = {
   free: 'Free',
@@ -62,6 +64,174 @@ const formatMoney = (amountInCents: number, currency?: string) =>
     currency: (currency || 'usd').toUpperCase(),
   }).format(amountInCents / 100);
 
+interface CancelSubscriptionDialogProps {
+  guildName: string;
+  tier: PaidTier;
+  accessEnd: string;
+  isPending: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+const CancelSubscriptionDialog: React.FC<CancelSubscriptionDialogProps> = ({
+  guildName,
+  tier,
+  accessEnd,
+  isPending,
+  onClose,
+  onConfirm,
+}) => {
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const keepButtonRef = React.useRef<HTMLButtonElement>(null);
+  const titleId = React.useId();
+  const descriptionId = React.useId();
+  const onCloseRef = React.useRef(onClose);
+  const isPendingRef = React.useRef(isPending);
+  onCloseRef.current = onClose;
+  isPendingRef.current = isPending;
+
+  React.useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const billingPage = document.querySelector<HTMLElement>('.billing-page');
+    const pageWasInert = billingPage?.hasAttribute('inert') ?? false;
+    const previousOverflow = document.body.style.overflow;
+
+    billingPage?.setAttribute('inert', '');
+    document.body.style.overflow = 'hidden';
+    keepButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isPendingRef.current) {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      if (!pageWasInert) billingPage?.removeAttribute('inert');
+      previousFocus?.focus();
+    };
+  }, []);
+
+  const portalTarget = document.querySelector('.dashboard-shell') ?? document.body;
+
+  return createPortal(
+    <div
+      className="billing-cancel-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isPending) onClose();
+      }}
+      role="presentation"
+    >
+      <div
+        ref={dialogRef}
+        className="billing-cancel-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        tabIndex={-1}
+      >
+        <button
+          type="button"
+          className="billing-cancel-dialog__close"
+          onClick={onClose}
+          disabled={isPending}
+          aria-label="Close cancellation confirmation"
+        >
+          <X aria-hidden="true" />
+        </button>
+
+        <div className="billing-cancel-dialog__heading">
+          <div className="billing-cancel-dialog__icon" aria-hidden="true">
+            <CalendarClock />
+          </div>
+          <div>
+            <span>Subscription control</span>
+            <h2 id={titleId}>Schedule cancellation?</h2>
+          </div>
+        </div>
+
+        <p id={descriptionId} className="billing-cancel-dialog__copy">
+          Your subscription will not end today. <strong>{guildName}</strong> keeps all{' '}
+          {TIER_LABELS[tier]} features through <strong>{accessEnd}</strong>, then moves to Free.
+        </p>
+
+        <dl className="billing-cancel-dialog__facts">
+          <div>
+            <dt>Server</dt>
+            <dd>{guildName}</dd>
+          </div>
+          <div>
+            <dt>Current plan</dt>
+            <dd>{TIER_LABELS[tier]}</dd>
+          </div>
+          <div>
+            <dt>Access ends</dt>
+            <dd>{accessEnd}</dd>
+          </div>
+        </dl>
+
+        <p className="billing-cancel-dialog__notice">
+          Billing stops after the current paid period. You can resume the subscription before
+          that date through Stripe billing.
+        </p>
+
+        <div className="billing-cancel-dialog__actions">
+          <button
+            ref={keepButtonRef}
+            type="button"
+            className="btn billing-cancel-dialog__keep"
+            onClick={onClose}
+            disabled={isPending}
+          >
+            Keep subscription
+          </button>
+          <button
+            type="button"
+            className="btn billing-cancel-dialog__confirm"
+            onClick={onConfirm}
+            disabled={isPending}
+            aria-busy={isPending}
+          >
+            <XCircle aria-hidden="true" />
+            {isPending ? 'Scheduling…' : 'Schedule cancellation'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    portalTarget,
+  );
+};
+
 export const BillingPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const navigate = useNavigate();
@@ -111,9 +281,12 @@ export const BillingPage: React.FC = () => {
     },
   });
 
+  const [showCancelConfirm, setShowCancelConfirm] = React.useState(false);
+
   const cancel = useMutation({
     mutationFn: () => subscriptionsApi.cancel({ guild_id: guildId!, immediately: false }),
     onSuccess: async (data) => {
+      setShowCancelConfirm(false);
       showToast(data.message || 'Subscription cancellation scheduled.', 'success');
       await queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'subscription'] });
     },
@@ -162,8 +335,7 @@ export const BillingPage: React.FC = () => {
   const planInterval = planIntervalOverride ?? currentInterval;
 
   const handleCancel = () => {
-    if (!window.confirm('Cancel this subscription at the end of the current billing period?')) return;
-    cancel.mutate();
+    setShowCancelConfirm(true);
   };
 
   const TIER_RANK: Record<PremiumTier, number> = { free: 0, plus: 1, pro: 2, max: 3 };
@@ -447,6 +619,17 @@ export const BillingPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {showCancelConfirm && hasPaidTier && (
+        <CancelSubscriptionDialog
+          guildName={currentGuild?.name || 'Current server'}
+          tier={tier}
+          accessEnd={formatDate(record?.cancel_at || record?.current_period_end)}
+          isPending={cancel.isPending}
+          onClose={() => setShowCancelConfirm(false)}
+          onConfirm={() => cancel.mutate()}
+        />
       )}
     </div>
   );
