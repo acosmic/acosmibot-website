@@ -67,7 +67,7 @@ export const NotificationList: React.FC = () => {
         <h3 style={{ color: 'var(--text-primary)', fontSize: 18, margin: '0 0 4px' }}>
           Notifications
         </h3>
-        <p role="alert" style={{ color: 'var(--text-muted)', fontSize: 13, margin: '0 0 12px' }}>
+        <p role="alert" style={{ color: 'var(--text-muted)', fontSize: 14, margin: '0 0 12px' }}>
           Rewards and notifications couldn’t be loaded.
         </p>
         <button type="button" className="btn btn-sm" onClick={() => query.refetch()}>
@@ -97,7 +97,7 @@ export const NotificationList: React.FC = () => {
         </button>
       </div>
       {hasClaimable && (
-        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 0, marginBottom: 12 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 0, marginBottom: 12 }}>
           You have rewards to claim <InlineIcon icon={Gift} color="#ffd700" />
         </p>
       )}
@@ -116,7 +116,7 @@ export const NotificationList: React.FC = () => {
           ))}
         </div>
       ) : (
-        <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: '10px 0 0' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: '10px 0 0' }}>
           You’re all caught up.
         </p>
       )}
@@ -125,7 +125,7 @@ export const NotificationList: React.FC = () => {
         <div id="past-notifications" style={{ borderTop: '1px solid var(--border-light)', marginTop: 16, paddingTop: 14 }}>
           <h4 style={{ color: 'var(--text-secondary)', fontSize: 14, margin: '0 0 10px' }}>Past notifications</h4>
           {historyQuery.isLoading ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>Loading…</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>Loading…</p>
           ) : historyItems.length ? (
             <div style={{ display: 'grid', gap: 10 }}>
               {historyItems.map((n) => (
@@ -140,13 +140,13 @@ export const NotificationList: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>No past notifications yet.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>No past notifications yet.</p>
           )}
         </div>
       )}
 
       {(claimMutation.error || dismissMutation.error) && (
-        <p role="alert" style={{ color: '#f87171', fontSize: 13 }}>
+        <p role="alert" style={{ color: '#f87171', fontSize: 14 }}>
           Error: {String(claimMutation.error || dismissMutation.error)}
         </p>
       )}
@@ -184,9 +184,9 @@ const NotificationRow: React.FC<{
         : <Trophy size={26} color="#ffd700" />}
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{n.title}</div>
-        {n.body && <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>{n.body}</div>}
+        {n.body && <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>{n.body}</div>}
         {(credits > 0 || n.reward?.cosmetic_id) && (
-          <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 2 }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>
             Reward:{' '}
             {credits > 0 && <strong style={{ color: '#ffd700' }}>{credits.toLocaleString()} credits</strong>}
             {credits > 0 && n.reward?.cosmetic_id ? ' + ' : ''}
@@ -194,7 +194,7 @@ const NotificationRow: React.FC<{
           </div>
         )}
         {n.is_dismissed && n.created_at && (
-          <time dateTime={n.created_at} style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11, marginTop: 4 }}>
+          <time dateTime={n.created_at} style={{ display: 'block', color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>
             {formatNotificationDate(n.created_at)}
           </time>
         )}

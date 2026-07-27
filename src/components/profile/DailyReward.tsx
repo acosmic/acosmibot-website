@@ -56,13 +56,13 @@ export const DailyReward: React.FC = () => {
       </div>
 
       <div style={{ flex: 1, minWidth: '180px' }}>
-        <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+        <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
           Daily reward
           {streakShown > 0 && (
             <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}> · <InlineIcon icon={Flame} color="#ff9f43" /> {streakShown.toLocaleString()} day streak</span>
           )}
         </div>
-        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+        <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '2px' }}>
           {justClaimed ? (
             <span className="dr-reward-pop" style={{ color: 'var(--primary-color)', fontWeight: 700 }}>
               +{claim.data!.reward.toLocaleString()} credits added to your bank — withdraw in any server!

@@ -64,7 +64,7 @@ export const InventorySection: React.FC = () => {
           {effects.map((e) => (
             <span key={e.id} style={{
               background: 'var(--bg-secondary)', border: '1px solid var(--border-light)',
-              borderRadius: 999, padding: '4px 12px', fontSize: '0.8rem', color: 'var(--text-primary)',
+              borderRadius: 999, padding: '4px 12px', fontSize: '0.875rem', color: 'var(--text-primary)',
             }}>
               <InlineIcon icon={Zap} color="#ffd700" /> +{Math.round((e.magnitude ?? 0) * 100)}% {(e.effect_type || '').replace(/_/g, ' ')}
               <span style={{ color: 'var(--text-muted)' }}> · {timeLeft(e.expires_at)}</span>
@@ -76,7 +76,7 @@ export const InventorySection: React.FC = () => {
       {/* Equipped gear */}
       {equippedItems.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: 6 }}>Equipped</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: 6 }}>Equipped</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
             {equippedItems.map((it) => (
               <div key={it.item_id} style={{
@@ -87,9 +87,9 @@ export const InventorySection: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 22 }}>{it.icon}</span>
                   <strong style={{ color: 'var(--text-primary)' }}>{it.name}</strong>
-                  <span style={{ marginLeft: 'auto', color: '#22c55e', fontSize: '0.72rem' }}><InlineIcon icon={CircleCheck} /> {it.slot}</span>
+                  <span style={{ marginLeft: 'auto', color: '#22c55e', fontSize: '0.8125rem' }}><InlineIcon icon={CircleCheck} /> {it.slot}</span>
                 </div>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: 6 }}>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 6 }}>
                   {(it.effects ?? []).map((e, i) => <div key={i}>{effectLabel(e)}</div>)}
                 </div>
                 <button className="btn btn-sm" disabled={busy} onClick={() => unequipMut.mutate(it.slug)}
@@ -121,9 +121,9 @@ export const InventorySection: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 22 }}>{it.icon}</span>
                 <strong style={{ color: 'var(--text-primary)' }}>{it.name}</strong>
-                <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.85rem' }}>×{it.quantity}</span>
+                <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.875rem' }}>×{it.quantity}</span>
               </div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: 6 }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 6 }}>
                 {(it.effects ?? []).map((e, i) => <div key={i}>{effectLabel(e)}</div>)}
                 {(!it.effects || it.effects.length === 0) && (it.description || '—')}
               </div>

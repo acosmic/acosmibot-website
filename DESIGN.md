@@ -215,8 +215,9 @@ Signal Cyan leads a tightly controlled graphite palette; white and cool gray est
 - **Display** (800, fluid from 3rem to 5rem, 1.1): Homepage hero statements only.
 - **Headline** (700, 32px, 1.2): Primary page titles and major dashboard destinations; reduce to 28px on compact screens.
 - **Title** (600, 18px, 1.35): Card headings, section titles, and important control labels.
-- **Body** (400, 14px, 1.6): Instructions, descriptions, supporting content, and most dashboard data.
-- **Label** (600, 11px, 0.5px tracking, uppercase): Navigation groups, compact status, and metadata categories.
+- **Body** (400, 14–16px, 1.6): Instructions, descriptions, supporting content, and most dashboard data. Observatory member surfaces use the 16px end of the range for explanatory copy.
+- **Dense Data** (500–600, 12–14px, 1.5): Compact item names, values, descriptions, and secondary metadata inside operational ledgers.
+- **Label** (600, 11px minimum, 0.5px tracking, uppercase): Navigation groups, compact status, and metadata categories. Short telemetry labels may be visually quiet, but never smaller than 11px.
 
 ### Named Rules
 

@@ -6,13 +6,16 @@
   --member-node: #15212b;
   --member-text: #f4fbff;
   --member-secondary: #a9bac7;
-  --member-muted: #71808d;
+  --member-muted: #8293a0;
   --member-cyan: #67ecff;
   --member-violet: #9f8bff;
   --member-coral: #ff8f72;
   --member-green: #4fe3a1;
   --member-border: rgba(134, 163, 181, 0.18);
   --member-cyan-border: rgba(103, 236, 255, 0.34);
+  --text-primary: var(--member-text);
+  --text-secondary: var(--member-secondary);
+  --text-muted: var(--member-muted);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -61,7 +64,7 @@
   margin: 0 0 10px;
   color: var(--member-cyan);
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -92,7 +95,7 @@
   max-width: 680px;
   margin: 14px 0 0;
   color: var(--member-secondary);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.7;
 }
 
@@ -104,7 +107,7 @@
   border: 1px solid var(--member-cyan-border);
   border-radius: 9px;
   color: var(--member-cyan);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -134,7 +137,7 @@
   flex: 0 0 auto;
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -159,7 +162,7 @@
   gap: 7px;
   padding: 0 15px;
   color: var(--member-muted);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
   text-decoration: none;
   transition: color 160ms ease, background 160ms ease;
@@ -246,7 +249,7 @@
 .member-empty p {
   max-width: 620px;
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -261,7 +264,7 @@
   color: #031016;
   cursor: pointer;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -291,7 +294,7 @@
   max-width: 680px;
   margin: 18px 0 0;
   color: var(--member-secondary);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.75;
 }
 
@@ -310,7 +313,7 @@
   border: 1px solid var(--member-border);
   border-radius: 8px;
   color: var(--member-secondary);
-  font-size: 10px;
+  font-size: 12px;
   text-decoration: none;
 }
 
@@ -323,7 +326,7 @@
 .achievement-category-index small {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .achievement-orbit {
@@ -402,7 +405,7 @@
   margin-top: 6px;
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 8px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -447,7 +450,7 @@
 .profile-trophies > header p {
   margin: 0 0 4px;
   color: var(--member-muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .achievement-sector > header h2,
@@ -464,7 +467,7 @@
 .profile-guilds > header > span {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 8px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -557,7 +560,7 @@
 .achievement-node__title span {
   color: var(--tier-color);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -565,7 +568,7 @@
 .achievement-node__title h3 {
   margin: 3px 0 0;
   color: var(--member-text);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .achievement-node__title > svg {
@@ -576,7 +579,7 @@
 .achievement-node__body > p {
   margin: 7px 0 0;
   color: var(--member-muted);
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -584,7 +587,7 @@
   display: inline-block;
   margin-top: 8px;
   color: var(--member-coral);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .achievement-node__progress {
@@ -612,7 +615,7 @@
 .achievement-node__reward {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .achievement-node__reward {
@@ -690,7 +693,7 @@
 .settings-scope__identity strong {
   overflow: hidden;
   color: var(--member-text);
-  font-size: 11px;
+  font-size: 14px;
   text-overflow: ellipsis;
 }
 
@@ -698,7 +701,7 @@
   margin-top: 3px;
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -728,14 +731,14 @@
 .settings-scope__signals strong {
   overflow: hidden;
   color: var(--member-secondary);
-  font-size: 9px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .settings-scope__signals span {
   color: var(--member-muted);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .settings-scope > p {
@@ -743,7 +746,7 @@
   padding: 13px 15px;
   border-top: 1px solid var(--member-border);
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -782,20 +785,20 @@
   margin: 0;
   color: var(--member-cyan);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
 .settings-workspace > header h2 {
   margin: 3px 0 0;
   color: var(--member-text);
-  font-size: 19px;
+  font-size: 20px;
 }
 
 .settings-workspace > header small {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -839,13 +842,13 @@
 .settings-group h3 {
   margin: 0;
   color: var(--member-text);
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .settings-group > header p {
   margin: 5px 0 0;
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -883,13 +886,13 @@
 
 .member-toggle strong {
   color: var(--member-secondary);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .member-toggle small {
   margin-top: 3px;
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -951,7 +954,7 @@
 .settings-timezone > label {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -963,7 +966,7 @@
   background: var(--member-raised);
   color: var(--member-secondary);
   font-family: inherit;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .settings-timezone > button {
@@ -976,7 +979,7 @@
   color: var(--member-secondary);
   cursor: pointer;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .connected-settings__source {
@@ -1001,13 +1004,13 @@
 
 .connected-settings__source > div > strong {
   color: var(--member-text);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .connected-settings__source > div > p {
   margin: 4px 0 0;
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -1027,7 +1030,7 @@
   border-radius: 9px;
   background: rgba(255, 143, 114, 0.06);
   color: #ffad98;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .settings-skeleton {
@@ -1092,7 +1095,7 @@
   margin-top: 15px;
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1183,7 +1186,7 @@
   display: block;
   margin-top: 5px;
   color: var(--member-muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .profile-identity > strong {
@@ -1192,7 +1195,7 @@
   border-radius: 8px;
   color: var(--member-green);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1202,7 +1205,7 @@
   gap: 8px 18px;
   padding: 15px 0;
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .profile-signal-ledger {
@@ -1232,13 +1235,13 @@
 
 .profile-signal-ledger dt {
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .profile-signal-ledger dd {
   margin: 0;
   color: var(--member-text);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -1272,7 +1275,7 @@
   margin: 0 0 9px;
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1292,13 +1295,13 @@
 .profile-trace > div > span {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .profile-trace strong {
   overflow: hidden;
   color: var(--member-secondary);
-  font-size: 11px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1310,7 +1313,7 @@
 
 .profile-trace small {
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .profile-guilds__track {
@@ -1360,7 +1363,7 @@
 .profile-guilds__track strong {
   overflow: hidden;
   color: var(--member-text);
-  font-size: 11px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1370,7 +1373,7 @@
 .profile-guilds__track em {
   margin-top: 5px;
   color: var(--member-muted);
-  font-size: 8px;
+  font-size: 12px;
   font-style: normal;
 }
 
@@ -1380,7 +1383,7 @@
 
 .profile-trophies > header a {
   color: var(--member-cyan);
-  font-size: 9px;
+  font-size: 12px;
   text-decoration: none;
 }
 
@@ -1425,7 +1428,7 @@
 .profile-trophies__grid strong {
   overflow: hidden;
   color: var(--member-secondary);
-  font-size: 10px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1434,7 +1437,7 @@
   margin-top: 3px;
   color: var(--trophy-color);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1444,7 +1447,7 @@
   border-radius: 12px;
   background: var(--member-space);
   color: var(--member-muted);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .profile-trophies.is-empty a {
@@ -1492,7 +1495,7 @@
 .profile-gate__prompt p {
   margin: 8px 0 18px;
   color: var(--member-muted);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -1532,13 +1535,13 @@
 
 .profile-shortcuts strong {
   color: var(--member-text);
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .profile-shortcuts small {
   margin-top: 5px;
   color: var(--member-muted);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .profile-shortcuts > a > svg {
@@ -1558,7 +1561,7 @@
 
 .profile-inventory h3 {
   margin-top: 0 !important;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .profile-inventory > div > div,
@@ -1576,7 +1579,7 @@
 
 .profile-notifications > div:first-child h3 {
   color: var(--member-text) !important;
-  font-size: 19px !important;
+  font-size: 20px !important;
 }
 
 /* Card studio */
@@ -1605,12 +1608,12 @@
 
 .studio-balance small {
   color: var(--member-muted);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .studio-balance strong {
   color: var(--member-text);
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .studio-balance > span {
@@ -1619,7 +1622,7 @@
   align-items: center;
   gap: 5px;
   color: #ffd166;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .studio-balance > span svg {
@@ -1670,20 +1673,20 @@
   margin: 0;
   color: var(--member-cyan);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
 .studio-stage__heading h2 {
   margin: 3px 0 0;
   color: var(--member-text);
-  font-size: 17px;
+  font-size: 20px;
 }
 
 .studio-stage__heading small {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1725,7 +1728,7 @@
   margin: 0;
   padding: 0 18px 17px;
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -1745,13 +1748,13 @@
 
 .studio-stage dt {
   color: var(--member-muted);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .studio-stage dd {
   margin: 0;
   color: var(--member-secondary);
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -1778,19 +1781,19 @@
 .studio-tray > header p {
   margin: 0 0 3px;
   color: var(--member-muted);
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .studio-tray > header h2 {
   margin: 0;
   color: var(--member-text);
-  font-size: 17px;
+  font-size: 20px;
 }
 
 .studio-tray > header > span {
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 7px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1880,7 +1883,7 @@
   border-radius: 5px;
   background: #ffd166;
   color: #1a1403;
-  font-size: 7px;
+  font-size: 11px;
   font-style: normal;
   font-weight: 800;
 }
@@ -1896,7 +1899,7 @@
 .studio-swatch__identity strong {
   overflow: hidden;
   color: var(--member-secondary);
-  font-size: 9px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1905,7 +1908,7 @@
   flex: 0 0 auto;
   color: var(--member-muted);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 6px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -1913,7 +1916,7 @@
   display: block;
   margin-top: 7px;
   color: var(--member-muted);
-  font-size: 7px;
+  font-size: 12px;
 }
 
 .studio-swatch__buy {
@@ -1927,7 +1930,7 @@
   color: var(--member-cyan);
   cursor: pointer;
   font-family: inherit;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1957,12 +1960,12 @@
 .studio-dialog h2 {
   margin: 0;
   color: var(--member-text);
-  font-size: 19px;
+  font-size: 20px;
 }
 
 .studio-dialog p {
   margin: 9px 0 20px;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -1981,7 +1984,7 @@
   color: var(--member-secondary);
   cursor: pointer;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -2129,7 +2132,7 @@
   }
 
   .member-nav__routes a span {
-    font-size: 9px;
+    font-size: 11px;
   }
 
   .member-header h1,
