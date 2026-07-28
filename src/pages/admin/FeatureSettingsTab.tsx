@@ -29,8 +29,8 @@ export const FeatureSettingsTab: React.FC = () => {
 
   const mutation = useMutation({
     mutationFn: (payload: FormState) => adminApi.updateFeatureSettings(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'feature-settings'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'feature-settings'] });
       setSavedAt(Date.now());
     },
   });
@@ -45,8 +45,24 @@ export const FeatureSettingsTab: React.FC = () => {
 
   const testConfigured = query.data?.data.stripe_test_configured ?? false;
   const liveConfigured = query.data?.data.stripe_live_configured ?? false;
+  const persistedMode = query.data?.data.stripe_mode ?? 'test';
+  const modeChangePending = form.stripe_mode !== persistedMode;
   const targetMode: StripeMode = form.stripe_mode === 'live' ? 'test' : 'live';
   const targetConfigured = targetMode === 'live' ? liveConfigured : testConfigured;
+  const pendingModeLabel = form.stripe_mode === 'live' ? 'Live' : 'Test';
+
+  const handleModeChange = (checked: boolean) => {
+    const nextMode: StripeMode = checked ? 'live' : 'test';
+    mutation.reset();
+    setSavedAt(null);
+    setForm((current) => current ? {
+      ...current,
+      stripe_mode: nextMode,
+      billing_enabled: nextMode === persistedMode
+        ? (query.data?.data.billing_enabled ?? false)
+        : false,
+    } : current);
+  };
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -58,7 +74,9 @@ export const FeatureSettingsTab: React.FC = () => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          mutation.mutate(form);
+          mutation.mutate(
+            modeChangePending ? { ...form, billing_enabled: false } : form,
+          );
         }}
       >
         <div className="mb-4">
@@ -66,6 +84,7 @@ export const FeatureSettingsTab: React.FC = () => {
             <input
               type="checkbox"
               checked={form.use_satori_rank_card}
+              disabled={mutation.isPending}
               onChange={(e) => setForm({ ...form, use_satori_rank_card: e.target.checked })}
               style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
             />
@@ -82,14 +101,8 @@ export const FeatureSettingsTab: React.FC = () => {
             <input
               type="checkbox"
               checked={form.stripe_mode === 'live'}
-              disabled={!targetConfigured}
-              onChange={(e) => setForm({
-                ...form,
-                stripe_mode: e.target.checked ? 'live' : 'test',
-                // Mode changes are deliberately two-step: save with billing off,
-                // verify the selected account, then re-enable checkout.
-                billing_enabled: false,
-              })}
+              disabled={!targetConfigured || mutation.isPending}
+              onChange={(e) => handleModeChange(e.target.checked)}
               style={{ width: 18, height: 18, accentColor: '#ef4444' }}
             />
             <span style={{ fontWeight: 600 }}>
@@ -112,6 +125,27 @@ export const FeatureSettingsTab: React.FC = () => {
               Live {liveConfigured ? 'configured' : 'incomplete'}
             </span>
           </div>
+          {modeChangePending && (
+            <div
+              role="status"
+              className="small mt-3"
+              style={{
+                marginLeft: 30,
+                padding: '12px 14px',
+                color: 'var(--text-secondary)',
+                background: 'color-mix(in srgb, var(--warning-color) 9%, var(--bg-tertiary))',
+                border: '1px solid color-mix(in srgb, var(--warning-color) 38%, var(--border-light))',
+                borderRadius: 10,
+                lineHeight: 1.55,
+              }}
+            >
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {pendingModeLabel} mode selected.
+              </strong>{' '}
+              Billing is locked off for this save. Verify the {pendingModeLabel.toLowerCase()}{' '}
+              badge afterward, then enable Stripe billing and save once more.
+            </div>
+          )}
           {!targetConfigured && (
             <p style={{ color: '#f87171', marginLeft: 30 }} className="small mt-2 mb-0">
               {targetMode === 'live' ? 'Live' : 'Test'} mode cannot be selected until its
@@ -121,11 +155,22 @@ export const FeatureSettingsTab: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            cursor: modeChangePending || mutation.isPending ? 'not-allowed' : 'pointer',
+            opacity: modeChangePending ? 0.62 : 1,
+          }}>
             <input
               type="checkbox"
               checked={form.billing_enabled}
-              onChange={(e) => setForm({ ...form, billing_enabled: e.target.checked })}
+              disabled={modeChangePending || mutation.isPending}
+              onChange={(e) => {
+                mutation.reset();
+                setSavedAt(null);
+                setForm({ ...form, billing_enabled: e.target.checked });
+              }}
               style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
             />
             <span style={{ fontWeight: 600 }}>Stripe billing</span>
@@ -139,10 +184,18 @@ export const FeatureSettingsTab: React.FC = () => {
 
         <div className="d-flex align-items-center gap-3">
           <button type="submit" className="btn primary" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Saving...' : 'Save'}
+            {mutation.isPending
+              ? 'Saving...'
+              : modeChangePending
+                ? `Switch to ${pendingModeLabel} safely`
+                : 'Save'}
           </button>
           {mutation.error && (
-            <span style={{ color: '#f87171' }}>Error: {String(mutation.error)}</span>
+            <span role="alert" style={{ color: '#f87171' }}>
+              {mutation.error instanceof Error
+                ? mutation.error.message
+                : String(mutation.error)}
+            </span>
           )}
           {!mutation.error && savedAt && Date.now() - savedAt < 4000 && (
             <span style={{ color: '#4ade80' }}>Saved</span>

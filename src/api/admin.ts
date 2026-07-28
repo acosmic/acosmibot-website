@@ -184,7 +184,13 @@ export const adminApi = {
 
   updateFeatureSettings: (payload: Partial<Pick<AdminFeatureSettings,
     'use_satori_rank_card' | 'billing_enabled' | 'stripe_mode'>>) =>
-    api.fetch<{ success: boolean; updated_count: number }>(
+    api.fetch<{
+      success: boolean;
+      message: string;
+      updated_count: number;
+      stripe_mode: StripeMode;
+      billing_enabled: boolean;
+    }>(
       '/api/admin/feature-settings',
       {
         method: 'POST',
