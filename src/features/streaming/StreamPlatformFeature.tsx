@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useStreamPlatformConfig } from './useStreamPlatformConfig';
 import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
@@ -167,12 +167,14 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
                     <span className="text-truncate fw-bold">{streamer.username || `New ${streamerLabel}`}</span>
                   </div>
                   <div className="d-flex gap-2">
-                    <button 
-                      className="btn btn-sm p-1" 
+                    <button
+                      type="button"
+                      className="streamer-remove-button"
                       onClick={(e) => { e.stopPropagation(); removeStreamer(index); }}
-                      style={{ background: 'transparent', border: 'none', color: 'var(--error-color)' }}
+                      aria-label={`Remove ${streamer.username || `new ${streamerLabel.toLowerCase()}`}`}
+                      title={`Remove ${streamer.username || streamerLabel.toLowerCase()}`}
                     >
-                      ×
+                      <X size={19} strokeWidth={2.5} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -273,7 +275,9 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
                 <h3>{streamerLabel}: {selectedStreamer.username || 'New'}</h3>
                 <p>{platformTitle} alert settings</p>
               </div>
-              <button onClick={() => setSelectedStreamerIndex(null)} aria-label="Close editor">×</button>
+              <button onClick={() => setSelectedStreamerIndex(null)} aria-label="Close editor">
+                <X size={18} strokeWidth={2.5} aria-hidden="true" />
+              </button>
             </div>
 
             <div className="stream-editor-body">

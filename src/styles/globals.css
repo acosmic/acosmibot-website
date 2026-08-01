@@ -172,6 +172,201 @@ select.form-select:disabled,
     color: var(--text-muted);
 }
 
+/* Shared channel picker. The menu is portaled to <body>, so the component
+   copies the active surface variables onto the overlay before it renders. */
+.channel-multi-select__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.channel-multi-select__trigger.is-open {
+    border-color: var(--primary-color);
+    background-color: var(--bg-card-hover);
+    box-shadow: 0 0 0 3px var(--primary-dim);
+}
+
+.channel-multi-select__placeholder {
+    color: var(--text-muted);
+}
+
+.channel-multi-select__chevron {
+    flex: 0 0 auto;
+    color: var(--primary-color);
+    transition: transform 160ms ease;
+}
+
+.channel-multi-select__trigger.is-open .channel-multi-select__chevron {
+    transform: rotate(180deg);
+}
+
+.channel-multi-select__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.channel-multi-select__chip {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 6px 5px 9px;
+    border: 1px solid var(--border-cyan);
+    border-radius: 7px;
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.channel-multi-select__chip > svg {
+    color: var(--primary-color);
+}
+
+.channel-multi-select__remove {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+}
+
+.channel-multi-select__remove:hover,
+.channel-multi-select__remove:focus-visible {
+    background: var(--bg-overlay-hover);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.channel-multi-select__remove:focus-visible {
+    box-shadow: 0 0 0 2px var(--primary-dim);
+}
+
+.channel-multi-select__menu {
+    padding: 6px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    scrollbar-color: var(--border-medium) transparent;
+    scrollbar-width: thin;
+}
+
+.channel-multi-select__menu::-webkit-scrollbar {
+    width: 8px;
+}
+
+.channel-multi-select__menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.channel-multi-select__menu::-webkit-scrollbar-thumb {
+    border: 2px solid var(--bg-card);
+    border-radius: 999px;
+    background: var(--border-medium);
+}
+
+.channel-multi-select__option {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: 500 14px/1.4 'Poppins', sans-serif;
+    text-align: left;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.channel-multi-select__option + .channel-multi-select__option {
+    margin-top: 2px;
+}
+
+.channel-multi-select__option:hover,
+.channel-multi-select__option:focus-visible {
+    border-color: var(--border-light);
+    background: var(--bg-overlay-hover);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.channel-multi-select__option:focus-visible {
+    border-color: var(--border-cyan);
+    box-shadow: inset 0 0 0 1px var(--border-cyan);
+}
+
+.channel-multi-select__option.is-selected {
+    border-color: var(--border-cyan);
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+.channel-multi-select__option:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+}
+
+.channel-multi-select__check {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid var(--border-medium);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: #031016;
+}
+
+.channel-multi-select__option.is-selected .channel-multi-select__check {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+}
+
+.channel-multi-select__hash {
+    flex: 0 0 auto;
+    color: var(--text-muted);
+}
+
+.channel-multi-select__option.is-selected .channel-multi-select__hash {
+    color: var(--primary-color);
+}
+
+.channel-multi-select__name {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    color: inherit;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.channel-multi-select__state {
+    flex: 0 0 auto;
+    color: var(--primary-color);
+    font-size: 11px;
+    font-weight: 600;
+}
+
 /* Form labels */
 .form-label {
     color: var(--text-primary);
