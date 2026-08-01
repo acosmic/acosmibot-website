@@ -409,7 +409,7 @@
   position: absolute;
   top: 50%;
   left: 78px;
-  right: 0;
+  width: 16px;
   z-index: 0;
   height: 1px;
   background: linear-gradient(90deg, rgba(97, 218, 241, 0.18), transparent 78%);
@@ -497,7 +497,7 @@
 .server-node__tier {
   position: absolute;
   top: 11px;
-  right: 11px;
+  right: 18px;
 }
 
 .server-node__tier--plus {
@@ -899,7 +899,11 @@
   .server-node__access {
     grid-column: 2;
     grid-row: 2;
-    justify-self: start;
+    justify-self: end;
+  }
+
+  .server-node__tier {
+    right: 15px;
   }
 
   .server-node__action {
