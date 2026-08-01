@@ -12,7 +12,7 @@ import {
   AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
   FileText, Gem, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
   Sparkles, Ticket, TrendingUp, TvMinimalPlay, Vault, VenetianMask, PanelLeftClose, PanelLeftOpen,
-  Search, X, ArrowUpRight,
+  Search, X, ArrowUpRight, HandHeart,
   type LucideIcon,
 } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
@@ -66,6 +66,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'coinflip',  label: 'Coinflip', icon: Coins },
       { slug: 'deathroll', label: 'Deathroll', icon: Dices },
       { slug: 'heist',     label: 'Heist', icon: Vault },
+      { slug: 'good-deeds', label: 'Good Deeds', icon: HandHeart },
     ],
   },
   {

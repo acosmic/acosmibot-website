@@ -1,0 +1,132 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Good Deeds Mystery Drops</h1>
+    <p class="docs-page-description">
+      Claim a commandless community challenge, solve it in public, earn Credits, and cool off your Heist Heat.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>How Good Deeds Work</h2>
+    <p>
+      Good Deeds are an opt-in server feature. Admins choose one to ten text channels and a cooldown window in the website dashboard. After the previous mystery closes, Acosmibot schedules the next one randomly inside that window and posts it in one configured channel.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>No Slash Command</h3>
+      <p>
+        Members join from the public <strong>Claim Good Deed</strong> button. There is no Good Deeds command, wager, leaderboard, or separate game-stat row.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Claim, Attempt, Reopen or Win</h2>
+    <div class="config-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Find the mystery</h3>
+          <p>The unclaimed card reveals only the possible Credit and Heat ranges. The challenge and exact payout remain hidden.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Win the claim</h3>
+          <p>The first eligible member to press the button receives a fresh random challenge. Bots, non-members, and members banned from bot interactions cannot claim.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Play for 30 seconds</h3>
+          <p>The shared message reveals the scenario. Everyone can watch, but only the claimant can use its controls.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Reopen or complete</h3>
+          <p>A miss or timeout has no penalty and restores the generic card for someone new. A win closes the mystery and reveals the exact rewards.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Hidden Rewards</h2>
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">500–50,000 Credits</div>
+        <div class="command-description">
+          The Credit reward is rolled before posting: 70% from 500–5,000, 25% from 5,001–20,000, and 5% from 20,001–50,000.
+        </div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">2–20 Heat relief</div>
+        <div class="command-description">
+          Heat relief is rolled independently. Winners always receive every Credit even when they have less Heat than the roll or no Heat at all.
+        </div>
+      </div>
+    </div>
+    <div class="info-card info-card-success">
+      <h3>Separate from Donations</h3>
+      <p>Good Deed Heat relief does not consume the personal daily Heat-relief allowance used by <code>/donate</code>.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Six Scenarios</h2>
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">💡 Repair the Streetlight</div>
+        <div class="command-description">Use color, amperage, and symbol clues to choose the only matching fuse.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">📦 Sort Food-Bank Crates</div>
+        <div class="command-description">Toggle food boxes until their weight exactly fills the crate capacity.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">🚰 Stabilize the Hydrant</div>
+        <div class="command-description">Adjust water pressure and hold it inside the safe band for two cycles.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">👛 Find the Wallet Owner</div>
+        <div class="command-description">Combine several identity clues to find the one possible owner.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">🚸 Guide School Traffic</div>
+        <div class="command-description">Predict the next interval in the crossing signal sequence.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">🐾 Rescue the Stray</div>
+        <div class="command-description">Guide the stray through four obstacles using three lanes and one-lane moves.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Timing and Attempts</h2>
+    <ul>
+      <li>An unclaimed mystery closes after 15 minutes.</li>
+      <li>A claim started before closing receives its full 30-second attempt.</li>
+      <li>Each member gets one attempt per drop; a failed claimant cannot reclaim the same mystery.</li>
+      <li>Every new claimant receives a newly selected scenario and fresh puzzle.</li>
+      <li>Disabling Good Deeds cancels the active drop. Re-enabling starts a fresh randomized schedule.</li>
+      <li>The Games master switch pauses new scheduling without changing the saved Good Deeds toggle.</li>
+    </ul>
+  </section>
+
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('heist')">
+      <span class="arrow">←</span>
+      <span class="nav-label">Back</span>
+      <span class="nav-page">Heist</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('reaction-roles')">
+      <span class="nav-page">Reaction Roles</span>
+      <span class="nav-label">Next</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</div>

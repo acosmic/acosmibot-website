@@ -1,4 +1,5 @@
 import { api } from './client';
+import { configApi } from './config';
 import type { LevelingConfig, UpdateLevelingConfigRequest } from '@/types/features';
 
 // Map snake_case settings dict → camelCase LevelingConfig
@@ -37,20 +38,14 @@ export const levelingApi = {
   },
 
   updateConfig: async (guildId: string, data: UpdateLevelingConfigRequest): Promise<LevelingConfig> => {
-    // Fetch current full settings, merge leveling changes, write back
-    const current = await api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`);
+    // Preserve unedited leveling fields, then patch only this feature section.
+    const current = await configApi.getHybridConfig(guildId);
     const currentSettings = current?.data?.settings ?? {};
-    const updatedSettings = {
-      ...currentSettings,
-      leveling: {
-        ...(currentSettings.leveling ?? {}),
-        ...toSettingsPartial(data),
-      },
+    const leveling = {
+      ...(currentSettings.leveling ?? {}),
+      ...toSettingsPartial(data),
     };
-    await api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`, {
-      method: 'POST',
-      body: JSON.stringify({ settings: updatedSettings }),
-    });
-    return fromSettings(updatedSettings);
+    await configApi.upsertHybridSections(guildId, { leveling });
+    return fromSettings({ leveling });
   },
 };

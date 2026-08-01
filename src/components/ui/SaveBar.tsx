@@ -7,6 +7,8 @@ interface SaveBarProps {
   onDiscard: () => void;
   isSaving: boolean;
   saveError?: Error | null;
+  saveDisabled?: boolean;
+  validationMessage?: string;
 }
 
 export const SaveBar: React.FC<SaveBarProps> = ({
@@ -14,7 +16,9 @@ export const SaveBar: React.FC<SaveBarProps> = ({
   onSave,
   onDiscard,
   isSaving,
-  saveError
+  saveError,
+  saveDisabled = false,
+  validationMessage,
 }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -67,8 +71,8 @@ export const SaveBar: React.FC<SaveBarProps> = ({
       role="status"
     >
       <div className="server-save-bar__message">
-        <span>Unsaved server changes</span>
-        <small>Review and commit this configuration to Discord.</small>
+        <span>{saveDisabled ? 'Resolve validation before saving' : 'Unsaved server changes'}</span>
+        <small>{saveDisabled && validationMessage ? validationMessage : 'Review and commit this configuration to Discord.'}</small>
       </div>
       <div className="server-save-bar__actions">
         <button
@@ -81,7 +85,7 @@ export const SaveBar: React.FC<SaveBarProps> = ({
         <button
           className="btn primary"
           onClick={onSave}
-          disabled={isSaving}
+          disabled={isSaving || saveDisabled}
         >
           {isSaving ? 'Saving...' : 'Save Changes'}
         </button>

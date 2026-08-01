@@ -160,6 +160,14 @@ export interface GamesConfig {
   deathroll: SimpleGameConfig;
   rps: SimpleGameConfig;
   heist: HeistConfig;
+  good_deeds: GoodDeedsConfig;
+}
+
+export interface GoodDeedsConfig {
+  enabled: boolean;
+  channel_ids: string[];
+  min_cooldown_hours: number;
+  max_cooldown_hours: number;
 }
 
 export interface HeistConfig {

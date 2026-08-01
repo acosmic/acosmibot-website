@@ -9,6 +9,7 @@ import { SlotsSection } from './SlotsSection';
 import { HeistSection } from './HeistSection';
 import { SimpleGameSection } from './SimpleGameSection';
 import { BlackjackSection } from './BlackjackSection';
+import { GoodDeedsSection, validateGoodDeeds } from './GoodDeedsSection';
 
 export const GamesPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -20,6 +21,7 @@ export const GamesPage: React.FC = () => {
   if (isError || !form) return <div className="feature-page"><p>Unable to load game settings.</p></div>;
 
   const masterOff = !form.enabled;
+  const goodDeedsErrors = validateGoodDeeds(form.good_deeds);
 
   return (
     <div className="feature-page">
@@ -38,7 +40,7 @@ export const GamesPage: React.FC = () => {
       {masterOff && (
         <div
           className="card p-3 mb-4 d-flex align-items-center gap-2"
-          style={{ border: '1px solid var(--error-color, #ef4444)', color: 'var(--error-color, #ef4444)' }}
+          style={{ border: '1px solid var(--error-color, #FF4444)', color: 'var(--error-color, #FF4444)' }}
         >
           <TriangleAlert size={18} />
           <span>Games are turned off for this server — the individual games below are inactive until you re-enable the master switch.</span>
@@ -59,6 +61,16 @@ export const GamesPage: React.FC = () => {
             guildId={guildId!}
             value={form.heist}
             onChange={(updates) => setForm({ heist: { ...form.heist, ...updates } })}
+          />
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Good Deeds">
+          <GoodDeedsSection
+            guildId={guildId!}
+            value={form.good_deeds}
+            onChange={(updates) => setForm({
+              good_deeds: { ...form.good_deeds, ...updates },
+            })}
           />
         </CollapsibleSection>
 
@@ -117,10 +129,14 @@ export const GamesPage: React.FC = () => {
 
       <SaveBar
         isDirty={isDirty}
-        onSave={() => save(form)}
+        onSave={() => {
+          if (goodDeedsErrors.length === 0) save(form);
+        }}
         onDiscard={resetForm}
         isSaving={isSaving}
         saveError={saveError}
+        saveDisabled={goodDeedsErrors.length > 0}
+        validationMessage={goodDeedsErrors[0]}
       />
     </div>
   );

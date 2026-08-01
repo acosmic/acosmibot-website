@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 import { GuildEmoji } from '@/hooks/useGuildEmojis';
-import { GamesConfig, HeistConfig, SlotsConfig, SlotsTier } from '@/types/features';
+import { GamesConfig, GoodDeedsConfig, HeistConfig, SlotsConfig, SlotsTier } from '@/types/features';
 
 // Mirrors the bot's heist fallback_config (Cogs/Heist.py) and the API defaults.
 const DEFAULT_HEIST: HeistConfig = {
@@ -24,6 +24,13 @@ const DEFAULT_HEIST: HeistConfig = {
   success_per_pass: 0.13,
   success_per_fail: 0.07,
   success_floor: 0.05,
+};
+
+const DEFAULT_GOOD_DEEDS: GoodDeedsConfig = {
+  enabled: false,
+  channel_ids: [],
+  min_cooldown_hours: 3,
+  max_cooldown_hours: 6,
 };
 
 const TIER_LIMITS: Record<SlotsTier, number> = {
@@ -76,6 +83,7 @@ export function useGamesConfig(guildId: string) {
     if (!query.data) return undefined;
     const g = settings?.games ?? {};
     const heist = settings?.heist ?? {};
+    const goodDeeds = settings?.good_deeds ?? {};
     return {
       enabled: g.enabled !== false,
       slots: buildSlots(g['slots-config']),
@@ -86,6 +94,14 @@ export function useGamesConfig(guildId: string) {
       deathroll: { enabled: g['deathroll-config']?.enabled !== false },
       rps: { enabled: g['rps-config']?.enabled !== false },
       heist: { ...DEFAULT_HEIST, ...heist, enabled: heist.enabled !== false },
+      good_deeds: {
+        ...DEFAULT_GOOD_DEEDS,
+        ...goodDeeds,
+        enabled: goodDeeds.enabled === true,
+        channel_ids: Array.isArray(goodDeeds.channel_ids)
+          ? goodDeeds.channel_ids.map(String)
+          : [],
+      },
     };
   }, [query.data, settings]);
 
@@ -105,7 +121,11 @@ export function useGamesConfig(guildId: string) {
         'deathroll-config': cfg.deathroll,
         'rps-config': cfg.rps,
       };
-      return configApi.upsertHybridSections(guildId, { games, heist: cfg.heist });
+      return configApi.upsertHybridSections(guildId, {
+        games,
+        heist: cfg.heist,
+        good_deeds: cfg.good_deeds,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
