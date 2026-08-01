@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { COMPANY_BRAND, SUPPORT_DISCORD_URL as SUPPORT_URL } from '@/lib/company';
+import { openAnalyticsPreferences } from '@/lib/analytics';
 
 /** Slim footer for the public pages (profile, leaderboard, servers, etc.). */
 export const SiteFooter: React.FC = () => (
@@ -18,6 +19,20 @@ export const SiteFooter: React.FC = () => (
     <span>© {new Date().getFullYear()} {COMPANY_BRAND}</span>
     <FooterLink href="/terms-of-service">Terms</FooterLink>
     <FooterLink href="/privacy-policy">Privacy</FooterLink>
+    <button
+      type="button"
+      onClick={openAnalyticsPreferences}
+      style={{
+        padding: 0,
+        border: 0,
+        background: 'transparent',
+        color: 'var(--text-secondary)',
+        font: 'inherit',
+        cursor: 'pointer',
+      }}
+    >
+      Analytics choices
+    </button>
     <FooterLink href={SUPPORT_URL} external>Support Discord</FooterLink>
   </footer>
 );

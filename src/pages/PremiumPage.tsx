@@ -15,6 +15,7 @@ import { guildApi } from '@/api/guilds';
 import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
+import { trackEvent } from '@/lib/analytics';
 import { startLogin } from '@/lib/auth';
 import type { Guild } from '@/types/guild';
 import '@/styles/pricing.css';
@@ -129,7 +130,7 @@ const TIERS: TierCardDef[] = [
 ];
 
 export const PricingPage: React.FC = () => {
-  const token = useAuthStore((s) => s.token);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [pickerTier, setPickerTier] = useState<Exclude<PremiumTier, 'free'> | null>(null);
@@ -147,7 +148,7 @@ export const PricingPage: React.FC = () => {
   const billingEnabled = billingStatus.data?.billing_enabled ?? false;
 
   const selectTier = (tier: Exclude<PremiumTier, 'free'>) => {
-    if (!token) {
+    if (!isAuthenticated) {
       startLogin();
       return;
     }
@@ -171,11 +172,11 @@ export const PricingPage: React.FC = () => {
 
   // ?guild= deep link (e.g. from the AI page upsell) opens the picker directly.
   useEffect(() => {
-    if (preselectGuildId && token && !pickerTier) {
+    if (preselectGuildId && isAuthenticated && !pickerTier) {
       setPickerTier('pro');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preselectGuildId, token]);
+  }, [preselectGuildId, isAuthenticated]);
 
   return (
     <div className="pricing-page">
@@ -570,14 +571,16 @@ const ServerPickerModal: React.FC<{
   }, [checkoutGuild]);
 
   const checkout = useMutation({
-    mutationFn: (guild: Guild) =>
-      subscriptionsApi.createCheckout({
+    mutationFn: (guild: Guild) => {
+      trackEvent('begin_checkout', { plan: tier, interval, currency: 'usd' });
+      return subscriptionsApi.createCheckout({
         guild_id: guild.id,
         tier,
         interval,
         success_url: `${window.location.origin}/pricing?success=true`,
         cancel_url: `${window.location.origin}/pricing?canceled=true`,
-      }),
+      });
+    },
     onSuccess: (data) => {
       if (data.checkout_url) {
         window.location.href = data.checkout_url;

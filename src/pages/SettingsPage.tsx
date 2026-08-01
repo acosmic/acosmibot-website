@@ -5,8 +5,7 @@
  * FIRST VIEWPORT: A compact owner header leads into a left scope rail and a focused privacy workspace.
  * FORM: Third-ranked signal-routing-board structure; established world; seed 44f65275.
  */
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Clock3, Eye, Link2, LockKeyhole, Settings2, TriangleAlert } from 'lucide-react';
 import { profileApi, type PrivacySettings, type PublicProfile } from '@/api/profile';
@@ -21,24 +20,19 @@ import { showToast } from '@/utils/toast';
 import '@/styles/member.css';
 
 export const SettingsPage: React.FC = () => {
-  const token = useAuthStore((state) => state.token);
-  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!token) navigate('/', { replace: true });
-  }, [token, navigate]);
 
   const profileQuery = useQuery<PublicProfile>({
     queryKey: ['profile', 'me'],
     queryFn: () => profileApi.getMyProfile(),
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
   const spotifyQuery = useQuery<SpotifyStatus>({
     queryKey: ['spotify', 'status'],
     queryFn: () => spotifyApi.status(),
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
   const privacyMutation = useMutation({

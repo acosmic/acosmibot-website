@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth';
+import { trackEvent } from '@/lib/analytics';
 
 /** Base URL for the API, from the injected runtime config (falls back to prod). */
 export const apiBase = (): string =>
@@ -12,27 +13,69 @@ export const apiBase = (): string =>
  */
 export const startLogin = (): void => {
   try {
-    localStorage.setItem('postLoginRedirect', window.location.pathname + window.location.search);
+    // Persist only a same-origin path. Query strings can contain identifiers or
+    // callback credentials and are never needed to restore the intended page.
+    localStorage.setItem('postLoginRedirect', window.location.pathname);
   } catch { /* ignore storage errors */ }
+  trackEvent('login_start', { method: 'discord' });
   window.location.href = `${apiBase()}/auth/login`;
 };
 
+let refreshPromise: Promise<boolean> | null = null;
+
+/** Refresh browser-session state without exposing the HttpOnly credential. */
+export const refreshSession = (): Promise<boolean> => {
+  if (refreshPromise) return refreshPromise;
+
+  const { setChecking, setUser, setAnonymous } = useAuthStore.getState();
+  setChecking();
+  refreshPromise = fetch(`${apiBase()}/auth/me`, { credentials: 'include' })
+    .then(async (response) => {
+      if (!response.ok) {
+        setAnonymous();
+        return false;
+      }
+      setUser(await response.json());
+      return true;
+    })
+    .catch(() => {
+      setAnonymous();
+      return false;
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
+  return refreshPromise;
+};
+
+export const endSession = async (): Promise<void> => {
+  const response = await fetch(`${apiBase()}/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) throw new Error('The server could not end this session.');
+  useAuthStore.getState().logout();
+};
+
+/** Mount once near the application root to discover an existing cookie session. */
+export function AuthSessionBootstrap(): null {
+  useEffect(() => {
+    void refreshSession();
+  }, []);
+  return null;
+}
+
 /**
- * Hydrate the auth-store `user` from `/auth/me` when we have a token but no
- * user object yet. The profile and settings routes aren't wrapped in
- * `DashboardShell` (the only other place that hydrates), so without this the
- * owner can't be told apart from a visitor.
+ * Ensure the auth-store has checked the HttpOnly browser session. Components
+ * may call this defensively; requests are deduplicated by `refreshSession`.
  */
 export function useHydrateAuthUser(): void {
   const user = useAuthStore((s) => s.user);
-  const token = useAuthStore((s) => s.token);
-  const setUser = useAuthStore((s) => s.setUser);
+  const isAuthReady = useAuthStore((s) => s.isAuthReady);
 
   useEffect(() => {
-    if (!token || user) return;
-    fetch(`${apiBase()}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (data) setUser(data); })
-      .catch(() => { /* non-fatal */ });
-  }, [token, user, setUser]);
+    if (isAuthReady || user) return;
+    void refreshSession();
+  }, [isAuthReady, user]);
 }

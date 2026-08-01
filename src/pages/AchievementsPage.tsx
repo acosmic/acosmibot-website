@@ -40,11 +40,11 @@ const CATEGORY_NOTES: Record<string, string> = {
 };
 
 export const AchievementsPage: React.FC = () => {
-  const token = useAuthStore((state) => state.token);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['achievements', 'catalog'],
     queryFn: () => achievementsApi.getCatalog(),
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
   const grouped = useMemo(() => {
@@ -73,7 +73,7 @@ export const AchievementsPage: React.FC = () => {
               Explore badges across leveling, community, economy, games, and special events.
               Rewards are claimed from your profile notifications.
             </p>
-            {token && Object.keys(grouped).length > 0 && (
+            {isAuthenticated && Object.keys(grouped).length > 0 && (
               <nav className="achievement-category-index" aria-label="Achievement categories">
                 {Object.entries(grouped).map(([category, entries]) => (
                   <a key={category} href={`#achievement-${category}`}>
@@ -89,8 +89,8 @@ export const AchievementsPage: React.FC = () => {
             <div className="achievement-orbit__ring" style={{ '--completion': `${completion * 3.6}deg` } as React.CSSProperties}>
               <div className="achievement-orbit__core">
                 <Trophy aria-hidden="true" />
-                <strong>{token ? `${completion}%` : '—'}</strong>
-                <span>{token ? `${unlocked} / ${total} unlocked` : 'Sign in to sync'}</span>
+                <strong>{isAuthenticated ? `${completion}%` : '—'}</strong>
+                <span>{isAuthenticated ? `${unlocked} / ${total} unlocked` : 'Sign in to sync'}</span>
               </div>
             </div>
             <span className="achievement-orbit__node is-bronze" />
@@ -100,7 +100,7 @@ export const AchievementsPage: React.FC = () => {
           </div>
         </header>
 
-        {!token ? (
+        {!isAuthenticated ? (
           <section className="member-gate">
             <span><LockKeyhole aria-hidden="true" /></span>
             <div>

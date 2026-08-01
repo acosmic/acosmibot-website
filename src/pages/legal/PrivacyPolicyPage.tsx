@@ -8,7 +8,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="July 25, 2026"
+    lastUpdated="July 31, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -81,6 +81,15 @@ export const PrivacyPolicyPage: React.FC = () => (
       <HighlightBox>
         <p style={{ margin: 0 }}><strong>We never see your card details.</strong> Card numbers, billing addresses, and other payment credentials are collected and stored by Stripe, not by {COMPANY_NAME}.</p>
       </HighlightBox>
+
+      <LegalSubheading>2.8 Optional Website Analytics</LegalSubheading>
+      <p>If you allow analytics, we use Google Analytics to collect limited website-usage information:</p>
+      <ul>
+        <li><strong>Sanitized Page Categories:</strong> General route types with usernames, server IDs, resource IDs, query strings, and fragments removed</li>
+        <li><strong>Product Actions:</strong> Limited events such as beginning Discord sign-in, opening a server, inviting the bot, or beginning checkout</li>
+        <li><strong>Technical Context:</strong> Browser, device category, approximate region, referring source, and engagement information supplied by Google Analytics</li>
+      </ul>
+      <p>We do not send authentication credentials, Discord IDs, server IDs, usernames, form contents, configuration values, or user-entered text to Google Analytics. Analytics is disabled unless you choose to allow it.</p>
     </LegalSection>
 
     <LegalSection title="3. How We Use Your Data">
@@ -121,7 +130,10 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li>Stripe's handling of your data is governed by its own privacy policy, and Stripe may use payment data for fraud prevention as an independent controller</li>
       </ul>
 
-      <LegalSubheading>4.4 Database &amp; Hosting</LegalSubheading>
+      <LegalSubheading>4.4 Google Analytics</LegalSubheading>
+      <p>When you allow optional analytics, Google processes sanitized usage events on our behalf so we can understand which areas of the website are useful and where visitors encounter friction. Advertising storage, Google Signals, and ad personalization are disabled. You can change your choice at any time using the “Analytics choices” link in the website footer.</p>
+
+      <LegalSubheading>4.5 Database &amp; Hosting</LegalSubheading>
       <p>Your data is stored on secure database servers provided by trusted hosting providers. These providers have access to infrastructure but do not actively access or use your data.</p>
     </LegalSection>
 
@@ -147,6 +159,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Deleted Accounts:</strong> If you delete your Discord account, associated data may remain until manually requested for deletion</li>
         <li><strong>Server Removal:</strong> When Acosmibot is removed from a server, per-server data is retained for potential re-addition</li>
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
+        <li><strong>Optional Website Analytics:</strong> Event-level analytics data is retained for no longer than 14 months</li>
       </ul>
       <p>To request data deletion, please contact us through our Discord support server.</p>
     </LegalSection>
@@ -157,7 +170,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Access:</strong> Request a copy of the data we have collected about you</li>
         <li><strong>Correction:</strong> Request correction of inaccurate or incomplete data</li>
         <li><strong>Deletion:</strong> Request deletion of your personal data (subject to limitations)</li>
-        <li><strong>Opt-Out:</strong> Stop using Acosmibot by removing it from your servers or discontinuing commands</li>
+        <li><strong>Opt-Out:</strong> Decline optional website analytics at any time and stop using Acosmibot by removing it from your servers or discontinuing commands</li>
         <li><strong>Data Portability:</strong> Request your data in a machine-readable format</li>
       </ul>
       <p>To exercise these rights, contact us through our{' '}
@@ -191,11 +204,12 @@ export const PrivacyPolicyPage: React.FC = () => (
     <LegalSection title="11. Cookie Policy">
       <p>The Acosmibot website uses the following types of data storage:</p>
       <ul>
-        <li><strong>Local Storage:</strong> Stores authentication tokens for dashboard login persistence</li>
-        <li><strong>Session Storage:</strong> Temporary storage for user session information</li>
-        <li><strong>Essential Cookies:</strong> Required for website functionality (authentication, preferences)</li>
+        <li><strong>Essential Session Cookies:</strong> A Secure, HttpOnly cookie keeps you signed in without exposing the credential to website JavaScript</li>
+        <li><strong>OAuth Security Cookie:</strong> A temporary signed cookie protects Discord sign-in from request forgery</li>
+        <li><strong>Local Storage:</strong> Stores non-secret preferences such as your analytics choice and intended return page during sign-in</li>
+        <li><strong>Optional Analytics Cookies:</strong> Google Analytics cookies are permitted only after you select “Allow analytics”</li>
       </ul>
-      <p>We do not use tracking cookies or third-party advertising cookies. All data storage is essential for providing our services.</p>
+      <p>We do not use third-party advertising cookies. Declining analytics does not affect dashboard functionality, Discord sign-in, subscriptions, or bot features.</p>
     </LegalSection>
 
     <LegalSection title="12. Contact Information">

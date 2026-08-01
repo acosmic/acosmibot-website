@@ -59,8 +59,7 @@ interface RankEntryView {
 export const LeaderboardPage: React.FC = () => {
   const { guildId } = useParams<{ guildId?: string }>();
   const authUser = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token);
-  const isAuthed = !!token;
+  const isAuthed = useAuthStore((state) => state.isAuthenticated);
   useHydrateAuthUser();
 
   return (

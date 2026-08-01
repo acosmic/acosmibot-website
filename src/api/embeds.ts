@@ -1,5 +1,4 @@
 import { api } from './client';
-import { useAuthStore } from '@/store/auth';
 import type { EmbedConfig, EmbedButton } from '@/components/ui/DiscordEmbedPreview';
 
 export interface GuildEmbed {
@@ -62,7 +61,6 @@ export const embedsApi = {
 
   // Multipart upload — raw fetch because api.fetch forces a JSON Content-Type.
   uploadImage: async (guildId: string, file: File, imageType: UploadImageType): Promise<string> => {
-    const token = useAuthStore.getState().token;
     const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
     const formData = new FormData();
     formData.append('image', file);
@@ -70,7 +68,7 @@ export const embedsApi = {
 
     const response = await fetch(`${apiBase}/api/guilds/${guildId}/embeds/upload-image`, {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      credentials: 'include',
       body: formData,
     });
     const data = await response.json().catch(() => ({}));

@@ -9,12 +9,12 @@ import { useAuthStore } from '@/store/auth';
  * rewards are claimed. Shared by the public and profile navigation bars.
  */
 export const NotificationBell: React.FC<{ username: string | null; size?: number }> = ({ username, size = 20 }) => {
-  const token = useAuthStore((s) => s.token);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const { data } = useQuery({
     queryKey: ['notifications', 'unread'],
     queryFn: () => notificationsApi.unreadCount(),
-    enabled: !!token,
+    enabled: isAuthenticated,
     refetchInterval: 60_000,
     staleTime: 30_000,
   });

@@ -17,8 +17,9 @@ import {
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { NotificationBell } from '@/components/profile/NotificationBell';
 import { DiscordLogo } from '@/components/ui/DiscordLogo';
-import { startLogin, useHydrateAuthUser } from '@/lib/auth';
+import { endSession, startLogin, useHydrateAuthUser } from '@/lib/auth';
 import { useAuthStore } from '@/store/auth';
+import { showToast } from '@/utils/toast';
 import '@/styles/public-nav.css';
 
 interface PublicNavProps {
@@ -34,7 +35,7 @@ export const PublicNav: React.FC<PublicNavProps> = ({
 }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(
@@ -156,12 +157,16 @@ export const PublicNav: React.FC<PublicNavProps> = ({
     setAccountMenuOpen(false);
   }, [pathname]);
 
-  const handleLogout = () => {
-    logout();
-    setMobileNavOpen(false);
-    setAccountMenuOpen(false);
-    onLogout?.();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await endSession();
+      setMobileNavOpen(false);
+      setAccountMenuOpen(false);
+      onLogout?.();
+      navigate('/');
+    } catch {
+      showToast('Could not log out. Your session is still active; please try again.', 'error');
+    }
   };
 
   const featuresHref = pathname === '/' ? '#system-map' : '/#system-map';

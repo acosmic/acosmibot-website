@@ -2,6 +2,13 @@
   "platform": {
     "apiRuntime": "node:18"
   },
+  "globalHeaders": {
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()"
+  },
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [

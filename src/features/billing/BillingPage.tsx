@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
+import { trackEvent } from '@/lib/analytics';
 import { LoadingSpinner } from '@/components/ui';
 import { showToast } from '@/utils/toast';
 import './BillingPage.css';
@@ -272,14 +273,16 @@ export const BillingPage: React.FC = () => {
   });
 
   const changeTier = useMutation({
-    mutationFn: ({ tier, interval }: { tier: PaidTier; interval: BillingInterval }) =>
-      subscriptionsApi.createCheckout({
+    mutationFn: ({ tier, interval }: { tier: PaidTier; interval: BillingInterval }) => {
+      trackEvent('begin_checkout', { plan: tier, interval, currency: 'usd' });
+      return subscriptionsApi.createCheckout({
         guild_id: guildId!,
         tier,
         interval,
         success_url: `${window.location.origin}/server/${guildId}/billing?success=true`,
         cancel_url: `${window.location.origin}/server/${guildId}/billing?canceled=true`,
-      }),
+      });
+    },
     onSuccess: async (data) => {
       if (data.checkout_url) {
         window.location.href = data.checkout_url;

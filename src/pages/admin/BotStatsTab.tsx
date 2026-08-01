@@ -178,7 +178,7 @@ function Badge({ children, color = '#4ade80', bg = 'rgba(74,222,128,0.12)' }: { 
   );
 }
 
-export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
+export const BotStatsTab: React.FC = () => {
   const [report, setReport] = useState<BotReport | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -194,10 +194,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-  const headers = { Authorization: `Bearer ${token}` };
-
   const fetchAll = useCallback(async () => {
-    if (!token) return;
     try {
       const params = new URLSearchParams({
         source: logSource,
@@ -207,8 +204,8 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
       if (debouncedSearch) params.set('search', debouncedSearch);
 
       const [statsRes, logsRes] = await Promise.all([
-        fetch(`${apiBase}/api/admin/bot/stats`, { headers }),
-        fetch(`${apiBase}/api/admin/logs?${params.toString()}`, { headers }),
+        fetch(`${apiBase}/api/admin/bot/stats`, { credentials: 'include' }),
+        fetch(`${apiBase}/api/admin/logs?${params.toString()}`, { credentials: 'include' }),
       ]);
       const statsData = await statsRes.json();
       const logsData = await logsRes.json();
@@ -230,7 +227,7 @@ export const BotStatsTab: React.FC<{ token: string | null }> = ({ token }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, logSource, logLevel, logLimit, debouncedSearch, apiBase]);
+  }, [logSource, logLevel, logLimit, debouncedSearch, apiBase]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(logSearch.trim()), 300);

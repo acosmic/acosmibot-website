@@ -1,6 +1,6 @@
-import { Routes, Route, Navigate, useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useParams, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Lock, Orbit, Ticket } from 'lucide-react';
+import { LoaderCircle, Lock, Orbit, Ticket } from 'lucide-react';
 import { ComingSoonPage } from './components/ui/ComingSoonPage';
 import { DashboardShell } from './components/layout/DashboardShell';
 import { GiveawayPage } from './features/giveaway/GiveawayPage';
@@ -37,54 +37,62 @@ import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/admin/AdminPage';
+import { refreshSession } from './lib/auth';
+import { CenteredMessage } from './components/ui/CenteredMessage';
 
-/** Catches the ?token= param from the API OAuth redirect and saves it, then
- *  returns the user to wherever they started login (e.g. a /u/<name> profile),
- *  falling back to the server selector. */
+/** Completes the cookie-backed OAuth redirect and returns the user to where
+ * they started login, falling back to the server selector. */
 const AuthCallback = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { setToken } = useAuthStore();
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    if (token) {
-      setToken(token);
-    }
-    let dest = '/servers';
-    try {
-      const saved = localStorage.getItem('postLoginRedirect');
-      if (saved) {
-        dest = saved;
+    void refreshSession().then((authenticated) => {
+      let dest = authenticated ? '/servers' : '/?error=session_failed';
+      try {
+        const saved = localStorage.getItem('postLoginRedirect');
+        if (authenticated && saved?.startsWith('/') && !saved.startsWith('//')) {
+          dest = saved;
+        }
         localStorage.removeItem('postLoginRedirect');
+      } catch { /* ignore storage errors */ }
+      if (authenticated) {
+        try { sessionStorage.setItem('acosmibot_login_complete', '1'); } catch { /* optional */ }
       }
-    } catch { /* ignore storage errors */ }
-    navigate(dest, { replace: true });
-  }, []);
+      navigate(dest, { replace: true });
+    });
+  }, [navigate]);
 
-  return null;
+  return <CenteredMessage icon={<LoaderCircle aria-hidden="true" />} title="Securing your session…" subtitle="Returning you to Acosmibot." />;
+};
+
+const RequireAuth = () => {
+  const { isAuthReady, isAuthenticated } = useAuthStore();
+  if (!isAuthReady) {
+    return <CenteredMessage icon={<LoaderCircle aria-hidden="true" />} title="Checking your session…" />;
+  }
+  return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 /** /me → redirect to the logged-in user's public profile (/u/<username>). */
 const MeRedirect = () => {
   const navigate = useNavigate();
-  const { user, token } = useAuthStore();
+  const { user, isAuthReady, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
+    if (!isAuthReady) return;
     if (user?.username) {
       navigate(`/u/${user.username}`, { replace: true });
       return;
     }
-    if (!token) {
+    if (!isAuthenticated) {
       navigate('/', { replace: true });
       return;
     }
-    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-    fetch(`${apiBase}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((data) => navigate(`/u/${data.username}`, { replace: true }))
-      .catch(() => navigate('/', { replace: true }));
-  }, [user, token, navigate]);
+    void refreshSession().then((authenticated) => {
+      const refreshedUser = useAuthStore.getState().user;
+      navigate(authenticated && refreshedUser?.username ? `/u/${refreshedUser.username}` : '/', { replace: true });
+    });
+  }, [user, isAuthReady, isAuthenticated, navigate]);
 
   return null;
 };
@@ -210,27 +218,29 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/dashboard" element={<AuthCallback />} />
-      <Route path="/servers" element={<GuildSelectPage />} />
       <Route path="/u/:identifier" element={<ProfilePage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/card-studio" element={<CardStudioPage />} />
       <Route path="/leaderboard" element={<LeaderboardPage />} />
       <Route path="/leaderboard/:guildId" element={<LeaderboardPage />} />
       <Route path="/achievements" element={<AchievementsPage />} />
-      <Route path="/me" element={<MeRedirect />} />
-      {/* Legacy /profile retired → resolve to the owner's public profile. */}
-      <Route path="/profile" element={<MeRedirect />} />
-      <Route path="/server/:guildId" element={<DashboardShell />}>
-        <Route path="embeds" element={<EmbedsListPage />} />
-        <Route path="embeds/new" element={<EmbedBuilderPage />} />
-        <Route path="embeds/edit/:embedId" element={<EmbedBuilderPage />} />
-        <Route path="reaction-roles" element={<ReactionRolesListPage />} />
-        <Route path="reaction-roles/new" element={<ReactionRoleBuilderPage />} />
-        <Route path="reaction-roles/edit/:rrId" element={<ReactionRoleBuilderPage />} />
-        <Route path=":feature" element={<FeatureOutlet />} />
-        <Route index element={<Navigate to="overview" replace />} />
+      <Route element={<RequireAuth />}>
+        <Route path="/servers" element={<GuildSelectPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/card-studio" element={<CardStudioPage />} />
+        <Route path="/me" element={<MeRedirect />} />
+        {/* Legacy /profile retired → resolve to the owner's public profile. */}
+        <Route path="/profile" element={<MeRedirect />} />
+        <Route path="/server/:guildId" element={<DashboardShell />}>
+          <Route path="embeds" element={<EmbedsListPage />} />
+          <Route path="embeds/new" element={<EmbedBuilderPage />} />
+          <Route path="embeds/edit/:embedId" element={<EmbedBuilderPage />} />
+          <Route path="reaction-roles" element={<ReactionRolesListPage />} />
+          <Route path="reaction-roles/new" element={<ReactionRoleBuilderPage />} />
+          <Route path="reaction-roles/edit/:rrId" element={<ReactionRoleBuilderPage />} />
+          <Route path=":feature" element={<FeatureOutlet />} />
+          <Route index element={<Navigate to="overview" replace />} />
+        </Route>
+        <Route path="/admin" element={<AdminPage />} />
       </Route>
-      <Route path="/admin" element={<AdminPage />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/docs/spotify" element={<Navigate to="/docs/music" replace />} />
       <Route path="/docs/:page" element={<DocsPage />} />

@@ -10,40 +10,46 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
+  status: 'checking' | 'authenticated' | 'anonymous';
+  isAuthReady: boolean;
   isAuthenticated: boolean;
   setUser: (user: User | null) => void;
-  setToken: (token: string | null) => void;
+  setChecking: () => void;
+  setAnonymous: () => void;
   logout: () => void;
 }
 
-// Read from either key — the old vanilla dashboard stores as 'discord_token'
-const storedToken = (() => {
+// Remove credentials written by the legacy URL-token flow. Browser sessions
+// now live only in a Secure, HttpOnly cookie owned by api.acosmibot.com.
+(() => {
   try {
-    return localStorage.getItem('auth_token') || localStorage.getItem('discord_token');
-  } catch {
-    return null;
-  }
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('discord_token');
+  } catch { /* storage may be unavailable */ }
 })();
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: storedToken,
-  isAuthenticated: !!storedToken,
-  setUser: (user) => set({ user }),
-  setToken: (token) => {
-    if (token) {
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('discord_token', token); // keep old dashboard in sync
-    } else {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('discord_token');
-    }
-    set({ token, isAuthenticated: !!token });
-  },
-  logout: () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('discord_token');
-    set({ user: null, token: null, isAuthenticated: false });
-  },
+  status: 'checking',
+  isAuthReady: false,
+  isAuthenticated: false,
+  setUser: (user) => set({
+    user,
+    status: user ? 'authenticated' : 'anonymous',
+    isAuthReady: true,
+    isAuthenticated: !!user,
+  }),
+  setChecking: () => set({ status: 'checking', isAuthReady: false }),
+  setAnonymous: () => set({
+    user: null,
+    status: 'anonymous',
+    isAuthReady: true,
+    isAuthenticated: false,
+  }),
+  logout: () => set({
+    user: null,
+    status: 'anonymous',
+    isAuthReady: true,
+    isAuthenticated: false,
+  }),
 }));

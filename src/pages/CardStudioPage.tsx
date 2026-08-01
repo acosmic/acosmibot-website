@@ -6,7 +6,6 @@
  * FORM: Fourth-ranked sticky-preview workbench structure; established world; seed 0038e941.
  */
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BadgePercent, Check, Coins, Hourglass, Palette, TriangleAlert } from 'lucide-react';
 import { CenteredMessage } from '@/components/ui/CenteredMessage';
@@ -57,24 +56,19 @@ function buildPreview(
 }
 
 export const CardStudioPage: React.FC = () => {
-  const token = useAuthStore((state) => state.token);
-  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!token) navigate('/', { replace: true });
-  }, [token, navigate]);
 
   const profileQuery = useQuery<PublicProfile>({
     queryKey: ['profile', 'me'],
     queryFn: () => profileApi.getMyProfile(),
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
   const catalogQuery = useQuery<CosmeticCatalog>({
     queryKey: ['cosmetics', 'catalog'],
     queryFn: () => cosmeticsApi.getCatalog(),
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
   const [selected, setSelected] = useState<Record<CosmeticType, Cosmetic | null>>({

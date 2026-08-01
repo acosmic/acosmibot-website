@@ -46,7 +46,7 @@ const ordinal = (value: number | null | undefined): string =>
 export const ProfilePage: React.FC = () => {
   const { identifier = '' } = useParams<{ identifier: string }>();
   const authUser = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const viewingOwn =
     !!authUser &&
     (authUser.username?.toLowerCase() === identifier.toLowerCase() || authUser.id === identifier);
@@ -66,7 +66,7 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="member-page profile-page">
       <PublicNav variant="observatory" />
-      {!!token && <MemberNav />}
+      {isAuthenticated && <MemberNav />}
 
       <main className="member-main profile-main">
         {profileQuery.isLoading && (
@@ -106,7 +106,7 @@ export const ProfilePage: React.FC = () => {
 
             {isOwner && <NotificationList />}
 
-            {!!token ? (
+            {isAuthenticated ? (
               <>
                 <TopUsage profile={profile} />
                 {profile.guilds && profile.guilds.length > 0 && <GuildStrip guilds={profile.guilds} />}

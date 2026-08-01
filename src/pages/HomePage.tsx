@@ -39,7 +39,8 @@ import {
   Wrench,
 } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
-import { useAuthStore } from '@/store/auth';
+import { startLogin } from '@/lib/auth';
+import { trackEvent } from '@/lib/analytics';
 import { COMPANY_BRAND } from '@/lib/company';
 import '@/styles/home.css';
 
@@ -500,7 +501,6 @@ const FeatureMap: React.FC<FeatureMapProps> = ({ selectedId, onSelect }) => {
 };
 
 export const HomePage: React.FC = () => {
-  const { user, token, setToken, setUser } = useAuthStore();
   const donationDialogRef = useRef<HTMLDivElement>(null);
   const bitcoinDialogRef = useRef<HTMLDivElement>(null);
   const modalRestoreRef = useRef<HTMLElement | null>(null);
@@ -523,24 +523,7 @@ export const HomePage: React.FC = () => {
       window.history.replaceState({}, '', window.location.pathname);
       return;
     }
-    const urlToken = params.get('token');
-    if (urlToken) {
-      setToken(urlToken);
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, [setToken, showNotif]);
-
-  useEffect(() => {
-    if (!token || user) return;
-    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-    fetch(`${apiBase}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(response => {
-        if (!response.ok) throw new Error('unauthorized');
-        return response.json();
-      })
-      .then(data => setUser(data))
-      .catch(() => setToken(null));
-  }, [token, user, setToken, setUser]);
+  }, [showNotif]);
 
   useEffect(() => {
     if (!showDonationModal && !showBitcoinPopup) return;
@@ -594,9 +577,13 @@ export const HomePage: React.FC = () => {
   }, []);
 
   const handleLogin = () => {
-    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
     showNotif('Redirecting to Discord...', 'info');
-    window.location.href = `${apiBase}/auth/login`;
+    startLogin();
+  };
+
+  const inviteBot = (source: 'hero' | 'navigation') => {
+    trackEvent('bot_invite_start', { source });
+    window.open(DISCORD_INVITE, '_blank', 'noopener,noreferrer');
   };
 
   const copyBTC = useCallback(async () => {
@@ -637,7 +624,7 @@ export const HomePage: React.FC = () => {
                 living system—built to keep your server active and entertained.
               </p>
               <div className="home-hero__actions">
-                <button className="home-button home-button--primary" onClick={() => window.open(DISCORD_INVITE, '_blank', 'noopener,noreferrer')}>
+                <button className="home-button home-button--primary" onClick={() => inviteBot('hero')}>
                   Add to Discord <Plus aria-hidden="true" />
                 </button>
                 <a href="#system-map" className="home-button home-button--quiet">
@@ -685,7 +672,7 @@ export const HomePage: React.FC = () => {
               <h2>Put every system in orbit.</h2>
               <p>Add Acosmibot to Discord, then shape the experience from one connected dashboard.</p>
             </div>
-            <button className="home-button home-button--primary" onClick={() => window.open(DISCORD_INVITE, '_blank', 'noopener,noreferrer')}>
+            <button className="home-button home-button--primary" onClick={() => inviteBot('navigation')}>
               Add to Discord <ArrowRight aria-hidden="true" />
             </button>
           </div>

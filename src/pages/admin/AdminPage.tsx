@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { InlineIcon } from '@/components/ui/InlineIcon';
-import { useAuthStore } from '@/store/auth';
 import { RagTab } from './RagTab';
 import { BotStatsTab } from './BotStatsTab';
 import { AiSettingsTab } from './AiSettingsTab';
@@ -94,22 +93,18 @@ interface Guild {
   settings: string | null;
 }
 
-function useAdminData<T>(url: string, token: string | null) {
+function useAdminData<T>(url: string) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
     const controller = new AbortController();
     const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
     setLoading(true);
     setError(null);
     fetch(`${apiBase}${url}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
       signal: controller.signal,
     })
       .then(async response => {
@@ -130,7 +125,7 @@ function useAdminData<T>(url: string, token: string | null) {
         setLoading(false);
       });
     return () => controller.abort();
-  }, [url, token]);
+  }, [url]);
 
   return { data, loading, error };
 }
@@ -315,14 +310,13 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const token = useAuthStore((state) => state.token);
   const [tab, setTab] = useState<AdminTab>('signins');
   const [authChecked, setAuthChecked] = useState(false);
   const activeTab = ADMIN_TABS.find((item) => item.id === tab) ?? ADMIN_TABS[0];
   const ActiveIcon = activeTab.icon;
 
-  const signinResult = useAdminData<{ logs: SigninLog[] }>('/api/admin/signin-logs?limit=1000', token);
-  const guildsResult = useAdminData<{ guilds: Guild[] }>('/api/admin/guilds?limit=100', token);
+  const signinResult = useAdminData<{ logs: SigninLog[] }>('/api/admin/signin-logs?limit=1000');
+  const guildsResult = useAdminData<{ guilds: Guild[] }>('/api/admin/guilds?limit=100');
   const activeDataResult = tab === 'signins'
     ? signinResult
     : tab === 'servers'
@@ -337,9 +331,8 @@ export const AdminPage: React.FC = () => {
     : { label: 'Owner module', tone: 'neutral' };
 
   useEffect(() => {
-    if (!token) { navigate('/'); return; }
     const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-    fetch(`${apiBase}/api/admin/check`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${apiBase}/api/admin/check`, { credentials: 'include' })
       .then(r => r.json())
       .then(d => {
         // The panel and every /api/admin route require super-admin; a plain
@@ -348,7 +341,7 @@ export const AdminPage: React.FC = () => {
         else setAuthChecked(true);
       })
       .catch(() => navigate('/'));
-  }, [navigate, token]);
+  }, [navigate]);
 
   if (!authChecked) {
     return (
@@ -475,12 +468,12 @@ export const AdminPage: React.FC = () => {
         )}
 
         {/* RAG Docs */}
-        {tab === 'rag' && <div className="admin-surface"><RagTab token={token} /></div>}
+        {tab === 'rag' && <div className="admin-surface"><RagTab /></div>}
 
         {/* Bot Stats */}
         {tab === 'botstats' && (
           <div className="admin-surface">
-            <BotStatsTab token={token} />
+            <BotStatsTab />
           </div>
         )}
 

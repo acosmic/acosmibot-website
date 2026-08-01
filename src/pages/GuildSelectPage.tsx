@@ -9,12 +9,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Bot, Crown, Gem, Plus, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
 import { useGuildStore } from '@/store/guild';
-import { useAuthStore } from '@/store/auth';
 import { guildApi } from '@/api/guilds';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import type { Guild } from '@/types/guild';
 import '@/styles/servers.css';
+import { trackEvent } from '@/lib/analytics';
 
 const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 
@@ -35,7 +35,6 @@ const planLabel = (tier?: string) => {
 export const GuildSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const { guilds, setGuilds, setSelectedGuildId } = useGuildStore();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [query, setQuery] = useState('');
 
@@ -52,12 +51,8 @@ export const GuildSelectPage: React.FC = () => {
   }, [setGuilds]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/');
-      return;
-    }
     void loadGuilds();
-  }, [isAuthenticated, loadGuilds, navigate]);
+  }, [loadGuilds]);
 
   const sorted = useMemo(() => [...guilds].sort((a, b) => {
     const score = (guild: Guild) =>
@@ -78,6 +73,9 @@ export const GuildSelectPage: React.FC = () => {
   const totalMember = sorted.length - totalManageable;
 
   const openGuild = (guild: Guild) => {
+    trackEvent('server_open', {
+      access: guild.owner ? 'owner' : guild.permissions?.includes('administrator') ? 'admin' : 'member',
+    });
     if (canManageGuild(guild)) {
       setSelectedGuildId(guild.id);
       navigate(`/server/${guild.id}/overview`);
@@ -87,6 +85,7 @@ export const GuildSelectPage: React.FC = () => {
   };
 
   const inviteBot = () => {
+    trackEvent('bot_invite_start', { source: 'server_catalog' });
     window.open(INVITE_URL, '_blank', 'noopener,noreferrer');
   };
 

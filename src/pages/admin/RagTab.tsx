@@ -70,7 +70,7 @@ const cardStyle: React.CSSProperties = {
   marginBottom: 24,
 };
 
-export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
+export const RagTab: React.FC = () => {
   const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
 
   const [health, setHealth] = useState<HealthData | null>(null);
@@ -101,10 +101,8 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
   const [logs, setLogs] = useState<QueryLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
 
-  const authHeaders = { Authorization: `Bearer ${token}` };
-
   const fetchHealth = useCallback(() => {
-    fetch(`${apiBase}/api/admin/rag/health`, { headers: authHeaders })
+    fetch(`${apiBase}/api/admin/rag/health`, { credentials: 'include' })
       .then(r => r.json())
       .then(d => { if (d.success) setHealth(d); else setHealthError(d.error); })
       .catch(e => setHealthError(String(e)));
@@ -112,7 +110,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
 
   const fetchDocuments = useCallback(() => {
     setDocsLoading(true);
-    fetch(`${apiBase}/api/admin/rag/documents`, { headers: authHeaders })
+    fetch(`${apiBase}/api/admin/rag/documents`, { credentials: 'include' })
       .then(r => r.json())
       .then(d => {
         if (d.success) { setDocuments(d.documents); setDocsError(null); }
@@ -124,7 +122,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
 
   const fetchLogs = useCallback(() => {
     setLogsLoading(true);
-    fetch(`${apiBase}/api/admin/rag/logs?limit=200`, { headers: authHeaders })
+    fetch(`${apiBase}/api/admin/rag/logs?limit=200`, { credentials: 'include' })
       .then(r => r.json())
       .then(d => { if (d.success) setLogs(d.logs); })
       .catch(() => {})
@@ -146,7 +144,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
         next.add(docId);
         if (!chunkCache[docId]) {
           setChunksLoading(l => new Set(l).add(docId));
-          fetch(`${apiBase}/api/admin/rag/documents/${docId}/chunks`, { headers: authHeaders })
+          fetch(`${apiBase}/api/admin/rag/documents/${docId}/chunks`, { credentials: 'include' })
             .then(r => r.json())
             .then(d => {
               if (d.success) setChunkCache(c => ({ ...c, [docId]: d.chunks }));
@@ -165,7 +163,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
     try {
       const r = await fetch(`${apiBase}/api/admin/rag/refresh${force ? '?force=true' : ''}`, {
         method: 'POST',
-        headers: authHeaders,
+        credentials: 'include',
       });
       const d = await r.json();
       setRefreshMsg({ text: d.message ?? (d.success ? 'Done' : d.error), ok: d.success });
@@ -185,7 +183,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
     try {
       const r = await fetch(`${apiBase}/api/admin/rag/documents/${docId}`, {
         method: 'DELETE',
-        headers: authHeaders,
+        credentials: 'include',
       });
       const d = await r.json();
       if (d.success) {
@@ -206,7 +204,7 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
     try {
       const r = await fetch(`${apiBase}/api/admin/rag/documents`, {
         method: 'DELETE',
-        headers: authHeaders,
+        credentials: 'include',
       });
       const d = await r.json();
       setRefreshMsg({ text: d.message ?? (d.success ? 'Deleted all documents' : d.error), ok: d.success });
@@ -234,7 +232,8 @@ export const RagTab: React.FC<{ token: string | null }> = ({ token }) => {
     try {
       const r = await fetch(`${apiBase}/api/admin/rag/query`, {
         method: 'POST',
-        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: queryText, top_k: 5 }),
       });
       const d = await r.json();
