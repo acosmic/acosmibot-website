@@ -154,6 +154,10 @@
     font-weight: 600;
 }
 
+.home-hero h1 span + span {
+    margin-top: 0.1em;
+}
+
 .home-hero h1 .home-hero__primary {
     color: var(--home-white);
     font-weight: 800;

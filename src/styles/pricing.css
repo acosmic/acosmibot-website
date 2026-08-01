@@ -643,13 +643,13 @@
     align-items: flex-start;
     gap: 8px;
     color: #b3c4cc;
-    font-size: 11px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .pricing-tier__features li svg {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
     flex: 0 0 auto;
     margin-top: 1px;
     color: #4fe3a1;
