@@ -131,7 +131,7 @@ export const PrivacyPolicyPage: React.FC = () => (
       </ul>
 
       <LegalSubheading>4.4 Google Analytics</LegalSubheading>
-      <p>When you allow optional analytics, Google processes sanitized usage events on our behalf so we can understand which areas of the website are useful and where visitors encounter friction. Advertising storage, Google Signals, and ad personalization are disabled. You can change your choice at any time using the “Analytics choices” link in the website footer.</p>
+      <p>When you allow optional analytics, Google processes sanitized usage events on our behalf so we can understand which areas of the website are useful and where visitors encounter friction. Advertising storage, Google Signals, and ad personalization are disabled. You can change your choice at any time using the “Cookie choices” link in the website footer.</p>
 
       <LegalSubheading>4.5 Database &amp; Hosting</LegalSubheading>
       <p>Your data is stored on secure database servers provided by trusted hosting providers. These providers have access to infrastructure but do not actively access or use your data.</p>
@@ -206,10 +206,11 @@ export const PrivacyPolicyPage: React.FC = () => (
       <ul>
         <li><strong>Essential Session Cookies:</strong> A Secure, HttpOnly cookie keeps you signed in without exposing the credential to website JavaScript</li>
         <li><strong>OAuth Security Cookie:</strong> A temporary signed cookie protects Discord sign-in from request forgery</li>
-        <li><strong>Local Storage:</strong> Stores non-secret preferences such as your analytics choice and intended return page during sign-in</li>
-        <li><strong>Optional Analytics Cookies:</strong> Google Analytics cookies are permitted only after you select “Allow analytics”</li>
+        <li><strong>Local Storage:</strong> Stores non-secret, versioned preferences such as your cookie choice and intended return page during sign-in</li>
+        <li><strong>Optional Analytics Cookies:</strong> Google Analytics cookies are permitted only after you select “Accept all” or enable Analytics under “Manage choices”</li>
       </ul>
       <p>We do not use third-party advertising cookies. Declining analytics does not affect dashboard functionality, Discord sign-in, subscriptions, or bot features.</p>
+      <p>If we introduce a new optional cookie purpose, we will update this policy and ask you to choose again; accepting the current categories does not authorize undisclosed future uses.</p>
     </LegalSection>
 
     <LegalSection title="12. Contact Information">

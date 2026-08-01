@@ -2,12 +2,38 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  ANALYTICS_CONSENT_KEY,
+  CONSENT_SCHEMA_VERSION,
   initializeAnalytics,
+  readAnalyticsConsent,
   resolveAnalyticsPage,
   trackEvent,
   trackPageView,
   writeAnalyticsConsent,
 } from '../src/lib/analytics.ts';
+
+test('migrates legacy consent and rejects unknown future schemas', () => {
+  const storage = new Map<string, string>([[ANALYTICS_CONSENT_KEY, 'granted']]);
+  Object.assign(globalThis, {
+    localStorage: {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+    },
+  });
+
+  assert.equal(readAnalyticsConsent(), 'granted');
+  assert.deepEqual(JSON.parse(storage.get(ANALYTICS_CONSENT_KEY) ?? ''), {
+    version: CONSENT_SCHEMA_VERSION,
+    analytics: true,
+  });
+
+  storage.set(ANALYTICS_CONSENT_KEY, JSON.stringify({
+    version: CONSENT_SCHEMA_VERSION + 1,
+    analytics: true,
+    marketing: true,
+  }));
+  assert.equal(readAnalyticsConsent(), null);
+});
 
 test('normalizes identifiers out of public and guild routes', () => {
   assert.equal(resolveAnalyticsPage('/u/SomeUser').path, '/u/:profile');

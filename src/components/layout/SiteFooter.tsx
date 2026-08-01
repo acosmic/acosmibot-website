@@ -31,7 +31,7 @@ export const SiteFooter: React.FC = () => (
         cursor: 'pointer',
       }}
     >
-      Analytics choices
+      Cookie choices
     </button>
     <FooterLink href={SUPPORT_URL} external>Support Discord</FooterLink>
   </footer>

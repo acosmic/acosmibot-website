@@ -1,7 +1,13 @@
 export type AnalyticsConsent = 'granted' | 'denied' | null;
 
+interface ConsentPreferences {
+  version: number;
+  analytics: boolean;
+}
+
 export const ANALYTICS_CONSENT_KEY = 'acosmibot_analytics_consent';
 export const ANALYTICS_PREFERENCES_EVENT = 'acosmibot:analytics-preferences';
+export const CONSENT_SCHEMA_VERSION = 1;
 
 type EventName =
   | 'begin_checkout'
@@ -124,7 +130,26 @@ export function resolveAnalyticsPage(pathname: string): AnalyticsPage {
 export function readAnalyticsConsent(): AnalyticsConsent {
   try {
     const value = localStorage.getItem(ANALYTICS_CONSENT_KEY);
-    return value === 'granted' || value === 'denied' ? value : null;
+    if (!value) return null;
+
+    // Migrate choices made by the first analytics-only banner. This branch is
+    // deliberately valid only for schema v1; a future category/version must
+    // prompt again instead of inheriting a broader, undisclosed purpose.
+    if (CONSENT_SCHEMA_VERSION === 1 && (value === 'granted' || value === 'denied')) {
+      const preferences: ConsentPreferences = {
+        version: CONSENT_SCHEMA_VERSION,
+        analytics: value === 'granted',
+      };
+      localStorage.setItem(ANALYTICS_CONSENT_KEY, JSON.stringify(preferences));
+      return value;
+    }
+
+    const preferences = JSON.parse(value) as Partial<ConsentPreferences>;
+    if (
+      preferences.version !== CONSENT_SCHEMA_VERSION
+      || typeof preferences.analytics !== 'boolean'
+    ) return null;
+    return preferences.analytics ? 'granted' : 'denied';
   } catch {
     return null;
   }
@@ -133,7 +158,11 @@ export function readAnalyticsConsent(): AnalyticsConsent {
 export function writeAnalyticsConsent(value: Exclude<AnalyticsConsent, null>): void {
   consent = value;
   try {
-    localStorage.setItem(ANALYTICS_CONSENT_KEY, value);
+    const preferences: ConsentPreferences = {
+      version: CONSENT_SCHEMA_VERSION,
+      analytics: value === 'granted',
+    };
+    localStorage.setItem(ANALYTICS_CONSENT_KEY, JSON.stringify(preferences));
   } catch { /* analytics stays fail-closed when storage is unavailable */ }
 
   if (window.gtag) {
