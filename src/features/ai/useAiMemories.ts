@@ -44,31 +44,10 @@ export function useAiMemoryMutations(guildId: string) {
     queryClient.invalidateQueries({ queryKey: serverDocKey(guildId) });
   };
 
-  const saveDoc = useMutation({
-    mutationFn: ({ userId, content, expectedVersion }: {
-      userId: string;
-      content: string;
-      expectedVersion?: number;
-    }) => aiMemoriesApi.saveDoc(guildId, userId, content, expectedVersion),
-    onSuccess: (_d, vars) => invalidateUser(vars.userId),
-  });
-
-  const appendFact = useMutation({
-    mutationFn: ({ userId, content }: { userId: string; content: string }) =>
-      aiMemoriesApi.appendFact(guildId, userId, content),
-    onSuccess: (_d, vars) => invalidateUser(vars.userId),
-  });
-
   const clearUser = useMutation({
     mutationFn: ({ userId }: { userId: string }) =>
       aiMemoriesApi.clearUser(guildId, userId),
     onSuccess: (_d, vars) => invalidateUser(vars.userId),
-  });
-
-  const saveServerDoc = useMutation({
-    mutationFn: ({ content, expectedVersion }: { content: string; expectedVersion?: number }) =>
-      aiMemoriesApi.saveServerDoc(guildId, content, expectedVersion),
-    onSuccess: invalidateServer,
   });
 
   const clearServerDoc = useMutation({
@@ -76,5 +55,5 @@ export function useAiMemoryMutations(guildId: string) {
     onSuccess: invalidateServer,
   });
 
-  return { saveDoc, appendFact, clearUser, saveServerDoc, clearServerDoc };
+  return { clearUser, clearServerDoc };
 }

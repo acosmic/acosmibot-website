@@ -216,11 +216,7 @@ const FeatureOutlet = () => {
 
 function App() {
   return (
-    <Suspense fallback={(
-      <div role="status" aria-live="polite">
-        <CenteredMessage icon={<LoaderCircle aria-hidden="true" />} title="Loading Acosmibot…" />
-      </div>
-    )}>
+    <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<HomePage />} />
       <Route path="/dashboard" element={<AuthCallback />} />

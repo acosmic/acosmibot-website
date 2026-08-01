@@ -26,23 +26,6 @@ export const aiMemoriesApi = {
       `/api/guilds/${guildId}/ai/memories/${userId}`,
     ),
 
-  saveDoc: (
-    guildId: string,
-    userId: string,
-    content: string,
-    expectedVersion?: number,
-  ) =>
-    api.fetch<{ success: boolean; message: string }>(
-      `/api/guilds/${guildId}/ai/memories/${userId}`,
-      { method: 'PUT', body: JSON.stringify({ content, expected_version: expectedVersion }) },
-    ),
-
-  appendFact: (guildId: string, userId: string, content: string) =>
-    api.fetch<{ success: boolean; message: string }>(
-      `/api/guilds/${guildId}/ai/memories/${userId}`,
-      { method: 'POST', body: JSON.stringify({ content }) },
-    ),
-
   clearUser: (guildId: string, userId: string) =>
     api.fetch<{ success: boolean; message: string }>(
       `/api/guilds/${guildId}/ai/memories/${userId}`,
@@ -52,12 +35,6 @@ export const aiMemoriesApi = {
   getServerDoc: (guildId: string) =>
     api.fetch<{ success: boolean; data: AiMemoryDoc }>(
       `/api/guilds/${guildId}/ai/server-memory`,
-    ),
-
-  saveServerDoc: (guildId: string, content: string, expectedVersion?: number) =>
-    api.fetch<{ success: boolean; message: string }>(
-      `/api/guilds/${guildId}/ai/server-memory`,
-      { method: 'PUT', body: JSON.stringify({ content, expected_version: expectedVersion }) },
     ),
 
   clearServerDoc: (guildId: string) =>
