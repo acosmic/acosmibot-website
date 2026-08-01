@@ -23,7 +23,10 @@ export const SiteFooter: React.FC = () => (
       type="button"
       onClick={openAnalyticsPreferences}
       style={{
-        padding: 0,
+        minHeight: '44px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '8px 0',
         border: 0,
         background: 'transparent',
         color: 'var(--text-secondary)',
@@ -38,7 +41,14 @@ export const SiteFooter: React.FC = () => (
 );
 
 const FooterLink: React.FC<{ href: string; external?: boolean; children: React.ReactNode }> = ({ href, external, children }) => {
-  const style = { color: 'var(--text-secondary)', textDecoration: 'none' };
+  const style = {
+    minHeight: '44px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '8px 0',
+    color: 'var(--text-secondary)',
+    textDecoration: 'none',
+  };
   if (external) {
     return <a href={href} target="_blank" rel="noreferrer" style={style}>{children}</a>;
   }

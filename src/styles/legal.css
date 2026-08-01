@@ -235,7 +235,7 @@
 }
 
 .legal-record-switcher a {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   padding: 8px 14px;
@@ -314,11 +314,11 @@
   grid-template-columns: 24px minmax(0, 1fr) 7px;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
+  min-height: 44px;
   padding: 7px 10px;
   border-radius: 8px;
   color: var(--legal-copy);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.35;
   text-decoration: none;
   transition: background 150ms ease, color 150ms ease;
@@ -631,11 +631,11 @@
 
   .legal-mobile-index a {
     display: block;
-    min-height: 40px;
+    min-height: 44px;
     padding: 9px 10px;
     border-radius: 8px;
     color: var(--legal-copy);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
     text-decoration: none;
   }

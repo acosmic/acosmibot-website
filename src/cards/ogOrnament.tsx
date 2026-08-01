@@ -106,9 +106,10 @@ export function OgMonogram() {
 /** Gold filigree frame, drawn ON TOP of the card content (high z). */
 export function OgFrame() {
   return (
-    // eslint-disable-next-line jsx-a11y/alt-text
     <img
       src={OG_FRAME_DATA_URI}
+      alt=""
+      aria-hidden="true"
       width={800}
       height={250}
       style={{ position: 'absolute', left: 0, top: 0, width: 800, height: 250 }}

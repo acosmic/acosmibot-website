@@ -215,7 +215,16 @@ export const DocsPage: React.FC = () => {
       setActiveSection(current);
     };
 
-    const frame = window.requestAnimationFrame(() => {
+    let scrollFrame: number | null = null;
+    const scheduleActiveSectionSync = () => {
+      if (scrollFrame !== null) return;
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = null;
+        syncActiveSection();
+      });
+    };
+
+    const initialFrame = window.requestAnimationFrame(() => {
       const hashId = window.location.hash.slice(1);
       const hashTarget = hashId ? document.getElementById(hashId) : null;
       if (hashTarget && article.contains(hashTarget)) {
@@ -228,10 +237,11 @@ export const DocsPage: React.FC = () => {
       syncActiveSection();
     });
 
-    scroller.addEventListener('scroll', syncActiveSection, { passive: true });
+    scroller.addEventListener('scroll', scheduleActiveSectionSync, { passive: true });
     return () => {
-      window.cancelAnimationFrame(frame);
-      scroller.removeEventListener('scroll', syncActiveSection);
+      window.cancelAnimationFrame(initialFrame);
+      if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame);
+      scroller.removeEventListener('scroll', scheduleActiveSectionSync);
     };
   }, [html, loading]);
 

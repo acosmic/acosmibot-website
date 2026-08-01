@@ -93,6 +93,17 @@ typography:
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: "0.5px"
+  caption:
+    fontFamily: "Poppins, sans-serif"
+    fontSize: "10px"
+    fontWeight: 500
+    lineHeight: 1.4
+  telemetry:
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace"
+    fontSize: "9px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "0.08em"
   micro:
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace"
     fontSize: "8px"
@@ -136,23 +147,27 @@ components:
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     padding: "12px 24px"
+    height: "44px"
   button-primary-hover:
     backgroundColor: "{colors.signal-cyan-bright}"
     textColor: "{colors.control-black}"
     rounded: "{rounded.md}"
     padding: "12px 24px"
+    height: "44px"
   button-secondary:
     backgroundColor: "{colors.control-raised}"
     textColor: "{colors.polar-white}"
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     padding: "12px 24px"
+    height: "44px"
   input:
     backgroundColor: "{colors.control-raised}"
     textColor: "{colors.polar-white}"
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     padding: "10px 12px"
+    height: "44px"
   card:
     backgroundColor: "{colors.control-panel}"
     textColor: "{colors.polar-white}"
@@ -168,6 +183,7 @@ components:
     textColor: "{colors.polar-white}"
     typography: "{typography.body}"
     padding: "10px 20px"
+    height: "44px"
   status-chip-active:
     backgroundColor: "rgba(0, 255, 136, 0.15)"
     textColor: "{colors.success}"
@@ -251,14 +267,19 @@ Signal Cyan leads a tightly controlled graphite palette; white and cool gray est
 - **Headline** (700, 32px, 1.2): Primary page titles and major dashboard destinations; reduce to 28px on compact screens.
 - **Title** (600, 18px, 1.35): Card headings, section titles, and important control labels.
 - **Body** (400, 14–16px, 1.6): Instructions, descriptions, supporting content, and most dashboard data. Observatory member surfaces use the 16px end of the range for explanatory copy.
-- **Dense Data** (500–600, 12–14px, 1.5): Compact item names, values, descriptions, and secondary metadata inside operational ledgers.
-- **Label** (600, 11px minimum, 0.5px tracking, uppercase): Navigation groups, compact status, and metadata categories. Short telemetry labels may be visually quiet, but never smaller than 11px.
+- **Compact Body** (400–650, 13px, 1.5–1.6): Feature lists, navigation, secondary actions, and short readable supporting copy where 14px would create unnecessary density.
+- **Dense Data** (500–600, 12px, 1.5): Secondary values and concise metadata inside operational ledgers; never use it for instructions or explanatory prose.
+- **Label** (600, 11px, 0.5px tracking, uppercase): Navigation groups, compact status, and metadata categories.
+- **Caption** (500, 10px, 1.4): Very short secondary annotations attached to a clearly labeled object.
+- **Telemetry** (600, 8–9px, 0.08em tracking, uppercase): Orbit identifiers, topology counts, tier markers, and machine-like readouts only.
 
 ### Named Rules
 
 **The Weight Builds Hierarchy Rule.** Use Poppins weight and size to establish importance; do not introduce a display face to manufacture personality.
 
 **The Uppercase Is Metadata Rule.** Uppercase belongs to short group labels and status chips, never paragraphs or primary actions.
+
+**The Readability Boundary Rule.** Instructions and explanatory copy use the 14px body role; feature lists, navigation, and actions use at least the 13px compact role. Only terse metadata and machine-like telemetry may fall below 11px.
 
 ## Layout
 
@@ -268,7 +289,7 @@ At 768px and below, the guild rail disappears, navigation becomes a left drawer 
 
 **The Shell Before Page Rule.** Preserve top-bar, rail, sidebar, and content offsets as one responsive system; do not solve page layout by locally compensating for shell geometry.
 
-**The Dense, Never Cramped Rule.** Compact labels and rows may be tight, but interactive targets and panel padding must remain generous enough for confident operation.
+**The Dense, Never Cramped Rule.** Compact labels and rows may be tight, but primary interactive targets remain at least 44px high and panel padding stays generous enough for confident operation.
 
 ## Elevation & Depth
 
@@ -337,7 +358,7 @@ Components should feel tactile and confident: substantial enough to invite actio
 ### Buttons
 
 - **Shape:** Dashboard buttons use a gently curved control radius (8px); homepage hero calls to action use a deliberate pill.
-- **Primary:** Signal Cyan-to-deep-cyan fill, control-black text in the dashboard, semibold weight, and medium-to-generous horizontal padding.
+- **Primary:** Signal Cyan-to-deep-cyan fill, control-black text in the dashboard, semibold weight, a 44px minimum target, and medium-to-generous horizontal padding.
 - **Hover / Focus:** Lift by 1–2px, strengthen the cyan shadow, and retain a clearly visible focus ring. State changes use approximately 200–300ms ease.
 - **Secondary / Ghost:** Raised graphite or transparent fill, Polar White text, and a subtle border that shifts toward the signal border on hover.
 
@@ -381,6 +402,7 @@ Unsaved work appears as a fixed, substantial status surface with direct Save and
 - **Do** keep dashboard pages scan-friendly with compact labels, 20–24px panel padding, and 32–40px major-group spacing.
 - **Do** preserve visible hover, focus-visible, active, disabled, loading, success, and error feedback.
 - **Do** retain Poppins and use weight contrast to connect marketing and product surfaces.
+- **Do** keep explanatory copy at 14px or larger, feature lists and actions at 13px or larger, and primary touch targets at least 44px high.
 
 ### Don't:
 

@@ -133,7 +133,7 @@
 }
 
 .public-nav--observatory .public-nav__login {
-  min-height: 40px;
+  min-height: 44px;
   padding: 9px 17px;
   border: 1px solid rgba(0, 217, 255, 0.46);
   border-radius: 8px;
@@ -318,7 +318,7 @@
 
 .public-nav__account-menu a,
 .public-nav__account-menu button {
-  min-height: 42px;
+  min-height: 44px;
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
@@ -510,8 +510,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -614,7 +614,7 @@
 
 .public-nav__drawer-session {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 40px;
+  grid-template-columns: minmax(0, 1fr) 44px;
   gap: 8px;
 }
 

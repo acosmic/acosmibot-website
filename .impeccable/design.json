@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-24T05:13:09Z",
+  "generatedAt": "2026-08-01T15:19:39Z",
   "title": "Design System: Acosmibot",
   "extensions": {
     "colorMeta": {
@@ -307,9 +307,33 @@
         "displayName": "Body",
         "purpose": "Instructions, descriptions, supporting content, and dashboard data."
       },
+      "bodyLarge": {
+        "displayName": "Large Body",
+        "purpose": "Prominent explanatory copy on spacious public and member surfaces."
+      },
+      "compact": {
+        "displayName": "Compact Body",
+        "purpose": "Feature lists, navigation, secondary actions, and concise readable copy."
+      },
+      "dense": {
+        "displayName": "Dense Data",
+        "purpose": "Secondary values and concise metadata inside operational ledgers."
+      },
       "label": {
         "displayName": "Label",
         "purpose": "Navigation groups, compact status, and metadata categories."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Very short secondary annotations attached to a clearly labeled object."
+      },
+      "telemetry": {
+        "displayName": "Telemetry",
+        "purpose": "Orbit identifiers, topology counts, tier markers, and machine-like readouts only."
+      },
+      "micro": {
+        "displayName": "Micro Telemetry",
+        "purpose": "The lower bound for terse, non-prose instrument labels."
       }
     },
     "shadows": [
@@ -378,7 +402,7 @@
       "refersTo": "button-primary",
       "description": "The principal dashboard action with gradient signal fill and responsive lift.",
       "html": "<button class=\"ds-btn-primary\">Save changes</button>",
-      "css": ".ds-btn-primary { background: linear-gradient(135deg, var(--primary-color, #00D9FF), var(--secondary-color, #00A0CC)); color: #000; padding: 12px 24px; border: 0; border-radius: 8px; font-family: Poppins, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); transition: transform 0.3s ease, box-shadow 0.3s ease; } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); } .ds-btn-primary:focus-visible { outline: 2px solid var(--primary-hover, #00F0FF); outline-offset: 3px; } .ds-btn-primary:active { transform: translateY(0); }"
+      "css": ".ds-btn-primary { min-height: 44px; background: linear-gradient(135deg, var(--primary-color, #00D9FF), var(--secondary-color, #00A0CC)); color: #000; padding: 12px 24px; border: 0; border-radius: 8px; font-family: Poppins, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); transition: transform 0.3s ease, box-shadow 0.3s ease; } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); } .ds-btn-primary:focus-visible { outline: 2px solid var(--primary-hover, #00F0FF); outline-offset: 3px; } .ds-btn-primary:active { transform: translateY(0); }"
     },
     {
       "name": "Secondary Button",
@@ -386,7 +410,7 @@
       "refersTo": "button-secondary",
       "description": "A neutral action that stays present without competing with the primary signal.",
       "html": "<button class=\"ds-btn-secondary\">Discard</button>",
-      "css": ".ds-btn-secondary { background: var(--bg-tertiary, #333333); color: var(--text-primary, #FFFFFF); padding: 12px 24px; border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 8px; font-family: Poppins, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease; } .ds-btn-secondary:hover { background: var(--bg-card-hover, #3A3A3A); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); transform: translateY(-1px); } .ds-btn-secondary:focus-visible { outline: 3px solid var(--primary-dim, rgba(0, 217, 255, 0.3)); outline-offset: 2px; } .ds-btn-secondary:active { transform: translateY(0); }"
+      "css": ".ds-btn-secondary { min-height: 44px; background: var(--bg-tertiary, #333333); color: var(--text-primary, #FFFFFF); padding: 12px 24px; border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 8px; font-family: Poppins, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease; } .ds-btn-secondary:hover { background: var(--bg-card-hover, #3A3A3A); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); transform: translateY(-1px); } .ds-btn-secondary:focus-visible { outline: 3px solid var(--primary-dim, rgba(0, 217, 255, 0.3)); outline-offset: 2px; } .ds-btn-secondary:active { transform: translateY(0); }"
     },
     {
       "name": "Text Field",
@@ -394,7 +418,7 @@
       "refersTo": "input",
       "description": "The standard raised-graphite field with cyan focus and explicit label.",
       "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Channel name</span><input class=\"ds-field-input\" type=\"text\" placeholder=\"general\" /></label>",
-      "css": ".ds-field { display: grid; gap: 6px; width: 100%; max-width: 340px; font-family: Poppins, sans-serif; } .ds-field-label { color: var(--text-primary, #FFFFFF); font-size: 14px; font-weight: 500; } .ds-field-input { background: var(--bg-tertiary, #333333); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 8px; color: var(--text-primary, #FFFFFF); padding: 10px 12px; font: 400 14px/1.6 Poppins, sans-serif; transition: border-color 0.3s ease, box-shadow 0.3s ease; } .ds-field-input::placeholder { color: var(--text-muted, #808080); } .ds-field-input:hover { border-color: var(--border-medium, rgba(255, 255, 255, 0.2)); } .ds-field-input:focus-visible { outline: none; border-color: var(--primary-color, #00D9FF); box-shadow: 0 0 0 3px var(--primary-dim, rgba(0, 217, 255, 0.3)); }"
+      "css": ".ds-field { display: grid; gap: 6px; width: 100%; max-width: 340px; font-family: Poppins, sans-serif; } .ds-field-label { color: var(--text-primary, #FFFFFF); font-size: 14px; font-weight: 500; } .ds-field-input { min-height: 44px; background: var(--bg-tertiary, #333333); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 8px; color: var(--text-primary, #FFFFFF); padding: 10px 12px; font: 400 14px/1.6 Poppins, sans-serif; transition: border-color 0.3s ease, box-shadow 0.3s ease; } .ds-field-input::placeholder { color: var(--text-muted, #808080); } .ds-field-input:hover { border-color: var(--border-medium, rgba(255, 255, 255, 0.2)); } .ds-field-input:focus-visible { outline: none; border-color: var(--primary-color, #00D9FF); box-shadow: 0 0 0 3px var(--primary-dim, rgba(0, 217, 255, 0.3)); }"
     },
     {
       "name": "Active Navigation Item",
@@ -402,7 +426,7 @@
       "refersTo": "nav-item-active",
       "description": "A compact sidebar destination with cyan-overlay state and icon.",
       "html": "<a class=\"ds-nav-item\" href=\"#\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z\" /></svg><span>Overview</span></a>",
-      "css": ".ds-nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: var(--bg-overlay-hover, rgba(0, 217, 255, 0.15)); color: var(--text-primary, #FFFFFF); text-decoration: none; font: 400 14px/1.4 Poppins, sans-serif; transition: background 0.2s ease; } .ds-nav-item svg { width: 16px; height: 16px; fill: var(--primary-color, #00D9FF); flex: 0 0 auto; } .ds-nav-item:hover { background: rgba(0, 217, 255, 0.2); } .ds-nav-item:focus-visible { outline: 2px solid var(--primary-color, #00D9FF); outline-offset: -2px; } .ds-nav-item:active { background: rgba(0, 217, 255, 0.24); }"
+      "css": ".ds-nav-item { min-height: 44px; display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: var(--bg-overlay-hover, rgba(0, 217, 255, 0.15)); color: var(--text-primary, #FFFFFF); text-decoration: none; font: 400 14px/1.4 Poppins, sans-serif; transition: background 0.2s ease; } .ds-nav-item svg { width: 16px; height: 16px; fill: var(--primary-color, #00D9FF); flex: 0 0 auto; } .ds-nav-item:hover { background: rgba(0, 217, 255, 0.2); } .ds-nav-item:focus-visible { outline: 2px solid var(--primary-color, #00D9FF); outline-offset: -2px; } .ds-nav-item:active { background: rgba(0, 217, 255, 0.24); }"
     },
     {
       "name": "Feature Card",
@@ -410,7 +434,7 @@
       "refersTo": "card",
       "description": "The bordered graphite panel with a restrained cyan interaction signal.",
       "html": "<article class=\"ds-feature-card\" tabindex=\"0\"><div class=\"ds-feature-icon\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2 2 7l10 5 8.18-4.09V14h2V7L12 2Zm-6 9.05V16l6 3 6-3v-4.95l-6 3-6-3Z\" /></svg></div><h3>Leveling</h3><p>Reward activity with roles, XP, and server-specific progression.</p></article>",
-      "css": ".ds-feature-card { position: relative; overflow: hidden; max-width: 360px; background: var(--bg-card, #2D2D2D); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 16px; padding: 32px; color: var(--text-primary, #FFFFFF); font-family: Poppins, sans-serif; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease; } .ds-feature-card::before { content: ''; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--primary-color, #00D9FF), transparent); opacity: 0; transition: opacity 0.25s ease; } .ds-feature-card:hover { transform: translateY(-3px); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); background: var(--bg-card-hover, #3A3A3A); } .ds-feature-card:hover::before { opacity: 0.6; } .ds-feature-card:focus-visible { outline: 2px solid var(--primary-color, #00D9FF); outline-offset: 3px; } .ds-feature-icon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 20px; border-radius: 12px; background: rgba(0, 217, 255, 0.08); border: 1px solid rgba(0, 217, 255, 0.2); color: var(--primary-color, #00D9FF); } .ds-feature-icon svg { width: 24px; height: 24px; fill: currentColor; } .ds-feature-card h3 { margin: 0 0 12px; font-size: 20px; font-weight: 700; } .ds-feature-card p { margin: 0; color: var(--text-secondary, #B0B0B0); font-size: 15px; line-height: 1.6; }"
+      "css": ".ds-feature-card { position: relative; overflow: hidden; max-width: 360px; background: var(--bg-card, #2D2D2D); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 16px; padding: 32px; color: var(--text-primary, #FFFFFF); font-family: Poppins, sans-serif; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease; } .ds-feature-card::before { content: ''; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--primary-color, #00D9FF), transparent); opacity: 0; transition: opacity 0.25s ease; } .ds-feature-card:hover { transform: translateY(-3px); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); background: var(--bg-card-hover, #3A3A3A); } .ds-feature-card:hover::before { opacity: 0.6; } .ds-feature-card:focus-visible { outline: 2px solid var(--primary-color, #00D9FF); outline-offset: 3px; } .ds-feature-icon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 20px; border-radius: 12px; background: rgba(0, 217, 255, 0.08); border: 1px solid rgba(0, 217, 255, 0.2); color: var(--primary-color, #00D9FF); } .ds-feature-icon svg { width: 24px; height: 24px; fill: currentColor; } .ds-feature-card h3 { margin: 0 0 12px; font-size: 20px; font-weight: 700; } .ds-feature-card p { margin: 0; color: var(--text-secondary, #B0B0B0); font-size: 14px; line-height: 1.6; }"
     },
     {
       "name": "Active Status Chip",
@@ -434,7 +458,7 @@
       "refersTo": "card",
       "description": "A persistent status surface that keeps Save and Discard available while configuration is dirty.",
       "html": "<aside class=\"ds-save-bar\"><span>Unsaved changes</span><div><button class=\"ds-save-discard\">Discard</button><button class=\"ds-save-confirm\">Save</button></div></aside>",
-      "css": ".ds-save-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 680px; padding: 16px 32px; background: var(--bg-card, #2D2D2D); border: 1px solid var(--border-cyan, rgba(0, 217, 255, 0.4)); border-radius: 16px; color: var(--text-primary, #FFFFFF); font: 600 14px/1.4 Poppins, sans-serif; box-shadow: 0 -10px 40px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); } .ds-save-bar > div { display: flex; gap: 8px; } .ds-save-bar button { padding: 9px 16px; border-radius: 8px; font: 600 13px/1.2 Poppins, sans-serif; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; } .ds-save-discard { background: transparent; color: var(--text-primary, #FFFFFF); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); } .ds-save-confirm { background: var(--primary-color, #00D9FF); color: #000; border: 1px solid var(--primary-color, #00D9FF); } .ds-save-bar button:hover { transform: translateY(-1px); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); } .ds-save-bar button:focus-visible { outline: 2px solid var(--primary-hover, #00F0FF); outline-offset: 2px; } .ds-save-bar button:active { transform: translateY(0); }"
+      "css": ".ds-save-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 680px; padding: 16px 32px; background: var(--bg-card, #2D2D2D); border: 1px solid var(--border-cyan, rgba(0, 217, 255, 0.4)); border-radius: 16px; color: var(--text-primary, #FFFFFF); font: 600 14px/1.4 Poppins, sans-serif; box-shadow: 0 -10px 40px var(--shadow-cyan, rgba(0, 217, 255, 0.3)); } .ds-save-bar > div { display: flex; gap: 8px; } .ds-save-bar button { min-height: 44px; padding: 9px 16px; border-radius: 8px; font: 600 13px/1.2 Poppins, sans-serif; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; } .ds-save-discard { background: transparent; color: var(--text-primary, #FFFFFF); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); } .ds-save-confirm { background: var(--primary-color, #00D9FF); color: #000; border: 1px solid var(--primary-color, #00D9FF); } .ds-save-bar button:hover { transform: translateY(-1px); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); } .ds-save-bar button:focus-visible { outline: 2px solid var(--primary-hover, #00F0FF); outline-offset: 2px; } .ds-save-bar button:active { transform: translateY(0); }"
     }
   ],
   "narrative": {
@@ -474,13 +498,18 @@
         "section": "typography"
       },
       {
+        "name": "The Readability Boundary Rule",
+        "body": "Instructions and explanatory copy use the 14px body role; feature lists, navigation, and actions use at least the 13px compact role. Only terse metadata and machine-like telemetry may fall below 11px.",
+        "section": "typography"
+      },
+      {
         "name": "The Shell Before Page Rule",
         "body": "Preserve top-bar, rail, sidebar, and content offsets as one responsive system; do not solve page layout by locally compensating for shell geometry.",
         "section": "layout"
       },
       {
         "name": "The Dense, Never Cramped Rule",
-        "body": "Compact labels and rows may be tight, but interactive targets and panel padding must remain generous enough for confident operation.",
+        "body": "Compact labels and rows may be tight, but primary interactive targets remain at least 44px high and panel padding stays generous enough for confident operation.",
         "section": "layout"
       },
       {
@@ -509,7 +538,8 @@
       "Do step through the established graphite surfaces to separate shell, panel, inset, and hover layers.",
       "Do keep dashboard pages scan-friendly with compact labels, 20–24px panel padding, and 32–40px major-group spacing.",
       "Do preserve visible hover, focus-visible, active, disabled, loading, success, and error feedback.",
-      "Do retain Poppins and use weight contrast to connect marketing and product surfaces."
+      "Do retain Poppins and use weight contrast to connect marketing and product surfaces.",
+      "Do keep explanatory copy at 14px or larger, feature lists and actions at 13px or larger, and primary touch targets at least 44px high."
     ],
     "donts": [
       "Don't flatten the interface into generic enterprise SaaS white, gray, and brand-blue conventions.",

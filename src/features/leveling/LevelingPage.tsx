@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLevelingConfig, LevelingConfig, RolesConfig, XP_RATE_BOUNDS } from './useLevelingConfig';
 import { ChannelSelect, FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
-import { useGuildChannels } from '@/hooks/useGuildChannels';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
 
 export const LevelingPage: React.FC = () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronDown, Gift, History, Trophy, X } from 'lucide-react';
 import { InlineIcon } from '@/components/ui/InlineIcon';
@@ -54,7 +54,7 @@ export const NotificationList: React.FC = () => {
 
   const items = query.data?.notifications ?? [];
   const historyItems = historyQuery.data?.notifications ?? [];
-  const hasClaimable = useMemo(() => items.some((n) => n.is_claimable), [items]);
+  const hasClaimable = items.some((notification) => notification.is_claimable);
 
   if (query.isLoading) return null;
   if (query.isError) {

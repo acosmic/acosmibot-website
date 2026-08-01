@@ -129,7 +129,7 @@
 
 .docs-search input {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   padding: 9px 36px;
   border: 1px solid var(--docs-line);
   border-radius: 9px;
@@ -213,7 +213,7 @@
   position: relative;
   display: flex;
   width: 100%;
-  min-height: 38px;
+  min-height: 44px;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
@@ -350,7 +350,7 @@
 
 .docs-context-bar__toggle {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   gap: 8px;
   padding: 0 10px;
@@ -534,13 +534,14 @@
   grid-template-columns: 9px 1fr;
   gap: 10px;
   align-items: start;
-  padding: 7px 0;
+  min-height: 44px;
+  padding: 10px 0;
   border: 0;
   background: transparent;
   color: #8da0ac;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.45;
   text-align: left;
   transition: color 160ms ease;
@@ -577,13 +578,14 @@
   align-items: center;
   gap: 5px;
   margin-top: 18px;
-  padding: 6px 0;
+  min-height: 44px;
+  padding: 8px 0;
   border: 0;
   background: transparent;
   color: #8da0ac;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -1130,7 +1132,7 @@
 .docs-content-inner .docs-nav-btn .nav-page {
   grid-area: page;
   color: var(--docs-white);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 

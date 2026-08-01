@@ -302,7 +302,7 @@
   color: #031016;
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   transition: background 170ms ease, box-shadow 170ms ease, transform 170ms ease;
 }
@@ -355,7 +355,7 @@
 .servers-band__header p {
   margin: 4px 0 0;
   color: var(--servers-muted);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -455,7 +455,7 @@
   display: block;
   margin-top: 3px;
   color: var(--servers-muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .server-node__access,
@@ -472,7 +472,7 @@
   color: var(--servers-copy);
   background: rgba(8, 17, 26, 0.8);
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -520,7 +520,7 @@
   gap: 6px;
   align-self: start;
   color: var(--servers-copy);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 650;
 }
 
@@ -684,14 +684,14 @@
 .servers-empty__copy li strong {
   display: block;
   color: var(--servers-white);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .servers-empty__copy li small {
   display: block;
   margin-top: 2px;
   color: var(--servers-muted);
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -721,7 +721,7 @@
   color: var(--servers-cyan);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 650;
 }
 

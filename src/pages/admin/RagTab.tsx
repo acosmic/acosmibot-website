@@ -106,7 +106,7 @@ export const RagTab: React.FC = () => {
       .then(r => r.json())
       .then(d => { if (d.success) setHealth(d); else setHealthError(d.error); })
       .catch(e => setHealthError(String(e)));
-  }, []);
+  }, [apiBase]);
 
   const fetchDocuments = useCallback(() => {
     setDocsLoading(true);
@@ -118,7 +118,7 @@ export const RagTab: React.FC = () => {
       })
       .catch(e => setDocsError(String(e)))
       .finally(() => setDocsLoading(false));
-  }, []);
+  }, [apiBase]);
 
   const fetchLogs = useCallback(() => {
     setLogsLoading(true);
@@ -127,13 +127,13 @@ export const RagTab: React.FC = () => {
       .then(d => { if (d.success) setLogs(d.logs); })
       .catch(() => {})
       .finally(() => setLogsLoading(false));
-  }, []);
+  }, [apiBase]);
 
   useEffect(() => {
     fetchHealth();
     fetchDocuments();
     fetchLogs();
-  }, []);
+  }, [fetchDocuments, fetchHealth, fetchLogs]);
 
   const toggleDoc = (docId: string) => {
     setExpandedDocs(prev => {
@@ -335,11 +335,19 @@ export const RagTab: React.FC = () => {
 
               return (
                 <div key={doc.document_id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                  <div className="rag-doc-row" onClick={() => toggleDoc(doc.document_id)}>
-                    <span className="rag-doc-toggle">
-                      {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                    </span>
-                    <span className="rag-doc-title">{doc.title}</span>
+                  <div className="rag-doc-row">
+                    <button
+                      type="button"
+                      className="rag-doc-summary"
+                      onClick={() => toggleDoc(doc.document_id)}
+                      aria-expanded={expanded}
+                      aria-controls={`rag-doc-chunks-${doc.document_id}`}
+                    >
+                      <span className="rag-doc-toggle" aria-hidden="true">
+                        {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                      </span>
+                      <span className="rag-doc-title">{doc.title}</span>
+                    </button>
                     <span className="rag-doc-meta">{doc.total_chunks} chunks</span>
                     <span className="rag-doc-status" style={{ color: STATUS_COLORS[doc.embedding_status] ?? 'inherit' }}>
                       {doc.embedding_status}
@@ -371,7 +379,7 @@ export const RagTab: React.FC = () => {
                   </div>
 
                   {expanded && (
-                    <div className="rag-chunks">
+                    <div className="rag-chunks" id={`rag-doc-chunks-${doc.document_id}`}>
                       {loadingChunks ? (
                         <p className="text-muted" style={{ fontSize: '0.8rem' }}>Loading chunks...</p>
                       ) : chunks ? (

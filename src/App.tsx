@@ -1,44 +1,45 @@
 import { Routes, Route, Navigate, Outlet, useParams, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { LoaderCircle, Lock, Orbit, Ticket } from 'lucide-react';
 import { ComingSoonPage } from './components/ui/ComingSoonPage';
-import { DashboardShell } from './components/layout/DashboardShell';
-import { GiveawayPage } from './features/giveaway/GiveawayPage';
-import { LevelingPage } from './features/leveling/LevelingPage';
-import { StreamPlatformFeature } from './features/streaming/StreamPlatformFeature';
-import { OverviewPage } from './features/overview/OverviewPage';
-import { CustomCommandsPage } from './features/custom-commands/CustomCommandsPage';
-import { ModerationPage } from './features/moderation/ModerationPage';
-import { BannedUsersPage } from './features/banned-users/BannedUsersPage';
-import { AiPage } from './features/ai/AiPage';
-import { GamesPage } from './features/games/GamesPage';
-import { PolymorphPage } from './features/polymorph/PolymorphPage';
-import { GuildAnalyticsPage } from './features/analytics/GuildAnalyticsPage';
-import { MusicPage } from './features/music/MusicPage';
-import { ActivityMonitorPage } from './features/activity-monitor/ActivityMonitorPage';
-import { BetterEmbedsPage } from './features/better-embeds/BetterEmbedsPage';
-import { BillingPage } from './features/billing/BillingPage';
-import { EmbedsListPage } from './features/embeds/EmbedsListPage';
-import { EmbedBuilderPage } from './features/embeds/EmbedBuilderPage';
-import { ReactionRolesListPage } from './features/reaction-roles/ReactionRolesListPage';
-import { ReactionRoleBuilderPage } from './features/reaction-roles/ReactionRoleBuilderPage';
-import { Platform } from './api/streaming';
-import { HomePage } from './pages/HomePage';
-import { PricingPage } from './pages/PremiumPage';
-import { GuildSelectPage } from './pages/GuildSelectPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { SettingsPage } from './pages/SettingsPage';
-import { CardStudioPage } from './pages/CardStudioPage';
-import { LeaderboardPage } from './pages/LeaderboardPage';
-import { AchievementsPage } from './pages/AchievementsPage';
-import { DocsPage } from './pages/docs/DocsPage';
-import { TermsOfServicePage } from './pages/legal/TermsOfServicePage';
-import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
-import { NotFoundPage } from './pages/NotFoundPage';
+import type { Platform } from './api/streaming';
 import { useAuthStore } from './store/auth';
-import { AdminPage } from './pages/admin/AdminPage';
 import { refreshSession } from './lib/auth';
 import { CenteredMessage } from './components/ui/CenteredMessage';
+
+const DashboardShell = lazy(() => import('./components/layout/DashboardShell').then(module => ({ default: module.DashboardShell })));
+const GiveawayPage = lazy(() => import('./features/giveaway/GiveawayPage').then(module => ({ default: module.GiveawayPage })));
+const LevelingPage = lazy(() => import('./features/leveling/LevelingPage').then(module => ({ default: module.LevelingPage })));
+const StreamPlatformFeature = lazy(() => import('./features/streaming/StreamPlatformFeature').then(module => ({ default: module.StreamPlatformFeature })));
+const OverviewPage = lazy(() => import('./features/overview/OverviewPage').then(module => ({ default: module.OverviewPage })));
+const CustomCommandsPage = lazy(() => import('./features/custom-commands/CustomCommandsPage').then(module => ({ default: module.CustomCommandsPage })));
+const ModerationPage = lazy(() => import('./features/moderation/ModerationPage').then(module => ({ default: module.ModerationPage })));
+const BannedUsersPage = lazy(() => import('./features/banned-users/BannedUsersPage').then(module => ({ default: module.BannedUsersPage })));
+const AiPage = lazy(() => import('./features/ai/AiPage').then(module => ({ default: module.AiPage })));
+const GamesPage = lazy(() => import('./features/games/GamesPage').then(module => ({ default: module.GamesPage })));
+const PolymorphPage = lazy(() => import('./features/polymorph/PolymorphPage').then(module => ({ default: module.PolymorphPage })));
+const GuildAnalyticsPage = lazy(() => import('./features/analytics/GuildAnalyticsPage').then(module => ({ default: module.GuildAnalyticsPage })));
+const MusicPage = lazy(() => import('./features/music/MusicPage').then(module => ({ default: module.MusicPage })));
+const ActivityMonitorPage = lazy(() => import('./features/activity-monitor/ActivityMonitorPage').then(module => ({ default: module.ActivityMonitorPage })));
+const BetterEmbedsPage = lazy(() => import('./features/better-embeds/BetterEmbedsPage').then(module => ({ default: module.BetterEmbedsPage })));
+const BillingPage = lazy(() => import('./features/billing/BillingPage').then(module => ({ default: module.BillingPage })));
+const EmbedsListPage = lazy(() => import('./features/embeds/EmbedsListPage').then(module => ({ default: module.EmbedsListPage })));
+const EmbedBuilderPage = lazy(() => import('./features/embeds/EmbedBuilderPage').then(module => ({ default: module.EmbedBuilderPage })));
+const ReactionRolesListPage = lazy(() => import('./features/reaction-roles/ReactionRolesListPage').then(module => ({ default: module.ReactionRolesListPage })));
+const ReactionRoleBuilderPage = lazy(() => import('./features/reaction-roles/ReactionRoleBuilderPage').then(module => ({ default: module.ReactionRoleBuilderPage })));
+const HomePage = lazy(() => import('./pages/HomePage').then(module => ({ default: module.HomePage })));
+const PricingPage = lazy(() => import('./pages/PremiumPage').then(module => ({ default: module.PricingPage })));
+const GuildSelectPage = lazy(() => import('./pages/GuildSelectPage').then(module => ({ default: module.GuildSelectPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
+const CardStudioPage = lazy(() => import('./pages/CardStudioPage').then(module => ({ default: module.CardStudioPage })));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage').then(module => ({ default: module.LeaderboardPage })));
+const AchievementsPage = lazy(() => import('./pages/AchievementsPage').then(module => ({ default: module.AchievementsPage })));
+const DocsPage = lazy(() => import('./pages/docs/DocsPage').then(module => ({ default: module.DocsPage })));
+const TermsOfServicePage = lazy(() => import('./pages/legal/TermsOfServicePage').then(module => ({ default: module.TermsOfServicePage })));
+const PrivacyPolicyPage = lazy(() => import('./pages/legal/PrivacyPolicyPage').then(module => ({ default: module.PrivacyPolicyPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
+const AdminPage = lazy(() => import('./pages/admin/AdminPage').then(module => ({ default: module.AdminPage })));
 
 /** Completes the cookie-backed OAuth redirect and returns the user to where
  * they started login, falling back to the server selector. */
@@ -215,8 +216,13 @@ const FeatureOutlet = () => {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
+    <Suspense fallback={(
+      <div role="status" aria-live="polite">
+        <CenteredMessage icon={<LoaderCircle aria-hidden="true" />} title="Loading Acosmibot…" />
+      </div>
+    )}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
       <Route path="/dashboard" element={<AuthCallback />} />
       <Route path="/u/:identifier" element={<ProfilePage />} />
       <Route path="/leaderboard" element={<LeaderboardPage />} />
@@ -248,8 +254,9 @@ function App() {
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/premium" element={<Navigate to={{ pathname: '/pricing', search: window.location.search }} replace />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   );
 }
 
