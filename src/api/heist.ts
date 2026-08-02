@@ -26,10 +26,18 @@ export interface HeistSummary {
   biggest_loot: number;
 }
 
+export interface HeistCooldown {
+  cooldown_hours: number;
+  last_heist: string | null;
+  ready_at: string | null;
+  is_ready: boolean;
+}
+
 export interface HeistOverview {
   vault_currency: number;
   summary: HeistSummary;
   recent: HeistEvent[];
+  cooldown: HeistCooldown;
 }
 
 export interface HeistLeaderboardEntry {
@@ -52,5 +60,11 @@ export const heistApi = {
   getLeaderboard: (guildId: string, limit = 10) =>
     api.fetch<{ success: boolean; data: HeistLeaderboardEntry[] }>(
       `/api/guilds/${guildId}/heist/leaderboard?limit=${limit}`,
+    ),
+
+  resetCooldown: (guildId: string) =>
+    api.fetch<{ success: boolean; data: { cooldown: HeistCooldown } }>(
+      `/api/guilds/${guildId}/heist/reset-cooldown`,
+      { method: 'POST' },
     ),
 };

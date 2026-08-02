@@ -1,7 +1,9 @@
 import React from 'react';
+import { TimerReset } from 'lucide-react';
 import { FeatureToggle, LoadingSpinner, NumberInput } from '@/components/ui';
+import { HeistCooldown } from '@/api/heist';
 import { HeistConfig } from '@/types/features';
-import { useHeistOverview, useHeistLeaderboard } from '../heist/useHeistStats';
+import { useHeistOverview, useHeistLeaderboard, useResetHeistCooldown } from '../heist/useHeistStats';
 
 const FLAVOR_LABELS: Record<string, string> = {
   clean: '✅ Clean Getaway',
@@ -25,12 +27,43 @@ const Stat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
   </div>
 );
 
+const CooldownRow: React.FC<{ guildId: string; cooldown: HeistCooldown }> = ({ guildId, cooldown }) => {
+  const { reset, isResetting, error, didReset } = useResetHeistCooldown(guildId);
+  const readyAt = cooldown.ready_at ? new Date(cooldown.ready_at) : null;
+
+  return (
+    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 pt-3"
+         style={{ borderTop: '1px solid var(--bs-border-color, rgba(255,255,255,0.08))' }}>
+      <div>
+        <div className="text-muted small">Cooldown</div>
+        <div>
+          {cooldown.is_ready
+            ? <span className="text-success">Ready — <code>/heist</code> can be run now.</span>
+            : <>Next heist unlocks <strong>{readyAt?.toLocaleString()}</strong></>}
+        </div>
+        {error && <div className="text-danger small mt-1">{error}</div>}
+        {didReset && !error && <div className="text-success small mt-1">Cooldown cleared.</div>}
+      </div>
+      <button
+        type="button"
+        className="btn btn-sm d-flex align-items-center gap-2"
+        onClick={() => reset()}
+        disabled={isResetting || cooldown.is_ready}
+        title={cooldown.is_ready ? 'There is no cooldown to reset.' : 'Clear the cooldown so a heist can start now.'}
+      >
+        <TimerReset size={16} />
+        {isResetting ? 'Resetting…' : 'Reset Cooldown'}
+      </button>
+    </div>
+  );
+};
+
 const VaultWidget: React.FC<{ guildId: string }> = ({ guildId }) => {
   const { data, isLoading } = useHeistOverview(guildId);
   if (isLoading) return <LoadingSpinner />;
   if (!data) return null;
 
-  const { vault_currency, summary, recent } = data;
+  const { vault_currency, summary, recent, cooldown } = data;
   const successRate = summary.total_heists
     ? Math.round((summary.successes / summary.total_heists) * 100)
     : 0;
@@ -65,6 +98,8 @@ const VaultWidget: React.FC<{ guildId: string }> = ({ guildId }) => {
           ))}
         </ul>
       )}
+
+      {cooldown && <CooldownRow guildId={guildId} cooldown={cooldown} />}
     </div>
   );
 };
