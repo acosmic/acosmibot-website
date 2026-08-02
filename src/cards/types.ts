@@ -65,3 +65,44 @@ export interface RankCardData {
   topLeftLabel?: string;
   hideGlobalLevel?: boolean;
 }
+
+/**
+ * Data contract for rendering a weather card.
+ *
+ * Shares the `render-card` function with {@link RankCardData}; `card: 'weather'`
+ * selects this component. Every temperature arrives as a **pre-formatted display
+ * string** already converted to the requested unit by the bot, so the component
+ * holds no conversion logic and the °C/°F toggle cannot disagree with the text
+ * reply beside it.
+ */
+export interface WeatherCardData {
+  /** Discriminator that routes the payload to <WeatherCard>. */
+  card: 'weather';
+  /** Canonical place label, e.g. "Houston, TX, US". */
+  location: string;
+  /** Current temperature with its degree sign, e.g. "91°F". */
+  temperature: string;
+  /** Human condition text, e.g. "Scattered clouds". */
+  condition: string;
+  /** Secondary line, e.g. "H:92°F  L:87°F · Feels 104°F". */
+  detail: string;
+  /**
+   * OpenWeatherMap icon id for the current conditions ("01d".."50n"). Drives
+   * both the hero glyph and the sky gradient; the trailing d/n selects day or
+   * night styling.
+   */
+  iconCode: string;
+  /** Up to five forecast columns, today first. */
+  days: WeatherCardDay[];
+}
+
+export interface WeatherCardDay {
+  /** Column heading — "TODAY" for the first entry, otherwise "Mon". */
+  label: string;
+  /** OpenWeatherMap icon id for the day's dominant condition. */
+  iconCode: string;
+  /** Formatted high, e.g. "96°F". */
+  high: string;
+  /** Formatted low, e.g. "88°F". */
+  low: string;
+}

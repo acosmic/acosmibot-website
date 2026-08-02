@@ -1,9 +1,13 @@
 /**
- * Azure SWA managed function — renders a rank card to PNG.
+ * Azure SWA managed function — renders a card to PNG.
  *
- * Pipeline: RankCardData (JSON body) -> <RankCard> (the SAME component the
- * website renders live) -> Satori (SVG, fonts embedded as paths) -> resvg-wasm
- * (PNG). This is the canonical image the Discord bot fetches.
+ * Pipeline: card data (JSON body) -> <RankCard> / <WeatherCard> (the SAME
+ * components the website renders live) -> Satori (SVG, fonts embedded as paths)
+ * -> resvg-wasm (PNG). This is the canonical image the Discord bot fetches.
+ *
+ * One endpoint serves every card type: `card: 'weather'` on the payload selects
+ * the weather component, and anything else falls through to the rank card. That
+ * keeps a single CARD_RENDER_URL / RENDER_SHARED_SECRET pair in production.
  *
  * Auth: callers must send the shared secret in `X-Render-Key`, matched against
  * the `RENDER_SHARED_SECRET` app setting. The bot (and, later, a Flask proxy)
@@ -20,7 +24,12 @@ import satori from 'satori';
 import { Resvg, initWasm } from '@resvg/resvg-wasm';
 
 import { RankCard, CARD_WIDTH, CARD_HEIGHT } from '../../src/cards/RankCard';
-import type { RankCardData } from '../../src/cards/types';
+import {
+  WeatherCard,
+  CARD_WIDTH as WEATHER_WIDTH,
+  CARD_HEIGHT as WEATHER_HEIGHT,
+} from '../../src/cards/WeatherCard';
+import type { RankCardData, WeatherCardData } from '../../src/cards/types';
 
 // ---- one-time wasm init (per cold start) -----------------------------------
 let wasmReady: Promise<void> | null = null;
@@ -118,6 +127,21 @@ async function renderPng(data: RankCardData): Promise<Buffer> {
   return Buffer.from(resvg.render().asPng());
 }
 
+async function renderWeatherPng(data: WeatherCardData): Promise<Buffer> {
+  // No remote assets here: condition artwork is inline SVG data URIs, so there
+  // is no host to allowlist and no fetch to guard.
+  const fonts = await loadFonts();
+  const svg = await satori(<WeatherCard data={data} />, {
+    width: WEATHER_WIDTH,
+    height: WEATHER_HEIGHT,
+    fonts,
+  });
+
+  await ensureWasm();
+  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: WEATHER_WIDTH } });
+  return Buffer.from(resvg.render().asPng());
+}
+
 // Azure SWA managed functions may deliver the request body as a string (or a
 // Buffer), not a parsed object — normalize it here.
 function parseBody(req: any): unknown {
@@ -145,6 +169,28 @@ function isValid(data: unknown): data is RankCardData {
   );
 }
 
+function isValidWeather(data: unknown): data is WeatherCardData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.location === 'string' &&
+    typeof d.temperature === 'string' &&
+    typeof d.condition === 'string' &&
+    typeof d.detail === 'string' &&
+    typeof d.iconCode === 'string' &&
+    Array.isArray(d.days) &&
+    d.days.every(
+      (day) =>
+        day &&
+        typeof day === 'object' &&
+        typeof (day as Record<string, unknown>).label === 'string' &&
+        typeof (day as Record<string, unknown>).iconCode === 'string' &&
+        typeof (day as Record<string, unknown>).high === 'string' &&
+        typeof (day as Record<string, unknown>).low === 'string',
+    )
+  );
+}
+
 function secretsMatch(provided: unknown, expected: string): boolean {
   if (typeof provided !== 'string') return false;
   const a = Buffer.from(provided);
@@ -164,6 +210,29 @@ export async function run(context: any, req: any): Promise<void> {
   }
 
   const data = parseBody(req);
+  const wantsWeather =
+    !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'weather';
+
+  if (wantsWeather) {
+    if (!isValidWeather(data)) {
+      context.res = { status: 400, body: 'Invalid weather card payload' };
+      return;
+    }
+    try {
+      const png = await renderWeatherPng(data);
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
+        body: png,
+        isRaw: true,
+      };
+    } catch (err) {
+      context.log?.error?.('weather card render failed', err);
+      context.res = { status: 500, body: 'Render failed' };
+    }
+    return;
+  }
+
   if (!isValid(data)) {
     context.res = { status: 400, body: 'Invalid rank card payload' };
     return;

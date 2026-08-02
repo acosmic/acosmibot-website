@@ -4,7 +4,7 @@ import { adminApi, AdminFeatureSettings, StripeMode } from '@/api/admin';
 
 type FormState = Pick<
   AdminFeatureSettings,
-  'use_satori_rank_card' | 'billing_enabled' | 'stripe_mode'
+  'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' | 'stripe_mode'
 >;
 
 export const FeatureSettingsTab: React.FC = () => {
@@ -21,6 +21,7 @@ export const FeatureSettingsTab: React.FC = () => {
     if (query.data?.data) {
       setForm({
         use_satori_rank_card: query.data.data.use_satori_rank_card,
+        use_satori_weather_card: query.data.data.use_satori_weather_card ?? false,
         billing_enabled: query.data.data.billing_enabled,
         stripe_mode: query.data.data.stripe_mode,
       });
@@ -93,6 +94,24 @@ export const FeatureSettingsTab: React.FC = () => {
           <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
             Render <code>/rank</code> cards via the Satori Azure service. When off (or if the
             render fails), the bot falls back to the legacy PIL renderer.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={form.use_satori_weather_card}
+              disabled={mutation.isPending}
+              onChange={(e) => setForm({ ...form, use_satori_weather_card: e.target.checked })}
+              style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
+            />
+            <span style={{ fontWeight: 600 }}>Satori weather cards</span>
+          </label>
+          <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
+            Render the weather card image for <code>/weather</code> and AI weather answers via
+            the Satori Azure service. When off (or if the render fails), the bot posts a plain
+            embed instead.
           </p>
         </div>
 

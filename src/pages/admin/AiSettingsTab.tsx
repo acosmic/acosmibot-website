@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, AdminAiSettings, AdminAiTier, AdminAiTierLimits } from '@/api/admin';
 import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'response_notice' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits'>;
 
 const PLAN_LIMITS: Array<{ tier: AdminAiTier; label: string; description: string }> = [
   { tier: 'free', label: 'Free', description: 'Basic AI chat' },
@@ -31,9 +31,10 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, model, polymorph_model, timezone, web_search_provider, tier_limits } = query.data.data;
+      const { enabled, response_notice, model, polymorph_model, timezone, web_search_provider, tier_limits } = query.data.data;
       setForm({
         enabled,
+        response_notice: response_notice ?? true,
         model,
         polymorph_model,
         timezone: timezone || 'UTC',
@@ -96,6 +97,22 @@ export const AiSettingsTab: React.FC = () => {
           </label>
           <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
             When off, AI is disabled in every server regardless of their per-guild toggle.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={form.response_notice}
+              onChange={(e) => setForm({ ...form, response_notice: e.target.checked })}
+              style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
+            />
+            <span style={{ fontWeight: 600 }}>Show disclaimer &amp; tool used</span>
+          </label>
+          <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
+            The small grey line under every AI reply — “AI responses may not be accurate · Used
+            Web Search Tool”. Turn off to hide it everywhere.
           </p>
         </div>
 

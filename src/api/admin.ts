@@ -11,6 +11,8 @@ export type AdminAiTierLimits = Record<AdminAiTier, {
 
 export interface AdminAiSettings {
   enabled: boolean;
+  /** Show the disclaimer + "Used X Tool" subtext under AI replies. */
+  response_notice: boolean;
   model: string;
   polymorph_model: string;
   /** Bot-wide fallback timezone (IANA) for the AI clock. */
@@ -50,6 +52,7 @@ export type StripeMode = 'test' | 'live';
 
 export interface AdminFeatureSettings {
   use_satori_rank_card: boolean;
+  use_satori_weather_card: boolean;
   billing_enabled: boolean;
   stripe_mode: StripeMode;
   stripe_test_configured: boolean;
