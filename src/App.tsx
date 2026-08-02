@@ -36,6 +36,7 @@ const CardStudioPage = lazy(() => import('./pages/CardStudioPage').then(module =
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage').then(module => ({ default: module.LeaderboardPage })));
 const AchievementsPage = lazy(() => import('./pages/AchievementsPage').then(module => ({ default: module.AchievementsPage })));
 const DocsPage = lazy(() => import('./pages/docs/DocsPage').then(module => ({ default: module.DocsPage })));
+const FeatureLandingPage = lazy(() => import('./pages/features/FeatureLandingPage').then(module => ({ default: module.FeatureLandingPage })));
 const TermsOfServicePage = lazy(() => import('./pages/legal/TermsOfServicePage').then(module => ({ default: module.TermsOfServicePage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/legal/PrivacyPolicyPage').then(module => ({ default: module.PrivacyPolicyPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
@@ -246,6 +247,10 @@ function App() {
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/docs/spotify" element={<Navigate to="/docs/music" replace />} />
       <Route path="/docs/:page" element={<DocsPage />} />
+      <Route path="/features/ai-discord-bot" element={<FeatureLandingPage slug="ai-discord-bot" />} />
+      <Route path="/features/discord-leveling-bot" element={<FeatureLandingPage slug="discord-leveling-bot" />} />
+      <Route path="/features/discord-economy-bot" element={<FeatureLandingPage slug="discord-economy-bot" />} />
+      <Route path="/features/discord-games-bot" element={<FeatureLandingPage slug="discord-games-bot" />} />
       <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/pricing" element={<PricingPage />} />

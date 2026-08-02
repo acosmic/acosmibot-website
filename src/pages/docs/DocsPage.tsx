@@ -7,7 +7,7 @@
  * Differentiation and response: article headings become navigable signals; wide screens gain a third rail while mobile keeps one clear reading column and a contents drawer.
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
   FileText, Gem, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
@@ -267,11 +267,10 @@ export const DocsPage: React.FC = () => {
         ),
       })).filter(s => s.items.length > 0);
 
-  const handleNavClick = useCallback((slug: string) => {
-    navigate(`/docs/${slug}`);
+  const handleNavClick = useCallback(() => {
     setSidebar(false);
     contentScrollerRef.current?.scrollTo({ top: 0 });
-  }, [navigate]);
+  }, []);
 
   const handleSectionClick = useCallback((id: string) => {
     const scroller = contentScrollerRef.current;
@@ -361,11 +360,11 @@ export const DocsPage: React.FC = () => {
             <section className="docs-nav-group" key={section.category}>
               <h2 className="docs-nav-category">{section.category}</h2>
               {section.items.map(item => (
-                <button
-                  type="button"
+                <Link
+                  to={`/docs/${item.slug}`}
                   key={item.slug}
                   className={`docs-nav-item${page === item.slug ? ' active' : ''}`}
-                  onClick={() => handleNavClick(item.slug)}
+                  onClick={handleNavClick}
                   aria-current={page === item.slug ? 'page' : undefined}
                 >
                   {item.assetIcon ? (
@@ -380,7 +379,7 @@ export const DocsPage: React.FC = () => {
                     <item.icon size={16} color={item.iconColor} aria-hidden />
                   )}
                   <span>{item.label}</span>
-                </button>
+                </Link>
               ))}
             </section>
           ))}

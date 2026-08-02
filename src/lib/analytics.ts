@@ -1,3 +1,5 @@
+import { getSeoMeta } from '../seo/publicRoutes.ts';
+
 export type AnalyticsConsent = 'granted' | 'denied' | null;
 
 interface ConsentPreferences {
@@ -44,7 +46,7 @@ export interface AnalyticsPage {
 }
 
 const EXACT_PAGES: Record<string, string> = {
-  '/': 'Acosmibot | The Discord Community System',
+  '/': 'Acosmibot | AI, Leveling, Economy & Games for Discord',
   '/servers': 'Your Servers | Acosmibot',
   '/settings': 'Member Settings | Acosmibot',
   '/card-studio': 'Card Studio | Acosmibot',
@@ -53,7 +55,7 @@ const EXACT_PAGES: Record<string, string> = {
   '/docs': 'Documentation | Acosmibot',
   '/terms-of-service': 'Terms of Service | Acosmibot',
   '/privacy-policy': 'Privacy Policy | Acosmibot',
-  '/pricing': 'Pricing | Acosmibot',
+  '/pricing': 'Acosmibot Pricing | Free, Plus, Pro & Max Discord Plans',
 };
 
 const FEATURE_TITLES: Record<string, string> = {
@@ -105,10 +107,15 @@ export function resolveAnalyticsPage(pathname: string): AnalyticsPage {
   if (/^\/leaderboard\/[^/]+$/.test(pathname)) {
     return { path: '/leaderboard/:guild', title: 'Server Leaderboard | Acosmibot', track: true };
   }
+  if (/^\/features\/[^/]+$/.test(pathname)) {
+    const meta = getSeoMeta(pathname);
+    return { path: meta.canonicalPath, title: meta.title, track: meta.indexable };
+  }
   if (/^\/docs\/[^/]+$/.test(pathname)) {
     const slug = pathname.split('/')[2].replace(/[^a-z0-9-]/gi, '').slice(0, 48);
     const safeSlug = DOC_PAGES.has(slug) ? slug : ':page';
-    return { path: `/docs/${safeSlug}`, title: 'Documentation | Acosmibot', track: true };
+    const meta = getSeoMeta(`/docs/${safeSlug}`);
+    return { path: `/docs/${safeSlug}`, title: meta.title, track: true };
   }
 
   const serverMatch = pathname.match(/^\/server\/[^/]+\/([^/]+)(?:\/([^/]+))?(?:\/[^/]+)?$/);

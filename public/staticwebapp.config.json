@@ -9,22 +9,73 @@
     "Content-Security-Policy": "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()"
   },
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": [
-      "/images/*.{png,jpg,gif,webp,svg,ico}",
-      "/styles/*.css",
-      "/scripts/*.js",
-      "/assets/*",
-      "/*.{png,jpg,ico,webmanifest}",
-      "/cdn-cgi/*",
-      "/docs/views/*.html"
-    ]
-  },
+  "routes": [
+    { "route": "/premium", "redirect": "/pricing", "statusCode": 301 },
+    { "route": "/docs", "redirect": "/docs/introduction", "statusCode": 301 },
+    { "route": "/docs/spotify", "redirect": "/docs/music", "statusCode": 301 },
+    {
+      "route": "/docs/views/*",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/dashboard",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/servers",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/settings",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/card-studio",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/me",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/profile",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/admin*",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/server/*",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/u/*",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/leaderboard*",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    },
+    {
+      "route": "/achievements",
+      "rewrite": "/app-shell.html",
+      "headers": { "X-Robots-Tag": "noindex, nofollow" }
+    }
+  ],
   "responseOverrides": {
     "404": {
-      "rewrite": "/index.html",
-      "statusCode": 200
+      "rewrite": "/404.html"
     }
   }
 }

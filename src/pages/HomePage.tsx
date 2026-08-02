@@ -250,6 +250,27 @@ const FAMILY_LABELS: Record<FeatureFamily, string> = {
   chaos: 'Chaos',
 };
 
+const FEATURE_LANDING_PATHS: Partial<Record<string, string>> = {
+  ai: '/features/ai-discord-bot',
+  leveling: '/features/discord-leveling-bot',
+  economy: '/features/discord-economy-bot',
+  games: '/features/discord-games-bot',
+};
+
+const FEATURE_DOC_PATHS: Partial<Record<string, string>> = {
+  ai: '/docs/ai',
+  leveling: '/docs/leveling',
+  economy: '/docs/economy',
+  games: '/docs/commands',
+  streaming: '/docs/twitch',
+  moderation: '/docs/moderation',
+  'reaction-roles': '/docs/reaction-roles',
+  commands: '/docs/custom-commands',
+  embeds: '/docs/embeds',
+  utilities: '/docs/reminders',
+  chaos: '/docs/portals',
+};
+
 const HomeCosmos: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -413,6 +434,8 @@ interface FeatureMapProps {
 const FeatureMap: React.FC<FeatureMapProps> = ({ selectedId, onSelect }) => {
   const selected = FEATURES.find(feature => feature.id === selectedId) ?? FEATURES[1];
   const SelectedIcon = selected.Icon;
+  const landingPath = FEATURE_LANDING_PATHS[selected.id];
+  const docsPath = FEATURE_DOC_PATHS[selected.id] ?? '/docs/introduction';
 
   return (
     <div className="feature-explorer">
@@ -492,9 +515,16 @@ const FeatureMap: React.FC<FeatureMapProps> = ({ selectedId, onSelect }) => {
         <ul>
           {selected.bullets.map(item => <li key={item}><Check aria-hidden="true" /> {item}</li>)}
         </ul>
-        <Link to="/docs/introduction" className="feature-inspector__link">
-          Read the docs <ArrowRight aria-hidden="true" />
-        </Link>
+        <div className="feature-inspector__links">
+          {landingPath && (
+            <Link to={landingPath} className="feature-inspector__link feature-inspector__link--primary">
+              Explore {selected.shortName} <ArrowRight aria-hidden="true" />
+            </Link>
+          )}
+          <Link to={docsPath} className="feature-inspector__link">
+            Read the docs <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
       </aside>
     </div>
   );
@@ -620,7 +650,7 @@ export const HomePage: React.FC = () => {
               </div>
               <h1><span className="home-hero__primary">Level up your</span><span>Discord community.</span></h1>
               <p>
-                Acosmibot connects engagement, economy, games, and AI-powered interactions in one
+                Acosmibot connects engagement, economy, games, and agentic AI-powered interactions in one
                 living system—built to keep your server active and entertained.
               </p>
               <div className="home-hero__actions">
@@ -658,6 +688,13 @@ export const HomePage: React.FC = () => {
               </p>
             </div>
             <FeatureMap selectedId={selectedFeature} onSelect={setSelectedFeature} />
+            <nav className="home-feature-routes" aria-label="Explore core Acosmibot features">
+              <span>Core feature guides</span>
+              <Link to="/features/ai-discord-bot">Agentic AI Discord bot <ArrowRight aria-hidden="true" /></Link>
+              <Link to="/features/discord-leveling-bot">Discord leveling bot <ArrowRight aria-hidden="true" /></Link>
+              <Link to="/features/discord-economy-bot">Discord economy bot <ArrowRight aria-hidden="true" /></Link>
+              <Link to="/features/discord-games-bot">Discord games bot <ArrowRight aria-hidden="true" /></Link>
+            </nav>
           </div>
         </section>
 

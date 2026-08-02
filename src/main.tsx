@@ -7,6 +7,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/globals.css';
 import { AuthSessionBootstrap } from './lib/auth';
 import { AnalyticsProvider } from './components/analytics/AnalyticsProvider';
+import { SeoHead } from './components/seo/SeoHead';
+import './styles/seo-prerender.css';
 
 const queryClient = new QueryClient();
 
@@ -15,6 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter future={{ v7_startTransition: true }}>
         <AuthSessionBootstrap />
+        <SeoHead />
         <AnalyticsProvider>
           <App />
         </AnalyticsProvider>

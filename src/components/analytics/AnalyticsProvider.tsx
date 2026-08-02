@@ -23,7 +23,6 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     const page = resolveAnalyticsPage(pathname);
-    document.title = page.title;
     if (choice === 'granted') {
       initializeAnalytics();
       trackPageView(page);
