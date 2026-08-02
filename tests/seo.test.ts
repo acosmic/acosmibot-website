@@ -10,6 +10,7 @@ import {
   getSeoMeta,
   INDEXABLE_PUBLIC_PATHS,
   SITE_ORIGIN,
+  HOME_TAGLINE,
 } from '../src/seo/publicRoutes.ts';
 
 test('every public route has unique indexable metadata and a canonical URL', () => {
@@ -23,6 +24,12 @@ test('every public route has unique indexable metadata and a canonical URL', () 
     assert.ok(meta.description.length >= 90);
     assert.ok(`${SITE_ORIGIN}${meta.canonicalPath}`.startsWith('https://acosmibot.com/'));
   }
+});
+
+test('homepage keeps its search title while using the cosmic social tagline', () => {
+  const homepage = getSeoMeta('/');
+  assert.match(homepage.title, /AI.*Discord/i);
+  assert.equal(homepage.socialTitle, HOME_TAGLINE);
 });
 
 test('documentation manifest and source views stay in sync', () => {

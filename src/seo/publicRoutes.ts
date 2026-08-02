@@ -1,5 +1,6 @@
 export const SITE_ORIGIN = 'https://acosmibot.com';
 export const DISCORD_INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+export const HOME_TAGLINE = 'A cosmic intelligence at your server’s command.';
 
 export type FeatureLandingTheme = 'intelligence' | 'leveling' | 'economy' | 'games';
 
@@ -227,6 +228,7 @@ export const DOC_ROUTES = [
 export interface SeoMeta {
   title: string;
   description: string;
+  socialTitle?: string;
   canonicalPath: string;
   indexable: boolean;
   kind: 'home' | 'feature' | 'docs' | 'pricing' | 'legal' | 'app';
@@ -236,6 +238,7 @@ const EXACT_PUBLIC_META: Record<string, Omit<SeoMeta, 'canonicalPath'>> = {
   '/': {
     title: 'Acosmibot | AI, Leveling, Economy & Games for Discord',
     description: 'Add one Discord bot for agentic AI, leveling, economy, games, rank cards, stream alerts, moderation, reaction roles, giveaways, and more.',
+    socialTitle: HOME_TAGLINE,
     indexable: true,
     kind: 'home',
   },

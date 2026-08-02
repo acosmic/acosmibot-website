@@ -32,16 +32,17 @@ export const SeoHead = () => {
     const meta = getSeoMeta(pathname);
     const canonical = meta.indexable ? `${SITE_ORIGIN}${meta.canonicalPath}` : null;
     const robots = meta.indexable ? 'index, follow, max-image-preview:large' : 'noindex, nofollow';
+    const socialTitle = meta.socialTitle ?? meta.title;
 
     document.title = meta.title;
     upsertMeta('meta[name="description"]', { name: 'description', content: meta.description });
     upsertMeta('meta[name="robots"]', { name: 'robots', content: robots });
     upsertMeta('meta[property="og:type"]', { property: 'og:type', content: 'website' });
     upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: 'Acosmibot' });
-    upsertMeta('meta[property="og:title"]', { property: 'og:title', content: meta.title });
+    upsertMeta('meta[property="og:title"]', { property: 'og:title', content: socialTitle });
     upsertMeta('meta[property="og:description"]', { property: 'og:description', content: meta.description });
     upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonical ?? SITE_ORIGIN });
-    upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: meta.title });
+    upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: socialTitle });
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: meta.description });
     setCanonical(canonical);
 

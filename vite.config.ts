@@ -8,6 +8,7 @@ import {
   DOC_ROUTES,
   FEATURE_LANDINGS,
   getSeoMeta,
+  HOME_TAGLINE,
   INDEXABLE_PUBLIC_PATHS,
   SITE_ORIGIN,
 } from './src/seo/publicRoutes';
@@ -39,7 +40,7 @@ const renderHomeBody = () => `
   <div class="seo-prerender seo-prerender--home">
     ${publicNav}
     <main>
-      <h1>One Discord bot. A whole community in motion.</h1>
+      <h1>${escapeHtml(HOME_TAGLINE)}</h1>
       <p>Acosmibot brings agentic AI, leveling, economy, games, rank cards, stream alerts, moderation, reaction roles, giveaways, and utilities into one connected Discord community system.</p>
       <h2>Explore Acosmibot's core Discord bot features</h2>
       ${linkList(Object.values(FEATURE_LANDINGS).map(feature => ({ href: `/features/${feature.slug}`, label: feature.title })))}
@@ -108,6 +109,7 @@ const applyHead = (source: string, pathname: string, indexable = true) => {
   const meta = getSeoMeta(pathname);
   const canonical = `${SITE_ORIGIN}${meta.canonicalPath}`;
   const robots = indexable ? 'index, follow, max-image-preview:large' : 'noindex, nofollow';
+  const socialTitle = meta.socialTitle ?? meta.title;
   const replaceMeta = (html: string, selector: string, value: string) => html.replace(
     new RegExp(`(<meta\\s+${selector}\\s+content=")[^"]*("\\s*\\/?>)`, 'i'),
     `$1${escapeHtml(value)}$2`,
@@ -119,10 +121,10 @@ const applyHead = (source: string, pathname: string, indexable = true) => {
     .replace(/<script id="acosmibot-structured-data"[\s\S]*?<\/script>/i, '');
   html = replaceMeta(html, 'name="description"', meta.description);
   html = replaceMeta(html, 'name="robots"', robots);
-  html = replaceMeta(html, 'property="og:title"', meta.title);
+  html = replaceMeta(html, 'property="og:title"', socialTitle);
   html = replaceMeta(html, 'property="og:description"', meta.description);
   html = replaceMeta(html, 'property="og:url"', indexable ? canonical : SITE_ORIGIN);
-  html = replaceMeta(html, 'name="twitter:title"', meta.title);
+  html = replaceMeta(html, 'name="twitter:title"', socialTitle);
   html = replaceMeta(html, 'name="twitter:description"', meta.description);
 
   if (indexable) {

@@ -42,6 +42,7 @@ import { PublicNav } from '@/components/layout/PublicNav';
 import { startLogin } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
 import { COMPANY_BRAND } from '@/lib/company';
+import { HOME_TAGLINE } from '@/seo/publicRoutes';
 import '@/styles/home.css';
 
 const DISCORD_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
@@ -648,7 +649,10 @@ export const HomePage: React.FC = () => {
                 <span className="home-kicker__signal" />
                 Community operating system
               </div>
-              <h1><span className="home-hero__primary">Level up your</span><span>Discord community.</span></h1>
+              <h1 aria-label={HOME_TAGLINE}>
+                <span className="home-hero__primary">A cosmic intelligence</span>
+                <span>at your server’s command.</span>
+              </h1>
               <p>
                 Acosmibot connects engagement, economy, games, and agentic AI-powered interactions in one
                 living system—built to keep your server active and entertained.
