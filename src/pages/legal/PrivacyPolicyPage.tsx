@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { HighlightBox, LegalLayout, LegalSection, LegalSubheading } from './LegalLayout';
-import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL } from '@/lib/company';
+import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL, SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from '@/lib/company';
 
 export const PrivacyPolicyPage: React.FC = () => (
   <LegalLayout
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="July 31, 2026"
+    lastUpdated="August 3, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -161,7 +161,9 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
         <li><strong>Optional Website Analytics:</strong> Event-level analytics data is retained for no longer than 14 months</li>
       </ul>
-      <p>To request data deletion, please contact us through our Discord support server.</p>
+      <p>To request data deletion, email us at{' '}
+        <a href={SUPPORT_EMAIL_HREF} style={{ color: 'var(--primary-color)' }}>{SUPPORT_EMAIL}</a>{' '}
+        or contact us through our Discord support server.</p>
     </LegalSection>
 
     <LegalSection title="7. Your Rights & Choices">
@@ -173,7 +175,9 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Opt-Out:</strong> Decline optional website analytics at any time and stop using Acosmibot by removing it from your servers or discontinuing commands</li>
         <li><strong>Data Portability:</strong> Request your data in a machine-readable format</li>
       </ul>
-      <p>To exercise these rights, contact us through our{' '}
+      <p>To exercise these rights, email us at{' '}
+        <a href={SUPPORT_EMAIL_HREF} style={{ color: 'var(--primary-color)' }}>{SUPPORT_EMAIL}</a>{' '}
+        or contact us through our{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)' }}>Discord support server</a>.</p>
       <HighlightBox>
         <p style={{ margin: 0 }}><strong>Note:</strong> Some data may be retained for legitimate business purposes, such as fraud prevention or legal compliance, even after deletion requests.</p>
@@ -182,7 +186,8 @@ export const PrivacyPolicyPage: React.FC = () => (
 
     <LegalSection title="8. Children's Privacy">
       <p>Acosmibot does not knowingly collect information from users under the age of 13. Discord's Terms of Service require users to be at least 13 years old (or older in some jurisdictions).</p>
-      <p>If we become aware that we have collected data from a user under 13, we will take steps to delete that information. Parents or guardians who believe their child has provided data should contact us immediately.</p>
+      <p>If we become aware that we have collected data from a user under 13, we will take steps to delete that information. Parents or guardians who believe their child has provided data should contact us immediately at{' '}
+        <a href={SUPPORT_EMAIL_HREF} style={{ color: 'var(--primary-color)' }}>{SUPPORT_EMAIL}</a>.</p>
     </LegalSection>
 
     <LegalSection title="9. International Data Transfers">
@@ -215,7 +220,9 @@ export const PrivacyPolicyPage: React.FC = () => (
 
     <LegalSection title="12. Contact Information">
       <p>Acosmibot is operated by <strong>{COMPANY_NAME}</strong> ({COMPANY_STATE}, United States), the data controller for the purposes of this policy.</p>
-      <p>If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us through our{' '}
+      <p>If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, email us at{' '}
+        <a href={SUPPORT_EMAIL_HREF} style={{ color: 'var(--primary-color)' }}>{SUPPORT_EMAIL}</a>{' '}
+        or contact us through our{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)' }}>Discord support server</a>.</p>
       <p>We will respond to inquiries within a reasonable timeframe and work to address your concerns in accordance with applicable privacy laws.</p>
       <p>See also our <Link to="/terms-of-service" style={{ color: 'var(--primary-color)' }}>Terms of Service</Link>.</p>

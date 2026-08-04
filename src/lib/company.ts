@@ -7,3 +7,7 @@ export const COMPANY_BRAND = 'Acosmic';
 export const COMPANY_STATE = 'Texas';
 
 export const SUPPORT_DISCORD_URL = 'https://discord.gg/hrj7WhCyEv';
+
+/** Support inbox — the written contact channel for legal, privacy, and billing requests. */
+export const SUPPORT_EMAIL = 'support@acosmibot.com';
+export const SUPPORT_EMAIL_HREF = `mailto:${SUPPORT_EMAIL}`;

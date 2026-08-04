@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COMPANY_BRAND, SUPPORT_DISCORD_URL as SUPPORT_URL } from '@/lib/company';
+import { COMPANY_BRAND, SUPPORT_DISCORD_URL as SUPPORT_URL, SUPPORT_EMAIL_HREF } from '@/lib/company';
 import { openAnalyticsPreferences } from '@/lib/analytics';
 
 /** Slim footer for the public pages (profile, leaderboard, servers, etc.). */
@@ -37,6 +37,7 @@ export const SiteFooter: React.FC = () => (
       Cookie choices
     </button>
     <FooterLink href={SUPPORT_URL} external>Support Discord</FooterLink>
+    <FooterLink href={SUPPORT_EMAIL_HREF} external>Email support</FooterLink>
   </footer>
 );
 

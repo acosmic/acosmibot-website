@@ -1,3 +1,5 @@
+import { SUPPORT_DISCORD_URL, SUPPORT_EMAIL } from '../lib/company.ts';
+
 export const SITE_ORIGIN = 'https://acosmibot.com';
 export const DISCORD_INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 export const HOME_TAGLINE = 'A cosmic intelligence at your server’s command.';
@@ -349,6 +351,14 @@ export function buildStructuredData(meta: SeoMeta) {
     name: 'Acosmibot',
     url: SITE_ORIGIN,
     logo: `${SITE_ORIGIN}/images/acosmibot-logo.png`,
+    email: SUPPORT_EMAIL,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: SUPPORT_EMAIL,
+      url: SUPPORT_DISCORD_URL,
+      availableLanguage: 'English',
+    },
   };
   const website = {
     '@type': 'WebSite',

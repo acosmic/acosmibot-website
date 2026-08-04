@@ -254,7 +254,7 @@ export const PricingPage: React.FC = () => {
               icon={<BarChart3 />}
               title="Billing control"
               text={billingEnabled
-                ? "Subscriptions are billed per server through Stripe. Change plans, switch intervals, or cancel from your server's billing page."
+                ? "Subscriptions are billed per server through Stripe. Change plans, switch intervals, or cancel from your server's billing page. Billing questions go to support@acosmibot.com."
                 : 'Checkout stays paused while billing configuration is finalized.'}
             />
           </div>

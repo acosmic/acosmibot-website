@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { LegalLayout, LegalSection, LegalSubheading } from './LegalLayout';
-import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL } from '@/lib/company';
+import { COMPANY_NAME, COMPANY_STATE, SUPPORT_DISCORD_URL as SUPPORT_URL, SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from '@/lib/company';
 
 export const TermsOfServicePage: React.FC = () => (
   <LegalLayout
     kind="terms"
     title="Terms of Service"
     subtitle="Please read these terms carefully before using Acosmibot"
-    lastUpdated="July 25, 2026"
+    lastUpdated="August 3, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>Welcome to Acosmibot! Acosmibot is operated by <strong>{COMPANY_NAME}</strong>, a {COMPANY_STATE} limited liability company ("{COMPANY_NAME}", "we", "us", or "our"). By using our Discord bot and related services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use Acosmibot.</p>
@@ -87,7 +87,8 @@ export const TermsOfServicePage: React.FC = () => (
       <ul>
         <li>Payments are generally non-refundable once the billing period has begun</li>
         <li>We will refund a charge where the service was materially unavailable for an extended period, where you were billed in error, or where a refund is required by applicable law</li>
-        <li>Refund requests must be made within 30 days of the charge, through our{' '}
+        <li>Refund requests must be made within 30 days of the charge, by email to{' '}
+          <a href={SUPPORT_EMAIL_HREF} style={{ color: 'var(--primary-color)' }}>{SUPPORT_EMAIL}</a> or through our{' '}
           <a href={SUPPORT_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)' }}>Discord support server</a></li>
         <li>Refunds are issued to the original payment method</li>
         <li>Nothing here limits statutory cancellation or refund rights you may have as a consumer in your jurisdiction</li>
@@ -171,7 +172,9 @@ export const TermsOfServicePage: React.FC = () => (
 
     <LegalSection title="14. Contact Information">
       <p>Acosmibot is operated by <strong>{COMPANY_NAME}</strong> ({COMPANY_STATE}, United States).</p>
-      <p>For questions about these Terms of Service, billing, or support, contact us through our{' '}
+      <p>For questions about these Terms of Service, billing, or support, email us at{' '}
+        <a href={SUPPORT_EMAIL_HREF} style={{ color: 'var(--primary-color)' }}>{SUPPORT_EMAIL}</a>{' '}
+        or contact us through our{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)' }}>Discord support server</a>.</p>
     </LegalSection>
   </LegalLayout>

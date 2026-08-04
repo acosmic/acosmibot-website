@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, MessageCircle } from 'lucide-react';
+import { BookOpen, Mail, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { useOverviewStats } from './useOverviewStats';
@@ -225,6 +225,13 @@ export const OverviewPage: React.FC = () => {
                 <div>
                   <div className="fw-bold">Support Server</div>
                   <div className="small text-muted">Get help & updates</div>
+                </div>
+              </a>
+              <a href="mailto:support@acosmibot.com" className="btn text-start p-3 d-flex align-items-center gap-3">
+                <Mail size={20} />
+                <div>
+                  <div className="fw-bold">Email Support</div>
+                  <div className="small text-muted">support@acosmibot.com</div>
                 </div>
               </a>
             </div>
