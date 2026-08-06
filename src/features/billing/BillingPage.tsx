@@ -15,7 +15,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
+import { subscriptionsApi, type BillingInterval, type PremiumTier, type SubscriptionCatalogRow } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
 import { trackEvent } from '@/lib/analytics';
 import { LoadingSpinner } from '@/components/ui';
@@ -30,11 +30,6 @@ const TIER_LABELS: Record<PremiumTier, string> = {
 };
 
 type PaidTier = Exclude<PremiumTier, 'free'>;
-
-const TIER_PRICES: Record<BillingInterval, Record<PremiumTier, string>> = {
-  monthly: { free: '$0', plus: '$5.99', pro: '$11.99', max: '$24.99' },
-  annual: { free: '$0', plus: '$59', pro: '$119', max: '$249' },
-};
 
 const INTERVAL_SUFFIX: Record<BillingInterval, string> = {
   monthly: '/month',
@@ -51,6 +46,15 @@ const TIER_DESCRIPTIONS: Record<PremiumTier, string> = {
   plus: 'Higher automation limits with basic AI chat.',
   pro: 'Plus limits with AI tools, memory, and customization.',
   max: 'Higher AI limits for active AI servers.',
+};
+
+const formatCatalogPrice = (row: SubscriptionCatalogRow | undefined) => {
+  if (!row) return '—';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: row.currency.toUpperCase(),
+    maximumFractionDigits: 2,
+  }).format(row.unit_amount_cents / 100);
 };
 
 const normalizeTier = (tier: unknown): PremiumTier => {
@@ -259,6 +263,19 @@ export const BillingPage: React.FC = () => {
     retry: false,
   });
 
+  const catalogQuery = useQuery({
+    queryKey: ['subscription-catalog'],
+    queryFn: () => subscriptionsApi.getCatalog(),
+    staleTime: 300_000,
+    retry: false,
+  });
+  const catalog = catalogQuery.data?.catalog ?? [];
+  const catalogReady = catalog.length === 6;
+  const priceFor = (interval: BillingInterval, tier: PremiumTier) => {
+    if (tier === 'free') return '$0';
+    return formatCatalogPrice(catalog.find((row) => row.tier === tier && row.cadence === interval));
+  };
+
   const openPortal = useMutation({
     mutationFn: () => subscriptionsApi.openPortal({
       guild_id: guildId!,
@@ -377,6 +394,10 @@ export const BillingPage: React.FC = () => {
   const TIER_RANK: Record<PremiumTier, number> = { free: 0, plus: 1, pro: 2, max: 3 };
 
   const handleChangeTier = (plan: PaidTier, interval: BillingInterval) => {
+    if (!catalogReady) {
+      showToast('Pricing is temporarily unavailable. Please try again shortly.', 'info');
+      return;
+    }
     // Free -> paid goes through Stripe Checkout, which is its own confirmation.
     // An existing paid subscription is modified in place with proration and no
     // checkout step, so confirm via modal before we trigger a billing change.
@@ -390,7 +411,7 @@ export const BillingPage: React.FC = () => {
   const pendingIsUpgrade = pendingPlan ? TIER_RANK[pendingPlan.tier] > TIER_RANK[tier] : false;
   const pendingIsIntervalSwitch = pendingPlan ? pendingPlan.tier === tier : false;
   const pendingGoingForward = pendingPlan
-    ? `${TIER_PRICES[pendingPlan.interval][pendingPlan.tier]} per ${INTERVAL_NOUN[pendingPlan.interval]} going forward`
+    ? `${priceFor(pendingPlan.interval, pendingPlan.tier)} per ${INTERVAL_NOUN[pendingPlan.interval]} going forward`
     : '';
   const pendingProration = pendingPlan
     ? pendingIsIntervalSwitch
@@ -450,7 +471,7 @@ export const BillingPage: React.FC = () => {
                 <p className="text-muted mb-0">{TIER_DESCRIPTIONS[tier]}</p>
               </div>
               <div className="text-end">
-                <div className="fs-4 fw-bold text-primary">{TIER_PRICES[currentInterval][tier]}</div>
+                <div className="fs-4 fw-bold text-primary">{priceFor(currentInterval, tier)}</div>
                 <div className="small text-muted">per {hasPaidTier ? INTERVAL_NOUN[currentInterval] : 'month'}</div>
               </div>
             </div>
@@ -533,7 +554,7 @@ export const BillingPage: React.FC = () => {
                           <div className="fw-bold">{TIER_LABELS[plan]}</div>
                         </div>
                         <div className="fs-4 fw-bold text-primary">
-                          {TIER_PRICES[planInterval][plan]}
+                          {priceFor(planInterval, plan)}
                           <span className="small text-muted fw-normal">{INTERVAL_SUFFIX[planInterval]}</span>
                         </div>
                         <div className="small text-muted">{TIER_DESCRIPTIONS[plan]}</div>
@@ -541,10 +562,10 @@ export const BillingPage: React.FC = () => {
                       <button
                         type="button"
                         className="btn p-3 mt-auto"
-                        disabled={isCurrent || changeTier.isPending || isCanceling || isPaymentRecovery}
+                        disabled={!catalogReady || isCurrent || changeTier.isPending || isCanceling || isPaymentRecovery}
                         onClick={() => handleChangeTier(plan, planInterval)}
                       >
-                        {isCurrent ? 'Current Plan' : changeTier.isPending ? 'Working...' : action}
+                        {!catalogReady ? 'Pricing unavailable' : isCurrent ? 'Current Plan' : changeTier.isPending ? 'Working...' : action}
                       </button>
                     </div>
                   </div>

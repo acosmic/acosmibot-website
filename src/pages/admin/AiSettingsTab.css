@@ -1,0 +1,203 @@
+.ai-provider-row {
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+}
+
+.ai-provider-toggle {
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: var(--bg-card);
+}
+
+.ai-provider-toggle__option {
+  min-width: 88px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ai-provider-toggle__option:hover:not(.is-active) {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.ai-provider-toggle__option:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.ai-provider-toggle__option.is-active {
+  color: var(--bg-primary);
+  background: var(--primary-color);
+}
+
+.ai-lab-panel {
+  margin-top: 32px;
+  padding: 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 15px;
+  background: var(--bg-card);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.ai-lab-panel__header,
+.ai-lab-panel__ledger-heading,
+.ai-lab-job {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ai-lab-panel__header {
+  margin-bottom: 20px;
+}
+
+.ai-lab-panel__header h3 {
+  margin: 4px 0 6px;
+}
+
+.ai-lab-panel__kicker,
+.ai-lab-panel__guard,
+.ai-lab-panel__ledger-heading {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ai-lab-panel__guard {
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--warning-color) 35%, transparent);
+  border-radius: 6px;
+  color: var(--warning-color);
+  white-space: nowrap;
+}
+
+.ai-lab-panel__controls {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.2fr) minmax(110px, 0.7fr) minmax(180px, 1.2fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ai-lab-panel__compare {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.ai-lab-panel__compare input { width: 18px; height: 18px; accent-color: var(--primary-color); }
+
+.ai-lab-panel__run {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.ai-lab-panel__ledger {
+  margin-top: 18px;
+  border-top: 1px solid var(--border-light);
+}
+
+.ai-lab-panel__ledger-heading {
+  padding: 12px 0 8px;
+}
+
+.ai-lab-job {
+  position: relative;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-light);
+  flex-wrap: wrap;
+}
+
+.ai-lab-job > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ai-lab-job > div span,
+.ai-lab-job small {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.ai-lab-job > p {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.ai-lab-job__status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.ai-lab-job__check {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ai-lab-job__check.is-pass { color: var(--success-color); background: color-mix(in srgb, var(--success-color) 12%, transparent); }
+.ai-lab-job__check.is-review { color: var(--warning-color); background: color-mix(in srgb, var(--warning-color) 12%, transparent); }
+
+.ai-lab-job__actions {
+  flex: 1 1 100%;
+  display: flex !important;
+  grid-auto-flow: column;
+  justify-content: start;
+  gap: 8px !important;
+}
+
+.ai-lab-job__actions .btn[aria-pressed="true"] {
+  color: var(--bg-primary);
+  background: var(--primary-color);
+}
+
+.ai-lab-job__status.is-succeeded { color: var(--success-color); background: color-mix(in srgb, var(--success-color) 12%, transparent); }
+.ai-lab-job__status.is-failed { color: var(--error-color); background: color-mix(in srgb, var(--error-color) 12%, transparent); }
+.ai-lab-job__status.is-running,
+.ai-lab-job__status.is-queued { color: var(--primary-color); background: color-mix(in srgb, var(--primary-color) 12%, transparent); }
+.ai-lab-panel__error { color: var(--error-color); }
+
+@media (max-width: 760px) {
+  .ai-lab-panel__controls { grid-template-columns: 1fr 1fr; }
+  .ai-lab-panel__run { grid-column: 1 / -1; }
+}
+
+@media (max-width: 520px) {
+  .ai-lab-panel__header { flex-direction: column; }
+  .ai-lab-panel__controls { grid-template-columns: 1fr; }
+  .ai-lab-panel__run { grid-column: auto; width: 100%; }
+}
+
+@media (max-width: 520px) {
+  .ai-provider-toggle {
+    width: 100%;
+  }
+
+  .ai-provider-toggle__option {
+    flex: 1;
+  }
+}

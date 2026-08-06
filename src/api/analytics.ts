@@ -80,6 +80,23 @@ export interface GlobalAiUsage {
   by_model: AiModelUsage[];
   top_guilds: AiTopGuild[];
 }
+export interface GlobalAiCallAggregate {
+  days: number;
+  call_count: number;
+  success_count: number;
+  error_count: number;
+  input_tokens: number;
+  cached_input_tokens: number;
+  visible_output_tokens: number;
+  thought_tokens: number;
+  tool_use_prompt_tokens: number;
+  provider_total_tokens: number;
+  cost_usd: string;
+  unknown_cost_count: number;
+  fallback_cost_count: number;
+  latency_ms: { p50: number | null; p95: number | null };
+  spend_by_day: Array<{ date: string; call_count: number; cost_usd: string }>;
+}
 export interface GuildAiUsage {
   days: number;
   stats_by_type: Record<string, AiUsageTypeStat>;
@@ -148,6 +165,9 @@ export const analyticsApi = {
 
   globalAiUsage: (days: number): Promise<GlobalAiUsage> =>
     api.fetch<GlobalAiUsage>(`/api/admin/analytics/ai-usage?days=${days}`),
+
+  globalAiCalls: (days: number): Promise<GlobalAiCallAggregate> =>
+    api.fetch<GlobalAiCallAggregate>(`/api/admin/analytics/ai-calls?days=${days}`),
 
   guildAiUsage: (guildId: string, days: number): Promise<GuildAiUsage> =>
     api.fetch<GuildAiUsage>(`/api/guilds/${guildId}/analytics/ai-usage?days=${days}`),

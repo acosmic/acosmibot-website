@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminApi, AdminFeatureSettings, StripeMode } from '@/api/admin';
+import { adminApi, AdminFeatureSettings, StripeMode, type AdminStripeReadiness } from '@/api/admin';
 
 type FormState = Pick<
   AdminFeatureSettings,
@@ -12,6 +12,12 @@ export const FeatureSettingsTab: React.FC = () => {
   const query = useQuery({
     queryKey: ['admin', 'feature-settings'],
     queryFn: () => adminApi.getFeatureSettings(),
+  });
+  const readiness = useQuery({
+    queryKey: ['admin', 'stripe-readiness'],
+    queryFn: () => adminApi.getStripeReadiness(),
+    staleTime: 60_000,
+    retry: false,
   });
 
   const [form, setForm] = useState<FormState | null>(null);
@@ -41,7 +47,7 @@ export const FeatureSettingsTab: React.FC = () => {
   }
 
   if (query.error) {
-    return <p style={{ color: '#f87171' }}>Error: {String(query.error)}</p>;
+    return <p style={{ color: 'var(--error-color)' }}>Error: {String(query.error)}</p>;
   }
 
   const testConfigured = query.data?.data.stripe_test_configured ?? false;
@@ -122,7 +128,7 @@ export const FeatureSettingsTab: React.FC = () => {
               checked={form.stripe_mode === 'live'}
               disabled={!targetConfigured || mutation.isPending}
               onChange={(e) => handleModeChange(e.target.checked)}
-              style={{ width: 18, height: 18, accentColor: '#ef4444' }}
+              style={{ width: 18, height: 18, accentColor: 'var(--error-color)' }}
             />
             <span style={{ fontWeight: 600 }}>
               Live Stripe payments
@@ -137,10 +143,10 @@ export const FeatureSettingsTab: React.FC = () => {
             enable Stripe billing and save again.
           </p>
           <div className="small" style={{ marginLeft: 30, display: 'flex', gap: 16 }}>
-            <span style={{ color: testConfigured ? '#4ade80' : '#f87171' }}>
+            <span style={{ color: testConfigured ? 'var(--success-color)' : 'var(--error-color)' }}>
               Test {testConfigured ? 'configured' : 'incomplete'}
             </span>
-            <span style={{ color: liveConfigured ? '#4ade80' : '#f87171' }}>
+            <span style={{ color: liveConfigured ? 'var(--success-color)' : 'var(--error-color)' }}>
               Live {liveConfigured ? 'configured' : 'incomplete'}
             </span>
           </div>
@@ -166,7 +172,7 @@ export const FeatureSettingsTab: React.FC = () => {
             </div>
           )}
           {!targetConfigured && (
-            <p style={{ color: '#f87171', marginLeft: 30 }} className="small mt-2 mb-0">
+            <p style={{ color: 'var(--error-color)', marginLeft: 30 }} className="small mt-2 mb-0">
               {targetMode === 'live' ? 'Live' : 'Test'} mode cannot be selected until its
               secret key, six Price IDs, and webhook secret are configured on the API.
             </p>
@@ -210,17 +216,54 @@ export const FeatureSettingsTab: React.FC = () => {
                 : 'Save'}
           </button>
           {mutation.error && (
-            <span role="alert" style={{ color: '#f87171' }}>
+            <span role="alert" style={{ color: 'var(--error-color)' }}>
               {mutation.error instanceof Error
                 ? mutation.error.message
                 : String(mutation.error)}
             </span>
           )}
           {!mutation.error && savedAt && Date.now() - savedAt < 4000 && (
-            <span style={{ color: '#4ade80' }}>Saved</span>
+            <span style={{ color: 'var(--success-color)' }}>Saved</span>
           )}
         </div>
       </form>
+      <section
+        aria-labelledby="stripe-readiness-title"
+        style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--border-light)' }}
+      >
+        <h4 id="stripe-readiness-title" className="mb-2">Stripe catalog readiness</h4>
+        <p className="text-muted small mb-3">
+          Remote Product and Price objects must match the versioned catalog before checkout can run.
+          Price IDs and secrets are never shown here.
+        </p>
+        {readiness.isLoading ? <p className="text-muted small">Checking catalog…</p> : readiness.error ? (
+          <p className="small" style={{ color: 'var(--error-color)' }}>Readiness check unavailable.</p>
+        ) : (['test', 'live'] as const).map((mode) => {
+          const status: AdminStripeReadiness | undefined = readiness.data?.data?.[mode];
+          return (
+            <div key={mode} style={{ marginBottom: 14, padding: 12, border: '1px solid var(--border-light)', borderRadius: 10, background: 'var(--bg-secondary)' }}>
+              <div className="d-flex justify-content-between align-items-center gap-2">
+                <strong>{mode === 'live' ? 'Live' : 'Test'} mode</strong>
+                <span style={{ color: status?.configured ? 'var(--success-color)' : 'var(--warning-color)' }}>
+                  {status?.configured ? 'Ready' : 'Needs attention'}
+                </span>
+              </div>
+              {status?.missing?.length ? <p className="small text-muted mb-0 mt-2">Missing configuration: {status.missing.join(', ')}</p> : (
+                <div className="small mt-2" style={{ display: 'grid', gap: 4 }}>
+                  {(status?.rows ?? []).map((row) => (
+                    <div key={`${row.tier}-${row.cadence}`} className="d-flex justify-content-between gap-2">
+                      <span>{row.tier} · {row.cadence}</span>
+                      <span style={{ color: row.status === 'valid' ? 'var(--success-color)' : 'var(--error-color)' }}>
+                        {row.status === 'valid' ? 'valid' : row.reasons.join(', ') || row.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </section>
     </div>
   );
 };
