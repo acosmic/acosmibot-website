@@ -27,7 +27,38 @@ export interface GuildSubscription {
   status: string;
 }
 
+export interface SubscriptionCatalogRow {
+  tier: Exclude<PremiumTier, 'free'>;
+  cadence: BillingInterval;
+  unit_amount_cents: number;
+  currency: string;
+  lookup_key: string;
+  quotas: {
+    daily_ai_actions: number;
+    monthly_ai_actions: number;
+    image_monthly_limit: number;
+    image_analysis_monthly_limit: number;
+  };
+}
+
+export interface SubscriptionQuotaCatalog {
+  [tier: string]: {
+    daily_ai_actions: number;
+    monthly_ai_actions: number;
+    image_monthly_limit: number;
+    image_analysis_monthly_limit: number;
+  };
+}
+
 export const subscriptionsApi = {
+  getCatalog: () =>
+    api.fetch<{
+      success: boolean;
+      catalog_effective_date: string;
+      catalog: SubscriptionCatalogRow[];
+      quotas: SubscriptionQuotaCatalog;
+    }>('/api/subscriptions/catalog'),
+
   getBillingStatus: () =>
     api.fetch<{ success: boolean; billing_enabled: boolean }>('/api/billing/status'),
 

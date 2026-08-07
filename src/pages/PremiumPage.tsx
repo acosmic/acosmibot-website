@@ -12,7 +12,7 @@ import { Activity, ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, S
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { guildApi } from '@/api/guilds';
-import { subscriptionsApi, type BillingInterval, type PremiumTier } from '@/api/subscriptions';
+import { subscriptionsApi, type BillingInterval, type PremiumTier, type SubscriptionCatalogRow, type SubscriptionQuotaCatalog } from '@/api/subscriptions';
 import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
 import { trackEvent } from '@/lib/analytics';
@@ -31,7 +31,7 @@ const parsePriceAmount = (price: string) => Number(price.replace(/[^0-9.]/g, '')
 
 interface TierCardDef {
   tier: PremiumTier;
-  monthlyPrice: string;
+  monthlyPrice?: string;
   annualPrice?: string;
   description: string;
   fit: string;
@@ -60,14 +60,11 @@ const TIERS: TierCardDef[] = [
       { text: '1 custom command' },
       { text: '1 reaction role message' },
       { text: '5 custom embeds' },
-      { text: 'Basic AI chat - 3/day and 90/month' },
       { text: 'No AI tools, memories, or custom personalities', disabled: true },
     ],
   },
   {
     tier: 'plus',
-    monthlyPrice: '$5.99',
-    annualPrice: '$59',
     description: 'More automation capacity for active community servers.',
     fit: 'Best for growing Discords',
     icon: <Gem size={18} />,
@@ -81,15 +78,12 @@ const TIERS: TierCardDef[] = [
       { text: '25 custom commands' },
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
-      { text: 'Basic AI chat - 3/day and 90/month' },
       { text: 'Priority support' },
       { text: 'No AI tools, memories, or custom personalities', disabled: true },
     ],
   },
   {
     tier: 'pro',
-    monthlyPrice: '$11.99',
-    annualPrice: '$119',
     description: 'Plus limits with AI tools, memory, and clear usage caps.',
     fit: 'For servers that want AI built in',
     popular: true,
@@ -98,19 +92,14 @@ const TIERS: TierCardDef[] = [
     ctaNote: 'Billed per server',
     features: [
       { text: 'Everything in Plus, and:' },
-      { text: 'AI chat - 100/day and 2,000/month' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
       { text: 'AI web search' },
       { text: 'Ambient AI replies' },
-      { text: '50 medium images/month' },
-      { text: '100 vision analyses/month' },
     ],
   },
   {
     tier: 'max',
-    monthlyPrice: '$24.99',
-    annualPrice: '$249',
     description: 'Higher AI usage for servers with heavier assistant workflows.',
     fit: 'For AI-heavy communities',
     icon: <span className="pricing-icon-cluster"><Sparkles /><Bot /></span>,
@@ -118,16 +107,41 @@ const TIERS: TierCardDef[] = [
     ctaNote: 'Billed per server',
     features: [
       { text: 'Everything in Plus, and:' },
-      { text: 'AI chat - 300/day and 6,000/month' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
       { text: 'AI web search' },
       { text: 'Ambient AI replies' },
-      { text: '100 medium images/month' },
-      { text: '200 vision analyses/month' },
     ],
   },
 ];
+
+const formatCatalogPrice = (row: SubscriptionCatalogRow | undefined) => {
+  if (!row) return undefined;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: row.currency.toUpperCase(),
+    maximumFractionDigits: 2,
+  }).format(row.unit_amount_cents / 100);
+};
+
+const catalogRowsForTier = (catalog: SubscriptionCatalogRow[], tier: PremiumTier) =>
+  catalog.filter((row) => row.tier === tier);
+
+const buildCatalogFeatures = (def: TierCardDef, catalog: SubscriptionCatalogRow[], quotasByTier: SubscriptionQuotaCatalog) => {
+  const rows = catalogRowsForTier(catalog, def.tier);
+  const quotas = quotasByTier[def.tier] ?? rows[0]?.quotas;
+  if (!quotas) return def.features;
+  const features = [
+    `AI chat - ${quotas.daily_ai_actions.toLocaleString()}/day and ${quotas.monthly_ai_actions.toLocaleString()}/month`,
+  ];
+  if (def.tier === 'pro' || def.tier === 'max') {
+    features.push(
+      `${quotas.image_monthly_limit.toLocaleString()} medium images/month`,
+      `${quotas.image_analysis_monthly_limit.toLocaleString()} vision analyses/month`,
+    );
+  }
+  return [...def.features, ...features.map((text) => ({ text }))];
+};
 
 export const PricingPage: React.FC = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -136,6 +150,25 @@ export const PricingPage: React.FC = () => {
   const [pickerTier, setPickerTier] = useState<Exclude<PremiumTier, 'free'> | null>(null);
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
   const preselectGuildId = searchParams.get('guild');
+
+  const catalogQuery = useQuery({
+    queryKey: ['subscription-catalog'],
+    queryFn: () => subscriptionsApi.getCatalog(),
+    staleTime: 300_000,
+    retry: false,
+  });
+  const catalog = catalogQuery.data?.catalog ?? [];
+  const quotasByTier = catalogQuery.data?.quotas ?? {};
+  const pricingAvailable = catalog.length === 6;
+  const displayTiers = TIERS.map((def) => {
+    const rows = catalogRowsForTier(catalog, def.tier);
+    return {
+      ...def,
+      monthlyPrice: def.tier === 'free' ? '$0' : formatCatalogPrice(rows.find((row) => row.cadence === 'monthly')),
+      annualPrice: def.tier === 'free' ? undefined : formatCatalogPrice(rows.find((row) => row.cadence === 'annual')),
+      features: buildCatalogFeatures(def, catalog, quotasByTier),
+    };
+  });
 
   // Admin-controlled kill switch; fails closed (coming soon) while loading
   // or if the API is unreachable.
@@ -146,14 +179,15 @@ export const PricingPage: React.FC = () => {
     retry: false,
   });
   const billingEnabled = billingStatus.data?.billing_enabled ?? false;
+  const checkoutAvailable = billingEnabled && pricingAvailable;
 
   const selectTier = (tier: Exclude<PremiumTier, 'free'>) => {
     if (!isAuthenticated) {
       startLogin();
       return;
     }
-    if (!billingEnabled) {
-      showToast('Pricing checkout is coming soon.', 'info');
+    if (!checkoutAvailable) {
+      showToast(pricingAvailable ? 'Pricing checkout is coming soon.' : 'Pricing is temporarily unavailable.', 'info');
       return;
     }
     setPickerTier(tier);
@@ -199,7 +233,7 @@ export const PricingPage: React.FC = () => {
               <span>Free core included</span>
             </div>
           </div>
-          <PricingOrbit interval={billingInterval} />
+          <PricingOrbit interval={billingInterval} plans={displayTiers} />
         </section>
 
         <section className="pricing-control-deck" aria-label="Billing interval">
@@ -208,9 +242,9 @@ export const PricingPage: React.FC = () => {
             <strong>{billingInterval === 'monthly' ? 'Flexible monthly orbit' : 'Annual orbit · save up to 18%'}</strong>
           </div>
           <BillingToggle interval={billingInterval} onChange={setBillingInterval} />
-          <span className={`pricing-billing-status${billingEnabled ? ' is-live' : ''}`}>
+          <span className={`pricing-billing-status${checkoutAvailable ? ' is-live' : ''}`}>
             <i />
-            {billingEnabled ? 'Checkout online' : 'Checkout coming soon'}
+            {checkoutAvailable ? 'Checkout online' : pricingAvailable ? 'Checkout coming soon' : 'Catalog unavailable'}
           </span>
         </section>
 
@@ -227,14 +261,14 @@ export const PricingPage: React.FC = () => {
             <span /><span /><span /><span />
           </div>
           <div className="pricing-plans-grid">
-            {TIERS.map((tier) => (
+            {displayTiers.map((tier) => (
               <TierCard
                 key={tier.tier}
-                def={tier.tier === 'free' || billingEnabled
+                def={tier.tier === 'free' || checkoutAvailable
                   ? tier
                   : { ...tier, ctaNote: 'Checkout opens after billing launch' }}
                 interval={billingInterval}
-                onSelect={tier.tier === 'free' ? undefined : () => selectTier(tier.tier as Exclude<PremiumTier, 'free'>)}
+                onSelect={tier.tier === 'free' || !pricingAvailable ? undefined : () => selectTier(tier.tier as Exclude<PremiumTier, 'free'>)}
               />
             ))}
           </div>
@@ -253,7 +287,7 @@ export const PricingPage: React.FC = () => {
             <PremiumNote
               icon={<BarChart3 />}
               title="Billing control"
-              text={billingEnabled
+              text={checkoutAvailable
                 ? "Subscriptions are billed per server through Stripe. Change plans, switch intervals, or cancel from your server's billing page. Billing questions go to support@acosmibot.com."
                 : 'Checkout stays paused while billing configuration is finalized.'}
             />
@@ -277,8 +311,9 @@ export const PricingPage: React.FC = () => {
         <ServerPickerModal
           tier={pickerTier}
           interval={billingInterval}
-          billingEnabled={billingEnabled}
-          preselectGuildId={preselectGuildId}
+                billingEnabled={checkoutAvailable}
+                preselectGuildId={preselectGuildId}
+                plans={displayTiers}
           onClose={() => {
             setPickerTier(null);
             if (preselectGuildId) setSearchParams({}, { replace: true });
@@ -296,8 +331,8 @@ const TierCard: React.FC<{
   interval: BillingInterval;
   onSelect?: () => void;
 }> = ({ def, interval, onSelect }) => {
-  const price = interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice;
-  const monthlyTotal = parsePriceAmount(def.monthlyPrice) * 12;
+  const price = (interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice) ?? '—';
+  const monthlyTotal = parsePriceAmount(def.monthlyPrice ?? '') * 12;
   const annualTotal = def.annualPrice ? parsePriceAmount(def.annualPrice) : 0;
   const annualSavings = annualTotal ? Math.round((1 - annualTotal / monthlyTotal) * 100) : 0;
 
@@ -430,14 +465,14 @@ const PremiumNote: React.FC<{ icon: React.ReactNode; title: string; text: string
   </article>
 );
 
-const PricingOrbit: React.FC<{ interval: BillingInterval }> = ({ interval }) => (
+const PricingOrbit: React.FC<{ interval: BillingInterval; plans: TierCardDef[] }> = ({ interval, plans }) => (
   <div className="pricing-orbit" aria-label={`Four pricing tiers with ${interval} billing selected`}>
     <div className="pricing-orbit__rings" aria-hidden="true"><span /><span /><span /></div>
     <div className="pricing-orbit__core">
       <img src="/images/acosmibot-logo.png" alt="" />
       <span>Core</span>
     </div>
-    {TIERS.map((tier, index) => (
+    {plans.map((tier, index) => (
       <div
         key={tier.tier}
         className={`pricing-orbit__station pricing-orbit__station--${tier.tier}`}
@@ -478,8 +513,9 @@ const ServerPickerModal: React.FC<{
   interval: BillingInterval;
   billingEnabled: boolean;
   preselectGuildId: string | null;
+  plans: TierCardDef[];
   onClose: () => void;
-}> = ({ tier, interval, billingEnabled, preselectGuildId, onClose }) => {
+}> = ({ tier, interval, billingEnabled, preselectGuildId, plans, onClose }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const continueButtonRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
@@ -505,7 +541,7 @@ const ServerPickerModal: React.FC<{
   });
 
   const navigate = useNavigate();
-  const selectedPlan = TIERS.find((plan) => plan.tier === tier);
+  const selectedPlan = plans.find((plan) => plan.tier === tier);
   const selectedPrice = interval === 'annual'
     ? selectedPlan?.annualPrice
     : selectedPlan?.monthlyPrice;

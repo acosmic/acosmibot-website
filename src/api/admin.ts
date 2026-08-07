@@ -9,6 +9,15 @@ export type AdminAiTierLimits = Record<AdminAiTier, {
   image_analysis_monthly_limit: number;
 }>;
 
+export type AiProvider = 'openai' | 'gemini';
+export interface AdminAiProviderLayer {
+  label: string;
+  provider: AiProvider;
+  openai_model: string;
+  gemini_model: string;
+  available_models: Record<AiProvider, string[]>;
+}
+
 export interface AdminAiSettings {
   enabled: boolean;
   /** Show the disclaimer + "Used X Tool" subtext under AI replies. */
@@ -19,6 +28,7 @@ export interface AdminAiSettings {
   timezone: string;
   web_search_provider: string;
   tier_limits: AdminAiTierLimits;
+  provider_layers: Record<string, AdminAiProviderLayer>;
   available_models: string[];
   available_web_search_providers: string[];
 }
@@ -26,6 +36,45 @@ export interface AdminAiSettings {
 export interface AdminAiSettingsResponse {
   success: boolean;
   data: AdminAiSettings;
+}
+
+export interface AdminAiLabCase {
+  key: string;
+  label: string;
+  description: string;
+  layer: string;
+  kind: 'text' | 'structured' | 'vision' | 'tool' | 'image';
+  timeout_seconds: number;
+  max_output_tokens: number;
+  estimated_max_cost_usd: string;
+  requires_image_confirmation: boolean;
+}
+
+export interface AdminAiLabJob {
+  job_id: string;
+  case_key: string;
+  provider: AiProvider;
+  model: string;
+  layer: string;
+  status: 'queued' | 'running' | 'succeeded' | 'failed';
+  created_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  duration_ms: number | null;
+  response_text: string | null;
+  error_type: string | null;
+  input_tokens: number | null;
+  cached_input_tokens: number | null;
+  visible_output_tokens: number | null;
+  thought_tokens: number | null;
+  provider_total_tokens: number | null;
+  cost_usd: string | null;
+  cost_estimate_quality: string | null;
+  pricing_effective_date: string | null;
+  automatic_pass: boolean | null;
+  result_metadata: Record<string, unknown>;
+  quality_rating: -1 | 1 | null;
+  quality_note: string | null;
 }
 
 export type InterestInterval = 'daily' | 'weekly' | 'monthly';
@@ -62,6 +111,22 @@ export interface AdminFeatureSettings {
 export interface AdminFeatureSettingsResponse {
   success: boolean;
   data: AdminFeatureSettings;
+}
+
+export interface AdminStripeReadinessRow {
+  tier: string;
+  cadence: string;
+  price_id: string | null;
+  lookup_key: string;
+  status: 'valid' | 'missing' | 'mismatched' | 'unavailable';
+  reasons: string[];
+}
+
+export interface AdminStripeReadiness {
+  mode: StripeMode;
+  configured: boolean;
+  rows: AdminStripeReadinessRow[];
+  missing?: string[];
 }
 
 export interface AdminCosmetic {
@@ -201,6 +266,9 @@ export const adminApi = {
       },
     ),
 
+  getStripeReadiness: () =>
+    api.fetch<{ success: boolean; data: Record<StripeMode, AdminStripeReadiness> }>('/api/admin/stripe-readiness'),
+
   getAiSettings: () =>
     api.fetch<AdminAiSettingsResponse>('/api/admin/ai-settings'),
 
@@ -214,6 +282,24 @@ export const adminApi = {
         body: JSON.stringify(payload),
       },
     ),
+
+  getAiLabCases: () =>
+    api.fetch<{ success: boolean; cases: AdminAiLabCase[] }>('/api/admin/ai-lab/cases'),
+
+  getAiLabJobs: () =>
+    api.fetch<{ success: boolean; jobs: AdminAiLabJob[] }>('/api/admin/ai-lab/jobs'),
+
+  createAiLabJob: (payload: { case_key: string; provider: AiProvider; model: string; confirm: true; confirm_image?: true }) =>
+    api.fetch<{ success: boolean; job: AdminAiLabJob }>('/api/admin/ai-lab/jobs', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  rateAiLabJob: (jobId: string, rating: -1 | 1, note = '') =>
+    api.fetch<{ success: boolean; job: AdminAiLabJob }>(`/api/admin/ai-lab/jobs/${jobId}/rating`, {
+      method: 'PATCH',
+      body: JSON.stringify({ rating, note }),
+    }),
 
   getEconomySettings: () =>
     api.fetch<AdminEconomySettingsResponse>('/api/admin/economy-settings'),
