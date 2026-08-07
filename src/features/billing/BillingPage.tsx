@@ -1,24 +1,31 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
+  ArrowRight,
   CalendarClock,
+  Check,
   CreditCard,
   ExternalLink,
   Gem,
+  Info,
   Receipt,
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  WalletCards,
   X,
   XCircle,
 } from 'lucide-react';
+import { aiCreditsApi, type CreditGuildPolicy, type CreditPack } from '@/api/aiCredits';
+import { CreditCheckoutDialog } from '@/components/CreditCheckoutDialog';
+import { Link } from 'react-router-dom';
 import { subscriptionsApi, type BillingInterval, type PremiumTier, type SubscriptionCatalogRow } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
 import { trackEvent } from '@/lib/analytics';
-import { LoadingSpinner } from '@/components/ui';
+import { ChannelMultiSelect, ChannelSelect, LoadingSpinner, RoleMultiSelect } from '@/components/ui';
 import { showToast } from '@/utils/toast';
 import './BillingPage.css';
 
@@ -80,6 +87,43 @@ const formatMoney = (amountInCents: number, currency?: string) =>
     style: 'currency',
     currency: (currency || 'usd').toUpperCase(),
   }).format(amountInCents / 100);
+
+const formatCredits = (value: number) => new Intl.NumberFormat('en-US').format(value);
+
+const creditPolicyDefaults = (policy?: {
+  server_pool_enabled: boolean;
+  personal_fallback_allowed: boolean;
+  allowed_operations: Record<string, boolean> | null;
+  guild_daily_credit_cap: number;
+  member_daily_credit_cap: number;
+  maximum_credits_per_request: number;
+  role_mode: CreditGuildPolicy['role_mode'];
+  role_ids: string[] | null;
+  channel_mode: CreditGuildPolicy['channel_mode'];
+  channel_ids: string[] | null;
+  low_balance_threshold: number;
+  notifications_enabled: boolean;
+  notification_channel_id: string | null;
+}) => ({
+  server_pool_enabled: policy?.server_pool_enabled ?? false,
+  personal_fallback_allowed: policy?.personal_fallback_allowed ?? false,
+  allowed_operations: {
+    chat: policy?.allowed_operations?.chat ?? false,
+    tool_chat: policy?.allowed_operations?.tool_chat ?? false,
+    image_generation: policy?.allowed_operations?.image_generation ?? false,
+    image_analysis: policy?.allowed_operations?.image_analysis ?? false,
+  },
+  guild_daily_credit_cap: policy?.guild_daily_credit_cap ?? 0,
+  member_daily_credit_cap: policy?.member_daily_credit_cap ?? 0,
+  maximum_credits_per_request: policy?.maximum_credits_per_request ?? 0,
+  role_mode: policy?.role_mode ?? 'all',
+  role_ids: policy?.role_ids ?? [],
+  channel_mode: policy?.channel_mode ?? 'all',
+  channel_ids: policy?.channel_ids ?? [],
+  low_balance_threshold: policy?.low_balance_threshold ?? 0,
+  notifications_enabled: policy?.notifications_enabled ?? false,
+  notification_channel_id: policy?.notification_channel_id ?? null,
+});
 
 interface CancelSubscriptionDialogProps {
   guildName: string;
@@ -246,6 +290,254 @@ const CancelSubscriptionDialog: React.FC<CancelSubscriptionDialogProps> = ({
       </div>
     </div>,
     portalTarget,
+  );
+};
+
+const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({ guildId, guildName }) => {
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const purchaseId = searchParams.get('purchase');
+  const creditsQuery = useQuery({
+    queryKey: ['guild', guildId, 'ai-credits'],
+    queryFn: () => aiCreditsApi.getGuild(guildId),
+    staleTime: 15_000,
+    retry: false,
+  });
+  const catalogQuery = useQuery({
+    queryKey: ['ai-credits', 'catalog'],
+    queryFn: () => aiCreditsApi.getCatalog(),
+    staleTime: 300_000,
+    retry: false,
+  });
+  const ledgerQuery = useQuery({
+    queryKey: ['guild', guildId, 'ai-credits', 'ledger'],
+    queryFn: () => aiCreditsApi.getGuildLedger(guildId),
+    staleTime: 15_000,
+    retry: false,
+  });
+  const purchaseQuery = useQuery({
+    queryKey: ['ai-credits', 'purchase', purchaseId],
+    queryFn: () => aiCreditsApi.getPurchase(purchaseId!),
+    enabled: Boolean(purchaseId),
+    retry: false,
+    refetchInterval: (query) => {
+      const status = query.state.data?.purchase.status;
+      return status === 'pending' || status === 'processing' || status === 'checkout_created' ? 2500 : false;
+    },
+  });
+  const [policyDraft, setPolicyDraft] = React.useState(creditPolicyDefaults());
+  const [selectedPack, setSelectedPack] = React.useState<CreditPack | null>(null);
+
+  React.useEffect(() => {
+    if (creditsQuery.data?.policy) setPolicyDraft(creditPolicyDefaults(creditsQuery.data.policy));
+  }, [creditsQuery.data?.policy]);
+
+  React.useEffect(() => {
+    if (purchaseQuery.data?.purchase.status !== 'fulfilled') return;
+    void queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'ai-credits'] });
+    void queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'ai-credits', 'ledger'] });
+  }, [guildId, purchaseQuery.data?.purchase.status, queryClient]);
+
+  const policyMutation = useMutation({
+    mutationFn: () => aiCreditsApi.updateGuildPolicy(guildId, {
+      ...policyDraft,
+      allowed_operations: policyDraft.allowed_operations,
+      expected_version: creditsQuery.data?.policy.version,
+    } as Parameters<typeof aiCreditsApi.updateGuildPolicy>[1] & { expected_version?: number }),
+    onSuccess: async () => {
+      showToast('Guild AI Credits policy saved.', 'success');
+      await queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'ai-credits'] });
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Could not save guild AI Credits policy.', 'error');
+    },
+  });
+
+  const checkoutMutation = useMutation({
+    mutationFn: (packSku: string) => aiCreditsApi.createCheckout({
+      pack_sku: packSku,
+      target_type: 'guild',
+      guild_id: guildId,
+      accepted_terms_version: catalogQuery.data?.catalog.terms_version ?? '',
+    }),
+    onSuccess: (result) => {
+      window.location.assign(result.checkout_url);
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Could not open guild AI Credits Checkout.', 'error');
+    },
+  });
+
+  if (creditsQuery.isLoading) {
+    return <section className="billing-ai-credits card p-4 mb-4"><LoadingSpinner /></section>;
+  }
+
+  if (creditsQuery.error || !creditsQuery.data) {
+    return (
+      <section className="billing-ai-credits card p-4 mb-4" aria-live="polite">
+        <div className="billing-ai-credits__heading">
+          <div><WalletCards aria-hidden="true" /><div><span>AI Credits</span><h3>Guild wallet unavailable</h3></div></div>
+        </div>
+        <p className="billing-ai-credits__muted">The wallet could not be read safely right now. Subscription billing remains available.</p>
+      </section>
+    );
+  }
+
+  const { wallet, policy, usage } = creditsQuery.data;
+  const catalog = catalogQuery.data?.catalog;
+  const salesEnabled = catalog?.sales_enabled ?? false;
+  const ledger = ledgerQuery.data?.entries ?? [];
+  const purchase = purchaseQuery.data?.purchase;
+  const operationLabels: Record<string, string> = {
+    chat: 'Chat',
+    tool_chat: 'Tool chat',
+    image_generation: 'Images',
+    image_analysis: 'Vision',
+  };
+
+  return (
+    <>
+      <section className="billing-ai-credits card p-4 mb-4" aria-labelledby="billing-ai-credits-title">
+      <div className="billing-ai-credits__heading">
+        <div>
+          <div className="billing-ai-credits__title"><WalletCards aria-hidden="true" /><span>Usage wallet</span></div>
+          <h3 id="billing-ai-credits-title">AI Credits for {guildName}</h3>
+          <p>Fund the guild pool for explicit AI requests after included quota.</p>
+        </div>
+        <Link to="/credits" className="billing-ai-credits__link">Personal wallet <ArrowRight aria-hidden="true" /></Link>
+      </div>
+
+      <div className="billing-ai-credits__stats">
+        <div><span>Available</span><strong>{formatCredits(wallet.available_credits)}</strong><small>AI Credits</small></div>
+        <div><span>Reserved</span><strong>{formatCredits(wallet.reserved_credits)}</strong><small>Active requests</small></div>
+        <div><span>30-day spend</span><strong>{formatCredits(usage.total_credits || 0)}</strong><small>{usage.total_calls || 0} calls</small></div>
+      </div>
+
+      {purchase && (
+        <div className={`billing-ai-credits__purchase-status is-${purchase.status}`} role="status" aria-live="polite">
+          <div>
+            <strong>{purchase.status === 'fulfilled' ? 'Guild credits are ready.' : `Checkout ${purchase.status.replace(/_/g, ' ')}.`}</strong>
+            <span>{purchase.status === 'fulfilled' ? `${formatCredits(purchase.granted_credits)} credits were added to ${guildName}.` : 'This page will update while Stripe fulfillment completes.'}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const next = new URLSearchParams(searchParams);
+              next.delete('purchase');
+              setSearchParams(next, { replace: true });
+            }}
+            aria-label="Dismiss checkout status"
+          ><X aria-hidden="true" /></button>
+        </div>
+      )}
+
+      <div className="billing-ai-credits__purchase">
+        <div><strong>Add to guild wallet</strong><span>Only guild owners and administrators can purchase.</span></div>
+        <div className="billing-ai-credits__packs">
+          {(catalog?.packs ?? []).map((pack) => (
+            <button
+              type="button"
+              className="billing-ai-credits__pack"
+              key={pack.sku}
+              disabled={!salesEnabled || checkoutMutation.isPending}
+              onClick={() => setSelectedPack(pack)}
+            >
+              <span>{pack.name}</span>
+              <strong>{formatMoney(pack.amount_cents, catalog?.currency)} · {formatCredits(pack.credits)}</strong>
+            </button>
+          ))}
+        </div>
+      </div>
+      {!salesEnabled && <p className="billing-ai-credits__notice"><Info aria-hidden="true" /> Sales are paused until the Stripe catalog passes readiness checks.</p>}
+
+      <div className="billing-ai-credits__policy">
+        <div className="billing-ai-credits__policy-heading">
+          <div><strong>Guild spending policy</strong><span>Included quota is always evaluated first. These switches control paid fallback.</span></div>
+          <ShieldCheck aria-hidden="true" />
+        </div>
+        <div className="billing-ai-credits__switches">
+          <label><input type="checkbox" role="switch" checked={policyDraft.server_pool_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, server_pool_enabled: event.target.checked }))} /><span>Enable server pool</span></label>
+          <label><input type="checkbox" role="switch" checked={policyDraft.personal_fallback_allowed} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, personal_fallback_allowed: event.target.checked }))} /><span>Allow member personal fallback</span></label>
+        </div>
+        <div className="billing-ai-credits__operations" aria-label="Allowed paid operations">
+          {Object.entries(policyDraft.allowed_operations).map(([operation, enabled]) => (
+            <label key={operation}><input type="checkbox" checked={enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, allowed_operations: { ...draft.allowed_operations, [operation]: event.target.checked } }))} /><span>{operationLabels[operation] ?? operation}</span></label>
+          ))}
+        </div>
+        <div className="billing-ai-credits__caps">
+          <label><span>Guild daily cap</span><input type="number" min="0" max="10000000" value={policyDraft.guild_daily_credit_cap} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, guild_daily_credit_cap: Math.max(0, Number(event.target.value) || 0) }))} /></label>
+          <label><span>Member daily cap</span><input type="number" min="0" max="10000000" value={policyDraft.member_daily_credit_cap} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, member_daily_credit_cap: Math.max(0, Number(event.target.value) || 0) }))} /></label>
+          <label><span>Max per request</span><input type="number" min="0" max="10000000" value={policyDraft.maximum_credits_per_request} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, maximum_credits_per_request: Math.max(0, Number(event.target.value) || 0) }))} /></label>
+        </div>
+        <div className="billing-ai-credits__scope-grid">
+          <div>
+            <label className="billing-ai-credits__field-label" htmlFor="credit-role-mode">Role access</label>
+            <select id="credit-role-mode" className="form-control" value={policyDraft.role_mode} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, role_mode: event.target.value as CreditGuildPolicy['role_mode'] }))}>
+              <option value="all">All roles</option>
+              <option value="allow">Only selected roles</option>
+              <option value="deny">All except selected roles</option>
+            </select>
+            {policyDraft.role_mode !== 'all' && (
+              <RoleMultiSelect guildId={guildId} label="Selected roles" value={policyDraft.role_ids} onChange={(role_ids) => setPolicyDraft((draft) => ({ ...draft, role_ids }))} />
+            )}
+          </div>
+          <div>
+            <label className="billing-ai-credits__field-label" htmlFor="credit-channel-mode">Channel access</label>
+            <select id="credit-channel-mode" className="form-control" value={policyDraft.channel_mode} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, channel_mode: event.target.value as CreditGuildPolicy['channel_mode'] }))}>
+              <option value="all">All allowed AI channels</option>
+              <option value="allow">Only selected channels</option>
+              <option value="deny">All except selected channels</option>
+            </select>
+            {policyDraft.channel_mode !== 'all' && (
+              <ChannelMultiSelect guildId={guildId} label="Selected channels" value={policyDraft.channel_ids} onChange={(channel_ids) => setPolicyDraft((draft) => ({ ...draft, channel_ids }))} maxSelections={100} />
+            )}
+          </div>
+        </div>
+        <div className="billing-ai-credits__notifications">
+          <label><input type="checkbox" role="switch" checked={policyDraft.notifications_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, notifications_enabled: event.target.checked }))} /><span>Low-balance alerts</span></label>
+          <label><span>Alert below</span><input type="number" min="0" max="10000000" value={policyDraft.low_balance_threshold} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, low_balance_threshold: Math.max(0, Number(event.target.value) || 0) }))} /></label>
+          {policyDraft.notifications_enabled && (
+            <ChannelSelect guildId={guildId} label="Notification channel" value={policyDraft.notification_channel_id} onChange={(notification_channel_id) => setPolicyDraft((draft) => ({ ...draft, notification_channel_id }))} placeholder="Choose an alert channel" />
+          )}
+        </div>
+        <button type="button" className="btn billing-ai-credits__save" disabled={policyMutation.isPending} onClick={() => policyMutation.mutate()}>
+          {policyMutation.isPending ? 'Saving…' : 'Save paid-overage policy'}
+          {!policyMutation.isPending && <Check aria-hidden="true" />}
+        </button>
+        <small className="billing-ai-credits__version">Policy version {policy.version} · mode {wallet.stripe_mode}</small>
+      </div>
+      <div className="billing-ai-credits__ledger">
+        <div className="billing-ai-credits__ledger-heading"><strong>Recent wallet activity</strong><span>Charges and reservations never expose member personal-wallet details.</span></div>
+        {ledgerQuery.isLoading ? <LoadingSpinner /> : ledgerQuery.error ? (
+          <p className="billing-ai-credits__muted">Wallet history could not be loaded. Refresh to try again.</p>
+        ) : ledger.length === 0 ? (
+          <p className="billing-ai-credits__muted">No guild wallet activity yet.</p>
+        ) : (
+          <div className="billing-ai-credits__ledger-list">
+            {ledger.slice(0, 8).map((entry) => (
+              <div key={entry.id}>
+                <span>{entry.direction.replace(/_/g, ' ')}</span>
+                <strong>{entry.available_delta + entry.reserved_delta > 0 ? '+' : ''}{formatCredits(entry.available_delta + entry.reserved_delta)}</strong>
+                <small>{formatDate(entry.created_at)}</small>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      </section>
+      {selectedPack && (
+        <CreditCheckoutDialog
+          pack={selectedPack}
+          currency={catalog?.currency ?? 'usd'}
+          targetLabel={guildName}
+          targetType="guild"
+          termsVersion={catalog?.terms_version ?? ''}
+          isPending={checkoutMutation.isPending}
+          onClose={() => setSelectedPack(null)}
+          onConfirm={() => checkoutMutation.mutate(selectedPack.sku)}
+        />
+      )}
+    </>
   );
 };
 
@@ -461,6 +753,7 @@ export const BillingPage: React.FC = () => {
 
       <div className="row g-4">
         <div className="col-lg-8">
+          {guildId && <GuildAICreditsPanel guildId={guildId} guildName={currentGuild?.name || 'this server'} />}
           <div className="card p-4 mb-4">
             <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
               <div>

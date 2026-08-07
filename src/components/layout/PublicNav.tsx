@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Sparkles,
   Trophy,
+  WalletCards,
   X,
 } from 'lucide-react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
@@ -307,6 +308,13 @@ export const PublicNav: React.FC<PublicNavProps> = ({
                     <i aria-hidden="true" />
                   </NavLink>
                 </li>
+                <li>
+                  <NavLink to="/credits">
+                    <WalletCards aria-hidden="true" />
+                    <span>AI Credits</span>
+                    <i aria-hidden="true" />
+                  </NavLink>
+                </li>
                 {user?.is_admin && (
                   <li>
                     <NavLink className="public-nav__admin-link" to="/admin">
@@ -373,6 +381,7 @@ export const PublicNav: React.FC<PublicNavProps> = ({
               <li><Link to="/docs/introduction">Documentation</Link></li>
               <li><Link to="/leaderboard">Leaderboards</Link></li>
               {isAuthenticated && <li><Link to="/servers">Servers</Link></li>}
+              {isAuthenticated && <li><Link to="/credits">AI Credits</Link></li>}
               {user?.is_admin && (
                 <li><Link className="public-nav__admin-link" to="/admin">Admin</Link></li>
               )}
@@ -456,6 +465,7 @@ export const PublicNav: React.FC<PublicNavProps> = ({
                       <span className="public-nav__account-group-label">Workspace</span>
                       <Link to="/servers"><Server aria-hidden="true" /><span>Servers</span></Link>
                       <Link to="/settings"><Settings aria-hidden="true" /><span>Settings</span></Link>
+                      <Link to="/credits"><WalletCards aria-hidden="true" /><span>AI Credits</span></Link>
                       <Link to="/docs/introduction"><BookOpen aria-hidden="true" /><span>Docs</span></Link>
                       {user.is_admin && (
                         <Link className="public-nav__admin-link" to="/admin">

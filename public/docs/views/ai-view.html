@@ -27,9 +27,30 @@
         <li>Per-user memories — the AI remembers facts members tell it via <code>/ai memory</code></li>
         <li>Ambient replies — the AI can occasionally chime into conversation unprompted (Pro or Max)</li>
         <li>Restrict AI responses to specific channels</li>
-        <li>Swap the underlying AI model at any time</li>
+        <li>Swap the underlying AI provider/model at any time when configured by the owner</li>
+        <li>Policy-gated prepaid AI Credits for eligible foreground overage after included quota</li>
+        <li>Explicit personal text chat in Discord DMs when DM spending is enabled and opted in</li>
       </ul>
     </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>AI Credits and DMs</h2>
+    <p>
+      Included daily and monthly quota is always checked first. If the server enables paid overage, a request may use the guild wallet and then a member's personal wallet only when the server policy, member policy, and per-guild consent all allow it. A request uses one complete wallet; credits are never split between wallets.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>Controlled spending</h3>
+      <ul>
+        <li>AI Credits are prepaid service capacity, not Discord or Acosmibot virtual currency.</li>
+        <li>Purchased credits do not expire under current terms and cannot be transferred; promotional credits may have a stated expiry.</li>
+        <li>Ambient and autonomous replies never spend AI Credits.</li>
+        <li>Manage personal balance, consent, and guardrails at <a href="/credits" target="_blank">AI Credits</a>; server administrators manage the guild pool in the server Billing page.</li>
+      </ul>
+    </div>
+    <p>
+      Explicit text messages sent to Acosmibot in a Discord DM use a personal-only context. DMs do not load a guild's memory, personality, roster, tools, subscription quota, or guild wallet. DM spending is independently controlled and may be unavailable while the feature is being rolled out.
+    </p>
   </section>
 
   <section class="docs-section">
@@ -108,6 +129,17 @@
       </div>
 
       <div class="command-card">
+        <div class="command-signature">/ai credits</div>
+        <div class="command-description">
+          Show your personal AI Credits balance, reserved amount, mode, and spending state. In a guild, administrators may also see that guild's wallet summary. Use the website link in the response to manage policies and purchases.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai credits</code>
+        </div>
+      </div>
+
+      <div class="command-card">
         <div class="command-signature">/ai-admin personality &lt;list|current|set|reset&gt;</div>
         <div class="command-description">
           Manage the server's AI personality. <code>list</code> shows saved personalities, <code>current</code> shows the active one, <code>set</code> switches to a saved personality, and <code>reset</code> returns to the default. Personalities are created and edited in the dashboard's AI settings. <strong>Pro or Max feature</strong>.
@@ -143,7 +175,7 @@
       <div class="command-card">
         <div class="command-signature">/ai image &lt;prompt&gt;</div>
         <div class="command-description">
-          Generate an image using AI (gpt-image-2) based on your text prompt. <strong>Pro or Max feature</strong> — image generation uses medium quality only.
+          Generate an image using the configured AI image provider based on your text prompt. <strong>Pro or Max feature</strong> — image generation uses the server's current quota and any enabled paid-overage policy.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -154,7 +186,7 @@
       <div class="command-card">
         <div class="command-signature">/ai analyze &lt;image-url&gt;</div>
         <div class="command-description">
-          Analyze an attached image using GPT-4 Vision and receive a detailed description or answer questions about it. <strong>Pro or Max feature</strong>.
+          Analyze an attached image using the configured AI vision provider and receive a detailed description or answer questions about it. <strong>Pro or Max feature</strong>.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -232,7 +264,12 @@
 
     <div class="faq-item">
       <h4>Q: The bot says the daily limit has been reached</h4>
-      <p>A: The server-wide interaction counter resets at midnight. Admins can raise or remove the limit in the <a href="/servers" target="_blank">server dashboard</a> under AI settings.</p>
+      <p>A: The server-wide interaction counter resets at midnight. Admins can raise or remove the limit in the <a href="/servers" target="_blank">server dashboard</a> under AI settings. If paid overage is enabled, the request still needs an allowed operation, a full wallet reservation, and any required member consent.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Why did a paid AI request not use my personal balance?</h4>
+      <p>A: Personal guild fallback requires all three keys: the server must allow personal fallback, your global guild-spending switch must be on, and you must opt in for that guild. The request also has to fit your caps and the server's operation policy. Check <a href="/credits" target="_blank">AI Credits</a> for your guardrails.</p>
     </div>
 
   </section>

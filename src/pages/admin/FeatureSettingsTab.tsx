@@ -4,7 +4,9 @@ import { adminApi, AdminFeatureSettings, StripeMode, type AdminStripeReadiness }
 
 type FormState = Pick<
   AdminFeatureSettings,
-  'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' | 'stripe_mode'
+  'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' |
+  'ai_credit_sales_enabled' | 'ai_credit_spending_enabled' | 'ai_credit_dm_enabled' |
+  'stripe_mode'
 >;
 
 export const FeatureSettingsTab: React.FC = () => {
@@ -29,6 +31,9 @@ export const FeatureSettingsTab: React.FC = () => {
         use_satori_rank_card: query.data.data.use_satori_rank_card,
         use_satori_weather_card: query.data.data.use_satori_weather_card ?? false,
         billing_enabled: query.data.data.billing_enabled,
+        ai_credit_sales_enabled: query.data.data.ai_credit_sales_enabled ?? false,
+        ai_credit_spending_enabled: query.data.data.ai_credit_spending_enabled ?? false,
+        ai_credit_dm_enabled: query.data.data.ai_credit_dm_enabled ?? false,
         stripe_mode: query.data.data.stripe_mode,
       });
     }
@@ -68,6 +73,9 @@ export const FeatureSettingsTab: React.FC = () => {
       billing_enabled: nextMode === persistedMode
         ? (query.data?.data.billing_enabled ?? false)
         : false,
+      ai_credit_sales_enabled: nextMode === persistedMode
+        ? (query.data?.data.ai_credit_sales_enabled ?? false)
+        : false,
     } : current);
   };
 
@@ -82,7 +90,7 @@ export const FeatureSettingsTab: React.FC = () => {
         onSubmit={(e) => {
           e.preventDefault();
           mutation.mutate(
-            modeChangePending ? { ...form, billing_enabled: false } : form,
+            modeChangePending ? { ...form, billing_enabled: false, ai_credit_sales_enabled: false } : form,
           );
         }}
       >
@@ -101,6 +109,40 @@ export const FeatureSettingsTab: React.FC = () => {
             Render <code>/rank</code> cards via the Satori Azure service. When off (or if the
             render fails), the bot falls back to the legacy PIL renderer.
           </p>
+        </div>
+
+        <div className="mb-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: 20 }}>
+          <h4 className="mb-2">AI Credits rollout</h4>
+          <p className="text-muted small mb-3">Enable each stage independently. Keep sales off until the selected Stripe credit catalog is ready; keep spending off until migrations and reconciliation checks pass.</p>
+          {([
+            ['ai_credit_sales_enabled', 'Sell AI Credits', 'Allow new one-time Stripe credit purchases.'],
+            ['ai_credit_spending_enabled', 'Spend AI Credits', 'Allow foreground AI requests to reserve and settle prepaid credits.'],
+            ['ai_credit_dm_enabled', 'Personal DM AI', 'Allow explicit Discord DMs to use personal credits. Spending must also be enabled.'],
+          ] as const).map(([field, label, description]) => (
+            <div className="mb-3" key={field}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: modeChangePending || mutation.isPending ? 'not-allowed' : 'pointer', opacity: modeChangePending ? 0.62 : 1 }}>
+                <input
+                  type="checkbox"
+                  checked={form[field]}
+                  disabled={modeChangePending || mutation.isPending || (field === 'ai_credit_dm_enabled' && !form.ai_credit_spending_enabled)}
+                  onChange={(event) => {
+                    mutation.reset();
+                    setSavedAt(null);
+                    setForm({
+                      ...form,
+                      [field]: event.target.checked,
+                      ...(field === 'ai_credit_spending_enabled' && !event.target.checked
+                        ? { ai_credit_dm_enabled: false }
+                        : {}),
+                    });
+                  }}
+                  style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
+                />
+                <span style={{ fontWeight: 600 }}>{label}</span>
+              </label>
+              <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>{description}</p>
+            </div>
+          ))}
         </div>
 
         <div className="mb-4">

@@ -8,7 +8,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="August 3, 2026"
+    lastUpdated="August 6, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -48,9 +48,11 @@ export const PrivacyPolicyPage: React.FC = () => (
 
       <LegalSubheading>2.4 AI Chat Interactions</LegalSubheading>
       <ul>
-        <li><strong>Message Content:</strong> Messages sent to AI chat features are processed by OpenAI</li>
+        <li><strong>Message Content:</strong> Messages sent to enabled AI chat features are processed by the configured provider, which may be OpenAI or Google Gemini</li>
         <li><strong>Thread IDs:</strong> Conversation thread identifiers for context continuity</li>
         <li><strong>Usage Metrics:</strong> Number of AI messages sent for rate limiting purposes</li>
+        <li><strong>Provider Telemetry:</strong> Provider, model, layer, operation, timing, token categories, and cost-estimate metadata for safety, accounting, support, and margin monitoring; this structured telemetry does not store prompts or generated output</li>
+        <li><strong>AI Credits Records:</strong> Wallet, purchase, reservation, ledger, refund/dispute, action, and call correlation identifiers; guild administrators see only guild-funded aggregate information, not personal balances or DM activity</li>
       </ul>
 
       <LegalSubheading>2.5 Website Sign-In Data</LegalSubheading>
@@ -78,6 +80,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Processor Identifiers:</strong> The Stripe customer and subscription IDs linked to your account</li>
         <li><strong>Purchase History:</strong> Which server a subscription applies to and when it was purchased</li>
       </ul>
+      <p>If you purchase prepaid AI Credits, we also record the selected pack, amount, personal or guild wallet target, Stripe Checkout/PaymentIntent identifiers, fulfillment state, immutable credit ledger entries, reservations, and refund or dispute reconciliation needed to provide the service and meet accounting obligations.</p>
       <HighlightBox>
         <p style={{ margin: 0 }}><strong>We never see your card details.</strong> Card numbers, billing addresses, and other payment credentials are collected and stored by Stripe, not by {COMPANY_NAME}.</p>
       </HighlightBox>
@@ -101,7 +104,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Analytics:</strong> To understand usage patterns and improve bot features</li>
         <li><strong>Communication:</strong> To send announcements, notifications, and support responses</li>
         <li><strong>Security:</strong> To detect and prevent abuse, fraud, or violations of our Terms of Service</li>
-        <li><strong>Billing:</strong> To provision paid subscriptions, process renewals and cancellations, and meet tax and accounting obligations</li>
+        <li><strong>Billing:</strong> To provision paid subscriptions, sell and fulfill prepaid AI Credits, process renewals, refunds, disputes, and cancellations, and meet tax and accounting obligations</li>
       </ul>
       <p>We do <strong>not</strong> sell, rent, or trade your personal information to third parties for marketing purposes.</p>
     </LegalSection>
@@ -112,21 +115,22 @@ export const PrivacyPolicyPage: React.FC = () => (
       <LegalSubheading>4.1 Discord Platform</LegalSubheading>
       <p>All data collected is obtained through Discord's API and is subject to Discord's Privacy Policy. By using Discord, you agree to their terms and data practices.</p>
 
-      <LegalSubheading>4.2 OpenAI (AI Chat Features)</LegalSubheading>
-      <p>When you use AI chat features, your messages are sent to OpenAI's API for processing. OpenAI's data usage is governed by their Privacy Policy and API Data Usage Policies. Key points:</p>
+      <LegalSubheading>4.2 AI Providers (OpenAI and Google Gemini)</LegalSubheading>
+      <p>When you use an AI feature, the relevant message or media input is sent to the provider selected for that feature. The current providers may include OpenAI and Google Gemini. Each provider's handling of data is governed by its own privacy and API data-use policies.</p>
       <ul>
-        <li>Messages sent to AI chat are processed by OpenAI's GPT models</li>
-        <li>OpenAI may temporarily store messages for API operation</li>
-        <li>We do not share additional personal information beyond the chat messages</li>
-        <li>OpenAI's data retention policies apply to AI chat interactions</li>
+        <li>AI requests are sent only when a user invokes an enabled AI surface; ambient behavior is separately configurable and never uses prepaid credits</li>
+        <li>We send the context required for the requested feature, and do not send credit-card credentials</li>
+        <li>Provider retention, abuse monitoring, and processing terms apply to the request handled by that provider</li>
+        <li>DM requests use a separate personal context and do not load guild memory, roster, settings, or tools</li>
       </ul>
 
       <LegalSubheading>4.3 Stripe (Payments)</LegalSubheading>
-      <p>Paid subscriptions are processed by Stripe, Inc., which acts as our payment processor. When you check out:</p>
+      <p>Paid subscriptions and prepaid AI Credit packs are processed by Stripe, Inc. or its applicable payment-service entities, which act as our payment processor. When you check out:</p>
       <ul>
         <li>Your payment details are submitted directly to Stripe and are never transmitted to or stored on our servers</li>
-        <li>We share your Discord user ID and the relevant server ID with Stripe so that a payment can be matched to the correct account</li>
+        <li>We share the Discord user ID and, for a guild purchase, the relevant server ID plus internal purchase metadata so payment can be matched to the correct wallet</li>
         <li>Stripe returns subscription status and customer identifiers to us so we can grant and revoke premium access</li>
+        <li>For AI Credits, Stripe returns Checkout/PaymentIntent and refund/dispute state; our server verifies the catalog and records fulfillment or compensating ledger entries</li>
         <li>Stripe's handling of your data is governed by its own privacy policy, and Stripe may use payment data for fraud prevention as an independent controller</li>
       </ul>
 
@@ -159,6 +163,8 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Deleted Accounts:</strong> If you delete your Discord account, associated data may remain until manually requested for deletion</li>
         <li><strong>Server Removal:</strong> When Acosmibot is removed from a server, per-server data is retained for potential re-addition</li>
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
+        <li><strong>AI Credit Accounting:</strong> Wallet, purchase, ledger, reservation, refund, and dispute records may be retained for at least seven years for tax, accounting, fraud, and service-liability obligations</li>
+        <li><strong>AI Provider Telemetry:</strong> Structured provider/cost/latency records are retained for up to 90 days for operations and reconciliation; prompts and generated content are not retained in those telemetry records</li>
         <li><strong>Optional Website Analytics:</strong> Event-level analytics data is retained for no longer than 14 months</li>
       </ul>
       <p>To request data deletion, email us at{' '}
