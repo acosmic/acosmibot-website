@@ -630,6 +630,17 @@ export const BillingPage: React.FC = () => {
     },
   });
 
+  const cancelScheduledChange = useMutation({
+    mutationFn: () => subscriptionsApi.cancelScheduledChange({ guild_id: guildId! }),
+    onSuccess: async (data) => {
+      showToast(data.message || 'Scheduled plan change canceled.', 'success');
+      await queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'subscription'] });
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Could not cancel the scheduled change.', 'error');
+    },
+  });
+
   const [pendingPlan, setPendingPlan] = React.useState<{ tier: PaidTier; interval: BillingInterval } | null>(null);
   const [planIntervalOverride, setPlanIntervalOverride] = React.useState<BillingInterval | null>(null);
 
@@ -676,6 +687,7 @@ export const BillingPage: React.FC = () => {
   const hasPaidTier = tier !== 'free';
   const canOpenPortal = hasPaidTier && Boolean(record?.stripe_subscription_id);
   const isCanceling = Boolean(record?.cancel_at_period_end || record?.cancel_at);
+  const hasPendingPlanChange = Boolean(record?.pending_tier && record?.pending_change_at);
   const currentInterval: BillingInterval = record?.billing_interval === 'annual' ? 'annual' : 'monthly';
   const planInterval = planIntervalOverride ?? currentInterval;
 
@@ -707,10 +719,10 @@ export const BillingPage: React.FC = () => {
     : '';
   const pendingProration = pendingPlan
     ? pendingIsIntervalSwitch
-      ? `Stripe will apply a prorated adjustment for the billing switch today, then ${pendingGoingForward}.`
+      ? `Your current billing cadence and AI allowance continue through renewal. Then ${pendingGoingForward}.`
       : pendingIsUpgrade
         ? `Stripe will apply the prorated difference for the rest of this billing period today, then ${pendingGoingForward}.`
-        : `You'll be credited the prorated difference to your account balance today, then billed ${pendingGoingForward}.`
+        : `Your current plan and AI allowance continue through renewal. Then ${pendingGoingForward}. Unused included quota has no cash value.`
     : '';
 
   const confirmPendingChange = () => {
@@ -789,6 +801,29 @@ export const BillingPage: React.FC = () => {
                 </div>
               </div>
             </div>
+            {hasPendingPlanChange && (
+              <div className="billing-pending-change mt-3" role="status">
+                <CalendarClock size={18} aria-hidden="true" />
+                <div>
+                  <strong>
+                    {TIER_LABELS[normalizeTier(record?.pending_tier)]}
+                    {' · '}
+                    {record?.pending_billing_interval === 'annual' ? 'Annual' : 'Monthly'}
+                  </strong>
+                  <span>
+                    Scheduled for {formatDate(record?.pending_change_at)}. Your current plan and
+                    allowance remain active until then.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={cancelScheduledChange.isPending}
+                  onClick={() => cancelScheduledChange.mutate()}
+                >
+                  {cancelScheduledChange.isPending ? 'Canceling…' : 'Keep current plan'}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="card p-4 mb-4">
@@ -976,7 +1011,18 @@ export const BillingPage: React.FC = () => {
               {preview.isLoading && (
                 <div className="text-muted small">Calculating your prorated amount…</div>
               )}
-              {!preview.isLoading && preview.data?.success && typeof preview.data.net_amount === 'number' && (
+              {!preview.isLoading && preview.data?.change_kind === 'scheduled' && (
+                <>
+                  <div className="small text-muted">Effective at renewal</div>
+                  <div className="fs-5 fw-bold text-primary">
+                    {formatDate(preview.data.effective_at || record?.current_period_end)}
+                  </div>
+                  <div className="small text-muted mt-1">
+                    No charge or credit today. Included quota does not carry cash value.
+                  </div>
+                </>
+              )}
+              {!preview.isLoading && preview.data?.change_kind !== 'scheduled' && preview.data?.success && typeof preview.data.net_amount === 'number' && (
                 <>
                   <div className="small text-muted">
                     {preview.data.is_charge ? 'Charged today' : 'Credited to your balance today'}
@@ -998,7 +1044,7 @@ export const BillingPage: React.FC = () => {
                     )}
                 </>
               )}
-              {!preview.isLoading && !(preview.data?.success && typeof preview.data?.net_amount === 'number') && (
+              {!preview.isLoading && preview.data?.change_kind !== 'scheduled' && !(preview.data?.success && typeof preview.data?.net_amount === 'number') && (
                 <div className="small text-muted">
                   Exact prorated amount will be calculated by Stripe when you confirm.
                 </div>
@@ -1020,7 +1066,11 @@ export const BillingPage: React.FC = () => {
                 disabled={changeTier.isPending}
                 onClick={confirmPendingChange}
               >
-                {changeTier.isPending ? 'Working…' : `Confirm ${pendingIsUpgrade ? 'Upgrade' : 'Change'}`}
+                {changeTier.isPending
+                  ? 'Working…'
+                  : pendingIsUpgrade
+                    ? 'Confirm Upgrade'
+                    : 'Schedule Change'}
               </button>
             </div>
           </div>

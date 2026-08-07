@@ -8,10 +8,14 @@ export interface SubscriptionRecord {
   guild_id: string;
   tier: PremiumTier;
   billing_interval?: BillingInterval | null;
+  pending_tier?: PremiumTier | null;
+  pending_billing_interval?: BillingInterval | null;
+  pending_change_at?: string | null;
   status: string;
   current_period_start: string | null;
   current_period_end: string | null;
   stripe_subscription_id?: string | null;
+  stripe_schedule_id?: string | null;
   stripe_customer_id?: string | null;
   cancel_at_period_end?: boolean;
   cancel_at?: string | null;
@@ -72,7 +76,7 @@ export const subscriptionsApi = {
     success_url: string;
     cancel_url: string;
   }) =>
-    api.fetch<{ success: boolean; checkout_url: string | null; message?: string }>(
+    api.fetch<{ success: boolean; checkout_url: string | null; message?: string; change_kind?: 'immediate' | 'scheduled'; effective_at?: string | null }>(
       '/api/subscriptions/create-checkout',
       { method: 'POST', body: JSON.stringify(body) },
     ),
@@ -85,6 +89,8 @@ export const subscriptionsApi = {
       invoice_total?: number;
       account_credit_applied?: number;
       is_charge?: boolean;
+      change_kind?: 'immediate' | 'scheduled';
+      effective_at?: string | null;
       currency?: string;
       message?: string;
     }>(
@@ -101,6 +107,12 @@ export const subscriptionsApi = {
   cancel: (body: { guild_id: string; immediately?: boolean }) =>
     api.fetch<{ success: boolean; message: string }>(
       '/api/subscriptions/cancel',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
+  cancelScheduledChange: (body: { guild_id: string }) =>
+    api.fetch<{ success: boolean; message: string }>(
+      '/api/subscriptions/cancel-change',
       { method: 'POST', body: JSON.stringify(body) },
     ),
 

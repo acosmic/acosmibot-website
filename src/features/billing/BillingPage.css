@@ -493,3 +493,52 @@
   .billing-ai-credits__stats { grid-template-columns: 1fr; }
   .billing-ai-credits__caps { grid-template-columns: 1fr; }
 }
+.billing-pending-change {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  color: var(--text-primary);
+  background: var(--control-overlay, rgba(0, 217, 255, 0.08));
+  border: 1px solid var(--border-cyan);
+  border-radius: 10px;
+}
+
+.billing-pending-change svg {
+  flex: 0 0 auto;
+  margin-block-start: 2px;
+  color: var(--primary-color);
+}
+
+.billing-pending-change div {
+  display: grid;
+  gap: 3px;
+}
+
+.billing-pending-change span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.billing-pending-change button {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  background: transparent;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.billing-pending-change button:hover:not(:disabled),
+.billing-pending-change button:focus-visible {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.billing-pending-change button:disabled {
+  opacity: 0.6;
+}
