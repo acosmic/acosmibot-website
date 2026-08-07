@@ -6,7 +6,7 @@
  * FORM: Fourth-ranked “plan trajectory” structure; established constellation world; seed 65fbf8bd.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueries } from '@tanstack/react-query';
 import { Activity, ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
@@ -246,6 +246,16 @@ export const PricingPage: React.FC = () => {
             <i />
             {checkoutAvailable ? 'Checkout online' : pricingAvailable ? 'Checkout coming soon' : 'Catalog unavailable'}
           </span>
+        </section>
+
+        <section className="pricing-credits-bridge" aria-labelledby="pricing-credits-title">
+          <div className="pricing-credits-bridge__mark" aria-hidden="true"><Sparkles /></div>
+          <div>
+            <span>Prepaid AI capacity</span>
+            <h2 id="pricing-credits-title">Keep the core free. Add AI Credits only when you need them.</h2>
+            <p>One-time packs cover explicit AI overage after included quota. Personal wallets work in DMs and only fall back in guilds with administrator consent.</p>
+          </div>
+          <Link to="/credits" className="pricing-credits-bridge__action">Open AI Credits <ArrowRight aria-hidden="true" /></Link>
         </section>
 
         <section className="pricing-plans" id="plans" aria-labelledby="pricing-plans-title">

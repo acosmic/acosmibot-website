@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bot } from 'lucide-react';
+import { ArrowRight, Bot, WalletCards } from 'lucide-react';
 import {
   useAiConfig,
   AiConfig,
@@ -27,6 +27,21 @@ const clamp = (value: number, min: number, max: number) =>
   Number.isNaN(value) ? min : Math.min(Math.max(value, min), max);
 
 const createPersonalityId = () => `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+
+const AIPaidOveragePanel: React.FC<{ guildId: string }> = ({ guildId }) => (
+  <section className="ai-paid-overage-panel" aria-labelledby="ai-paid-overage-heading">
+    <div className="ai-paid-overage-panel__signal" aria-hidden="true"><WalletCards /></div>
+    <div>
+      <span className="ai-paid-overage-panel__kicker">Included quota first</span>
+      <h2 id="ai-paid-overage-heading">AI Credits are controlled overage.</h2>
+      <p>Server administrators can enable a guild wallet and choose eligible operations after the plan quota. Personal fallback needs member consent too; credits never unlock Pro/Max configuration or ambient spending.</p>
+      <div className="ai-paid-overage-panel__actions">
+        <Link to={`/server/${guildId}/billing`} className="btn primary">Open Billing policy <ArrowRight aria-hidden="true" /></Link>
+        <Link to="/credits" className="ai-paid-overage-panel__link">Personal wallet <ArrowRight aria-hidden="true" /></Link>
+      </div>
+    </div>
+  </section>
+);
 
 const uniqueName = (baseName: string, personalities: AiPersonality[]) => {
   const existingNames = new Set(personalities.map(p => p.name.toLowerCase()));
@@ -69,6 +84,8 @@ export const AiPage: React.FC = () => {
           onChange={(enabled) => setForm({ enabled })}
           description="Allow members to mention Acosmibot for basic AI chat. This is enabled by default and uses your plan's daily and monthly reply limits."
         />
+
+        <AIPaidOveragePanel guildId={guildId!} />
 
         <section className="ai-upgrade-panel" aria-labelledby="advanced-ai-heading">
           <div className="ai-upgrade-panel__signal" aria-hidden="true">
@@ -207,6 +224,8 @@ export const AiPage: React.FC = () => {
         <h1>AI Customization</h1>
         <p>Give your server's AI a unique personality and set of rules.</p>
       </div>
+
+      <AIPaidOveragePanel guildId={guildId!} />
 
       <FeatureToggle
         label="AI Chat"

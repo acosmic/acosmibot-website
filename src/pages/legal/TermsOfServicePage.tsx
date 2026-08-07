@@ -8,7 +8,7 @@ export const TermsOfServicePage: React.FC = () => (
     kind="terms"
     title="Terms of Service"
     subtitle="Please read these terms carefully before using Acosmibot"
-    lastUpdated="August 3, 2026"
+    lastUpdated="August 6, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>Welcome to Acosmibot! Acosmibot is operated by <strong>{COMPANY_NAME}</strong>, a {COMPANY_STATE} limited liability company ("{COMPANY_NAME}", "we", "us", or "our"). By using our Discord bot and related services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use Acosmibot.</p>
@@ -21,7 +21,7 @@ export const TermsOfServicePage: React.FC = () => (
         <li><strong>Leveling System:</strong> Experience points and level progression based on server activity</li>
         <li><strong>Economy System:</strong> Virtual currency, daily bonuses, and trading features</li>
         <li><strong>Games &amp; Gambling:</strong> Entertainment games including slots, blackjack, and other gambling features</li>
-        <li><strong>AI Chat:</strong> Interactive AI-powered conversations using OpenAI technology</li>
+        <li><strong>AI Chat:</strong> Interactive AI-powered conversations using configured third-party providers</li>
         <li><strong>Utility Features:</strong> Reminders, server management tools, and other utilities</li>
       </ul>
       <p>All features are subject to change, addition, or removal at any time without prior notice.</p>
@@ -102,6 +102,17 @@ export const TermsOfServicePage: React.FC = () => (
 
       <LegalSubheading>6.6 What a Subscription Is Not</LegalSubheading>
       <p>A subscription grants access to features of the Acosmibot service for the paid period. It does not purchase virtual currency, virtual items, or any asset with real-world value (see Section 5), and it does not guarantee that any specific feature will remain available indefinitely (see Section 10).</p>
+
+      <LegalSubheading>6.7 Prepaid AI Credits</LegalSubheading>
+      <p>We may offer optional prepaid AI Credits as service capacity for eligible, explicit AI requests. AI Credits are not Discord currency, virtual economy currency, gift cards, stored cash, or a security; they have no cash value, are not redeemable for money or other goods, and are non-transferable.</p>
+      <ul>
+        <li>Purchased credits are assigned to the personal or guild wallet selected at checkout. Guild credits remain with that guild and do not follow the purchaser if they leave the guild.</li>
+        <li>Purchased credits do not expire under the current product terms. Promotional credits, if offered, may have a clearly stated expiration date.</li>
+        <li>Included plan quota is used before eligible prepaid overage. Credits do not unlock subscription entitlements, premium configuration, or autonomous/ambient spending.</li>
+        <li>AI requests remain subject to safety checks, rate limits, provider availability, and the applicable rate card. We reserve a bounded amount before provider work and settle only after a screened response is delivered.</li>
+        <li>Refunds, disputes, or fraud reviews may reverse unused credits and may freeze a wallet while the issue is investigated. Credits already consumed for delivered service are generally not refundable, subject to applicable law and support review.</li>
+        <li>We may pause sales or spending without deleting valid balances or ledger history. Any correction is recorded against the wallet history.</li>
+      </ul>
     </LegalSection>
 
     <LegalSection title="7. Gambling & Games Disclaimer">
@@ -116,11 +127,13 @@ export const TermsOfServicePage: React.FC = () => (
     </LegalSection>
 
     <LegalSection title="8. AI Chat Services">
-      <p>Acosmibot uses third-party AI services (OpenAI) to provide chat functionality:</p>
+      <p>Acosmibot uses configured third-party AI services, which may include OpenAI or Google Gemini, to provide chat and media functionality:</p>
       <ul>
         <li>AI responses are generated automatically and may not always be accurate</li>
         <li>We are not responsible for the content of AI-generated messages</li>
         <li>AI chat messages may be subject to rate limits and daily usage caps</li>
+        <li>Where enabled, explicit requests may use prepaid AI Credits after included quota and the applicable consent and policy checks</li>
+        <li>Provider/model, token, latency, cost-estimate, reservation, and delivery metadata may be recorded for safety, accounting, support, and service operation; prompts and generated content are handled under the Privacy Policy</li>
         <li>AI features are provided "as is" without warranties of any kind</li>
       </ul>
     </LegalSection>

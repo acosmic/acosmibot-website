@@ -42,6 +42,74 @@
     padding: 76px 0 110px;
 }
 
+.pricing-credits-bridge {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    margin: 4px 0 18px;
+    padding: 18px 20px;
+    border: 1px solid rgba(103, 236, 255, 0.25);
+    border-radius: 12px;
+    background: rgba(13, 21, 29, 0.84);
+}
+
+.pricing-credits-bridge__mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    color: var(--pricing-cyan-bright);
+    border: 1px solid rgba(103, 236, 255, 0.35);
+    border-radius: 9px;
+    background: rgba(103, 236, 255, 0.08);
+}
+
+.pricing-credits-bridge__mark svg { width: 18px; height: 18px; }
+
+.pricing-credits-bridge span {
+    color: var(--pricing-cyan-bright);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+.pricing-credits-bridge h2 {
+    margin: 5px 0 4px;
+    color: var(--pricing-text);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.pricing-credits-bridge p {
+    max-width: 76ch;
+    margin: 0;
+    color: var(--pricing-secondary);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.pricing-credits-bridge__action {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 14px;
+    border: 1px solid rgba(103, 236, 255, 0.4);
+    border-radius: 8px;
+    color: var(--pricing-cyan-bright);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.pricing-credits-bridge__action:hover { color: var(--pricing-text); border-color: var(--pricing-cyan-bright); background: rgba(103, 236, 255, 0.08); }
+.pricing-credits-bridge__action svg { width: 14px; height: 14px; }
+
 .pricing-hero {
     min-height: 570px;
     display: grid;
@@ -1367,6 +1435,16 @@
         flex-direction: column;
         gap: 14px;
         padding: 15px;
+    }
+
+    .pricing-credits-bridge {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .pricing-credits-bridge__action {
+        grid-column: 1 / -1;
+        width: 100%;
     }
 
     .pricing-control-deck > div:first-child {

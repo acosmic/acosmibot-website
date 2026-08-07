@@ -32,6 +32,7 @@ const PricingPage = lazy(() => import('./pages/PremiumPage').then(module => ({ d
 const GuildSelectPage = lazy(() => import('./pages/GuildSelectPage').then(module => ({ default: module.GuildSelectPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
+const AICreditsPage = lazy(() => import('./pages/AICreditsPage').then(module => ({ default: module.AICreditsPage })));
 const CardStudioPage = lazy(() => import('./pages/CardStudioPage').then(module => ({ default: module.CardStudioPage })));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage').then(module => ({ default: module.LeaderboardPage })));
 const AchievementsPage = lazy(() => import('./pages/AchievementsPage').then(module => ({ default: module.AchievementsPage })));
@@ -228,6 +229,7 @@ function App() {
       <Route element={<RequireAuth />}>
         <Route path="/servers" element={<GuildSelectPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/credits" element={<AICreditsPage />} />
         <Route path="/card-studio" element={<CardStudioPage />} />
         <Route path="/me" element={<MeRedirect />} />
         {/* Legacy /profile retired → resolve to the owner's public profile. */}

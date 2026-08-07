@@ -103,6 +103,9 @@ export interface AdminFeatureSettings {
   use_satori_rank_card: boolean;
   use_satori_weather_card: boolean;
   billing_enabled: boolean;
+  ai_credit_sales_enabled: boolean;
+  ai_credit_spending_enabled: boolean;
+  ai_credit_dm_enabled: boolean;
   stripe_mode: StripeMode;
   stripe_test_configured: boolean;
   stripe_live_configured: boolean;
@@ -251,7 +254,9 @@ export const adminApi = {
     api.fetch<AdminFeatureSettingsResponse>('/api/admin/feature-settings'),
 
   updateFeatureSettings: (payload: Partial<Pick<AdminFeatureSettings,
-    'use_satori_rank_card' | 'billing_enabled' | 'stripe_mode'>>) =>
+    'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' |
+    'ai_credit_sales_enabled' | 'ai_credit_spending_enabled' | 'ai_credit_dm_enabled' |
+    'stripe_mode'>>) =>
     api.fetch<{
       success: boolean;
       message: string;
