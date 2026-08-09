@@ -7,6 +7,7 @@ import {
   CircleDollarSign,
   Command,
   CreditCard,
+  Eye,
   Gamepad2,
   Gift,
   LayoutDashboard,
@@ -36,13 +37,15 @@ interface NavItemProps {
   to: string;
   icon: LucideIcon;
   label: string;
+  end?: boolean;
   status?: 'soon';
   onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, status, onClick }) => (
+const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, end, status, onClick }) => (
   <NavLink
     to={to}
+    end={end}
     className={({ isActive }) => `nav-item${isActive ? ' active' : ''}${status ? ` is-${status}` : ''}`}
     onClick={onClick}
     aria-label={status === 'soon' ? `${label}, coming soon` : undefined}
@@ -87,37 +90,74 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const manageableGuilds = guilds.filter(
     (guild) => guild.owner || guild.permissions?.includes('administrator'),
   );
+  const memberGuilds = guilds.filter(
+    (guild) => !guild.owner && !guild.permissions?.includes('administrator'),
+  );
 
-  const handleGuildClick = (id: string) => {
+  const handleAdminGuildClick = (id: string) => {
     setSelectedGuildId(id);
     navigate(`/server/${id}/overview`);
     onClose?.();
   };
 
+  const handleMemberGuildClick = (id: string) => {
+    navigate(`/server/${id}`);
+    onClose?.();
+  };
+
   return (
     <div className="server-navigation">
-      <aside className="guild-selector-sidebar" aria-label="Manageable servers">
-        <div className="guild-rail__label">Servers</div>
-        <div className="guild-icon-list">
-          {manageableGuilds.map((guild) => (
-            <button
-              type="button"
-              key={guild.id}
-              className={`guild-icon${guild.id === guildId ? ' active' : ''}`}
-              title={guild.name}
-              aria-label={`Manage ${guild.name}`}
-              aria-current={guild.id === guildId ? 'page' : undefined}
-              onClick={() => handleGuildClick(guild.id)}
-              style={{
-                backgroundImage: guild.icon
-                  ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png)`
-                  : 'none',
-              }}
-            >
-              {!guild.icon && guild.name.charAt(0).toUpperCase()}
-            </button>
-          ))}
-        </div>
+      <aside className="guild-selector-sidebar" aria-label="Server shortcuts">
+        <section className="guild-rail__section" aria-labelledby="admin-servers-label">
+          <div className="guild-rail__label" id="admin-servers-label">Admin servers</div>
+          <div className="guild-icon-list">
+            {manageableGuilds.map((guild) => (
+              <button
+                type="button"
+                key={guild.id}
+                className={`guild-icon${guild.id === guildId ? ' active' : ''}`}
+                title={`${guild.name} · Admin`}
+                aria-label={`Manage ${guild.name}`}
+                aria-current={guild.id === guildId ? 'page' : undefined}
+                onClick={() => handleAdminGuildClick(guild.id)}
+                style={{
+                  backgroundImage: guild.icon
+                    ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png)`
+                    : 'none',
+                }}
+              >
+                {!guild.icon && guild.name.charAt(0).toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="guild-rail__section guild-rail__section--members" aria-labelledby="member-servers-label">
+          <div className="guild-rail__label" id="member-servers-label">Member servers</div>
+          {memberGuilds.length > 0 ? (
+            <div className="guild-icon-list">
+              {memberGuilds.map((guild) => (
+                <button
+                  type="button"
+                  key={guild.id}
+                  className="guild-icon guild-icon--member"
+                  title={`${guild.name} · Member`}
+                  aria-label={`View ${guild.name} member page`}
+                  onClick={() => handleMemberGuildClick(guild.id)}
+                  style={{
+                    backgroundImage: guild.icon
+                      ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png)`
+                      : 'none',
+                  }}
+                >
+                  {!guild.icon && guild.name.charAt(0).toUpperCase()}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span className="guild-rail__empty">None</span>
+          )}
+        </section>
       </aside>
 
       <aside className={`navigation-sidebar${isOpen ? ' open' : ''}`}>
@@ -130,6 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <nav className="sidebar-nav" aria-label="Server systems">
           <NavSection title="General">
             <NavItem to={`/server/${guildId}/overview`} icon={LayoutDashboard} label="Overview" onClick={onClose} />
+            {canManage && <NavItem to={`/server/${guildId}`} icon={Eye} label="Member page" end onClick={onClose} />}
             {canManage && <NavItem to={`/server/${guildId}/billing`} icon={CreditCard} label="Billing" onClick={onClose} />}
           </NavSection>
 

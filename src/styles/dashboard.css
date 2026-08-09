@@ -75,6 +75,22 @@
   text-transform: uppercase;
 }
 
+.guild-rail__section--members {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.guild-rail__empty {
+  display: block;
+  color: var(--text-muted);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .guild-icon-list {
   display: grid;
   justify-items: center;
@@ -144,6 +160,15 @@
   border-radius: 50%;
   background: var(--primary-color);
   content: '';
+}
+
+.guild-icon--member {
+  border-color: rgba(159, 139, 255, 0.28);
+}
+
+.guild-icon--member:hover,
+.guild-icon--member:focus-visible {
+  border-color: rgba(159, 139, 255, 0.68);
 }
 
 /* Subsystem rail */
@@ -589,6 +614,31 @@
 
 .overview-page {
   max-width: 1180px;
+}
+
+.overview-server-summary__controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.overview-server-summary__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.overview-server-summary__actions .btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.overview-server-summary__actions .btn svg {
+  width: 17px;
+  height: 17px;
 }
 
 .page-header {
@@ -1368,6 +1418,29 @@
 
   .dashboard-main-content {
     padding: 30px 14px 112px;
+  }
+
+  .overview-server-summary__controls,
+  .overview-server-summary__actions {
+    width: 100%;
+  }
+
+  .overview-server-summary__controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .overview-server-summary__controls .text-end {
+    text-align: left !important;
+  }
+
+  .overview-server-summary__actions .btn {
+    width: 100%;
+    flex: 1;
+  }
+
+  .overview-server-summary__actions {
+    flex-direction: column;
   }
 
   .dashboard-topology {

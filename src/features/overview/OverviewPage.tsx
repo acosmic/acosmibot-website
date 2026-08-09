@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Mail, MessageCircle } from 'lucide-react';
+import { BookOpen, Eye, Mail, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { useOverviewStats } from './useOverviewStats';
@@ -53,6 +53,10 @@ export const OverviewPage: React.FC = () => {
     navigate(`/server/${guildId}/billing`);
   };
 
+  const handleViewMemberPage = () => {
+    navigate(`/server/${guildId}`);
+  };
+
   if (isLoading) return <LoadingSpinner />;
 
   return (
@@ -92,20 +96,29 @@ export const OverviewPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="d-flex flex-row align-items-center gap-3 flex-wrap">
+              <div className="overview-server-summary__controls">
                 <div className="text-end">
                   <div className="fw-bold fs-6">{TIER_LABELS[tier]}</div>
                   <div className="small text-muted">
                     {subscription.isLoading ? 'Checking subscription…' : `Status: ${status.replace(/_/g, ' ')}`}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="btn p-3"
-                  onClick={handleManageSubscription}
-                >
-                  {manageLabel}
-                </button>
+                <div className="overview-server-summary__actions">
+                  <button
+                    type="button"
+                    className="btn p-3"
+                    onClick={handleViewMemberPage}
+                  >
+                    <Eye aria-hidden="true" /> View member page
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary p-3"
+                    onClick={handleManageSubscription}
+                  >
+                    {manageLabel}
+                  </button>
+                </div>
               </div>
             </div>
           )}
