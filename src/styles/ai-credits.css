@@ -303,7 +303,7 @@
 .credits-pack--power:hover::before { transform: translate(-8px, -8px) scale(1.04); }
 .credits-pack__signal { position: absolute; top: 14px; right: 16px; z-index: 1; color: var(--credits-cyan); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .credits-pack--power .credits-pack__signal { color: #9f8bff; }
-.credits-pack__header { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 14px; }
+.credits-pack__header { position: relative; z-index: 1; display: flex; min-height: 135px; justify-content: space-between; gap: 14px; }
 .credits-pack__name { color: var(--credits-text); font-size: 16px; font-weight: 700; }
 .credits-pack__header p { max-width: 25ch; margin: 7px 0 0; color: var(--credits-muted); font-size: 12px; line-height: 1.5; }
 .credits-pack__price { flex: 0 0 auto; text-align: right; }
@@ -410,6 +410,7 @@
   .credits-workspace { grid-template-columns: 1fr; }
   .credits-pack-grid { grid-template-columns: 1fr; }
   .credits-pack { min-height: auto; }
+  .credits-pack__header { min-height: 0; }
 }
 
 @media (max-width: 620px) {
