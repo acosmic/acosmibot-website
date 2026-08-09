@@ -53,6 +53,20 @@ const formatDate = (value: string | null | undefined) => {
 };
 
 const statusLabel = (status: string) => status.replace(/_/g, ' ');
+const purchaseAwaitingFulfillment = (status?: string) => (
+  ['pending', 'checkout_created', 'processing', 'paid'].includes(status ?? '')
+);
+
+const purchaseTerminalTitle = (status: string) => {
+  switch (status) {
+    case 'failed': return 'Payment could not be completed.';
+    case 'expired': return 'Checkout expired.';
+    case 'partially_refunded': return 'Purchase partially refunded.';
+    case 'refunded': return 'Purchase refunded.';
+    case 'disputed': return 'Payment disputed.';
+    default: return `Purchase status: ${statusLabel(status)}.`;
+  }
+};
 
 const policyDefaults = (policy?: CreditUserPolicy) => ({
   allow_dm_spending: policy?.allow_dm_spending ?? false,
@@ -167,7 +181,7 @@ export const AICreditsPage: React.FC = () => {
     enabled: Boolean(purchaseId),
     refetchInterval: (query) => {
       const status = query.state.data?.purchase.status;
-      return status === 'pending' || status === 'processing' ? 2500 : false;
+      return purchaseAwaitingFulfillment(status) ? 2500 : false;
     },
     retry: false,
   });
@@ -268,7 +282,7 @@ export const AICreditsPage: React.FC = () => {
     ? consentQuery.data.consent.enabled
     : undefined;
   const consentHasChanges = savedConsentEnabled !== undefined && consentEnabled !== savedConsentEnabled;
-  const purchaseIsPending = purchase?.status === 'pending' || purchase?.status === 'processing';
+  const purchaseIsPending = purchaseAwaitingFulfillment(purchase?.status);
   const pageLoading = catalogQuery.isLoading || personalQuery.isLoading;
   const pageError = catalogQuery.error || personalQuery.error;
 
@@ -323,7 +337,7 @@ export const AICreditsPage: React.FC = () => {
                     ? purchase.target_owner_type === 'guild'
                       ? 'Credits added to the selected server wallet.'
                       : 'Credits added to your personal wallet.'
-                    : `Checkout ${statusLabel(purchase.status)}.`}
+                    : purchaseTerminalTitle(purchase.status)}
               </strong>
               <p>
                 {purchaseIsPending
