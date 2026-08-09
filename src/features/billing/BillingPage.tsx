@@ -90,6 +90,12 @@ const formatMoney = (amountInCents: number, currency?: string) =>
 
 const formatCredits = (value: number) => new Intl.NumberFormat('en-US').format(value);
 
+const policyBoolean = (value: unknown, fallback = false) => {
+  if (value === undefined || value === null) return fallback;
+  if (value === false || value === 0 || value === '0' || value === 'false') return false;
+  return true;
+};
+
 const creditPolicyDefaults = (policy?: {
   server_pool_enabled: boolean;
   personal_fallback_allowed: boolean;
@@ -107,13 +113,13 @@ const creditPolicyDefaults = (policy?: {
   member_contributions_enabled: boolean;
   public_contribution_log_enabled: boolean;
 }) => ({
-  server_pool_enabled: policy?.server_pool_enabled ?? false,
-  personal_fallback_allowed: policy?.personal_fallback_allowed ?? false,
+  server_pool_enabled: policyBoolean(policy?.server_pool_enabled),
+  personal_fallback_allowed: policyBoolean(policy?.personal_fallback_allowed),
   allowed_operations: {
-    chat: policy?.allowed_operations?.chat ?? false,
-    tool_chat: policy?.allowed_operations?.tool_chat ?? false,
-    image_generation: policy?.allowed_operations?.image_generation ?? false,
-    image_analysis: policy?.allowed_operations?.image_analysis ?? false,
+    chat: policyBoolean(policy?.allowed_operations?.chat),
+    tool_chat: policyBoolean(policy?.allowed_operations?.tool_chat),
+    image_generation: policyBoolean(policy?.allowed_operations?.image_generation),
+    image_analysis: policyBoolean(policy?.allowed_operations?.image_analysis),
   },
   guild_daily_credit_cap: policy?.guild_daily_credit_cap ?? 0,
   member_daily_credit_cap: policy?.member_daily_credit_cap ?? 0,
@@ -123,10 +129,10 @@ const creditPolicyDefaults = (policy?: {
   channel_mode: policy?.channel_mode ?? 'all',
   channel_ids: policy?.channel_ids ?? [],
   low_balance_threshold: policy?.low_balance_threshold ?? 0,
-  notifications_enabled: policy?.notifications_enabled ?? false,
+  notifications_enabled: policyBoolean(policy?.notifications_enabled),
   notification_channel_id: policy?.notification_channel_id ?? null,
-  member_contributions_enabled: policy?.member_contributions_enabled ?? true,
-  public_contribution_log_enabled: policy?.public_contribution_log_enabled ?? true,
+  member_contributions_enabled: policyBoolean(policy?.member_contributions_enabled, true),
+  public_contribution_log_enabled: policyBoolean(policy?.public_contribution_log_enabled, true),
 });
 
 interface CancelSubscriptionDialogProps {

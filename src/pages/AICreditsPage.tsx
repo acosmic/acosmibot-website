@@ -68,13 +68,19 @@ const purchaseTerminalTitle = (status: string) => {
   }
 };
 
+const policyBoolean = (value: unknown, fallback = false) => {
+  if (value === undefined || value === null) return fallback;
+  if (value === false || value === 0 || value === '0' || value === 'false') return false;
+  return true;
+};
+
 const policyDefaults = (policy?: CreditUserPolicy) => ({
-  allow_dm_spending: policy?.allow_dm_spending ?? false,
-  allow_guild_spending: policy?.allow_guild_spending ?? false,
+  allow_dm_spending: policyBoolean(policy?.allow_dm_spending),
+  allow_guild_spending: policyBoolean(policy?.allow_guild_spending),
   personal_daily_credit_cap: policy?.personal_daily_credit_cap ?? 0,
   personal_monthly_credit_cap: policy?.personal_monthly_credit_cap ?? 0,
   low_balance_threshold: policy?.low_balance_threshold ?? 0,
-  low_balance_notifications: policy?.low_balance_notifications ?? false,
+  low_balance_notifications: policyBoolean(policy?.low_balance_notifications),
 });
 
 const CreditPackCard: React.FC<{
