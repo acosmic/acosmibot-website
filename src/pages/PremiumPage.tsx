@@ -131,16 +131,22 @@ const buildCatalogFeatures = (def: TierCardDef, catalog: SubscriptionCatalogRow[
   const rows = catalogRowsForTier(catalog, def.tier);
   const quotas = quotasByTier[def.tier] ?? rows[0]?.quotas;
   if (!quotas) return def.features;
-  const features = [
-    `AI chat - ${quotas.daily_ai_actions.toLocaleString()}/day and ${quotas.monthly_ai_actions.toLocaleString()}/month`,
-  ];
+  const aiChatFeature = {
+    text: `AI chat - ${quotas.daily_ai_actions.toLocaleString()}/day and ${quotas.monthly_ai_actions.toLocaleString()}/month`,
+  };
+  const features = [...def.features];
+  const firstUnavailableFeature = features.findIndex((feature) => feature.disabled);
+
+  if (firstUnavailableFeature >= 0) features.splice(firstUnavailableFeature, 0, aiChatFeature);
+  else features.push(aiChatFeature);
+
   if (def.tier === 'pro' || def.tier === 'max') {
     features.push(
-      `${quotas.image_monthly_limit.toLocaleString()} medium images/month`,
-      `${quotas.image_analysis_monthly_limit.toLocaleString()} vision analyses/month`,
+      { text: `${quotas.image_monthly_limit.toLocaleString()} medium images/month` },
+      { text: `${quotas.image_analysis_monthly_limit.toLocaleString()} vision analyses/month` },
     );
   }
-  return [...def.features, ...features.map((text) => ({ text }))];
+  return features;
 };
 
 export const PricingPage: React.FC = () => {

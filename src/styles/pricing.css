@@ -534,14 +534,14 @@
     display: grid;
     grid-template-columns: 0.92fr 1fr 1.1fr 1fr;
     gap: 14px;
-    align-items: start;
+    align-items: stretch;
     overflow: visible;
 }
 
 .pricing-tier {
     --tier-color: #8fa7b2;
     position: relative;
-    min-height: 690px;
+    min-height: 730px;
     display: flex;
     flex-direction: column;
     padding: 30px 22px 22px;
@@ -563,12 +563,11 @@
     pointer-events: none;
 }
 
-.pricing-tier--plus { --tier-color: #4fe3a1; margin-top: 22px; }
-.pricing-tier--pro { --tier-color: #67ecff; margin-top: -12px; }
-.pricing-tier--max { --tier-color: #ff8f72; margin-top: 22px; }
+.pricing-tier--plus { --tier-color: #4fe3a1; }
+.pricing-tier--pro { --tier-color: #67ecff; }
+.pricing-tier--max { --tier-color: #ff8f72; }
 
 .pricing-tier.is-primary {
-    min-height: 730px;
     background: #101b24;
     border-color: rgba(103, 236, 255, 0.62);
 }
