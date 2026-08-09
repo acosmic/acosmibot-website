@@ -70,9 +70,9 @@ const CreditPackCard: React.FC<{
   pending: boolean;
   onPurchase: () => void;
 }> = ({ pack, currency, salesEnabled, pending, onPurchase }) => (
-  <article className={`credits-pack credits-pack--${pack.sku}${pack.sku === 'standard' ? ' is-featured' : ''}`}>
-    {pack.sku === 'standard' && <span className="credits-pack__signal">Most balanced</span>}
-    {pack.sku === 'power' && <span className="credits-pack__signal">Best value</span>}
+  <article className={`credits-pack credits-pack--${pack.sku}${pack.sku === 'fuel_cell_10k' ? ' is-featured' : ''}`}>
+    {pack.sku === 'fuel_cell_10k' && <span className="credits-pack__signal">Most balanced</span>}
+    {pack.sku === 'fuel_cell_25k' && <span className="credits-pack__signal">Best value</span>}
     <div className="credits-pack__header">
       <div>
         <span className="credits-pack__name">{pack.name}</span>
