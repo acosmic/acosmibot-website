@@ -119,6 +119,19 @@ body {
     transition: all 0.3s ease;
 }
 
+/* Native number steppers render as a light browser-owned control in dark
+   fields. Keep number inputs visually consistent across dashboard surfaces;
+   keyboard arrow keys and direct numeric entry continue to work normally. */
+input[type='number'] {
+    -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
 /* Make every <select> obviously a dropdown: consistent themed chevron
    regardless of whether the markup uses .form-control or .form-select. */
 select.form-control,
