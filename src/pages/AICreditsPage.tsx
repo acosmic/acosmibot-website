@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
+  AlertTriangle,
   ArrowRight,
   Check,
   CircleDollarSign,
@@ -130,22 +131,31 @@ const CreditPackCard: React.FC<{
 );
 
 const PolicySwitch: React.FC<{
+  id?: string;
   label: string;
   description: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
-}> = ({ label, description, checked, onChange }) => (
-  <label className={`credits-policy-switch${checked ? ' is-enabled' : ''}`}>
+  attentionMessage?: string;
+}> = ({ id, label, description, checked, onChange, attentionMessage }) => (
+  <label className={`credits-policy-switch${checked ? ' is-enabled' : ''}${attentionMessage ? ' needs-attention' : ''}`}>
     <span>
       <strong>{label}</strong>
       <small>{description}</small>
+      {attentionMessage && (
+        <span className="credits-policy-switch__attention" id={id ? `${id}-attention` : undefined}>
+          <AlertTriangle aria-hidden="true" /> {attentionMessage}
+        </span>
+      )}
     </span>
     <input
+      id={id}
       type="checkbox"
       role="switch"
       checked={checked}
       onChange={(event) => onChange(event.target.checked)}
       aria-label={label}
+      aria-describedby={attentionMessage && id ? `${id}-attention` : undefined}
     />
   </label>
 );
@@ -252,8 +262,8 @@ export const AICreditsPage: React.FC = () => {
   });
 
   const policyMutation = useMutation({
-    mutationFn: () => aiCreditsApi.updatePersonalPolicy({
-      ...policyDraft,
+    mutationFn: (draft: ReturnType<typeof policyDefaults>) => aiCreditsApi.updatePersonalPolicy({
+      ...draft,
       expected_version: personalQuery.data?.policy.version,
     } as Partial<CreditUserPolicy> & { expected_version?: number }),
     onSuccess: async () => {
@@ -288,9 +298,22 @@ export const AICreditsPage: React.FC = () => {
     ? consentQuery.data.consent.enabled
     : undefined;
   const consentHasChanges = savedConsentEnabled !== undefined && consentEnabled !== savedConsentEnabled;
+  const savedGuildFallbackEnabled = policyBoolean(personal?.policy.allow_guild_spending);
+  const guildFallbackRequired = consentEnabled && !savedGuildFallbackEnabled;
+  const guildFallbackAttention = guildFallbackRequired
+    ? policyDraft.allow_guild_spending
+      ? 'Save this guardrail before “Use my credits” can take effect.'
+      : 'Required by the selected “Use my credits” server permission below.'
+    : undefined;
   const purchaseIsPending = purchaseAwaitingFulfillment(purchase?.status);
   const pageLoading = catalogQuery.isLoading || personalQuery.isLoading;
   const pageError = catalogQuery.error || personalQuery.error;
+
+  const enableGuildFallback = () => {
+    const nextDraft = { ...policyDraft, allow_guild_spending: true };
+    setPolicyDraft(nextDraft);
+    policyMutation.mutate(nextDraft);
+  };
 
   if (pageLoading) {
     return <div className="credits-page"><PublicNav variant="observatory" /><LoadingSpinner /></div>;
@@ -422,6 +445,12 @@ export const AICreditsPage: React.FC = () => {
               <ShieldCheck aria-hidden="true" />
             </div>
             <p className="credits-panel__intro">These controls are personal. A guild administrator must separately enable server policy and consent before your personal wallet can be used in that guild.</p>
+            {!personal.spending_enabled && (
+              <div className="credits-notice credits-notice--warning" role="status">
+                <AlertTriangle aria-hidden="true" />
+                <span><strong>AI Credit spending is currently paused.</strong> You can configure permissions now, but no wallet will be charged until Acosmibot enables spending.</span>
+              </div>
+            )}
             <div className="credits-policy-list">
               <PolicySwitch
                 label="Allow DM spending"
@@ -430,10 +459,12 @@ export const AICreditsPage: React.FC = () => {
                 onChange={(checked) => setPolicyDraft((draft) => ({ ...draft, allow_dm_spending: checked }))}
               />
               <PolicySwitch
+                id="allow-guild-fallback"
                 label="Allow guild fallback"
-                description="Permit your wallet after included quota and an opted-in guild wallet are exhausted."
+                description="Permit eligible server requests to use your wallet after included quota and any available server credits."
                 checked={policyDraft.allow_guild_spending}
                 onChange={(checked) => setPolicyDraft((draft) => ({ ...draft, allow_guild_spending: checked }))}
+                attentionMessage={guildFallbackAttention}
               />
               <PolicySwitch
                 label="Low-balance notifications"
@@ -447,7 +478,7 @@ export const AICreditsPage: React.FC = () => {
               <label><span>Monthly cap</span><input type="number" min="0" max="10000000" value={policyDraft.personal_monthly_credit_cap} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, personal_monthly_credit_cap: Math.max(0, Number(event.target.value) || 0) }))} /><small>0 = no personal cap</small></label>
               <label><span>Low-balance alert</span><input type="number" min="0" max="10000000" value={policyDraft.low_balance_threshold} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, low_balance_threshold: Math.max(0, Number(event.target.value) || 0) }))} /><small>Notify at or below this balance</small></label>
             </div>
-            <button type="button" className="credits-button credits-button--secondary" disabled={policyMutation.isPending} onClick={() => policyMutation.mutate()}>
+            <button type="button" className="credits-button credits-button--secondary" disabled={policyMutation.isPending} onClick={() => policyMutation.mutate(policyDraft)}>
               {policyMutation.isPending ? 'Saving…' : 'Save guardrails'}
               {!policyMutation.isPending && <Check aria-hidden="true" />}
             </button>
@@ -507,8 +538,21 @@ export const AICreditsPage: React.FC = () => {
               </fieldset>
             </div>
             <div className="credits-consent-footer">
-              <p id="credits-consent-requirements"><Info aria-hidden="true" /> This also requires “Allow guild fallback” above and permission from the server’s administrators. They cannot see your personal balance.</p>
-              <button type="button" className="credits-button credits-button--primary" disabled={!consentGuildId || !consentHasChanges || consentMutation.isPending || consentQuery.isLoading} onClick={() => consentMutation.mutate()}>
+              {guildFallbackRequired ? (
+                <div className="credits-consent-prerequisite" id="credits-consent-requirements" role="alert">
+                  <AlertTriangle aria-hidden="true" />
+                  <span>
+                    <strong>Allow guild fallback is required.</strong>
+                    This server permission cannot use your wallet while the master guardrail is off. Enabling it also activates any other server you explicitly set to “Use my credits.”
+                  </span>
+                  <button type="button" className="credits-button credits-button--secondary" disabled={policyMutation.isPending} onClick={enableGuildFallback}>
+                    {policyMutation.isPending ? 'Enabling…' : 'Enable guild fallback'}
+                  </button>
+                </div>
+              ) : (
+                <p id="credits-consent-requirements"><Info aria-hidden="true" /> The server’s administrators must also permit personal fallback. They cannot see your personal balance.</p>
+              )}
+              <button type="button" className="credits-button credits-button--primary" disabled={!consentGuildId || !consentHasChanges || consentMutation.isPending || consentQuery.isLoading || guildFallbackRequired} onClick={() => consentMutation.mutate()}>
                 {consentMutation.isPending ? 'Saving permission…' : 'Save server permission'}
                 {!consentMutation.isPending && <Check aria-hidden="true" />}
               </button>
