@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { InlineIcon } from '@/components/ui/InlineIcon';
+import { clearExpiredSession } from '@/lib/auth';
 import { RagTab } from './RagTab';
 import { BotStatsTab } from './BotStatsTab';
 import { AiSettingsTab } from './AiSettingsTab';
@@ -108,6 +109,7 @@ function useAdminData<T>(url: string) {
       signal: controller.signal,
     })
       .then(async response => {
+        if (response.status === 401) clearExpiredSession();
         const body = await response.json().catch(() => null);
         if (!response.ok) {
           throw new Error(body?.error ?? body?.message ?? `Request failed (${response.status})`);
@@ -333,7 +335,10 @@ export const AdminPage: React.FC = () => {
   useEffect(() => {
     const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
     fetch(`${apiBase}/api/admin/check`, { credentials: 'include' })
-      .then(r => r.json())
+      .then(r => {
+        if (r.status === 401) clearExpiredSession();
+        return r.json();
+      })
       .then(d => {
         // The panel and every /api/admin route require super-admin; a plain
         // 'admin' row (or anyone else) is bounced here too.

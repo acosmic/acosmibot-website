@@ -23,6 +23,11 @@ export const startLogin = (): void => {
 
 let refreshPromise: Promise<boolean> | null = null;
 
+/** Clear the visible identity as soon as the API rejects the browser session. */
+export const clearExpiredSession = (): void => {
+  useAuthStore.getState().setAnonymous();
+};
+
 /** Refresh browser-session state without exposing the HttpOnly credential. */
 export const refreshSession = (): Promise<boolean> => {
   if (refreshPromise) return refreshPromise;
@@ -62,6 +67,18 @@ export const endSession = async (): Promise<void> => {
 export function AuthSessionBootstrap(): null {
   useEffect(() => {
     void refreshSession();
+
+    // A tab can remain open beyond the cookie's 24-hour lifetime. Revalidate
+    // when the user returns so the navbar cannot keep showing a stale avatar.
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void refreshSession();
+    };
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.removeEventListener('focus', refreshWhenVisible);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
   }, []);
   return null;
 }

@@ -1,4 +1,5 @@
 import { resolveAnalyticsPage, trackEvent } from '@/lib/analytics';
+import { clearExpiredSession } from '@/lib/auth';
 
 const getApiBase = (): string =>
   (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
@@ -18,6 +19,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const trackedFeature = configFeatureForRequest(path, options?.method);
 
   if (!response.ok) {
+    if (response.status === 401) clearExpiredSession();
     const body = await response.json().catch(() => ({}));
     if (trackedFeature) trackEvent('config_save', { feature: trackedFeature, outcome: 'error' });
     // The API is inconsistent about the field name: most endpoints return the
