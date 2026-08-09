@@ -70,16 +70,20 @@ const CreditPackCard: React.FC<{
   pending: boolean;
   onPurchase: () => void;
 }> = ({ pack, currency, salesEnabled, pending, onPurchase }) => (
-  <article className={`credits-pack${pack.sku === 'standard' ? ' is-featured' : ''}`}>
+  <article className={`credits-pack credits-pack--${pack.sku}${pack.sku === 'standard' ? ' is-featured' : ''}`}>
     {pack.sku === 'standard' && <span className="credits-pack__signal">Most balanced</span>}
+    {pack.sku === 'power' && <span className="credits-pack__signal">Best value</span>}
     <div className="credits-pack__header">
       <div>
         <span className="credits-pack__name">{pack.name}</span>
         <p>{pack.description}</p>
       </div>
       <div className="credits-pack__price">
+        {pack.discount_percent > 0 && (
+          <span className="credits-pack__list-price">{formatMoney(pack.list_amount_cents, currency)}</span>
+        )}
         <strong>{formatMoney(pack.amount_cents, currency)}</strong>
-        <span>one time</span>
+        <span>{pack.discount_percent > 0 ? `save ${pack.discount_percent}%` : 'one time'}</span>
       </div>
     </div>
     <div className="credits-pack__amount">
@@ -88,7 +92,10 @@ const CreditPackCard: React.FC<{
       <span>AI Credits</span>
     </div>
     <div className="credits-pack__footer">
-      <span>{formatMoney(pack.amount_cents / (pack.credits / 1000), currency)} per 1,000</span>
+      <span>
+        {formatMoney(pack.amount_cents / (pack.credits / 1000), currency)} per 1,000
+        {pack.discount_percent > 0 && <strong> · {pack.discount_percent}% pack savings</strong>}
+      </span>
       <button
         type="button"
         className="credits-button credits-button--primary"

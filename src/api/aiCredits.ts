@@ -14,6 +14,8 @@ export interface CreditPack {
   name: string;
   description: string;
   amount_cents: number;
+  list_amount_cents: number;
+  discount_percent: number;
   currency: string;
   credits: number;
   lookup_key: string;
