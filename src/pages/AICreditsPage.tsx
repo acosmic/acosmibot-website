@@ -176,6 +176,10 @@ export const AICreditsPage: React.FC = () => {
   const [consentGuildId, setConsentGuildId] = useState('');
   const [consentEnabled, setConsentEnabled] = useState(false);
   const guilds = useMemo(() => guildsQuery.data ?? [], [guildsQuery.data]);
+  const selectedConsentGuild = useMemo(
+    () => guilds.find((guild) => guild.id === consentGuildId),
+    [consentGuildId, guilds],
+  );
   const consentQuery = useQuery({
     queryKey: ['ai-credits', 'consent', consentGuildId],
     queryFn: () => aiCreditsApi.getGuildConsent(consentGuildId),
@@ -188,8 +192,10 @@ export const AICreditsPage: React.FC = () => {
   }, [consentGuildId, guilds]);
 
   useEffect(() => {
-    if (consentQuery.data?.consent) setConsentEnabled(consentQuery.data.consent.enabled);
-  }, [consentQuery.data?.consent]);
+    if (consentQuery.data?.consent.guild_id === consentGuildId) {
+      setConsentEnabled(consentQuery.data.consent.enabled);
+    }
+  }, [consentGuildId, consentQuery.data?.consent]);
   useEffect(() => {
     if (personalQuery.data?.policy) setPolicyDraft(policyDefaults(personalQuery.data.policy));
   }, [personalQuery.data?.policy]);
@@ -258,6 +264,10 @@ export const AICreditsPage: React.FC = () => {
     [catalogQuery.data?.rate_card.rows],
   );
   const purchase = purchaseQuery.data?.purchase;
+  const savedConsentEnabled = consentQuery.data?.consent.guild_id === consentGuildId
+    ? consentQuery.data.consent.enabled
+    : undefined;
+  const consentHasChanges = savedConsentEnabled !== undefined && consentEnabled !== savedConsentEnabled;
   const purchaseIsPending = purchase?.status === 'pending' || purchase?.status === 'processing';
   const pageLoading = catalogQuery.isLoading || personalQuery.isLoading;
   const pageError = catalogQuery.error || personalQuery.error;
@@ -444,25 +454,42 @@ export const AICreditsPage: React.FC = () => {
         {guilds.length > 0 && (
           <section className="credits-panel credits-consent-panel" aria-labelledby="credits-consent-title">
             <div className="credits-panel__heading">
-              <div><span className="credits-section__label">Per-guild consent</span><h2 id="credits-consent-title">Choose where your wallet may follow quota.</h2></div>
+              <div><span className="credits-section__label">Server permissions</span><h2 id="credits-consent-title">Let a server use your personal credits.</h2></div>
               <ShieldCheck aria-hidden="true" />
             </div>
-            <p className="credits-panel__intro">This is the member key in the two-key guild fallback. The server must also allow personal fallback; changing this does not expose your balance to administrators.</p>
+            <p className="credits-panel__intro" id="credits-consent-description">Choose whether your eligible AI requests in a server may use your personal credits after that server’s credits run out.</p>
             <div className="credits-consent-controls">
-              <label>
+              <label className="credits-consent-server">
                 <span>Discord server</span>
-                <select value={consentGuildId} onChange={(event) => setConsentGuildId(event.target.value)}>
+                <select value={consentGuildId} onChange={(event) => {
+                  setConsentGuildId(event.target.value);
+                  setConsentEnabled(false);
+                }}>
                   {guilds.map((guild) => <option key={guild.id} value={guild.id}>{guild.name}</option>)}
                 </select>
               </label>
-              <PolicySwitch
-                label="Allow personal fallback here"
-                description={consentQuery.isLoading ? 'Reading this guild’s consent…' : 'Permit eligible foreground requests in this guild to use your personal wallet after the server pool.'}
-                checked={consentEnabled}
-                onChange={setConsentEnabled}
-              />
-              <button type="button" className="credits-button credits-button--secondary" disabled={!consentGuildId || consentMutation.isPending || consentQuery.isLoading} onClick={() => consentMutation.mutate()}>
-                {consentMutation.isPending ? 'Saving…' : 'Save guild consent'}
+              <fieldset className="credits-consent-choice" disabled={consentQuery.isLoading} aria-describedby="credits-consent-description credits-consent-requirements">
+                <legend>Personal credit access</legend>
+                {consentQuery.isLoading ? (
+                  <div className="credits-consent-loading" role="status">Loading permission for {selectedConsentGuild?.name ?? 'this server'}…</div>
+                ) : (
+                  <div className="credits-consent-options">
+                    <label className={!consentEnabled ? 'is-selected' : undefined}>
+                      <input type="radio" name="guild-credit-consent" checked={!consentEnabled} onChange={() => setConsentEnabled(false)} />
+                      <span><strong>Don’t use my credits</strong><small>Requests stop when the server has no credits available.</small></span>
+                    </label>
+                    <label className={consentEnabled ? 'is-selected' : undefined}>
+                      <input type="radio" name="guild-credit-consent" checked={consentEnabled} onChange={() => setConsentEnabled(true)} />
+                      <span><strong>Use my credits</strong><small>My eligible requests may continue using my personal balance.</small></span>
+                    </label>
+                  </div>
+                )}
+              </fieldset>
+            </div>
+            <div className="credits-consent-footer">
+              <p id="credits-consent-requirements"><Info aria-hidden="true" /> This also requires “Allow guild fallback” above and permission from the server’s administrators. They cannot see your personal balance.</p>
+              <button type="button" className="credits-button credits-button--primary" disabled={!consentGuildId || !consentHasChanges || consentMutation.isPending || consentQuery.isLoading} onClick={() => consentMutation.mutate()}>
+                {consentMutation.isPending ? 'Saving permission…' : 'Save server permission'}
                 {!consentMutation.isPending && <Check aria-hidden="true" />}
               </button>
             </div>
