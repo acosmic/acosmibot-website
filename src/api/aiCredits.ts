@@ -90,6 +90,8 @@ export interface CreditGuildPolicy {
   low_balance_threshold: number;
   notifications_enabled: boolean;
   notification_channel_id: string | null;
+  member_contributions_enabled: boolean;
+  public_contribution_log_enabled: boolean;
   version: number;
   updated_by: string | null;
   updated_at: string | null;
@@ -118,6 +120,9 @@ export interface CreditPurchase {
   checkout_session_id: string | null;
   payment_intent_id: string | null;
   stripe_customer_id: string | null;
+  is_guild_contribution: boolean;
+  contribution_anonymous: boolean;
+  contributor_display_name: string | null;
   status: 'pending' | 'processing' | 'fulfilled' | 'failed' | 'expired' | 'refunded' | 'disputed' | string;
   terms_version: string;
   fulfilled_at: string | null;
@@ -187,6 +192,44 @@ export interface GuildCreditsResponse {
   usage: CreditUsageSummary;
 }
 
+export interface GuildContribution {
+  pack_sku: string;
+  pack_name: string;
+  credits: number;
+  status: 'fulfilled' | 'partially_refunded' | 'refunded' | 'disputed' | string;
+  anonymous: boolean;
+  display_name: string;
+  avatar_url: string | null;
+  created_at: string | null;
+  reversed_at: string | null;
+}
+
+export interface MemberHubResponse {
+  success: boolean;
+  mode: 'test' | 'live';
+  guild: { id: string; name: string; member_count: number; vault_currency: number };
+  viewer: {
+    display_name: string;
+    rank: number | null;
+    level: number;
+    exp: number;
+    currency: number;
+    achievements: number;
+    games: { total_games: number; wins: number; win_rate: number };
+  };
+  community: { active_members: number; messages: number; reactions: number; games: number };
+  leaderboard: Array<{ rank: number; user_id: string; display_name: string | null; avatar_url: string | null; level: number; exp: number }>;
+  ai_fuel: {
+    wallet: CreditWalletSummary;
+    usage: CreditUsageSummary;
+    server_pool_enabled: boolean;
+    contributions_enabled: boolean;
+    public_log_enabled: boolean;
+    sales_enabled: boolean;
+  };
+  is_admin: boolean;
+}
+
 export interface CreditCatalogResponse {
   success: boolean;
   mode: 'test' | 'live';
@@ -234,6 +277,20 @@ export const aiCreditsApi = {
       session_id: string;
       purchase: CreditPurchase;
     }>('/api/ai-credits/checkout', { method: 'POST', body: JSON.stringify(body) }),
+
+  getMemberHub: (guildId: string) => api.fetch<MemberHubResponse>(
+    `/api/guilds/${guildId}/member-hub`,
+  ),
+
+  getGuildContributions: (guildId: string) => api.fetch<{ success: boolean; visible: boolean; entries: GuildContribution[] }>(
+    `/api/guilds/${guildId}/contributions`,
+  ),
+
+  createGuildContribution: (guildId: string, body: { pack_sku: string; anonymous: boolean; accepted_terms_version: string }) =>
+    api.fetch<{ success: boolean; checkout_url: string; purchase: CreditPurchase }>(
+      `/api/guilds/${guildId}/ai-credits/contribute`,
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
 
   getPurchase: (purchaseId: string) => api.fetch<{ success: boolean; purchase: CreditPurchase }>(
     `/api/ai-credits/purchases/${purchaseId}`,

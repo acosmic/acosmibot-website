@@ -104,6 +104,8 @@ const creditPolicyDefaults = (policy?: {
   low_balance_threshold: number;
   notifications_enabled: boolean;
   notification_channel_id: string | null;
+  member_contributions_enabled: boolean;
+  public_contribution_log_enabled: boolean;
 }) => ({
   server_pool_enabled: policy?.server_pool_enabled ?? false,
   personal_fallback_allowed: policy?.personal_fallback_allowed ?? false,
@@ -123,6 +125,8 @@ const creditPolicyDefaults = (policy?: {
   low_balance_threshold: policy?.low_balance_threshold ?? 0,
   notifications_enabled: policy?.notifications_enabled ?? false,
   notification_channel_id: policy?.notification_channel_id ?? null,
+  member_contributions_enabled: policy?.member_contributions_enabled ?? true,
+  public_contribution_log_enabled: policy?.public_contribution_log_enabled ?? true,
 });
 
 interface CancelSubscriptionDialogProps {
@@ -458,6 +462,10 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
         <div className="billing-ai-credits__switches">
           <label><input type="checkbox" role="switch" checked={policyDraft.server_pool_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, server_pool_enabled: event.target.checked }))} /><span>Enable server pool</span></label>
           <label><input type="checkbox" role="switch" checked={policyDraft.personal_fallback_allowed} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, personal_fallback_allowed: event.target.checked }))} /><span>Allow member personal fallback</span></label>
+        </div>
+        <div className="billing-ai-credits__switches">
+          <label><input type="checkbox" role="switch" checked={policyDraft.member_contributions_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, member_contributions_enabled: event.target.checked }))} /><span>Allow member Fuel Cell contributions</span></label>
+          <label><input type="checkbox" role="switch" checked={policyDraft.public_contribution_log_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, public_contribution_log_enabled: event.target.checked }))} /><span>Show the public Server Boost Log</span></label>
         </div>
         <div className="billing-ai-credits__operations" aria-label="Allowed paid operations">
           {Object.entries(policyDraft.allowed_operations).map(([operation, enabled]) => (

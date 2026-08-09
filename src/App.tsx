@@ -30,6 +30,7 @@ const ReactionRoleBuilderPage = lazy(() => import('./features/reaction-roles/Rea
 const HomePage = lazy(() => import('./pages/HomePage').then(module => ({ default: module.HomePage })));
 const PricingPage = lazy(() => import('./pages/PremiumPage').then(module => ({ default: module.PricingPage })));
 const GuildSelectPage = lazy(() => import('./pages/GuildSelectPage').then(module => ({ default: module.GuildSelectPage })));
+const MemberServerHubPage = lazy(() => import('./pages/MemberServerHubPage').then(module => ({ default: module.MemberServerHubPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
 const AICreditsPage = lazy(() => import('./pages/AICreditsPage').then(module => ({ default: module.AICreditsPage })));
@@ -228,6 +229,7 @@ function App() {
       <Route path="/achievements" element={<AchievementsPage />} />
       <Route element={<RequireAuth />}>
         <Route path="/servers" element={<GuildSelectPage />} />
+        <Route path="/server/:guildId" element={<MemberServerHubPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/credits" element={<AICreditsPage />} />
         <Route path="/card-studio" element={<CardStudioPage />} />
@@ -242,7 +244,6 @@ function App() {
           <Route path="reaction-roles/new" element={<ReactionRoleBuilderPage />} />
           <Route path="reaction-roles/edit/:rrId" element={<ReactionRoleBuilderPage />} />
           <Route path=":feature" element={<FeatureOutlet />} />
-          <Route index element={<Navigate to="overview" replace />} />
         </Route>
         <Route path="/admin" element={<AdminPage />} />
       </Route>

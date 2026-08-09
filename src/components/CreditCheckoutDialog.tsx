@@ -11,8 +11,9 @@ interface CreditCheckoutDialogProps {
   targetType: 'personal' | 'guild';
   termsVersion: string;
   isPending: boolean;
+  contribution?: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (anonymous: boolean) => void;
 }
 
 const formatMoney = (cents: number, currency: string) => new Intl.NumberFormat('en-US', {
@@ -29,11 +30,13 @@ export const CreditCheckoutDialog: React.FC<CreditCheckoutDialogProps> = ({
   targetType,
   termsVersion,
   isPending,
+  contribution = false,
   onClose,
   onConfirm,
 }) => {
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const [accepted, setAccepted] = React.useState(false);
+  const [anonymous, setAnonymous] = React.useState(false);
   const titleId = React.useId();
   const descriptionId = React.useId();
   const onCloseRef = React.useRef(onClose);
@@ -112,7 +115,7 @@ export const CreditCheckoutDialog: React.FC<CreditCheckoutDialogProps> = ({
           <div className="credit-checkout-dialog__icon" aria-hidden="true"><ShieldCheck /></div>
           <div>
             <span>Checkout confirmation</span>
-            <h2 id={titleId}>Add {pack.name} to {targetType === 'guild' ? 'this guild' : 'your wallet'}?</h2>
+            <h2 id={titleId}>{contribution ? `Fuel ${targetLabel}?` : `Add ${pack.name} to ${targetType === 'guild' ? 'this guild' : 'your wallet'}?`}</h2>
           </div>
         </div>
 
@@ -130,6 +133,18 @@ export const CreditCheckoutDialog: React.FC<CreditCheckoutDialogProps> = ({
           <div><dt>Terms</dt><dd>{termsVersion}</dd></div>
         </dl>
 
+        {contribution && (
+          <>
+            <p className="credit-checkout-dialog__gift-notice">
+              This is a permanent gift to <strong>{targetLabel}</strong>. Credits belong to the server after payment and cannot be transferred back to your wallet. A normal payment refund reverses the corresponding unused server credits.
+            </p>
+            <label className="credit-checkout-dialog__anonymous">
+              <input type="checkbox" checked={anonymous} onChange={(event) => setAnonymous(event.target.checked)} />
+              <span>Contribute anonymously in the Server Boost Log</span>
+            </label>
+          </>
+        )}
+
         <label className="credit-checkout-dialog__terms">
           <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
           <span>I understand these are non-transferable service credits, not cash or virtual currency, and I accept the <a href="/terms-of-service" target="_blank" rel="noreferrer">AI Credits terms <ExternalLink aria-hidden="true" /></a> version {termsVersion}.</span>
@@ -140,7 +155,7 @@ export const CreditCheckoutDialog: React.FC<CreditCheckoutDialogProps> = ({
           <button
             type="button"
             className="credit-checkout-dialog__primary"
-            onClick={onConfirm}
+            onClick={() => onConfirm(anonymous)}
             disabled={!accepted || isPending}
           >
             {isPending ? 'Opening Stripe…' : 'Continue to Stripe'}

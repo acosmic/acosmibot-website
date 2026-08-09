@@ -6,7 +6,7 @@
  * FORM: Third-ranked server control matrix structure in the established operational observatory; seed 56ec9964.
  */
 import React, { useEffect, useState } from 'react';
-import { Outlet, useParams } from 'react-router-dom';
+import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { PublicNav } from './PublicNav';
 import { ServerContextBar } from './ServerContextBar';
 import { Sidebar } from './Sidebar';
@@ -18,10 +18,18 @@ export const DashboardShell: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { setGuilds, setSelectedGuildId } = useGuildStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [accessLoaded, setAccessLoaded] = useState(false);
+  const [accessFailed, setAccessFailed] = useState(false);
+  const guilds = useGuildStore((state) => state.guilds);
 
   useEffect(() => {
     // Load guilds
-    guildApi.getGuilds().then(setGuilds).catch(console.error);
+    guildApi.getGuilds()
+      .then((nextGuilds) => {
+        setGuilds(nextGuilds);
+        setAccessLoaded(true);
+      })
+      .catch((error) => { console.error(error); setAccessFailed(true); });
 
   }, [setGuilds]);
 
@@ -63,6 +71,20 @@ export const DashboardShell: React.FC = () => {
   }, []);
 
   const closeSidebar = () => setSidebarOpen(false);
+
+  const activeGuild = guilds.find((guild) => guild.id === guildId);
+  const canManage = Boolean(activeGuild?.owner || activeGuild?.permissions?.includes('administrator'));
+  if (!accessLoaded && !accessFailed) {
+    return <div role="status" aria-live="polite" className="dashboard-shell">Checking server access…</div>;
+  }
+  if (accessFailed && guildId) {
+    return <Navigate to={`/server/${guildId}`} replace />;
+  }
+  if (accessLoaded && guildId && !canManage) {
+    // The member hub is intentionally a different surface from the admin
+    // control matrix; API authorization remains the final authority.
+    return <Navigate to={`/server/${guildId}`} replace />;
+  }
 
   return (
     <div className="dashboard-shell server-control-matrix">

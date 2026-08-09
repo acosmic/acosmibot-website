@@ -1,7 +1,7 @@
 /**
  * THESIS: Server selection is a permission-aware constellation catalog, not a generic card grid.
  * OWN-WORLD: Observatory void, restrained cyan signals, server identity nodes, and compact telemetry.
- * STORY: Find a community, understand your access, then manage it or open its public leaderboard.
+ * STORY: Find a community, understand your access, then manage it or open its member station.
  * FIRST VIEWPORT: Real access counts orbit the Acosmibot core beside the server search and roster.
  * FORM: Sixth-ranked constellation catalog structure; established world; seed 244f3f11.
  */
@@ -81,7 +81,7 @@ export const GuildSelectPage: React.FC = () => {
       navigate(`/server/${guild.id}/overview`);
       return;
     }
-    navigate(`/leaderboard/${guild.id}`);
+    navigate(`/server/${guild.id}`);
   };
 
   const inviteBot = () => {
@@ -99,8 +99,8 @@ export const GuildSelectPage: React.FC = () => {
             <p className="servers-kicker">Community constellation</p>
             <h1>Your servers, aligned by access.</h1>
             <p>
-              Open configuration where you manage the community, or move directly
-              to the public leaderboard where you participate as a member.
+              Open configuration where you manage the community, or visit its
+              member station to follow activity, standings, and shared AI fuel.
             </p>
           </div>
 
@@ -198,7 +198,7 @@ export const GuildSelectPage: React.FC = () => {
             {memberGuilds.length > 0 && (
               <ServerBand
                 title="Member access"
-                description="Communities you can explore through their public leaderboard."
+                description="Communities you can explore through their member station."
                 guilds={memberGuilds}
                 onOpen={openGuild}
               />
@@ -275,7 +275,7 @@ const ServerCard: React.FC<{ guild: Guild; onOpen: () => void }> = ({ guild, onO
         </span>
       )}
       <span className="server-node__action">
-        {manageable ? 'Manage server' : 'View leaderboard'} <ArrowRight aria-hidden="true" />
+        {manageable ? 'Manage server' : 'Open server'} <ArrowRight aria-hidden="true" />
       </span>
     </button>
   );

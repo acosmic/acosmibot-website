@@ -98,6 +98,11 @@
 .credit-checkout-dialog__terms a { color: var(--primary-color, #00d9ff); }
 .credit-checkout-dialog__terms svg { width: 12px; height: 12px; vertical-align: -.15em; }
 
+.credit-checkout-dialog__gift-notice { margin: 0 0 14px; padding: 12px 14px; color: var(--text-secondary); background: rgba(0, 217, 255, 0.06); border: 1px solid rgba(0, 217, 255, 0.22); border-radius: 9px; font-size: 13px; line-height: 1.55; }
+.credit-checkout-dialog__gift-notice strong { color: var(--text-primary); }
+.credit-checkout-dialog__anonymous { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 15px; color: var(--text-secondary); font-size: 13px; line-height: 1.45; cursor: pointer; }
+.credit-checkout-dialog__anonymous input { width: 17px; height: 17px; flex: 0 0 auto; margin-top: 1px; accent-color: var(--primary-color, #00d9ff); }
+
 .credit-checkout-dialog__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .credit-checkout-dialog__actions button { min-height: 44px; padding: 10px 15px; border-radius: 10px; font-weight: 700; }
 .credit-checkout-dialog__secondary { color: var(--text-secondary); background: transparent; border: 1px solid var(--border-light, rgb(148 163 184 / 28%)); }
