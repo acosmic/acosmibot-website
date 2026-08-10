@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRight, Bot, CheckCircle2, CircleDollarSign, Gamepad2, Landmark,
   LoaderCircle, Medal, MessageSquareText, RefreshCw, ShieldCheck, Sparkles,
-  Trophy, Users, WalletCards, X,
+  Trophy, Users, X,
 } from 'lucide-react';
 import { aiCreditsApi, type CreditPack } from '@/api/aiCredits';
 import { CreditCheckoutDialog } from '@/components/CreditCheckoutDialog';
@@ -123,7 +123,7 @@ export const MemberServerHubPage: React.FC = () => {
         <section id="fuel" className="member-hub__fuel" aria-labelledby="fuel-title">
           <header><div><p className="member-hub__kicker">AI Fuel Reserve</p><h2 id="fuel-title">Keep shared AI ready.</h2><p>The server-owned reserve funds eligible AI requests after included plan allowance. Personal wallets and member prompt activity stay private.</p></div><span className={data.ai_fuel.server_pool_enabled ? 'member-hub__status is-on' : 'member-hub__status'}>{data.ai_fuel.server_pool_enabled ? 'Server-funded AI enabled' : 'Server-funded AI off'}</span></header>
           <div className="member-hub__fuel-grid">
-            <div className="member-hub__fuel-readout"><WalletCards aria-hidden="true" /><span>Available</span><strong>{format(data.ai_fuel.wallet.available_credits)}</strong><small>AI Credits</small></div>
+            <div><span>Available</span><strong>{format(data.ai_fuel.wallet.available_credits)}</strong><small>AI Credits</small></div>
             <div><span>Reserved</span><strong>{format(data.ai_fuel.wallet.reserved_credits)}</strong><small>Active requests</small></div>
             <div><span>30-day usage</span><strong>{format(data.ai_fuel.usage.total_credits)}</strong><small>{format(data.ai_fuel.usage.total_calls)} eligible calls</small></div>
           </div>
