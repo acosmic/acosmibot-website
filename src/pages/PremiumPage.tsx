@@ -381,8 +381,20 @@ const TierCard: React.FC<{
   const annualSavings = annualTotal ? Math.round((1 - annualTotal / monthlyTotal) * 100) : 0;
 
   return (
-  <article className={`pricing-tier pricing-tier--${def.tier}${def.popular ? ' is-primary' : ''}`}>
-    {def.popular && (
+  <article className={`pricing-tier pricing-tier--${def.tier}${def.popular ? ' is-primary' : ''}${hasLaunchOffer ? ' has-launch-offer' : ''}`}>
+    {hasLaunchOffer && def.tier !== 'free' && (
+      <div className="pricing-tier__launch-signal">
+        <span className="pricing-tier__launch-beacon" aria-hidden="true">
+          <Sparkles />
+        </span>
+        <span className="pricing-tier__launch-copy">
+          <strong>{def.launchOfferPercent}% off</strong>
+          <span>Launch orbit</span>
+          <small>{def.launchOfferMonths} months · {def.popular ? 'recommended' : 'auto-applied'}</small>
+        </span>
+      </div>
+    )}
+    {def.popular && !hasLaunchOffer && (
       <span className="pricing-tier__recommendation">Recommended orbit</span>
     )}
     <div className="pricing-tier__header">
@@ -407,9 +419,7 @@ const TierCard: React.FC<{
           </small>
         )}
       </div>
-      {hasLaunchOffer
-        ? <em>{def.launchOfferPercent}% launch offer</em>
-        : interval === 'annual' && annualSavings > 0 && <em>Save {annualSavings}%</em>}
+      {!hasLaunchOffer && interval === 'annual' && annualSavings > 0 && <em>Save {annualSavings}%</em>}
     </div>
 
     <div className="pricing-tier__fit">{def.fit}</div>
