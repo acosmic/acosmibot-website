@@ -373,6 +373,8 @@ const TierCard: React.FC<{
   onSelect?: () => void;
 }> = ({ def, interval, onSelect }) => {
   const hasLaunchOffer = interval === 'monthly' && Boolean(def.monthlyIntroPrice);
+  const showFreeBanner = interval === 'monthly' && def.tier === 'free';
+  const hasTierBanner = hasLaunchOffer || showFreeBanner;
   const cardRef = useRef<HTMLElement>(null);
   const [isLaunchSignalActive, setIsLaunchSignalActive] = useState(false);
   const price = (interval === 'annual' && def.annualPrice
@@ -415,8 +417,16 @@ const TierCard: React.FC<{
   return (
   <article
     ref={cardRef}
-    className={`pricing-tier pricing-tier--${def.tier}${def.popular ? ' is-primary' : ''}${hasLaunchOffer ? ' has-launch-offer' : ''}${isLaunchSignalActive ? ' is-launch-visible' : ''}`}
+    className={`pricing-tier pricing-tier--${def.tier}${def.popular ? ' is-primary' : ''}${hasTierBanner ? ' has-tier-banner' : ''}${hasLaunchOffer ? ' has-launch-offer' : ''}${isLaunchSignalActive ? ' is-launch-visible' : ''}`}
   >
+    {showFreeBanner && (
+      <div className="pricing-tier__launch-signal pricing-tier__launch-signal--free">
+        <span className="pricing-tier__launch-copy">
+          <strong>Start for free</strong>
+          <small>$0 forever</small>
+        </span>
+      </div>
+    )}
     {hasLaunchOffer && def.tier !== 'free' && (
       <div className="pricing-tier__launch-signal">
         <span className="pricing-tier__launch-art" aria-hidden="true">
