@@ -720,8 +720,8 @@
 
 .pricing-tier__launch-thrust {
     position: absolute;
-    top: 105px;
-    left: -60px;
+    top: 95px;
+    left: -55px;
     z-index: 1;
     width: 114px;
     height: 44px;
@@ -1736,8 +1736,8 @@
     }
 
     .pricing-tier__launch-thrust {
-        top: 113px;
-        left: -68px;
+        top: 102px;
+        left: -62px;
         width: 126px;
     }
 
