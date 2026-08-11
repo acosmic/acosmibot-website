@@ -54,12 +54,23 @@ export interface SubscriptionQuotaCatalog {
   };
 }
 
+export interface SubscriptionLaunchPromotion {
+  version: string;
+  active: boolean;
+  percent_off: number;
+  duration_in_months: number;
+  redeem_by: string;
+  eligible_cadences: BillingInterval[];
+  discounted_monthly_amounts_cents: Partial<Record<Exclude<PremiumTier, 'free'>, number>>;
+}
+
 export const subscriptionsApi = {
   getCatalog: () =>
     api.fetch<{
       success: boolean;
       catalog_effective_date: string;
       catalog: SubscriptionCatalogRow[];
+      launch_promotion: SubscriptionLaunchPromotion;
       quotas: SubscriptionQuotaCatalog;
     }>('/api/subscriptions/catalog'),
 

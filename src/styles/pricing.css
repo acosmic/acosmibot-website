@@ -635,7 +635,7 @@
 }
 
 .pricing-tier__price {
-    min-height: 82px;
+    min-height: 98px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -646,10 +646,25 @@
     border-bottom: 1px solid var(--pricing-border);
 }
 
-.pricing-tier__price > div {
+.pricing-tier__price-main {
+    min-width: 0;
+    display: grid;
+    gap: 7px;
+}
+
+.pricing-tier__price-amount {
     display: flex;
     align-items: baseline;
     gap: 5px;
+}
+
+.pricing-tier__price-main small {
+    max-width: 21ch;
+    color: var(--pricing-secondary);
+    font-size: 11px;
+    font-weight: 550;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
 }
 
 .pricing-animated-price {
@@ -662,7 +677,7 @@
     letter-spacing: -0.03em;
 }
 
-.pricing-tier__price span:last-child {
+.pricing-tier__price-amount > span:last-child {
     color: var(--pricing-muted);
     font-size: 11px;
 }

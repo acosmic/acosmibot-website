@@ -129,6 +129,16 @@ export interface AdminStripeReadiness {
   mode: StripeMode;
   configured: boolean;
   rows: AdminStripeReadinessRow[];
+  promotion?: {
+    version: string;
+    active: boolean;
+    percent_off: number;
+    duration_in_months: number;
+    redeem_by: string;
+    eligible_cadences: string[];
+    status: 'valid' | 'missing' | 'mismatched' | 'unavailable' | 'ended';
+    reasons: string[];
+  };
   missing?: string[];
 }
 

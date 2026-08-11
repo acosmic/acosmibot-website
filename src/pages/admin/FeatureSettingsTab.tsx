@@ -9,6 +9,20 @@ type FormState = Pick<
   'stripe_mode'
 >;
 
+const readableReadinessReason = (reason: string) => reason.replaceAll('_', ' ');
+
+const formatPromotionEnd = (value: string | undefined) => {
+  if (!value) return 'the configured deadline';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return 'the configured deadline';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(parsed);
+};
+
 export const FeatureSettingsTab: React.FC = () => {
   const queryClient = useQueryClient();
   const query = useQuery({
@@ -275,8 +289,8 @@ export const FeatureSettingsTab: React.FC = () => {
       >
         <h4 id="stripe-readiness-title" className="mb-2">Stripe catalog readiness</h4>
         <p className="text-muted small mb-3">
-          Remote Product and Price objects must match the versioned catalog before checkout can run.
-          Price IDs and secrets are never shown here.
+          Remote Product, Price, and launch-coupon objects must match the versioned catalog before
+          checkout can run. Price IDs, coupon IDs, and secrets are never shown here.
         </p>
         {readiness.isLoading ? <p className="text-muted small">Checking catalog…</p> : readiness.error ? (
           <p className="small" style={{ color: 'var(--error-color)' }}>Readiness check unavailable.</p>
@@ -291,15 +305,42 @@ export const FeatureSettingsTab: React.FC = () => {
                 </span>
               </div>
               {status?.missing?.length ? <p className="small text-muted mb-0 mt-2">Missing configuration: {status.missing.join(', ')}</p> : (
-                <div className="small mt-2" style={{ display: 'grid', gap: 4 }}>
+                <div className="small mt-2" style={{ display: 'grid', gap: 7 }}>
                   {(status?.rows ?? []).map((row) => (
-                    <div key={`${row.tier}-${row.cadence}`} className="d-flex justify-content-between gap-2">
+                    <div
+                      key={`${row.tier}-${row.cadence}`}
+                      style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.35fr) minmax(0, 1fr)', gap: 12 }}
+                    >
                       <span>{row.tier} · {row.cadence}</span>
-                      <span style={{ color: row.status === 'valid' ? 'var(--success-color)' : 'var(--error-color)' }}>
-                        {row.status === 'valid' ? 'valid' : row.reasons.join(', ') || row.status}
+                      <span style={{ color: row.status === 'valid' ? 'var(--success-color)' : 'var(--error-color)', overflowWrap: 'anywhere', textAlign: 'end' }}>
+                        {row.status === 'valid'
+                          ? 'valid'
+                          : row.reasons.map(readableReadinessReason).join(', ') || row.status}
                       </span>
                     </div>
                   ))}
+                  {status?.promotion && (
+                    <div
+                      style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.35fr) minmax(0, 1fr)', gap: 12, paddingTop: 7, borderTop: '1px solid var(--border-light)' }}
+                    >
+                      <span>monthly launch offer</span>
+                      <span
+                        style={{
+                          color: ['valid', 'ended'].includes(status.promotion.status)
+                            ? 'var(--success-color)'
+                            : 'var(--error-color)',
+                          overflowWrap: 'anywhere',
+                          textAlign: 'end',
+                        }}
+                      >
+                        {status.promotion.status === 'valid'
+                          ? `${status.promotion.percent_off}% off · first ${status.promotion.duration_in_months} months · through ${formatPromotionEnd(status.promotion.redeem_by)}`
+                          : status.promotion.status === 'ended'
+                            ? 'offer ended · full monthly price active'
+                            : status.promotion.reasons.map(readableReadinessReason).join(', ') || status.promotion.status}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

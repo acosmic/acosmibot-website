@@ -576,10 +576,19 @@ export const BillingPage: React.FC = () => {
     retry: false,
   });
   const catalog = catalogQuery.data?.catalog ?? [];
+  const launchPromotion = catalogQuery.data?.launch_promotion;
+  const launchPromotionActive = Boolean(
+    launchPromotion?.active && launchPromotion.eligible_cadences.includes('monthly'),
+  );
   const catalogReady = catalog.length === 6;
   const priceFor = (interval: BillingInterval, tier: PremiumTier) => {
     if (tier === 'free') return '$0';
     return formatCatalogPrice(catalog.find((row) => row.tier === tier && row.cadence === interval));
+  };
+  const launchPriceFor = (tier: PaidTier) => {
+    const amount = launchPromotion?.discounted_monthly_amounts_cents[tier];
+    const currency = catalog.find((row) => row.tier === tier && row.cadence === 'monthly')?.currency;
+    return amount === undefined ? null : formatMoney(amount, currency);
   };
 
   const openPortal = useMutation({
@@ -842,7 +851,18 @@ export const BillingPage: React.FC = () => {
 
           <div className="card p-4 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
-              <h3 className="mb-0">Plans</h3>
+              <div>
+                <h3 className="mb-0">Plans</h3>
+                {tier === 'free' && launchPromotionActive && (
+                  <p className="billing-launch-offer mb-0 mt-1">
+                    <Sparkles aria-hidden="true" />
+                    <span>
+                      <strong>{launchPromotion?.percent_off}% off</strong> the first{' '}
+                      {launchPromotion?.duration_in_months} monthly payments. Applied automatically.
+                    </span>
+                  </p>
+                )}
+              </div>
               <div
                 style={{
                   display: 'inline-flex',
@@ -881,6 +901,9 @@ export const BillingPage: React.FC = () => {
               {(['plus', 'pro', 'max'] as const).map((plan) => {
                 const isCurrent = tier === plan && (!hasPaidTier || currentInterval === planInterval);
                 const isIntervalSwitch = hasPaidTier && tier === plan && currentInterval !== planInterval;
+                const launchPrice = tier === 'free' && planInterval === 'monthly' && launchPromotionActive
+                  ? launchPriceFor(plan)
+                  : null;
                 const action = tier === 'free'
                   ? `Upgrade to ${TIER_LABELS[plan]}`
                   : isIntervalSwitch
@@ -896,9 +919,15 @@ export const BillingPage: React.FC = () => {
                           <div className="fw-bold">{TIER_LABELS[plan]}</div>
                         </div>
                         <div className="fs-4 fw-bold text-primary">
-                          {priceFor(planInterval, plan)}
+                          {launchPrice ?? priceFor(planInterval, plan)}
                           <span className="small text-muted fw-normal">{INTERVAL_SUFFIX[planInterval]}</span>
                         </div>
+                        {launchPrice && (
+                          <div className="billing-plan-launch-copy">
+                            First {launchPromotion?.duration_in_months} months, then{' '}
+                            {priceFor('monthly', plan)}/month
+                          </div>
+                        )}
                         <div className="small text-muted">{TIER_DESCRIPTIONS[plan]}</div>
                       </div>
                       <button

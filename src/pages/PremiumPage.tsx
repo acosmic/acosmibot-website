@@ -32,6 +32,9 @@ const parsePriceAmount = (price: string) => Number(price.replace(/[^0-9.]/g, '')
 interface TierCardDef {
   tier: PremiumTier;
   monthlyPrice?: string;
+  monthlyIntroPrice?: string;
+  launchOfferMonths?: number;
+  launchOfferPercent?: number;
   annualPrice?: string;
   description: string;
   fit: string;
@@ -115,13 +118,18 @@ const TIERS: TierCardDef[] = [
   },
 ];
 
-const formatCatalogPrice = (row: SubscriptionCatalogRow | undefined) => {
-  if (!row) return undefined;
+const formatCurrency = (amountCents: number | undefined, currency: string | undefined) => {
+  if (amountCents === undefined || !currency) return undefined;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: row.currency.toUpperCase(),
+    currency: currency.toUpperCase(),
     maximumFractionDigits: 2,
-  }).format(row.unit_amount_cents / 100);
+  }).format(amountCents / 100);
+};
+
+const formatCatalogPrice = (row: SubscriptionCatalogRow | undefined) => {
+  if (!row) return undefined;
+  return formatCurrency(row.unit_amount_cents, row.currency);
 };
 
 const catalogRowsForTier = (catalog: SubscriptionCatalogRow[], tier: PremiumTier) =>
@@ -165,12 +173,25 @@ export const PricingPage: React.FC = () => {
   });
   const catalog = catalogQuery.data?.catalog ?? [];
   const quotasByTier = catalogQuery.data?.quotas ?? {};
+  const launchPromotion = catalogQuery.data?.launch_promotion;
+  const launchPromotionActive = Boolean(
+    launchPromotion?.active && launchPromotion.eligible_cadences.includes('monthly'),
+  );
   const pricingAvailable = catalog.length === 6;
   const displayTiers = TIERS.map((def) => {
     const rows = catalogRowsForTier(catalog, def.tier);
+    const monthlyRow = rows.find((row) => row.cadence === 'monthly');
+    const introAmount = def.tier === 'free'
+      ? undefined
+      : launchPromotion?.discounted_monthly_amounts_cents[def.tier];
     return {
       ...def,
-      monthlyPrice: def.tier === 'free' ? '$0' : formatCatalogPrice(rows.find((row) => row.cadence === 'monthly')),
+      monthlyPrice: def.tier === 'free' ? '$0' : formatCatalogPrice(monthlyRow),
+      monthlyIntroPrice: launchPromotionActive
+        ? formatCurrency(introAmount, monthlyRow?.currency)
+        : undefined,
+      launchOfferMonths: launchPromotionActive ? launchPromotion?.duration_in_months : undefined,
+      launchOfferPercent: launchPromotionActive ? launchPromotion?.percent_off : undefined,
       annualPrice: def.tier === 'free' ? undefined : formatCatalogPrice(rows.find((row) => row.cadence === 'annual')),
       features: buildCatalogFeatures(def, catalog, quotasByTier),
     };
@@ -236,7 +257,7 @@ export const PricingPage: React.FC = () => {
               <i />
               <span>Monthly or annual</span>
               <i />
-              <span>Free core included</span>
+              <span>{launchPromotionActive ? `${launchPromotion?.percent_off}% launch offer` : 'Free core included'}</span>
             </div>
           </div>
           <PricingOrbit interval={billingInterval} plans={displayTiers} />
@@ -245,7 +266,11 @@ export const PricingPage: React.FC = () => {
         <section className="pricing-control-deck" aria-label="Billing interval">
           <div>
             <span className="pricing-control-deck__label">Billing frequency</span>
-            <strong>{billingInterval === 'monthly' ? 'Flexible monthly orbit' : 'Annual orbit · save up to 18%'}</strong>
+            <strong>{billingInterval === 'monthly'
+              ? launchPromotionActive
+                ? `${launchPromotion?.percent_off}% off your first ${launchPromotion?.duration_in_months} months`
+                : 'Flexible monthly orbit'
+              : 'Annual orbit · save up to 18%'}</strong>
           </div>
           <BillingToggle interval={billingInterval} onChange={setBillingInterval} />
           <span className={`pricing-billing-status${checkoutAvailable ? ' is-live' : ''}`}>
@@ -347,7 +372,10 @@ const TierCard: React.FC<{
   interval: BillingInterval;
   onSelect?: () => void;
 }> = ({ def, interval, onSelect }) => {
-  const price = (interval === 'annual' && def.annualPrice ? def.annualPrice : def.monthlyPrice) ?? '—';
+  const hasLaunchOffer = interval === 'monthly' && Boolean(def.monthlyIntroPrice);
+  const price = (interval === 'annual' && def.annualPrice
+    ? def.annualPrice
+    : def.monthlyIntroPrice ?? def.monthlyPrice) ?? '—';
   const monthlyTotal = parsePriceAmount(def.monthlyPrice ?? '') * 12;
   const annualTotal = def.annualPrice ? parsePriceAmount(def.annualPrice) : 0;
   const annualSavings = annualTotal ? Math.round((1 - annualTotal / monthlyTotal) * 100) : 0;
@@ -368,11 +396,20 @@ const TierCard: React.FC<{
     </div>
 
     <div className="pricing-tier__price">
-      <div>
-        <AnimatedPrice price={price} />
-        <span>{def.tier === 'free' ? 'forever' : interval === 'annual' ? '/year' : '/month'}</span>
+      <div className="pricing-tier__price-main">
+        <div className="pricing-tier__price-amount">
+          <AnimatedPrice price={price} />
+          <span>{def.tier === 'free' ? 'forever' : interval === 'annual' ? '/year' : '/month'}</span>
+        </div>
+        {hasLaunchOffer && (
+          <small>
+            First {def.launchOfferMonths} months, then {def.monthlyPrice}/month
+          </small>
+        )}
       </div>
-      {interval === 'annual' && annualSavings > 0 && <em>Save {annualSavings}%</em>}
+      {hasLaunchOffer
+        ? <em>{def.launchOfferPercent}% launch offer</em>
+        : interval === 'annual' && annualSavings > 0 && <em>Save {annualSavings}%</em>}
     </div>
 
     <div className="pricing-tier__fit">{def.fit}</div>
@@ -496,7 +533,9 @@ const PricingOrbit: React.FC<{ interval: BillingInterval; plans: TierCardDef[] }
       >
         <i aria-hidden="true">{tier.icon ?? <Activity />}</i>
         <span>{TIER_LABELS[tier.tier]}</span>
-        <strong>{interval === 'annual' && tier.annualPrice ? tier.annualPrice : tier.monthlyPrice}</strong>
+        <strong>{interval === 'annual' && tier.annualPrice
+          ? tier.annualPrice
+          : tier.monthlyIntroPrice ?? tier.monthlyPrice}</strong>
       </div>
     ))}
     <div className="pricing-orbit__readout" aria-hidden="true">
@@ -560,7 +599,8 @@ const ServerPickerModal: React.FC<{
   const selectedPlan = plans.find((plan) => plan.tier === tier);
   const selectedPrice = interval === 'annual'
     ? selectedPlan?.annualPrice
-    : selectedPlan?.monthlyPrice;
+    : selectedPlan?.monthlyIntroPrice ?? selectedPlan?.monthlyPrice;
+  const selectedPlanHasLaunchOffer = interval === 'monthly' && Boolean(selectedPlan?.monthlyIntroPrice);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -728,6 +768,14 @@ const ServerPickerModal: React.FC<{
                 <dt>Price</dt>
                 <dd>{selectedPrice ?? '—'}{interval === 'annual' ? '/year' : '/month'}</dd>
               </div>
+              {selectedPlanHasLaunchOffer && (
+                <div>
+                  <dt>Launch offer</dt>
+                  <dd>
+                    First {selectedPlan?.launchOfferMonths} months, then {selectedPlan?.monthlyPrice}/month
+                  </dd>
+                </div>
+              )}
             </dl>
 
             <p className="pricing-checkout-confirmation__note">
