@@ -17,6 +17,7 @@ import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
 import { trackEvent } from '@/lib/analytics';
 import { startLogin } from '@/lib/auth';
+import { DISCORD_INVITE_URL } from '@/seo/publicRoutes';
 import type { Guild } from '@/types/guild';
 import '@/styles/pricing.css';
 
@@ -501,9 +502,19 @@ const TierCard: React.FC<{
         )}
       </>
     ) : (
-      <button type="button" className="pricing-tier__action pricing-tier__action--free" disabled>
-        Included by default
-      </button>
+      <>
+        <a
+          href={DISCORD_INVITE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pricing-tier__action"
+          onClick={() => trackEvent('bot_invite_start', { source: 'pricing_free' })}
+        >
+          Add bot to server
+          <Bot aria-hidden="true" />
+        </a>
+        <div className="pricing-tier__note">Opens Discord authorization</div>
+      </>
     )}
   </article>
   );

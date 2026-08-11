@@ -720,8 +720,8 @@
 
 .pricing-tier__launch-thrust {
     position: absolute;
-    top: 95px;
-    left: -55px;
+    top: 101px;
+    left: -63px;
     z-index: 1;
     width: 114px;
     height: 44px;
@@ -953,6 +953,8 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 750;
+    line-height: 1;
+    text-decoration: none;
     transition: transform 160ms ease, filter 160ms ease;
 }
 
@@ -964,13 +966,6 @@
 .pricing-tier__action svg {
     width: 15px;
     height: 15px;
-}
-
-.pricing-tier__action--free {
-    color: #8fa1ac;
-    background: #111a22;
-    border-color: var(--pricing-border);
-    cursor: default;
 }
 
 .pricing-tier__note {
@@ -1736,8 +1731,8 @@
     }
 
     .pricing-tier__launch-thrust {
-        top: 102px;
-        left: -62px;
+        top: 109px;
+        left: -71px;
         width: 126px;
     }
 
