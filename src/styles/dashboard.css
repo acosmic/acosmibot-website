@@ -622,6 +622,12 @@
   gap: 18px;
 }
 
+.overview-server-summary__plan {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .overview-server-summary__actions {
   display: flex;
   align-items: center;

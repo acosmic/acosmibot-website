@@ -7,11 +7,12 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bot, Crown, Gem, Plus, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Crown, Plus, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
 import { useGuildStore } from '@/store/guild';
 import { guildApi } from '@/api/guilds';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { PremiumTierIcon, PREMIUM_TIER_LABELS, normalizePremiumTier } from '@/components/ui';
 import type { Guild } from '@/types/guild';
 import '@/styles/servers.css';
 import { trackEvent } from '@/lib/analytics';
@@ -25,12 +26,6 @@ const canManageGuild = (guild: Guild) =>
 
 const accessLabel = (guild: Guild) =>
   guild.owner ? 'Owner' : guild.permissions?.includes('administrator') ? 'Admin' : 'Member';
-
-const planLabel = (tier?: string) => {
-  if (!tier || tier === 'free') return null;
-  if (tier === 'premium_plus_ai') return 'Pro';
-  return tier.charAt(0).toUpperCase() + tier.slice(1);
-};
 
 export const GuildSelectPage: React.FC = () => {
   const navigate = useNavigate();
@@ -244,8 +239,7 @@ const ServerBand: React.FC<{
 
 const ServerCard: React.FC<{ guild: Guild; onOpen: () => void }> = ({ guild, onOpen }) => {
   const manageable = canManageGuild(guild);
-  const tier = planLabel(guild.premium_tier);
-  const TierIcon = tier === 'Pro' || tier === 'Max' ? Bot : Gem;
+  const tier = normalizePremiumTier(guild.premium_tier);
 
   return (
     <button type="button" className={`server-node${manageable ? ' can-manage' : ''}`} onClick={onOpen}>
@@ -269,11 +263,10 @@ const ServerCard: React.FC<{ guild: Guild; onOpen: () => void }> = ({ guild, onO
         {guild.owner && <Crown aria-hidden="true" />}
         {accessLabel(guild)}
       </span>
-      {tier && (
-        <span className={`server-node__tier server-node__tier--${tier.toLowerCase()}`} title={`${tier} plan`}>
-          <TierIcon aria-hidden="true" /> {tier}
-        </span>
-      )}
+      <span className={`server-node__tier server-node__tier--${tier}`} title={`${PREMIUM_TIER_LABELS[tier]} plan`}>
+        <PremiumTierIcon tier={tier} size={16} />
+        {PREMIUM_TIER_LABELS[tier]}
+      </span>
       <span className="server-node__action">
         {manageable ? 'Manage server' : 'Open server'} <ArrowRight aria-hidden="true" />
       </span>

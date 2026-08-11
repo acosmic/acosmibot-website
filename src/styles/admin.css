@@ -1174,6 +1174,14 @@
   color: #ff6475;
 }
 
+.admin-tier-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-secondary);
+  font-weight: 650;
+}
+
 .admin-pagination {
   display: flex;
   align-items: center;

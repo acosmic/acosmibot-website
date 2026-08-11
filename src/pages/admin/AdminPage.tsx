@@ -25,7 +25,12 @@ import {
   Trophy,
 } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
-import { InlineIcon } from '@/components/ui/InlineIcon';
+import {
+  InlineIcon,
+  PremiumTierIcon,
+  PREMIUM_TIER_LABELS,
+  normalizePremiumTier,
+} from '@/components/ui';
 import { clearExpiredSession } from '@/lib/auth';
 import { RagTab } from './RagTab';
 import { BotStatsTab } from './BotStatsTab';
@@ -276,11 +281,14 @@ function SortableTable<T extends Record<string, any>>({
   );
 }
 
-const TIER_COLORS: Record<string, string> = {
-  free: 'var(--text-muted)',
-  plus: '#4fe3a1',
-  pro: '#61daf1',
-  max: '#ff8f72',
+const TierCell: React.FC<{ tier: string }> = ({ tier }) => {
+  const normalizedTier = normalizePremiumTier(tier);
+  return (
+    <span className="admin-tier-cell">
+      <PremiumTierIcon tier={normalizedTier} size={26} />
+      {PREMIUM_TIER_LABELS[normalizedTier]}
+    </span>
+  );
 };
 
 const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
@@ -378,7 +386,7 @@ export const AdminPage: React.FC = () => {
     { key: 'owner_id', label: 'Owner ID' },
     { key: 'member_count', label: 'Members', render: (r: Guild) => r.member_count?.toLocaleString() ?? '—' },
     { key: 'active', label: 'Active', render: (r: Guild) => r.active ? <span className="admin-status admin-status--active">Yes</span> : <span className="admin-status admin-status--inactive">No</span> },
-    { key: 'subscription_tier', label: 'Tier', render: (r: Guild) => <span style={{ color: TIER_COLORS[r.subscription_tier] ?? 'inherit', fontWeight: 600, textTransform: 'capitalize' }}>{r.subscription_tier?.replace(/_/g, ' ') ?? '—'}</span> },
+    { key: 'subscription_tier', label: 'Tier', render: (r: Guild) => <TierCell tier={r.subscription_tier} /> },
     { key: 'joined_at', label: 'Date Joined', render: (r: Guild) => r.joined_at ? new Date(r.joined_at).toLocaleDateString() : '—' },
     { key: 'settings', label: 'Settings', render: (r: Guild) => <SettingsCell json={r.settings} /> },
   ];

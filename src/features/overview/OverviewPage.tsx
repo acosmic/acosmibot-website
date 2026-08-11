@@ -5,24 +5,15 @@ import { BookOpen, Eye, Mail, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useGuildStore } from '@/store/guild';
 import { useOverviewStats } from './useOverviewStats';
-import { LoadingSpinner } from '@/components/ui';
+import {
+  LoadingSpinner,
+  PremiumTierIcon,
+  PREMIUM_TIER_LABELS as TIER_LABELS,
+  normalizePremiumTier as normalizeTier,
+} from '@/components/ui';
 import { analyticsApi } from '@/api/analytics';
-import { subscriptionsApi, type PremiumTier } from '@/api/subscriptions';
+import { subscriptionsApi } from '@/api/subscriptions';
 import { MemberFlowChart } from '@/features/analytics/charts';
-
-const TIER_LABELS: Record<PremiumTier, string> = {
-  free: 'Free',
-  plus: 'Plus',
-  pro: 'Pro',
-  max: 'Max',
-};
-
-const normalizeTier = (tier: unknown): PremiumTier => {
-  if (tier === 'premium') return 'plus';
-  if (tier === 'premium_plus_ai') return 'pro';
-  if (tier === 'plus' || tier === 'pro' || tier === 'max') return tier;
-  return 'free';
-};
 
 export const OverviewPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -97,10 +88,13 @@ export const OverviewPage: React.FC = () => {
               </div>
 
               <div className="overview-server-summary__controls">
-                <div className="text-end">
-                  <div className="fw-bold fs-6">{TIER_LABELS[tier]}</div>
-                  <div className="small text-muted">
-                    {subscription.isLoading ? 'Checking subscription…' : `Status: ${status.replace(/_/g, ' ')}`}
+                <div className="overview-server-summary__plan">
+                  <PremiumTierIcon tier={tier} size={38} />
+                  <div className="text-end">
+                    <div className="fw-bold fs-6">{TIER_LABELS[tier]}</div>
+                    <div className="small text-muted">
+                      {subscription.isLoading ? 'Checking subscription…' : `Status: ${status.replace(/_/g, ' ')}`}
+                    </div>
                   </div>
                 </div>
                 <div className="overview-server-summary__actions">

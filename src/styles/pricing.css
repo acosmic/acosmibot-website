@@ -319,27 +319,6 @@
     line-height: 0;
 }
 
-.pricing-orbit__station i svg {
-    width: 18px;
-    height: 18px;
-}
-
-.pricing-icon-cluster {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
-    line-height: 0;
-}
-
-.pricing-orbit__station i .pricing-icon-cluster svg {
-    width: 14px;
-    height: 14px;
-    flex: 0 0 auto;
-}
-
 .pricing-orbit__station span {
     align-self: end;
     color: var(--pricing-text);
@@ -797,17 +776,6 @@
     background: #111d26;
     border: 1px solid color-mix(in srgb, var(--tier-color) 55%, transparent);
     border-radius: 50%;
-}
-
-.pricing-tier__station svg {
-    width: 19px;
-    height: 19px;
-}
-
-.pricing-tier__station .pricing-icon-cluster svg {
-    width: 15px;
-    height: 15px;
-    flex: 0 0 auto;
 }
 
 .pricing-tier__sequence {
@@ -1465,11 +1433,6 @@
     color: var(--pricing-cyan-bright);
     font-size: 9px;
     font-weight: 700;
-}
-
-.pricing-tier-badge svg {
-    width: 11px;
-    height: 11px;
 }
 
 .pricing-tier-badge--free {

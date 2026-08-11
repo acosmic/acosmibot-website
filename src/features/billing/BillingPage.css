@@ -282,6 +282,12 @@
   white-space: nowrap;
 }
 
+.billing-cancel-dialog__facts .billing-cancel-dialog__tier {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .billing-cancel-dialog__notice {
   margin: 16px 0 0;
   padding-left: 12px;

@@ -8,9 +8,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueries } from '@tanstack/react-query';
-import { Activity, ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { ArrowRight, BarChart3, Bot, Check, Gem, Radio, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { PremiumTierIcon, PREMIUM_TIER_LABELS as TIER_LABELS } from '@/components/ui';
 import { guildApi } from '@/api/guilds';
 import { subscriptionsApi, type BillingInterval, type PremiumTier, type SubscriptionCatalogRow, type SubscriptionQuotaCatalog } from '@/api/subscriptions';
 import { showToast } from '@/utils/toast';
@@ -20,13 +21,6 @@ import { startLogin } from '@/lib/auth';
 import { DISCORD_INVITE_URL } from '@/seo/publicRoutes';
 import type { Guild } from '@/types/guild';
 import '@/styles/pricing.css';
-
-const TIER_LABELS: Record<PremiumTier, string> = {
-  free: 'Free',
-  plus: 'Plus',
-  pro: 'Pro',
-  max: 'Max',
-};
 
 const parsePriceAmount = (price: string) => Number(price.replace(/[^0-9.]/g, '')) || 0;
 
@@ -40,7 +34,6 @@ interface TierCardDef {
   description: string;
   fit: string;
   popular?: boolean;
-  icon?: React.ReactNode;
   ctaLabel?: string;
   ctaNote?: string;
   features: Array<{ text: string; disabled?: boolean }>;
@@ -71,7 +64,6 @@ const TIERS: TierCardDef[] = [
     tier: 'plus',
     description: 'More automation capacity for active community servers.',
     fit: 'Best for growing Discords',
-    icon: <Gem size={18} />,
     ctaLabel: 'Select Server',
     ctaNote: 'Billed per server',
     features: [
@@ -91,7 +83,6 @@ const TIERS: TierCardDef[] = [
     description: 'Plus limits with AI tools, memory, and clear usage caps.',
     fit: 'For servers that want AI built in',
     popular: true,
-    icon: <span className="pricing-icon-cluster"><Bot /><Gem /></span>,
     ctaLabel: 'Select Server',
     ctaNote: 'Billed per server',
     features: [
@@ -106,7 +97,6 @@ const TIERS: TierCardDef[] = [
     tier: 'max',
     description: 'Higher AI usage for servers with heavier assistant workflows.',
     fit: 'For AI-heavy communities',
-    icon: <span className="pricing-icon-cluster"><Sparkles /><Bot /></span>,
     ctaLabel: 'Select Server',
     ctaNote: 'Billed per server',
     features: [
@@ -450,7 +440,7 @@ const TierCard: React.FC<{
     )}
     <div className="pricing-tier__header">
       <div className="pricing-tier__station" aria-hidden="true">
-        {def.icon ?? <Activity />}
+        <PremiumTierIcon tier={def.tier} size={44} />
       </div>
       <div>
         <span className="pricing-tier__sequence">Orbit {String(TIERS.findIndex((tier) => tier.tier === def.tier) + 1).padStart(2, '0')}</span>
@@ -602,7 +592,7 @@ const PricingOrbit: React.FC<{ interval: BillingInterval; plans: TierCardDef[] }
         className={`pricing-orbit__station pricing-orbit__station--${tier.tier}`}
         style={{ '--station-index': index } as React.CSSProperties}
       >
-        <i aria-hidden="true">{tier.icon ?? <Activity />}</i>
+        <i aria-hidden="true"><PremiumTierIcon tier={tier.tier} size={40} /></i>
         <span>{TIER_LABELS[tier.tier]}</span>
         <strong>{interval === 'annual' && tier.annualPrice
           ? tier.annualPrice
@@ -943,13 +933,10 @@ const ServerPickerModal: React.FC<{
 };
 
 const TierBadge: React.FC<{ tier: PremiumTier }> = ({ tier }) => {
-  if (tier === 'free') {
-    return <span className="pricing-tier-badge pricing-tier-badge--free">Free</span>;
-  }
   return (
     <span className={`pricing-tier-badge pricing-tier-badge--${tier}`}>
-      {(tier === 'pro' || tier === 'max') && <Bot aria-hidden="true" />}
-      <Gem aria-hidden="true" /> {TIER_LABELS[tier]}
+      <PremiumTierIcon tier={tier} size={16} />
+      {TIER_LABELS[tier]}
     </span>
   );
 };

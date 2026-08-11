@@ -478,10 +478,9 @@
   text-transform: uppercase;
 }
 
-.server-node__access svg,
-.server-node__tier svg {
-  width: 10px;
-  height: 10px;
+.server-node__access svg {
+    width: 10px;
+    height: 10px;
 }
 
 .server-node__access--owner {

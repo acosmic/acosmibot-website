@@ -9,7 +9,6 @@ import {
   Check,
   CreditCard,
   ExternalLink,
-  Gem,
   Info,
   Receipt,
   RefreshCw,
@@ -25,16 +24,17 @@ import { Link } from 'react-router-dom';
 import { subscriptionsApi, type BillingInterval, type PremiumTier, type SubscriptionCatalogRow } from '@/api/subscriptions';
 import { useGuildStore } from '@/store/guild';
 import { trackEvent } from '@/lib/analytics';
-import { ChannelMultiSelect, ChannelSelect, LoadingSpinner, RoleMultiSelect } from '@/components/ui';
+import {
+  ChannelMultiSelect,
+  ChannelSelect,
+  LoadingSpinner,
+  PremiumTierIcon,
+  PREMIUM_TIER_LABELS as TIER_LABELS,
+  RoleMultiSelect,
+  normalizePremiumTier as normalizeTier,
+} from '@/components/ui';
 import { showToast } from '@/utils/toast';
 import './BillingPage.css';
-
-const TIER_LABELS: Record<PremiumTier, string> = {
-  free: 'Free',
-  plus: 'Plus',
-  pro: 'Pro',
-  max: 'Max',
-};
 
 type PaidTier = Exclude<PremiumTier, 'free'>;
 
@@ -62,13 +62,6 @@ const formatCatalogPrice = (row: SubscriptionCatalogRow | undefined) => {
     currency: row.currency.toUpperCase(),
     maximumFractionDigits: 2,
   }).format(row.unit_amount_cents / 100);
-};
-
-const normalizeTier = (tier: unknown): PremiumTier => {
-  if (tier === 'premium') return 'plus';
-  if (tier === 'premium_plus_ai') return 'pro';
-  if (tier === 'plus' || tier === 'pro' || tier === 'max') return tier;
-  return 'free';
 };
 
 const formatDate = (value?: string | null) => {
@@ -263,7 +256,10 @@ const CancelSubscriptionDialog: React.FC<CancelSubscriptionDialogProps> = ({
           </div>
           <div>
             <dt>Current plan</dt>
-            <dd>{TIER_LABELS[tier]}</dd>
+            <dd className="billing-cancel-dialog__tier">
+              <PremiumTierIcon tier={tier} size={22} />
+              {TIER_LABELS[tier]}
+            </dd>
           </div>
           <div>
             <dt>Access ends</dt>
@@ -793,7 +789,7 @@ export const BillingPage: React.FC = () => {
             <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
               <div>
                 <div className="d-flex align-items-center gap-2 mb-2">
-                  <Gem size={20} />
+                  <PremiumTierIcon tier={tier} size={34} />
                   <h3 className="mb-0">{TIER_LABELS[tier]}</h3>
                 </div>
                 <p className="text-muted mb-0">{TIER_DESCRIPTIONS[tier]}</p>
@@ -915,7 +911,7 @@ export const BillingPage: React.FC = () => {
                     <div className="p-3 rounded bg-tertiary border border-light h-100 d-flex flex-column gap-3">
                       <div>
                         <div className="d-flex align-items-center gap-2 mb-2">
-                          {plan === 'pro' || plan === 'max' ? <Sparkles size={18} /> : <ShieldCheck size={18} />}
+                          <PremiumTierIcon tier={plan} size={32} />
                           <div className="fw-bold">{TIER_LABELS[plan]}</div>
                         </div>
                         <div className="fs-4 fw-bold text-primary">
@@ -1039,7 +1035,7 @@ export const BillingPage: React.FC = () => {
             }}
           >
             <div className="d-flex align-items-center gap-2 mb-3">
-              {pendingIsUpgrade ? <Sparkles size={20} /> : <Gem size={20} />}
+              <PremiumTierIcon tier={pendingPlan.tier} size={32} />
               <h3 className="mb-0" style={{ fontSize: '18px', fontWeight: 800 }}>
                 {pendingIsIntervalSwitch
                   ? `Switch ${TIER_LABELS[tier]} to ${pendingPlan.interval} billing?`

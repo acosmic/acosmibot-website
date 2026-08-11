@@ -13,3 +13,4 @@ export * from './ComingSoonPage';
 export * from './MemberSearchInput';
 export * from './TimezoneSelect';
 export * from './NumberInput';
+export * from './PremiumTierIcon';
