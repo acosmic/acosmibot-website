@@ -29,6 +29,24 @@ const TIER_LABELS: Record<PremiumTier, string> = {
 
 const parsePriceAmount = (price: string) => Number(price.replace(/[^0-9.]/g, '')) || 0;
 
+const AcosmibotRocketIcon: React.FC = () => (
+  <svg
+    viewBox="0 0 32 32"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M16 2.5c-4.3 3.7-6.7 8.1-6.7 13.4v6.8L16 26l6.7-3.3v-6.8C22.7 10.6 20.3 6.2 16 2.5Z" />
+    <path d="m9.4 16.2-4.1 3.9v5.5l4.7-2.2M22.6 16.2l4.1 3.9v5.5L22 23.4" />
+    <path d="M12 13.8c1.1-1.2 2.4-1.8 4-1.8s2.9.6 4 1.8v5.4c-1.1 1-2.4 1.5-4 1.5s-2.9-.5-4-1.5v-5.4Z" fill="currentColor" />
+    <circle cx="14.2" cy="16.4" r="1" fill="var(--tier-color)" stroke="none" />
+    <circle cx="17.8" cy="16.4" r="1" fill="var(--tier-color)" stroke="none" />
+    <path d="m13.2 24.6 2.8 5 2.8-5M13.5 8.6c.8-.5 1.6-.8 2.5-.8s1.7.3 2.5.8" />
+  </svg>
+);
+
 interface TierCardDef {
   tier: PremiumTier;
   monthlyPrice?: string;
@@ -385,12 +403,12 @@ const TierCard: React.FC<{
     {hasLaunchOffer && def.tier !== 'free' && (
       <div className="pricing-tier__launch-signal">
         <span className="pricing-tier__launch-beacon" aria-hidden="true">
-          <Sparkles />
+          <AcosmibotRocketIcon />
         </span>
         <span className="pricing-tier__launch-copy">
           <strong>{def.launchOfferPercent}% off</strong>
-          <span>Launch orbit</span>
-          <small>{def.launchOfferMonths} months · {def.popular ? 'recommended' : 'auto-applied'}</small>
+          <span>Launch offer</span>
+          <small>{def.popular ? `${def.launchOfferMonths} months · top pick` : `first ${def.launchOfferMonths} months`}</small>
         </span>
       </div>
     )}
