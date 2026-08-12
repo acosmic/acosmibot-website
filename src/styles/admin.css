@@ -904,6 +904,10 @@
   display: none;
 }
 
+.admin-table-desktop {
+  overflow-x: auto;
+}
+
 .admin-page .admin-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

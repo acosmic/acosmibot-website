@@ -45,6 +45,36 @@ test('documentation manifest and source views stay in sync', () => {
   }
 });
 
+test('documentation reflects current commercial and product contracts', () => {
+  const testDir = fileURLToPath(new URL('.', import.meta.url));
+  const readDoc = (slug: string) => readFileSync(`${testDir}../public/docs/views/${slug}-view.html`, 'utf8');
+
+  const plans = readDoc('subscription-plans');
+  assert.match(plans, /20% off the first two monthly payments/i);
+  assert.match(plans, /December 31, 2026/i);
+  assert.match(plans, /Max.*emote awareness/is);
+
+  const credits = readDoc('ai-credits');
+  assert.match(credits, /Fuel Cell 25K/);
+  assert.match(credits, /350/);
+  assert.match(credits, /full maximum charge is reserved/i);
+
+  const stats = readDoc('stats');
+  assert.match(stats, /reactions_received/);
+  assert.match(stats, /August 9, 2026/);
+  assert.match(stats, /most_loved/);
+
+  const commands = readDoc('commands');
+  assert.match(commands, /heist-reset/);
+  assert.match(commands, /ai credits/);
+  assert.match(commands, /ai-admin emote/);
+  assert.doesNotMatch(commands, /ai memory &lt;add/);
+
+  const ai = readDoc('ai');
+  assert.doesNotMatch(ai, /Admins can configure a server-wide daily interaction cap/i);
+  assert.doesNotMatch(ai, /GPT-4o|DALL-E|GPT-4 Vision/i);
+});
+
 test('feature landing routes expose substantial, interlinked product detail', () => {
   for (const feature of Object.values(FEATURE_LANDINGS)) {
     assert.ok(feature.capabilities.length >= 6);

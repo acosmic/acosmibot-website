@@ -1,0 +1,82 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>AI Credits</h1>
+    <p class="docs-page-description">
+      Fund paid AI overage without changing your subscription tier. AI Credits are a separate wallet with explicit rates, spending controls, and member contribution options.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>What AI Credits do</h2>
+    <p>
+      Your subscription includes a monthly AI allowance. AI Credits can fund eligible requests after that allowance is unavailable; they do not unlock subscription features or raise the plan's basic daily limit.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>Fuel Cell packs</h3>
+      <table class="docs-table">
+        <thead><tr><th>Pack</th><th>Credits</th><th>Price</th></tr></thead>
+        <tbody>
+          <tr><td>Fuel Cell 5K</td><td>5,000</td><td>$5.00</td></tr>
+          <tr><td>Fuel Cell 10K</td><td>10,000</td><td>$9.50</td></tr>
+          <tr><td>Fuel Cell 25K</td><td>25,000</td><td>$22.50</td></tr>
+        </tbody>
+      </table>
+      <p>When sales are enabled, server owners can buy packs from the server dashboard. Purchased credits do not expire.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Rates</h2>
+    <p>Providers may vary, so charges use a stable Acosmibot rate card instead of a provider's token names.</p>
+    <table class="docs-table">
+      <thead><tr><th>Operation</th><th>Minimum</th><th>Input / 1K</th><th>Cached / 1K</th><th>Output / 1K</th><th>Thought / 1K</th><th>Maximum</th></tr></thead>
+      <tbody>
+        <tr><td>Chat</td><td>25</td><td>3</td><td>1</td><td>12</td><td>8</td><td>250</td></tr>
+        <tr><td>Tool chat</td><td>35</td><td>4</td><td>1</td><td>15</td><td>10</td><td>400</td></tr>
+        <tr><td>Analysis</td><td>80</td><td>5</td><td>—</td><td>15</td><td>—</td><td>300</td></tr>
+        <tr><td>Image generation</td><td colspan="5">Fixed price</td><td>350</td></tr>
+      </tbody>
+    </table>
+    <p>Direct-message chat follows the chat rate. Paid direct-message image and vision funding are not currently live.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>How a request is funded</h2>
+    <ol>
+      <li>The included monthly allowance is used first when the operation is eligible.</li>
+      <li>If paid overage is enabled, Acosmibot checks the server wallet.</li>
+      <li>Personal guild fallback is considered only when the server allows it and the member has enabled both global guild spending and that guild.</li>
+      <li>The full maximum charge is reserved before the request starts. Any unused reservation is released after the final charge is calculated.</li>
+    </ol>
+    <div class="info-card info-card-warning">
+      <h3>Images require confirmation</h3>
+      <p><code>/ai image</code> shows a confirmation before a paid 350-credit charge. Canceling or letting the confirmation expire spends nothing.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Wallet controls and contributions</h2>
+    <p>
+      Server managers choose which paid operations are allowed, whether members may contribute, whether personal fallback is allowed, and the server's spending guardrails. Members control their own global guild-spending switch, per-server opt-in, and personal caps from <a href="/credits">AI Credits</a>.
+    </p>
+    <p>
+      When contributions are enabled, members can add Fuel Cells to the server wallet. Contributions belong to that server wallet and cannot be withdrawn or transferred back to the member.
+    </p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Common funding problems</h2>
+    <div class="faq-item"><h4>Why did the request stop instead of spending credits?</h4><p>Paid overage, that operation, or the needed funding source may be disabled, or the wallet may not have enough credits for the full reservation.</p></div>
+    <div class="faq-item"><h4>Why was my personal balance skipped?</h4><p>Personal fallback needs server permission, your global guild-spending switch, and your opt-in for that server. Your caps must also allow the reservation.</p></div>
+    <div class="faq-item"><h4>Where can I see usage?</h4><p>Use <code>/ai status</code> for private allowance and renewal details. Server managers can review the shared wallet and ledger in the dashboard; members can review personal balances and controls at <a href="/credits">/credits</a>.</p></div>
+  </section>
+
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('ai')">
+      <span class="arrow">←</span><span class="nav-label">Back</span><span class="nav-page">AI Features</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('stats')">
+      <span class="nav-page">Statistics</span><span class="nav-label">Next</span><span class="arrow">→</span>
+    </button>
+  </div>
+</div>

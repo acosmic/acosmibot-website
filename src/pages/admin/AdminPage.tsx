@@ -13,7 +13,6 @@ import {
   ArrowUp,
   BarChart3,
   Bot,
-  BrainCircuit,
   Coins,
   Fingerprint,
   Flag,
@@ -32,7 +31,6 @@ import {
   normalizePremiumTier,
 } from '@/components/ui';
 import { clearExpiredSession } from '@/lib/auth';
-import { RagTab } from './RagTab';
 import { BotStatsTab } from './BotStatsTab';
 import { AiSettingsTab } from './AiSettingsTab';
 import { EconomySettingsTab } from './EconomySettingsTab';
@@ -47,7 +45,6 @@ import '@/styles/admin.css';
 const ADMIN_TABS = [
   { id: 'signins', label: 'Sign-In Log', group: 'Security', description: 'Review recent website authentication events and reveal network details only when needed.', icon: Fingerprint },
   { id: 'servers', label: 'Servers', group: 'Network', description: 'Inspect every connected Discord server, its status, subscription, and stored configuration.', icon: Server },
-  { id: 'rag', label: 'RAG Documents', group: 'Knowledge', description: 'Operate the retrieval document catalog, chunks, indexing, and query diagnostics.', icon: BrainCircuit },
   { id: 'botstats', label: 'Bot Stats', group: 'Telemetry', description: 'Observe bot health, runtime signals, and system-wide operating totals.', icon: Activity },
   { id: 'ai', label: 'AI Settings', group: 'Intelligence', description: 'Configure the shared AI model policy, limits, and system behavior.', icon: Bot },
   { id: 'economy', label: 'Economy', group: 'Systems', description: 'Manage global economy behavior and operational defaults.', icon: Coins },
@@ -92,6 +89,7 @@ interface Guild {
   id: string;
   name: string;
   owner_id: string;
+  owner_username: string | null;
   member_count: number;
   active: boolean;
   joined_at: string | null;
@@ -383,6 +381,7 @@ export const AdminPage: React.FC = () => {
   const guildColumns = [
     { key: 'name', label: 'Server Name' },
     { key: 'id', label: 'Server ID' },
+    { key: 'owner_username', label: 'Owner Username', render: (r: Guild) => <span title={r.owner_username ?? undefined}>{r.owner_username ?? '—'}</span> },
     { key: 'owner_id', label: 'Owner ID' },
     { key: 'member_count', label: 'Members', render: (r: Guild) => r.member_count?.toLocaleString() ?? '—' },
     { key: 'active', label: 'Active', render: (r: Guild) => r.active ? <span className="admin-status admin-status--active">Yes</span> : <span className="admin-status admin-status--inactive">No</span> },
@@ -479,9 +478,6 @@ export const AdminPage: React.FC = () => {
             )}
           </div>
         )}
-
-        {/* RAG Docs */}
-        {tab === 'rag' && <div className="admin-surface"><RagTab /></div>}
 
         {/* Bot Stats */}
         {tab === 'botstats' && (

@@ -44,6 +44,8 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'items',      label: 'Items & Inventory', icon: Package },
       { slug: 'moderation', label: 'Moderation', icon: Shield },
       { slug: 'ai',         label: 'AI Integration', icon: Bot },
+      { slug: 'ai-credits', label: 'AI Credits', icon: Coins },
+      { slug: 'stats',      label: 'Stats & Member Hub', icon: ClipboardList },
       { slug: 'music',      label: 'Music', icon: Music },
     ],
   },

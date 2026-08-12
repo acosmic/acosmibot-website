@@ -12,7 +12,7 @@
   <section class="docs-section">
     <h2>Overview</h2>
     <p>
-      Acosmibot's AI integration gives your server a conversational AI assistant that lives right inside Discord. Members interact with it naturally by mentioning the bot, and admins have full control over which model it uses, how it behaves, where it responds, and how much it's used each day.
+      Acosmibot's AI integration gives your server a conversational AI assistant that lives right inside Discord. Members interact with it naturally by mentioning the bot, while server managers control whether it responds, its personality on eligible plans, ambient behavior, and channel access. Subscription-tier and globally managed limits remain enforced by Acosmibot.
     </p>
 
     <div class="info-card info-card-info">
@@ -21,13 +21,13 @@
         <li>Responds to any message that mentions the bot</li>
         <li>Uses recent Discord channel history for context</li>
         <li>Built-in 3-second per-user cooldown to prevent spam</li>
-        <li>Configurable daily usage limit for the entire server</li>
+        <li>Daily and monthly usage limits set by the active subscription tier</li>
         <li>Custom system prompt to define the AI's personality and rules</li>
         <li>Saved personalities — switch the bot's persona with <code>/ai-admin personality</code> or from the dashboard (Pro or Max)</li>
         <li>Per-user memories — the AI remembers facts members tell it via <code>/ai memory</code></li>
         <li>Ambient replies — the AI can occasionally chime into conversation unprompted (Pro or Max)</li>
         <li>Restrict AI responses to specific channels</li>
-        <li>Swap the underlying AI provider/model at any time when configured by the owner</li>
+        <li>Provider-neutral chat, image, and vision support selected through Acosmibot's owner configuration</li>
         <li>Policy-gated prepaid AI Credits for eligible foreground overage after included quota</li>
         <li>Explicit personal text chat in Discord DMs when DM spending is enabled and opted in</li>
       </ul>
@@ -49,7 +49,7 @@
       </ul>
     </div>
     <p>
-      Explicit text messages sent to Acosmibot in a Discord DM use a personal-only context. DMs do not load a guild's memory, personality, roster, tools, subscription quota, or guild wallet. DM spending is independently controlled and may be unavailable while the feature is being rolled out.
+      Explicit text messages sent to Acosmibot in a Discord DM use a personal-only context. DMs do not load a guild's memory, personality, roster, tools, subscription quota, or guild wallet. DM chat spending is independently controlled and uses the personal wallet; paid DM image and vision funding are not currently live.
     </p>
   </section>
 
@@ -85,7 +85,7 @@
         <div class="step-number">4</div>
         <div class="step-content">
           <h3>Rate Limits Keep Things Running Smoothly</h3>
-          <p>A built-in 3-second cooldown per user prevents rapid-fire spam. Admins can configure a server-wide daily interaction cap through the <a href="/servers" target="_blank">server dashboard</a> to keep API costs predictable.</p>
+          <p>A built-in 3-second cooldown per user prevents rapid-fire spam. Basic daily and monthly limits come from the active subscription tier and Acosmibot's global configuration; server managers cannot raise or remove them.</p>
         </div>
       </div>
     </div>
@@ -120,7 +120,7 @@
       <div class="command-card">
         <div class="command-signature">/ai status</div>
         <div class="command-description">
-          Check whether AI is currently enabled, view usage and the active personality, and see whether ambient replies and meme images are on, including their separate chances, cooldowns, and daily limits.
+          Privately view daily and monthly chat usage, the monthly renewal time, included image and analysis usage, paid-image counts by funding source, separate server and personal AI Credit balances, ambient reply and meme-image toggles, and the active personality.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -205,6 +205,12 @@
         </div>
       </div>
     </div>
+
+    <div class="info-card info-card-info">
+      <h3>Confirmation before image spending</h3>
+      <p><code>/ai image</code> and mention-based image requests show an editable confirmation before quota or credits are spent. Included requests show 0 credits; eligible paid overage shows the fixed 350-credit cost. Cancelling or letting the five-minute confirmation expire spends nothing, and paid images do not advance the included monthly image allowance.</p>
+      <p><a href="/docs/ai-credits" onclick="event.preventDefault(); window.DocsRouter.navigate('ai-credits')">Read the AI Credits and Fuel Cells guide →</a></p>
+    </div>
   </section>
 
   <section class="docs-section">
@@ -264,7 +270,7 @@
 
     <div class="faq-item">
       <h4>Q: The bot says the daily limit has been reached</h4>
-      <p>A: The server-wide interaction counter resets at midnight. Admins can raise or remove the limit in the <a href="/servers" target="_blank">server dashboard</a> under AI settings. If paid overage is enabled, the request still needs an allowed operation, a full wallet reservation, and any required member consent.</p>
+      <p>A: The daily interaction counter resets at midnight UTC. Basic daily and monthly limits come from the active subscription tier and Acosmibot's global configuration; server managers cannot raise or remove them. If paid overage is enabled, the request still needs an allowed operation, a full wallet reservation, and any required member consent. Use <code>/ai status</code> to see the monthly renewal time.</p>
     </div>
 
     <div class="faq-item">
@@ -281,8 +287,8 @@
       <span class="nav-label">Back</span>
       <span class="nav-page">Moderation</span>
     </button>
-    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('twitch')">
-      <span class="nav-page">Twitch</span>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('ai-credits')">
+      <span class="nav-page">AI Credits</span>
       <span class="nav-label">Next</span>
       <span class="arrow">→</span>
     </button>

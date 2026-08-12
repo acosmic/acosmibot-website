@@ -204,6 +204,8 @@ export const DOC_ROUTES = [
   ['items', 'Items and Inventory'],
   ['moderation', 'Discord Moderation'],
   ['ai', 'AI Discord Bot'],
+  ['ai-credits', 'AI Credits and Fuel Cells'],
+  ['stats', 'Discord Statistics and Member Hub'],
   ['music', 'Discord Music Statistics'],
   ['twitch', 'Twitch Stream Alerts'],
   ['youtube', 'YouTube Alerts'],
@@ -268,6 +270,14 @@ const SPECIAL_DOC_META: Partial<Record<(typeof DOC_ROUTES)[number][0], Pick<SeoM
   ai: {
     title: 'AI Discord Bot Setup, Tools & Commands | Acosmibot Docs',
     description: 'Configure Acosmibot AI chat, native tools, server personalities, member memory, ambient replies, image generation, and channel controls for Discord.',
+  },
+  'ai-credits': {
+    title: 'AI Credits, Fuel Cells & Paid Overage | Acosmibot Docs',
+    description: 'Learn Acosmibot Fuel Cell prices, provider-neutral AI Credit rates, wallet funding order, image confirmation, member contributions, and privacy controls.',
+  },
+  stats: {
+    title: 'Discord Member Statistics & Server Hub | Acosmibot Docs',
+    description: 'Understand Acosmibot member statistics, reactions given and received, most-loved rankings, leaderboards, and the authenticated server member hub.',
   },
   leveling: {
     title: 'Discord Leveling Bot Setup & Commands | Acosmibot Docs',

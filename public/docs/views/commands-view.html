@@ -71,6 +71,14 @@
           <td>Rally a crew to complete turn-based jobs and rob the server vault — job results set the final odds, while more crew increases the possible total take</td>
         </tr>
         <tr>
+          <td><code>/heist-test</code></td>
+          <td>Run the real heist lobby and jobs without moving Credits or starting the server cooldown</td>
+        </tr>
+        <tr>
+          <td><code>/heist-reset</code></td>
+          <td>Clear the server-wide heist cooldown immediately (Manage Server)</td>
+        </tr>
+        <tr>
           <td><code>/8ball &lt;question&gt;</code></td>
           <td>Ask the magic 8-ball for a mystical answer</td>
         </tr>
@@ -347,12 +355,16 @@
           <td>Check AI status, usage, personality, and ambient reply settings</td>
         </tr>
         <tr>
+          <td><code>/ai credits</code></td>
+          <td>Privately check personal AI Credit balance and spending state; administrators may also see the server wallet summary</td>
+        </tr>
+        <tr>
           <td><code>/ai-admin personality &lt;list|current|set|reset&gt;</code></td>
           <td>List and switch the server's saved AI personalities</td>
         </tr>
         <tr>
-          <td><code>/ai memory &lt;add|list|clear&gt;</code></td>
-          <td>Manage what the AI remembers about you in this server</td>
+          <td><code>/ai memory &lt;list|clear&gt;</code></td>
+          <td>Review or clear facts learned from conversation; members cannot add memory entries manually</td>
         </tr>
         <tr>
           <td><code>/ai-admin ambient &lt;enable|disable|frequency|images-enable|images-disable|images-chance&gt;</code></td>
@@ -360,11 +372,15 @@
         </tr>
         <tr>
           <td><code>/ai image &lt;prompt&gt;</code></td>
-          <td>Generate an image using AI / gpt-image-2 (Pro or Max, medium quality)</td>
+          <td>Generate an image with the configured provider (Pro or Max, medium quality); eligible overage requires a 350-credit confirmation</td>
         </tr>
         <tr>
           <td><code>/ai analyze</code></td>
-          <td>Analyze an attached image using GPT-4o Vision (Pro or Max)</td>
+          <td>Analyze an image with the configured vision provider (Pro or Max)</td>
+        </tr>
+        <tr>
+          <td><code>/ai-admin emote</code></td>
+          <td>Generate and install a transparent custom server emote (Max; Manage Server and expression permissions required)</td>
         </tr>
         <tr>
           <td><code>/ai clip &lt;prompt&gt;</code></td>

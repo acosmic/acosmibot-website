@@ -1,0 +1,61 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Statistics and Member Server Hub</h1>
+    <p class="docs-page-description">
+      Understand activity, reactions, and rankings in Discord, then explore your own server-specific profile on the website.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>Discord statistics</h2>
+    <table class="docs-table">
+      <thead><tr><th>Command</th><th>What it shows</th></tr></thead>
+      <tbody>
+        <tr><td><code>/stats type:User [user]</code></td><td>A member's messages, commands, streaks, and reactions given and received.</td></tr>
+        <tr><td><code>/stats type:Games [user]</code></td><td>That member's game record.</td></tr>
+        <tr><td><code>/leaderboard</code></td><td>Server rankings for supported progression and economy statistics.</td></tr>
+        <tr><td><code>/topreactions [timeframe]</code></td><td>The reaction emoji used most often in the server for today, week, month, or all time.</td></tr>
+        <tr><td><code>/rank [member]</code></td><td>A member's level, XP progress, and server rank card.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="docs-section">
+    <h2>Reactions given and received</h2>
+    <p>
+      <strong>Reactions</strong> counts what someone adds to messages. <strong>Reactions received</strong> counts what other non-bot members add to that person's messages; self-reactions do not count.
+      The underlying received-side metric is named <code>reactions_received</code>.
+    </p>
+    <div class="info-card info-card-warning">
+      <h3>Received-reaction history starts August 9, 2026</h3>
+      <p>Tracking is forward-only and older reactions were not backfilled. Discord raw reaction-clear events do not always identify every affected user, so cleared historical totals and the displayed top received emoji can occasionally lag.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Most Loved leaderboard</h2>
+    <p>
+      Ask Acosmibot who is “most loved,” “most liked,” or “most popular” in the server. Its live-stat tool uses the <code>most_loved</code> ranking based on reactions received from other people, not reactions they handed out. If no received-reaction data exists yet, the bot reports an empty ranking instead of substituting another metric.
+    </p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Member Server Hub</h2>
+    <p>
+      Sign in and open <code>/server/:guildId</code> to see your own profile for a shared server, including the server-specific statistics and activity available to you. This member view is separate from server-management pages, which require owner or administrator access, and from Acosmibot's owner-only global admin panel.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>Access and privacy</h3>
+      <p>You must be signed in and share the server. The API verifies membership before returning guild-scoped data, and private AI allowance details remain visible only to the requesting member through <code>/ai status</code>.</p>
+    </div>
+  </section>
+
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('ai-credits')">
+      <span class="arrow">←</span><span class="nav-label">Back</span><span class="nav-page">AI Credits</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('twitch')">
+      <span class="nav-page">Twitch</span><span class="nav-label">Next</span><span class="arrow">→</span>
+    </button>
+  </div>
+</div>
