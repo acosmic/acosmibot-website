@@ -32,8 +32,11 @@ export const BetterEmbedsPage: React.FC = () => {
             instagram: { ...form.instagram, enabled },
           })}
           label="Instagram"
-          description="Use KKInstagram for posts, reels, stories, and Instagram TV links."
-          credits={[{ label: 'KKInstagram', href: 'https://kkinstagram.com' }]}
+          description="Use InstagramFix with KKInstagram fallback for posts, reels, stories, and Instagram TV links."
+          credits={[
+            { label: 'InstagramFix', href: 'https://instagramfix.com' },
+            { label: 'KKInstagram', href: 'https://kkinstagram.com' },
+          ]}
         />
 
         <FeatureToggle
