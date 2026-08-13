@@ -13,6 +13,15 @@ export interface Guild {
   permissions: string[];
   member_count?: number;
   premium_tier?: string;
+  premium_entitlement?: {
+    tier: string;
+    source: 'free' | 'stripe' | 'complimentary';
+    complimentary: boolean;
+    grant_source: string | null;
+    starts_at: string | null;
+    expires_at: string | null;
+    permanent: boolean;
+  };
 }
 
 export interface Channel {

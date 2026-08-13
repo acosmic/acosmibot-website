@@ -883,6 +883,7 @@ const ServerPickerModal: React.FC<{
               {manageable.map((g, i) => {
                 const sub = subQueries[i]?.data;
                 const guildTier = (sub?.tier ?? 'free') as PremiumTier;
+                const isComplimentary = Boolean(sub?.entitlement?.complimentary);
                 const hasPremium = guildTier !== 'free';
                 const highlight = g.id === preselectGuildId;
 
@@ -901,7 +902,7 @@ const ServerPickerModal: React.FC<{
                       <strong>{g.name}</strong>
                       <span>
                         {(g.member_count ?? 0).toLocaleString()} members
-                        <TierBadge tier={guildTier} />
+                        <TierBadge tier={guildTier} complimentary={isComplimentary} />
                       </span>
                     </div>
                     {!hasPremium ? (
@@ -918,7 +919,7 @@ const ServerPickerModal: React.FC<{
                         onClick={() => manage(g)}
                         className="pricing-server__action pricing-server__action--quiet"
                       >
-                        Manage Billing
+                        {isComplimentary ? 'View Access' : 'Manage Billing'}
                       </button>
                     )}
                   </div>
@@ -932,11 +933,11 @@ const ServerPickerModal: React.FC<{
   );
 };
 
-const TierBadge: React.FC<{ tier: PremiumTier }> = ({ tier }) => {
+const TierBadge: React.FC<{ tier: PremiumTier; complimentary?: boolean }> = ({ tier, complimentary = false }) => {
   return (
     <span className={`pricing-tier-badge pricing-tier-badge--${tier}`}>
       <PremiumTierIcon tier={tier} size={16} />
-      {TIER_LABELS[tier]}
+      {complimentary ? `Complimentary ${TIER_LABELS[tier]}` : TIER_LABELS[tier]}
     </span>
   );
 };

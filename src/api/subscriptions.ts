@@ -3,6 +3,16 @@ import { api } from './client';
 export type PremiumTier = 'free' | 'plus' | 'pro' | 'max';
 export type BillingInterval = 'monthly' | 'annual';
 
+export interface SafePremiumEntitlement {
+  tier: PremiumTier;
+  source: 'free' | 'stripe' | 'complimentary';
+  complimentary: boolean;
+  grant_source: 'support_server' | 'partner' | 'promotion' | 'giveaway' | 'internal' | 'test' | null;
+  starts_at: string | null;
+  expires_at: string | null;
+  permanent: boolean;
+}
+
 export interface SubscriptionRecord {
   id: number;
   guild_id: string;
@@ -29,6 +39,7 @@ export interface GuildSubscription {
   tier: PremiumTier;
   stored_tier?: PremiumTier;
   status: string;
+  entitlement: SafePremiumEntitlement;
 }
 
 export interface SubscriptionCatalogRow {

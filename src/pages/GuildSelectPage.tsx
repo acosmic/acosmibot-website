@@ -240,6 +240,9 @@ const ServerBand: React.FC<{
 const ServerCard: React.FC<{ guild: Guild; onOpen: () => void }> = ({ guild, onOpen }) => {
   const manageable = canManageGuild(guild);
   const tier = normalizePremiumTier(guild.premium_tier);
+  const tierLabel = guild.premium_entitlement?.complimentary
+    ? `Complimentary ${PREMIUM_TIER_LABELS[tier]}`
+    : PREMIUM_TIER_LABELS[tier];
 
   return (
     <button type="button" className={`server-node${manageable ? ' can-manage' : ''}`} onClick={onOpen}>
@@ -263,9 +266,9 @@ const ServerCard: React.FC<{ guild: Guild; onOpen: () => void }> = ({ guild, onO
         {guild.owner && <Crown aria-hidden="true" />}
         {accessLabel(guild)}
       </span>
-      <span className={`server-node__tier server-node__tier--${tier}`} title={`${PREMIUM_TIER_LABELS[tier]} plan`}>
+      <span className={`server-node__tier server-node__tier--${tier}`} title={`${tierLabel} plan`}>
         <PremiumTierIcon tier={tier} size={16} />
-        {PREMIUM_TIER_LABELS[tier]}
+        {tierLabel}
       </span>
       <span className="server-node__action">
         {manageable ? 'Manage server' : 'Open server'} <ArrowRight aria-hidden="true" />

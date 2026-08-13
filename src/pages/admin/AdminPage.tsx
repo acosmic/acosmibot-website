@@ -11,6 +11,7 @@ import {
   Activity,
   ArrowDown,
   ArrowUp,
+  BadgeCheck,
   BarChart3,
   Bot,
   Coins,
@@ -40,11 +41,13 @@ import { AchievementsTab } from './AchievementsTab';
 import { ItemsTab } from './ItemsTab';
 import { AnalyticsTab } from './AnalyticsTab';
 import { AdminDetailDialog } from './AdminDetailDialog';
+import { PremiumGrantsTab } from './PremiumGrantsTab';
 import '@/styles/admin.css';
 
 const ADMIN_TABS = [
   { id: 'signins', label: 'Sign-In Log', group: 'Security', description: 'Review recent website authentication events and reveal network details only when needed.', icon: Fingerprint },
   { id: 'servers', label: 'Servers', group: 'Network', description: 'Inspect every connected Discord server, its status, subscription, and stored configuration.', icon: Server },
+  { id: 'grants', label: 'Premium Grants', group: 'Network', description: 'Issue, schedule, extend, revoke, and restore audited complimentary server access.', icon: BadgeCheck },
   { id: 'botstats', label: 'Bot Stats', group: 'Telemetry', description: 'Observe bot health, runtime signals, and system-wide operating totals.', icon: Activity },
   { id: 'ai', label: 'AI Settings', group: 'Intelligence', description: 'Configure the shared AI model policy, limits, and system behavior.', icon: Bot },
   { id: 'economy', label: 'Economy', group: 'Systems', description: 'Manage global economy behavior and operational defaults.', icon: Coins },
@@ -476,6 +479,12 @@ export const AdminPage: React.FC = () => {
             ) : (
               <SortableTable rows={guildsResult.data?.guilds ?? []} columns={guildColumns} />
             )}
+          </div>
+        )}
+
+        {tab === 'grants' && (
+          <div className="admin-surface">
+            <PremiumGrantsTab />
           </div>
         )}
 

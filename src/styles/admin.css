@@ -1597,3 +1597,228 @@
     align-items: flex-start;
   }
 }
+
+/* Premium grants: one owner editor feeding an audited entitlement ledger. */
+.premium-grants {
+  display: grid;
+  gap: 24px;
+}
+
+.grant-editor,
+.grant-ledger {
+  overflow: hidden;
+  border-radius: 15px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+.grant-editor > header,
+.grant-ledger__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 22px;
+  background: var(--bg-tertiary);
+}
+
+.grant-editor__mark {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(0, 217, 255, 0.1);
+  color: var(--primary-color);
+}
+
+.grant-editor__mark svg { width: 21px; }
+.grant-editor header > div,
+.grant-ledger__header > div { min-width: 0; }
+.grant-editor header p,
+.grant-ledger__header p {
+  margin: 0 0 3px;
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.grant-editor header h3,
+.grant-ledger__header h3 { margin: 0; color: var(--text-primary); font-size: 18px; }
+.grant-editor header span,
+.grant-ledger__header > span { color: var(--text-secondary); font-size: 13px; }
+.grant-editor__cancel {
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.grant-editor form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(130px, .65fr));
+  gap: 16px;
+  padding: 22px;
+}
+
+.grant-field { display: grid; align-content: start; gap: 7px; min-width: 0; }
+.grant-field > label,
+.grant-field__label-row > label:first-child {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.grant-field input,
+.grant-field select,
+.grant-field textarea,
+.grant-search-control {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font: inherit;
+}
+.grant-field input,
+.grant-field select,
+.grant-field textarea { padding: 10px 12px; }
+.grant-field textarea { min-height: 92px; resize: vertical; }
+.grant-field input:focus-visible,
+.grant-field select:focus-visible,
+.grant-field textarea:focus-visible,
+.grant-ledger input:focus-visible,
+.grant-editor button:focus-visible,
+.grant-ledger button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+.grant-field input:disabled,
+.grant-field select:disabled,
+.grant-field textarea:disabled { opacity: .5; cursor: not-allowed; }
+.grant-field small { color: var(--text-muted); font-size: 11px; }
+.grant-field small[role="alert"] { color: var(--error-color); }
+.grant-field--server { grid-row: span 2; }
+.grant-search-control { display: flex; align-items: center; gap: 9px; padding: 0 11px; }
+.grant-search-control svg { width: 17px; color: var(--text-muted); }
+.grant-search-control input { min-height: 40px; padding: 0; border: 0; background: transparent; outline: 0; }
+.grant-field__label-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.grant-permanent { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; }
+.grant-permanent input { width: 16px; min-height: 16px; accent-color: var(--primary-color); }
+.grant-field--reason { grid-column: 1 / 3; }
+.grant-save {
+  align-self: end;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: var(--bg-primary);
+  font-weight: 750;
+}
+.grant-save svg { width: 18px; }
+.grant-save:disabled { opacity: .55; cursor: not-allowed; }
+
+.grant-ledger__header { justify-content: space-between; }
+.grant-ledger__header > span {
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: rgba(0, 217, 255, .08);
+  color: var(--primary-color);
+  font-weight: 700;
+}
+.grant-ledger__tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+.grant-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.grant-filters button,
+.grant-record__actions button {
+  min-height: 44px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 650;
+}
+.grant-filters button { padding: 0 13px; }
+.grant-filters button[aria-pressed="true"] { border-color: rgba(0, 217, 255, .42); background: rgba(0, 217, 255, .12); color: var(--primary-color); }
+.grant-ledger__search {
+  display: flex;
+  width: min(300px, 100%);
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+}
+.grant-ledger__search svg { width: 17px; color: var(--text-muted); }
+.grant-ledger__search input { min-width: 0; flex: 1; border: 0; background: transparent; color: var(--text-primary); outline: 0; }
+.grant-records { display: grid; }
+.grant-record {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(190px, .9fr) minmax(210px, 1.25fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  border-top: 1px solid var(--border-light);
+}
+.grant-record__identity { display: flex; min-width: 0; align-items: center; gap: 11px; }
+.grant-record__identity > div,
+.grant-record__entitlement { display: grid; min-width: 0; gap: 3px; }
+.grant-record__identity strong { overflow: hidden; color: var(--text-primary); text-overflow: ellipsis; white-space: nowrap; }
+.grant-record__identity span,
+.grant-record__entitlement > span:last-child { color: var(--text-muted); font-size: 11px; }
+.grant-record__entitlement > strong { color: var(--text-secondary); font-size: 13px; }
+.grant-record__entitlement > span:last-child { display: flex; align-items: center; gap: 5px; }
+.grant-record__entitlement svg { width: 13px; }
+.grant-status { width: max-content; padding: 3px 7px; border-radius: 6px; font-size: 10px; font-weight: 750; text-transform: uppercase; }
+.grant-status.is-active { background: rgba(0, 255, 136, .12); color: var(--success-color); }
+.grant-status.is-scheduled { background: rgba(0, 217, 255, .1); color: var(--primary-color); }
+.grant-status.is-expired,
+.grant-status.is-revoked { background: rgba(255, 255, 255, .06); color: var(--text-muted); }
+.grant-record__note { min-width: 0; }
+.grant-record__note > span { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.grant-record__note p { display: -webkit-box; overflow: hidden; margin: 4px 0 0; color: var(--text-secondary); font-size: 12px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.grant-record__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.grant-record__actions button { display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; }
+.grant-record__actions button svg { width: 15px; }
+.grant-record__actions button.is-danger { color: var(--error-color); }
+.grant-record__actions button:disabled { opacity: .5; }
+.grant-state { display: flex; min-height: 150px; align-items: center; justify-content: center; gap: 12px; padding: 28px; color: var(--text-secondary); text-align: left; }
+.grant-state > svg { width: 25px; color: var(--primary-color); }
+.grant-state > div { display: grid; gap: 3px; }
+.grant-state span { color: var(--text-muted); font-size: 13px; }
+.grant-state.is-error > svg { color: var(--error-color); }
+
+@media (max-width: 1050px) {
+  .grant-editor form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grant-field--server { grid-row: auto; }
+  .grant-field--reason { grid-column: 1 / -1; }
+  .grant-record { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grant-record__actions { justify-content: flex-start; }
+}
+
+@media (max-width: 680px) {
+  .grant-editor > header { align-items: flex-start; flex-wrap: wrap; }
+  .grant-editor__cancel { width: 100%; margin-left: 0; }
+  .grant-editor form { grid-template-columns: 1fr; padding: 16px; }
+  .grant-field--reason { grid-column: auto; }
+  .grant-ledger__tools { align-items: stretch; flex-direction: column; }
+  .grant-ledger__search { width: 100%; }
+  .grant-record { grid-template-columns: 1fr; }
+  .grant-record__actions { display: grid; grid-template-columns: repeat(2, 1fr); }
+}

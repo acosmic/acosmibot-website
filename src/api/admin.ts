@@ -1,6 +1,42 @@
 import { api } from './client';
 
 export type AdminAiTier = 'free' | 'plus' | 'pro' | 'max';
+export type PremiumGrantTier = 'plus' | 'pro' | 'max';
+export type PremiumGrantSource = 'support_server' | 'partner' | 'promotion' | 'giveaway' | 'internal' | 'test';
+export type PremiumGrantStatus = 'active' | 'scheduled' | 'expired' | 'revoked';
+
+export interface PremiumGrant {
+  id: string;
+  guild_id: string;
+  guild_name: string | null;
+  tier: PremiumGrantTier;
+  source: PremiumGrantSource;
+  reason: string;
+  granted_by_user_id: string;
+  starts_at: string;
+  expires_at: string | null;
+  permanent: boolean;
+  revoked_at: string | null;
+  revoked_by_user_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  status: PremiumGrantStatus;
+}
+
+export interface PremiumGrantInput {
+  guild_id: string;
+  tier: PremiumGrantTier;
+  source: PremiumGrantSource;
+  reason: string;
+  starts_at: string;
+  expires_at: string | null;
+}
+
+export interface AdminGuildOption {
+  id: string;
+  name: string;
+  owner_id: string;
+}
 
 export type AdminAiTierLimits = Record<AdminAiTier, {
   daily_limit: number;
@@ -260,6 +296,47 @@ export type AdminItemInput = Partial<Omit<AdminItem, 'id'>> & {
 };
 
 export const adminApi = {
+  getPremiumGrants: (params: {
+    status?: PremiumGrantStatus | 'all'; search?: string; limit?: number; offset?: number;
+  } = {}) => {
+    const query = new URLSearchParams();
+    if (params.status) query.set('status', params.status);
+    if (params.search) query.set('search', params.search);
+    query.set('limit', String(params.limit ?? 200));
+    query.set('offset', String(params.offset ?? 0));
+    return api.fetch<{ success: boolean; grants: PremiumGrant[]; total: number }>(
+      `/api/admin/premium-grants?${query.toString()}`,
+    );
+  },
+
+  createPremiumGrant: (payload: PremiumGrantInput) =>
+    api.fetch<{ success: boolean; grant: PremiumGrant }>('/api/admin/premium-grants', {
+      method: 'POST', body: JSON.stringify(payload),
+    }),
+
+  updatePremiumGrant: (id: string, payload: Partial<PremiumGrantInput>) =>
+    api.fetch<{ success: boolean; grant: PremiumGrant }>(
+      `/api/admin/premium-grants/${encodeURIComponent(id)}`,
+      { method: 'PATCH', body: JSON.stringify(payload) },
+    ),
+
+  revokePremiumGrant: (id: string) =>
+    api.fetch<{ success: boolean; grant: PremiumGrant }>(
+      `/api/admin/premium-grants/${encodeURIComponent(id)}/revoke`,
+      { method: 'POST' },
+    ),
+
+  restorePremiumGrant: (id: string) =>
+    api.fetch<{ success: boolean; grant: PremiumGrant }>(
+      `/api/admin/premium-grants/${encodeURIComponent(id)}/restore`,
+      { method: 'POST' },
+    ),
+
+  getGuildOptions: () =>
+    api.fetch<{ success: boolean; guilds: AdminGuildOption[] }>(
+      '/api/admin/guild-options',
+    ),
+
   getFeatureSettings: () =>
     api.fetch<AdminFeatureSettingsResponse>('/api/admin/feature-settings'),
 

@@ -384,6 +384,42 @@
   }
 }
 
+.billing-complimentary {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(0, 217, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.billing-complimentary > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--primary-color);
+}
+
+.billing-complimentary > div {
+  display: grid;
+  gap: 3px;
+}
+
+.billing-complimentary strong { color: var(--text-primary); }
+.billing-complimentary span { font-size: 13px; line-height: 1.55; }
+
+.billing-complimentary-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+
+.billing-complimentary-summary svg {
+  flex: 0 0 auto;
+  color: var(--primary-color);
+}
+
 /* AI Credits guild wallet */
 .billing-ai-credits {
   --credits-border: rgba(134, 163, 181, 0.18);

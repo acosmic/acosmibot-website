@@ -55,6 +55,15 @@ const TIER_DESCRIPTIONS: Record<PremiumTier, string> = {
   max: 'Higher AI limits for active AI servers.',
 };
 
+const GRANT_SOURCE_LABELS: Record<string, string> = {
+  support_server: 'Support server',
+  partner: 'Partner',
+  promotion: 'Promotion',
+  giveaway: 'Giveaway',
+  internal: 'Internal',
+  test: 'Test access',
+};
+
 const formatCatalogPrice = (row: SubscriptionCatalogRow | undefined) => {
   if (!row) return '—';
   return new Intl.NumberFormat('en-US', {
@@ -693,18 +702,22 @@ export const BillingPage: React.FC = () => {
 
   const status = subscription.data?.status ?? 'active';
   const record = subscription.data?.subscription ?? null;
+  const entitlement = subscription.data?.entitlement;
+  const isComplimentary = Boolean(entitlement?.complimentary);
   const effectiveTier = normalizeTier(subscription.data?.tier ?? currentGuild?.premium_tier);
   const recordTier = normalizeTier(record?.tier);
+  const stripeStatus = record?.status ?? status;
   const isPaymentRecovery = (
-    ['past_due', 'unpaid', 'incomplete'].includes(status)
+    ['past_due', 'unpaid', 'incomplete'].includes(stripeStatus)
     && recordTier !== 'free'
     && Boolean(record?.stripe_subscription_id)
   );
   // The API correctly removes paid entitlements while payment is unresolved,
   // but the billing screen still needs to identify the subscription to recover.
-  const tier = isPaymentRecovery ? recordTier : effectiveTier;
+  const tier = isPaymentRecovery && !isComplimentary ? recordTier : effectiveTier;
   const hasPaidTier = tier !== 'free';
-  const canOpenPortal = hasPaidTier && Boolean(record?.stripe_subscription_id);
+  const hasStripeSubscription = recordTier !== 'free' && Boolean(record?.stripe_subscription_id);
+  const canOpenPortal = hasStripeSubscription;
   const isCanceling = Boolean(record?.cancel_at_period_end || record?.cancel_at);
   const hasPendingPlanChange = Boolean(record?.pending_tier && record?.pending_change_at);
   const currentInterval: BillingInterval = record?.billing_interval === 'annual' ? 'annual' : 'monthly';
@@ -753,7 +766,7 @@ export const BillingPage: React.FC = () => {
     <div className="feature-page billing-page">
       <div className="page-header text-start mt-0 mb-4">
         <h1>Billing</h1>
-        <p>Manage this server's subscription.</p>
+        <p>{isComplimentary ? 'Review this server’s complimentary access.' : 'Manage this server’s subscription.'}</p>
       </div>
 
       {isPaymentRecovery && (
@@ -763,11 +776,11 @@ export const BillingPage: React.FC = () => {
           </div>
           <div className="billing-recovery__copy">
             <span>Payment action needed</span>
-            <h2>Restore {TIER_LABELS[tier]} access</h2>
+            <h2>{isComplimentary ? `Fix the separate ${TIER_LABELS[recordTier]} subscription` : `Restore ${TIER_LABELS[tier]} access`}</h2>
             <p>
-              The latest renewal did not complete, so paid features are paused. Open Stripe
-              billing to authenticate the payment or update the payment method. Access returns
-              automatically after Stripe confirms payment.
+              {isComplimentary
+                ? `Complimentary ${TIER_LABELS[tier]} access remains active, but the separate Stripe renewal did not complete. Open Stripe billing to authenticate the payment, update the payment method, or cancel that subscription.`
+                : 'The latest renewal did not complete, so paid features are paused. Open Stripe billing to authenticate the payment or update the payment method. Access returns automatically after Stripe confirms payment.'}
             </p>
           </div>
           <button
@@ -790,13 +803,13 @@ export const BillingPage: React.FC = () => {
               <div>
                 <div className="d-flex align-items-center gap-2 mb-2">
                   <PremiumTierIcon tier={tier} size={34} />
-                  <h3 className="mb-0">{TIER_LABELS[tier]}</h3>
+                  <h3 className="mb-0">{isComplimentary ? `Complimentary ${TIER_LABELS[tier]}` : TIER_LABELS[tier]}</h3>
                 </div>
                 <p className="text-muted mb-0">{TIER_DESCRIPTIONS[tier]}</p>
               </div>
               <div className="text-end">
-                <div className="fs-4 fw-bold text-primary">{priceFor(currentInterval, tier)}</div>
-                <div className="small text-muted">per {hasPaidTier ? INTERVAL_NOUN[currentInterval] : 'month'}</div>
+                <div className="fs-4 fw-bold text-primary">{isComplimentary ? 'Granted access' : priceFor(currentInterval, tier)}</div>
+                <div className="small text-muted">{isComplimentary ? 'No Stripe renewal' : `per ${hasPaidTier ? INTERVAL_NOUN[currentInterval] : 'month'}`}</div>
               </div>
             </div>
 
@@ -804,13 +817,13 @@ export const BillingPage: React.FC = () => {
               <div className="col-sm-4">
                 <div className="p-3 rounded bg-tertiary border border-light">
                   <div className="small text-muted">Status</div>
-                  <div className="fw-bold text-capitalize">{status.replace(/_/g, ' ')}</div>
+                  <div className="fw-bold text-capitalize">{isComplimentary ? 'Complimentary' : status.replace(/_/g, ' ')}</div>
                 </div>
               </div>
               <div className="col-sm-4">
                 <div className="p-3 rounded bg-tertiary border border-light">
-                  <div className="small text-muted">{isCanceling ? 'Access Ends' : 'Renews'}</div>
-                  <div className="fw-bold">{formatDate(record?.cancel_at || record?.current_period_end)}</div>
+                  <div className="small text-muted">{isComplimentary ? (entitlement?.permanent ? 'Access' : 'Access Ends') : isCanceling ? 'Access Ends' : 'Renews'}</div>
+                  <div className="fw-bold">{isComplimentary ? (entitlement?.permanent ? 'Permanent' : formatDate(entitlement?.expires_at)) : formatDate(record?.cancel_at || record?.current_period_end)}</div>
                 </div>
               </div>
               <div className="col-sm-4">
@@ -820,7 +833,19 @@ export const BillingPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {hasPendingPlanChange && (
+            {isComplimentary && (
+              <div className="billing-complimentary mt-3" role="status">
+                <ShieldCheck size={19} aria-hidden="true" />
+                <div>
+                  <strong>{GRANT_SOURCE_LABELS[entitlement?.grant_source ?? ''] ?? 'Complimentary access'}</strong>
+                  <span>
+                    This access is managed by Acosmibot and does not renew through Stripe.
+                    {entitlement?.permanent ? ' It has no expiration date.' : ` It ends ${formatDate(entitlement?.expires_at)}.`}
+                  </span>
+                </div>
+              </div>
+            )}
+            {hasPendingPlanChange && !isComplimentary && (
               <div className="billing-pending-change mt-3" role="status">
                 <CalendarClock size={18} aria-hidden="true" />
                 <div>
@@ -845,7 +870,7 @@ export const BillingPage: React.FC = () => {
             )}
           </div>
 
-          <div className="card p-4 mb-4">
+          {!isComplimentary && <div className="card p-4 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
               <div>
                 <h3 className="mb-0">Plans</h3>
@@ -939,12 +964,17 @@ export const BillingPage: React.FC = () => {
                 );
               })}
             </div>
-          </div>
+          </div>}
         </div>
 
         <div className="col-lg-4">
-          <div className="card p-4 mb-4">
+          {hasStripeSubscription && <div className="card p-4 mb-4">
             <h3 className="mb-4">Payment</h3>
+            {isComplimentary && (
+              <p className="small text-muted mt-n2 mb-3">
+                These controls belong to the separate {TIER_LABELS[recordTier]} Stripe subscription.
+              </p>
+            )}
             <div className="d-grid gap-2">
               <button
                 type="button"
@@ -973,11 +1003,11 @@ export const BillingPage: React.FC = () => {
                 <ExternalLink size={16} className="ms-auto" />
               </button>
             </div>
-          </div>
+          </div>}
 
           <div className="card p-4 mb-4">
             <h3 className="mb-4">Subscription</h3>
-            {hasPaidTier ? (
+            {hasStripeSubscription ? (
               isCanceling ? (
                 <button
                   type="button"
@@ -991,7 +1021,7 @@ export const BillingPage: React.FC = () => {
                       {resume.isPending ? 'Resuming…' : 'Resume Subscription'}
                     </div>
                     <div className="small">
-                      Keep {TIER_LABELS[tier]} and renew on {formatDate(record?.cancel_at || record?.current_period_end)}
+                      Keep {TIER_LABELS[recordTier]} and renew on {formatDate(record?.cancel_at || record?.current_period_end)}
                     </div>
                   </div>
                 </button>
@@ -1005,10 +1035,19 @@ export const BillingPage: React.FC = () => {
                   <XCircle size={20} aria-hidden="true" />
                   <div>
                     <div className="fw-bold">Cancel Subscription</div>
-                    <div className="small text-muted">Keep access through the paid period</div>
+                    <div className="small text-muted">
+                      {isComplimentary
+                        ? `Cancel the separate ${TIER_LABELS[recordTier]} Stripe plan`
+                        : 'Keep access through the paid period'}
+                    </div>
                   </div>
                 </button>
               )
+            ) : isComplimentary ? (
+              <div className="billing-complimentary-summary">
+                <ShieldCheck size={20} aria-hidden="true" />
+                <p className="mb-0">Complimentary access has no Stripe subscription to manage.</p>
+              </div>
             ) : (
               <p className="text-muted mb-0">This server is on the Free plan.</p>
             )}
@@ -1116,10 +1155,10 @@ export const BillingPage: React.FC = () => {
         </div>
       )}
 
-      {showCancelConfirm && hasPaidTier && (
+      {showCancelConfirm && hasStripeSubscription && (
         <CancelSubscriptionDialog
           guildName={currentGuild?.name || 'Current server'}
-          tier={tier}
+          tier={recordTier as PaidTier}
           accessEnd={formatDate(record?.cancel_at || record?.current_period_end)}
           isPending={cancel.isPending}
           onClose={() => setShowCancelConfirm(false)}
