@@ -1098,6 +1098,170 @@
 }
 
 /* Configuration sections */
+
+.ai-control-intro {
+  max-width: 72ch;
+  margin: 0 0 22px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ai-studio-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ai-studio-toolbar > label {
+  width: min(440px, 100%);
+}
+
+.ai-studio-toolbar label > span,
+.ai-profile-fields label > span,
+.ai-facet-grid label > span,
+.ai-trait-fields label > span,
+.ai-market-listing label > span,
+.ai-effect-rule label > span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ai-studio-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-boundary-note {
+  margin: 0 0 22px;
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, var(--warning-color) 38%, var(--border-light));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warning-color) 7%, transparent);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ai-active-effects {
+  display: grid;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, var(--border-light));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary-color) 7%, transparent);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.ai-active-effects strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.ai-profile-fields,
+.ai-facet-grid,
+.ai-trait-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ai-profile-fields--speech {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 20px;
+}
+
+.ai-facet-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.ai-market-listing {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(150px, 190px) minmax(150px, 190px);
+  gap: 18px;
+  align-items: end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.ai-market-listing__publish {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 44px;
+}
+
+.ai-market-listing__publish > span {
+  margin: 0 !important;
+  color: var(--text-primary) !important;
+  font-size: 14px !important;
+}
+
+.ai-market-listing label small {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.ai-effect-rule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 22px 0;
+  padding: 16px 0;
+  border-block: 1px solid var(--border-light);
+}
+
+.ai-effect-rule > div {
+  display: grid;
+  gap: 4px;
+}
+
+.ai-effect-rule strong { color: var(--text-primary); font-size: 14px; }
+.ai-effect-rule div span { color: var(--text-secondary); font-size: 13px; }
+.ai-effect-rule label { width: 190px; flex: 0 0 auto; }
+
+.ai-trait-editor { margin-top: 22px; }
+.ai-trait-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ai-trait-fields__note { grid-column: 1 / -1; }
+
+.ai-tool-matrix {
+  border-block: 1px solid var(--border-light);
+}
+
+.ai-tool-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 68px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+}
+
+.ai-tool-row:last-child { border-bottom: 0; }
+.ai-tool-row > span { display: grid; gap: 4px; }
+.ai-tool-row strong { color: var(--text-primary); font-size: 14px; }
+.ai-tool-row small { max-width: 68ch; color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+.ai-tool-row input,
+.ai-market-listing__publish input { width: 18px; height: 18px; accent-color: var(--primary-color); flex: 0 0 auto; }
 .control-section {
   margin-bottom: 18px;
   overflow: hidden;
@@ -1486,6 +1650,29 @@
   .feature-toggle__control {
     flex-direction: column-reverse;
     align-items: flex-end;
+  }
+
+  .ai-studio-toolbar,
+  .ai-effect-rule {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ai-studio-toolbar__actions .btn { flex: 1; }
+
+  .ai-profile-fields,
+  .ai-profile-fields--speech,
+  .ai-facet-grid,
+  .ai-trait-fields,
+  .ai-market-listing {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-effect-rule label { width: 100%; }
+
+  .ai-tool-row {
+    align-items: flex-start;
+    min-height: 76px;
   }
 
   .ai-upgrade-panel {
