@@ -9,6 +9,9 @@ import { AuthSessionBootstrap } from './lib/auth';
 import { AnalyticsProvider } from './components/analytics/AnalyticsProvider';
 import { SeoHead } from './components/seo/SeoHead';
 import './styles/seo-prerender.css';
+import { installPreloadErrorHandler } from './lib/versionSkew';
+
+installPreloadErrorHandler();
 
 const queryClient = new QueryClient();
 
