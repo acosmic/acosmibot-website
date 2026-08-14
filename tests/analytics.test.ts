@@ -94,7 +94,12 @@ test('fails closed before consent, then sends only normalized allowlisted data',
   trackEvent('server_open', { access: 'Owner', ignored_identifier: '123456789012345678' });
 
   assert.equal(appendedScripts.length, 1);
-  const commands = fakeWindow.dataLayer as unknown[][];
+  const commands = fakeWindow.dataLayer as ArrayLike<unknown>[];
+  assert.equal(
+    commands.every((command) => Object.prototype.toString.call(command) === '[object Arguments]'),
+    true,
+    'gtag must queue Arguments objects so the Google tag processes its commands',
+  );
   const pageView = commands.find((command) => command[0] === 'event' && command[1] === 'page_view');
   assert.equal((pageView?.[2] as Record<string, string>).page_location, 'https://acosmibot.com/server/:guild/overview');
   assert.equal((pageView?.[2] as Record<string, string>).page_referrer, 'https://search.example');

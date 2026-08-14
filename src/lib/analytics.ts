@@ -198,8 +198,10 @@ export function initializeAnalytics(): boolean {
   if (initialized) return true;
 
   window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function gtag(...args: unknown[]) {
-    window.dataLayer?.push(args);
+  window.gtag = window.gtag || function gtag() {
+    // Google requires each queued command to retain the function's Arguments shape.
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer?.push(arguments);
   };
   window.gtag('consent', 'default', {
     analytics_storage: 'denied',
