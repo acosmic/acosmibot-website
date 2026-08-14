@@ -5,6 +5,23 @@
   background: var(--bg-secondary);
 }
 
+.ai-plan-limit-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(0, 2fr);
+  align-items: end;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+.ai-plan-limit-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
 .ai-provider-toggle {
   display: flex;
   padding: 3px;
@@ -187,6 +204,15 @@
 }
 
 @media (max-width: 520px) {
+  .ai-plan-limit-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .ai-plan-limit-fields {
+    grid-template-columns: 1fr;
+  }
+
   .ai-lab-panel__header { flex-direction: column; }
   .ai-lab-panel__controls { grid-template-columns: 1fr; }
   .ai-lab-panel__run { grid-column: auto; width: 100%; }

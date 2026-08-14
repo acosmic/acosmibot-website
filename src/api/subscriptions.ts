@@ -53,6 +53,7 @@ export interface SubscriptionCatalogRow {
     monthly_ai_actions: number;
     image_monthly_limit: number;
     image_analysis_monthly_limit: number;
+    image_search_monthly_limit: number;
   };
 }
 
@@ -62,6 +63,7 @@ export interface SubscriptionQuotaCatalog {
     monthly_ai_actions: number;
     image_monthly_limit: number;
     image_analysis_monthly_limit: number;
+    image_search_monthly_limit: number;
   };
 }
 

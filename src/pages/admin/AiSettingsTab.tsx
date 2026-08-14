@@ -227,22 +227,13 @@ export const AiSettingsTab: React.FC = () => {
               return (
                 <div
                   key={tier}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(110px, 1fr) minmax(0, 2fr)',
-                    gap: 12,
-                    alignItems: 'end',
-                    padding: '12px',
-                    border: '1px solid var(--border-light)',
-                    borderRadius: 8,
-                    background: 'var(--bg-secondary)',
-                  }}
+                  className="ai-plan-limit-row"
                 >
                   <div>
                     <div style={{ fontWeight: 600 }}>{label}</div>
                     <div className="text-muted small">{description}</div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(140px, 1fr))', gap: 12 }}>
+                  <div className="ai-plan-limit-fields">
                     <label className="small">
                       Chat daily
                       <select
@@ -291,6 +282,19 @@ export const AiSettingsTab: React.FC = () => {
                         style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
                       >
                         {limitOptions(limits.image_analysis_monthly_limit, IMAGE_LIMIT_OPTIONS).map((value) => (
+                          <option key={value} value={value}>{value === 0 ? 'Not included' : `${value.toLocaleString()} / month`}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="small">
+                      Image search monthly
+                      <select
+                        className="form-control mt-1"
+                        value={limits.image_search_monthly_limit}
+                        onChange={(e) => setTierLimit(tier, 'image_search_monthly_limit', Number(e.target.value))}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+                      >
+                        {limitOptions(limits.image_search_monthly_limit, IMAGE_LIMIT_OPTIONS).map((value) => (
                           <option key={value} value={value}>{value === 0 ? 'Not included' : `${value.toLocaleString()} / month`}</option>
                         ))}
                       </select>

@@ -143,6 +143,7 @@ const buildCatalogFeatures = (def: TierCardDef, catalog: SubscriptionCatalogRow[
     features.push(
       { text: `${quotas.image_monthly_limit.toLocaleString()} medium images/month` },
       { text: `${quotas.image_analysis_monthly_limit.toLocaleString()} vision analyses/month` },
+      { text: `${quotas.image_search_monthly_limit.toLocaleString()} web image searches/month` },
     );
   }
   return features;

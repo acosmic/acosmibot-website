@@ -43,6 +43,7 @@ export type AdminAiTierLimits = Record<AdminAiTier, {
   monthly_limit: number;
   image_monthly_limit: number;
   image_analysis_monthly_limit: number;
+  image_search_monthly_limit: number;
 }>;
 
 export type AiProvider = 'openai' | 'gemini';
