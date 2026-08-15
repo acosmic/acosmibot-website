@@ -293,7 +293,7 @@ export function WowProfileCard({ data }: { data: WowProfileCardData }) {
             justifyContent: 'space-between',
             marginTop: 18,
             color: '#71808D',
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 700,
             letterSpacing: 1.5,
           }}
@@ -320,18 +320,34 @@ export function WowProfileCard({ data }: { data: WowProfileCardData }) {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 width: 210,
-                height: 67,
-                paddingLeft: 15,
+                height: 90,
+                paddingLeft: 17,
                 boxSizing: 'border-box',
                 borderRight: '1px solid rgba(255,255,255,0.08)',
                 borderBottom: '1px solid rgba(255,255,255,0.08)',
                 backgroundColor: index % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(255,255,255,0.012)',
               }}
             >
-              <div style={{ color: '#8293A0', fontSize: 12, fontWeight: 700, letterSpacing: 0.9 }}>
+              <div
+                style={{
+                  color: '#8293A0',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                  letterSpacing: 0.8,
+                }}
+              >
                 {compact(stat.label.toUpperCase(), 18)}
               </div>
-              <div style={{ color: '#F4FBFF', fontSize: 24, fontWeight: 700, lineHeight: 1.15 }}>
+              <div
+                style={{
+                  color: '#F4FBFF',
+                  fontSize: 34,
+                  fontWeight: 700,
+                  lineHeight: 1.05,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
                 {stat.value}
               </div>
             </div>
