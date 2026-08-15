@@ -98,12 +98,13 @@ export const TRAIT_CATEGORY_OPTIONS: Record<TraitCategory, { label: string; opti
   delivery: { label: 'Delivery', options: [{ value: 'conversational', label: 'Conversational' }, { value: 'sports_commentator', label: 'Sports commentator' }] },
 };
 
-export type AiToolName = 'ai_credit_settings' | 'image_analysis' | 'image_generation' | 'image_search' | 'web_search' | 'docs_search' | 'weather' | 'manage_reminders' | 'server_stats' | 'discord_info' | 'member_memory' | 'emote_info' | 'create_emote' | 'bird_audio' | 'bird_of_the_day' | 'clip_generation';
+export type AiToolName = 'ai_credit_settings' | 'image_analysis' | 'image_generation' | 'image_search' | 'web_search' | 'docs_search' | 'weather' | 'wow_character' | 'manage_reminders' | 'server_stats' | 'discord_info' | 'member_memory' | 'emote_info' | 'create_emote' | 'bird_audio' | 'bird_of_the_day' | 'clip_generation';
 
 export const AI_TOOL_CATALOG: { name: AiToolName; label: string; description: string }[] = [
   { name: 'web_search', label: 'Web Search', description: 'Look up current information on the public web.' },
   { name: 'image_search', label: 'Image Search', description: 'Find an existing image on the live web and attach it to the reply.' },
   { name: 'weather', label: 'Weather', description: 'Fetch live forecasts and weather cards.' },
+  { name: 'wow_character', label: 'WoW Characters', description: 'Look up live Blizzard character profiles, PvP records, and PvE progress.' },
   { name: 'docs_search', label: 'Acosmibot Help', description: 'Ground answers in official feature and command documentation.' },
   { name: 'server_stats', label: 'Server Stats', description: 'Read member, economy, leveling, and game statistics.' },
   { name: 'discord_info', label: 'Discord Info', description: 'Read live channels, roles, events, and member metadata.' },
