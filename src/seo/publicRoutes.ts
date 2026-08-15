@@ -223,6 +223,7 @@ export const DOC_ROUTES = [
   ['custom-commands', 'Discord Custom Commands'],
   ['embeds', 'Discord Embed Builder'],
   ['reminders', 'Discord Reminders'],
+  ['wow', 'World of Warcraft Character Lookups'],
   ['portals', 'Cross-Server Portals'],
   ['polymorph', 'Discord Polymorph'],
   ['jail', 'Discord Jail System'],
@@ -286,6 +287,10 @@ const SPECIAL_DOC_META: Partial<Record<(typeof DOC_ROUTES)[number][0], Pick<SeoM
   economy: {
     title: 'Discord Economy Bot Setup & Commands | Acosmibot Docs',
     description: 'Learn Acosmibot credits, banking, transfers, guild vaults, items, games, Good Deeds, Heat, heists, and economy leaderboards.',
+  },
+  wow: {
+    title: 'WoW Character Lookup Bot for Discord | Acosmibot Docs',
+    description: 'Look up Retail and Classic World of Warcraft characters in Discord with full-body profile cards, combat stats, gear, talents, PvP, raids, and Retail Mythic+ data.',
   },
   commands: {
     title: 'Acosmibot Discord Commands | Complete Command List',

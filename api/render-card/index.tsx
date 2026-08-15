@@ -1,13 +1,14 @@
 /**
  * Azure SWA managed function — renders a card to PNG.
  *
- * Pipeline: card data (JSON body) -> <RankCard> / <WeatherCard> (the SAME
+ * Pipeline: card data (JSON body) -> shared card component (the SAME
  * components the website renders live) -> Satori (SVG, fonts embedded as paths)
  * -> resvg-wasm (PNG). This is the canonical image the Discord bot fetches.
  *
- * One endpoint serves every card type: `card: 'weather'` on the payload selects
- * the weather component, and anything else falls through to the rank card. That
- * keeps a single CARD_RENDER_URL / RENDER_SHARED_SECRET pair in production.
+ * One endpoint serves every card type: `card: 'weather'` and
+ * `card: 'wow-profile'` select their components, while anything else falls
+ * through to the rank card. That keeps a single CARD_RENDER_URL /
+ * RENDER_SHARED_SECRET pair in production.
  *
  * Auth: callers must send the shared secret in `X-Render-Key`, matched against
  * the `RENDER_SHARED_SECRET` app setting. The bot (and, later, a Flask proxy)
@@ -29,7 +30,16 @@ import {
   CARD_WIDTH as WEATHER_WIDTH,
   CARD_HEIGHT as WEATHER_HEIGHT,
 } from '../../src/cards/WeatherCard';
-import type { RankCardData, WeatherCardData } from '../../src/cards/types';
+import {
+  WowProfileCard,
+  CARD_WIDTH as WOW_PROFILE_WIDTH,
+  CARD_HEIGHT as WOW_PROFILE_HEIGHT,
+} from '../../src/cards/WowProfileCard';
+import type {
+  RankCardData,
+  WeatherCardData,
+  WowProfileCardData,
+} from '../../src/cards/types';
 
 // ---- one-time wasm init (per cold start) -----------------------------------
 let wasmReady: Promise<void> | null = null;
@@ -63,23 +73,24 @@ async function loadFonts() {
   return fontsCache;
 }
 
-// SSRF guard: only ever fetch avatars from Discord's CDN over HTTPS. Without
-// this, a leaked/abused shared secret could turn this function into a request
-// proxy against internal Azure endpoints (e.g. the instance metadata service).
+// SSRF guard: each card may fetch only its purpose-specific CDN over HTTPS.
+// Without this, a leaked/abused shared secret could turn this function into a
+// request proxy against internal Azure endpoints (e.g. instance metadata).
 const ALLOWED_AVATAR_HOSTS = new Set(['cdn.discordapp.com', 'media.discordapp.net']);
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const ALLOWED_WOW_RENDER_HOSTS = new Set(['render.worldofwarcraft.com']);
+const MAX_REMOTE_IMAGE_BYTES = 8 * 1024 * 1024;
 
-function isAllowedAvatarUrl(raw: string): boolean {
+function isAllowedImageUrl(raw: string, allowedHosts: Set<string>): boolean {
   try {
     const u = new URL(raw);
-    return u.protocol === 'https:' && ALLOWED_AVATAR_HOSTS.has(u.hostname);
+    return u.protocol === 'https:' && allowedHosts.has(u.hostname);
   } catch {
     return false;
   }
 }
 
-// Satori needs the avatar bytes, not a bare URL — inline it as a data URI.
-async function avatarToDataUri(url: string): Promise<string> {
+// Satori needs remote image bytes, not a bare URL — inline them as a data URI.
+async function imageToDataUri(url: string): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);
   try {
@@ -92,10 +103,10 @@ async function avatarToDataUri(url: string): Promise<string> {
     if (!/^image\//i.test(contentType)) throw new Error('avatar is not an image');
 
     const declaredLen = Number(res.headers.get('content-length') || 0);
-    if (declaredLen && declaredLen > MAX_AVATAR_BYTES) throw new Error('avatar too large');
+    if (declaredLen && declaredLen > MAX_REMOTE_IMAGE_BYTES) throw new Error('image too large');
 
     const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > MAX_AVATAR_BYTES) throw new Error('avatar too large');
+    if (buf.length > MAX_REMOTE_IMAGE_BYTES) throw new Error('image too large');
 
     return `data:${contentType};base64,${buf.toString('base64')}`;
   } finally {
@@ -107,9 +118,9 @@ async function renderPng(data: RankCardData): Promise<Buffer> {
   // Resolve the avatar to a data URI; on any failure fall back to no avatar
   // (the component draws a gray circle instead).
   let avatarUrl = '';
-  if (data.avatarUrl && isAllowedAvatarUrl(data.avatarUrl)) {
+  if (data.avatarUrl && isAllowedImageUrl(data.avatarUrl, ALLOWED_AVATAR_HOSTS)) {
     try {
-      avatarUrl = await avatarToDataUri(data.avatarUrl);
+      avatarUrl = await imageToDataUri(data.avatarUrl);
     } catch {
       avatarUrl = '';
     }
@@ -139,6 +150,38 @@ async function renderWeatherPng(data: WeatherCardData): Promise<Buffer> {
 
   await ensureWasm();
   const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: WEATHER_WIDTH } });
+  return Buffer.from(resvg.render().asPng());
+}
+
+async function renderWowProfilePng(data: WowProfileCardData): Promise<Buffer> {
+  let characterImageUrl = '';
+  if (
+    data.characterImageUrl &&
+    isAllowedImageUrl(data.characterImageUrl, ALLOWED_WOW_RENDER_HOSTS)
+  ) {
+    try {
+      characterImageUrl = await imageToDataUri(data.characterImageUrl);
+    } catch {
+      characterImageUrl = '';
+    }
+  }
+
+  if (!characterImageUrl) throw new Error('WoW character render unavailable');
+
+  const fonts = await loadFonts();
+  const svg = await satori(
+    <WowProfileCard data={{ ...data, characterImageUrl }} />,
+    {
+      width: WOW_PROFILE_WIDTH,
+      height: WOW_PROFILE_HEIGHT,
+      fonts,
+    },
+  );
+
+  await ensureWasm();
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: 'width', value: WOW_PROFILE_WIDTH },
+  });
   return Buffer.from(resvg.render().asPng());
 }
 
@@ -191,6 +234,44 @@ function isValidWeather(data: unknown): data is WeatherCardData {
   );
 }
 
+function isValidWowProfile(data: unknown): data is WowProfileCardData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    d.card === 'wow-profile' &&
+    typeof d.characterName === 'string' &&
+    typeof d.realmName === 'string' &&
+    typeof d.region === 'string' &&
+    typeof d.versionLabel === 'string' &&
+    typeof d.level === 'number' &&
+    typeof d.race === 'string' &&
+    typeof d.characterClass === 'string' &&
+    typeof d.faction === 'string' &&
+    typeof d.guildName === 'string' &&
+    typeof d.itemLevel === 'number' &&
+    typeof d.isRetail === 'boolean' &&
+    typeof d.activeSpec === 'string' &&
+    typeof d.characterImageUrl === 'string' &&
+    Array.isArray(d.stats) &&
+    d.stats.every(
+      (stat) =>
+        !!stat &&
+        typeof stat === 'object' &&
+        typeof (stat as Record<string, unknown>).label === 'string' &&
+        typeof (stat as Record<string, unknown>).value === 'string',
+    ) &&
+    Array.isArray(d.talents) &&
+    d.talents.every(
+      (talent) =>
+        !!talent &&
+        typeof talent === 'object' &&
+        typeof (talent as Record<string, unknown>).name === 'string' &&
+        typeof (talent as Record<string, unknown>).points === 'number',
+    ) &&
+    typeof d.footer === 'string'
+  );
+}
+
 function secretsMatch(provided: unknown, expected: string): boolean {
   if (typeof provided !== 'string') return false;
   const a = Buffer.from(provided);
@@ -212,6 +293,28 @@ export async function run(context: any, req: any): Promise<void> {
   const data = parseBody(req);
   const wantsWeather =
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'weather';
+  const wantsWowProfile =
+    !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'wow-profile';
+
+  if (wantsWowProfile) {
+    if (!isValidWowProfile(data)) {
+      context.res = { status: 400, body: 'Invalid WoW profile card payload' };
+      return;
+    }
+    try {
+      const png = await renderWowProfilePng(data);
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
+        body: png,
+        isRaw: true,
+      };
+    } catch (err) {
+      context.log?.error?.('WoW profile card render failed', err);
+      context.res = { status: 500, body: 'Render failed' };
+    }
+    return;
+  }
 
   if (wantsWeather) {
     if (!isValidWeather(data)) {

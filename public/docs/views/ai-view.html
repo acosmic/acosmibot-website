@@ -35,6 +35,25 @@
   </section>
 
   <section class="docs-section">
+    <h2>Live World of Warcraft Tool</h2>
+    <p>
+      Mention Acosmibot and ask for a named World of Warcraft character's profile, PvP record, or PvE progress. Include the character, realm, region, and exact game product, such as <code>@Acosmibot look up Biitti on Spineshatter EU Anniversary</code>. When “Classic” is ambiguous, Acosmibot asks whether you mean progression, Era/Hardcore, or Anniversary instead of searching the wrong profile namespace.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>Grounded Blizzard results</h3>
+      <ul>
+        <li>Profile requests receive the same visual character card and requester-only Overview, Gear, and Talents pages as <code>/wow profile</code>.</li>
+        <li>A missing full-body render or card-service problem falls back to the complete profile embed.</li>
+        <li>PvP and PvE answers use only the sections Blizzard returns; Classic results may be partial and Mythic+ is Retail-only.</li>
+        <li>The WoW tool is available on every plan with normal foreground AI chat, can be disabled by a server manager, and is never used for ambient replies.</li>
+      </ul>
+    </div>
+    <p>
+      See the <a href="/docs/wow" onclick="event.preventDefault(); window.DocsRouter.navigate('wow')">World of Warcraft character guide</a> for supported products, regions, commands, data coverage, and troubleshooting.
+    </p>
+  </section>
+
+  <section class="docs-section">
     <h2>AI Credits and DMs</h2>
     <p>
       Included daily and monthly quota is always checked first. If the server enables paid overage, a request may use the guild wallet and then a member's personal wallet only when the server policy, member policy, and per-guild consent all allow it. A request uses one complete wallet; credits are never split between wallets.

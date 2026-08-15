@@ -73,6 +73,16 @@ test('documentation reflects current commercial and product contracts', () => {
   const ai = readDoc('ai');
   assert.doesNotMatch(ai, /Admins can configure a server-wide daily interaction cap/i);
   assert.doesNotMatch(ai, /GPT-4o|DALL-E|GPT-4 Vision/i);
+  assert.match(ai, /World of Warcraft/i);
+  assert.match(ai, /same visual character card/i);
+
+  const wow = readDoc('wow');
+  assert.match(wow, /\/wow profile/);
+  assert.match(wow, /Classic Anniversary/);
+  assert.match(wow, /full-body character card/i);
+  assert.match(wow, /partial/i);
+
+  assert.match(commands, /\/wow profile/);
 });
 
 test('feature landing routes expose substantial, interlinked product detail', () => {

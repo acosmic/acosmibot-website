@@ -106,3 +106,37 @@ export interface WeatherCardDay {
   /** Formatted low, e.g. "88°F". */
   low: string;
 }
+
+/** JSON contract for the rendered World of Warcraft profile overview. */
+export interface WowProfileCardData {
+  /** Selects <WowProfileCard> in the shared render function. */
+  card: 'wow-profile';
+  characterName: string;
+  realmName: string;
+  region: string;
+  versionLabel: string;
+  level: number;
+  race: string;
+  characterClass: string;
+  faction: string;
+  guildName: string;
+  itemLevel: number;
+  /** Retail uses its active specialization; Classic uses tree-point totals. */
+  isRetail: boolean;
+  activeSpec: string;
+  /** Blizzard's HTTPS `main-raw` render; inlined by the server before Satori. */
+  characterImageUrl: string;
+  stats: WowProfileStat[];
+  talents: WowProfileTalent[];
+  footer: string;
+}
+
+export interface WowProfileStat {
+  label: string;
+  value: string;
+}
+
+export interface WowProfileTalent {
+  name: string;
+  points: number;
+}

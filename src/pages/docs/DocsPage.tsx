@@ -78,6 +78,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'custom-commands',   label: 'Custom Commands', icon: Settings },
       { slug: 'embeds',            label: 'Better Embeds', icon: FileText },
       { slug: 'reminders',         label: 'Reminders', icon: AlarmClock },
+      { slug: 'wow',               label: 'World of Warcraft', icon: Shield },
     ],
   },
   {

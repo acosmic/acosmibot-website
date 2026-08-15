@@ -1,0 +1,157 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>World of Warcraft Characters</h1>
+    <p class="docs-page-description">
+      Look up Retail and Classic characters in Discord with Blizzard-grounded profile cards, combat stats, gear, talents, PvP records, raids, and available Mythic+ data.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Acosmibot reads character data from Blizzard's Profile API. Use the <code>/wow</code> command group for a structured lookup, or mention Acosmibot and ask naturally. WoW lookups are available on every plan and have no separate premium charge; a natural-language request still uses the normal AI-chat allowance.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>What a profile includes</h3>
+      <ul>
+        <li>A visual full-body character card when Blizzard provides its transparent character render</li>
+        <li>Identity, realm, region, product, guild, item level, available combat stats, and build</li>
+        <li>Requester-only Overview, Gear, and Talents controls that remain active for five minutes</li>
+        <li>A complete profile-embed fallback when full-body media or the card renderer is unavailable</li>
+        <li>Clear partial-result labels when a Classic endpoint omits optional sections</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/wow profile &lt;character&gt; &lt;realm&gt; [version] [region]</div>
+        <div class="command-description">
+          Show the character overview. The card uses Blizzard's full-body render when available, while requester-only buttons open equipped gear and ranked talents and can restore the original card without another lookup.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/wow profile character:Biitti realm:Spineshatter version:Classic Anniversary / TBC Anniversary region:EU</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/wow pvp &lt;character&gt; &lt;realm&gt; [version] [region]</div>
+        <div class="command-description">
+          Show the PvP summary and any 2v2, 3v3, or rated-battleground brackets Blizzard exposes for that character and product.
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/wow pve &lt;character&gt; &lt;realm&gt; [version] [region]</div>
+        <div class="command-description">
+          Show available equipment and raid progress. Retail also requests the character's Mythic+ profile index.
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Retail/Live and US are the defaults. Character and realm are required. Choose the exact version and region whenever those defaults do not identify the character.
+    </p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Ask Acosmibot Naturally</h2>
+    <p>
+      Mention Acosmibot with the same identity details you would provide to the slash command. Natural-language profile requests receive the same visual card and interactive pages.
+    </p>
+    <div class="command-examples">
+      <h4>Examples:</h4>
+      <code>@Acosmibot look up Biitti on Spineshatter EU Anniversary</code>
+      <code>@Acosmibot show the PvP record for Acosmic on Illidan US Retail</code>
+      <code>@Acosmibot what raid progress does this character have on Classic Era?</code>
+    </div>
+    <div class="info-card info-card-info">
+      <h3>AI tool controls</h3>
+      <p>
+        Natural-language lookup uses the server-controlled WoW Characters AI tool. Managers can disable that tool independently without disabling ordinary <code>/wow</code> commands. The tool is foreground-only and is never called speculatively for ambient replies.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Versions and Regions</h2>
+    <p>A character name and realm are not globally unique. Acosmibot searches one explicit Blizzard product namespace rather than probing every version and risking the wrong same-named character.</p>
+    <table class="docs-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Use It For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Retail / Live</strong></td>
+          <td>Modern World of Warcraft, including available Mythic+ profile data</td>
+        </tr>
+        <tr>
+          <td><strong>Classic progression</strong></td>
+          <td>The current progression Classic product</td>
+        </tr>
+        <tr>
+          <td><strong>Classic Era / Hardcore</strong></td>
+          <td>Era, Hardcore, and vanilla-style profiles</td>
+        </tr>
+        <tr>
+          <td><strong>Classic Anniversary / TBC Anniversary</strong></td>
+          <td>Anniversary realms and their Burning Crusade progression</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Supported regions are US, EU, Korea, and Taiwan. If “Classic” could refer to more than one product, Acosmibot asks which one you mean.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Available Blizzard Data</h2>
+    <p>The character summary is required. Depending on the product and profile, Blizzard may also return:</p>
+    <ul>
+      <li>race, class, faction, level, guild, achievement points, specialization, and item level;</li>
+      <li>health, power, armor, primary attributes, and physical, ranged, or spell statistics;</li>
+      <li>equipped items and specialization or Classic talent-tree data;</li>
+      <li>avatar and transparent full-body character media;</li>
+      <li>PvP summary and rated brackets, raid progress, and Retail Mythic+ profile data.</li>
+    </ul>
+    <div class="info-card info-card-warning">
+      <h3>Classic profiles can be partial</h3>
+      <p>
+        Retail generally exposes the broadest profile. Classic products may omit equipment, statistics, talent details, rated brackets, raids, or full-body media. Acosmibot disables unavailable pages and labels the result as partial instead of inventing missing values.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Refresh Timing and Troubleshooting</h2>
+    <div class="faq-item">
+      <h4>Q: Why does my profile look out of date?</h4>
+      <p>A: Blizzard profile data can lag until the character logs out. Acosmibot can only show what Blizzard currently returns.</p>
+    </div>
+    <div class="faq-item">
+      <h4>Q: Why was my character not found?</h4>
+      <p>A: Verify the character name, realm, region, and exact game product. The same name and realm can resolve differently across Blizzard's product namespaces.</p>
+    </div>
+    <div class="faq-item">
+      <h4>Q: Why is a page or statistic missing?</h4>
+      <p>A: Blizzard may not expose that optional section for the selected product or character yet. Missing data is disclosed rather than estimated.</p>
+    </div>
+  </section>
+
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('reminders')">
+      <span class="arrow">←</span>
+      <span class="nav-label">Back</span>
+      <span class="nav-page">Reminders</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('portals')">
+      <span class="nav-page">Cross-Server Portals</span>
+      <span class="nav-label">Next</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</div>
