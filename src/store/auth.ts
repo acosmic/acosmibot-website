@@ -39,7 +39,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     isAuthReady: true,
     isAuthenticated: !!user,
   }),
-  setChecking: () => set({ status: 'checking', isAuthReady: false }),
+  // `isAuthReady` means the initial session check has completed at least once.
+  // Keep that readiness (and the mounted authenticated UI) during later,
+  // background revalidation such as returning to an existing browser tab.
+  setChecking: () => set({ status: 'checking' }),
   setAnonymous: () => set({
     user: null,
     status: 'anonymous',

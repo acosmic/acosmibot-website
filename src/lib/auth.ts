@@ -33,20 +33,31 @@ export const refreshSession = (): Promise<boolean> => {
   if (refreshPromise) return refreshPromise;
 
   const { setChecking, setUser, setAnonymous } = useAuthStore.getState();
+  const existingUser = useAuthStore.getState().user;
+  const keepExistingSession = (): boolean => {
+    if (!existingUser) {
+      setAnonymous();
+      return false;
+    }
+    setUser(existingUser);
+    return true;
+  };
+
   setChecking();
   refreshPromise = fetch(`${apiBase()}/auth/me`, { credentials: 'include' })
     .then(async (response) => {
-      if (!response.ok) {
+      if (response.status === 401) {
         setAnonymous();
         return false;
       }
+      // A temporary API or network failure is not proof that the HttpOnly
+      // session expired. Preserve an already authenticated workspace so a
+      // background check cannot destroy an in-progress form.
+      if (!response.ok) return keepExistingSession();
       setUser(await response.json());
       return true;
     })
-    .catch(() => {
-      setAnonymous();
-      return false;
-    })
+    .catch(keepExistingSession)
     .finally(() => {
       refreshPromise = null;
     });
