@@ -94,6 +94,21 @@ export interface ModerationConfig {
   };
 }
 
+export interface JailConfig {
+  enabled: boolean;
+  channel_id: string | null;
+  trigger_emoji: string;
+  required_votes: number;
+  vote_window_seconds: number;
+  sentence_minutes: number;
+  target_cooldown_minutes: number;
+  allowed_channel_ids: string[];
+  protected_role_ids: string[];
+  mod_log_channel_id: string | null;
+  /** Preserve forward-compatible server settings when a newer bot adds them. */
+  [key: string]: unknown;
+}
+
 export interface UpdateModerationConfigRequest {
   moderation?: Partial<ModerationConfig>;
 }

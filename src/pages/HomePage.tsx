@@ -225,8 +225,8 @@ const FEATURES: Feature[] = [
     Icon: Sparkles,
     x: 46,
     y: 92,
-    description: 'Turn controlled community chaos into a system with cross-server portals, Polymorph nickname swaps, and the server jail.',
-    bullets: ['Cross-server portals and community discovery', 'Bidirectional portal messages', 'Temporary Polymorph nickname swaps', 'Credit-gated jail and bailout mechanics', 'Jailmail messages to and from the jail'],
+    description: 'Turn controlled community chaos into a system with cross-server portals, Polymorph nickname swaps, and reaction-ballot confinement.',
+    bullets: ['Cross-server portals and community discovery', 'Bidirectional portal messages', 'Temporary Polymorph nickname swaps', 'Reaction ballots with one edited tracker', 'Automatic release with member-specific restoration'],
   },
 ];
 

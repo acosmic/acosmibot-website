@@ -1245,6 +1245,19 @@
   border-block: 1px solid var(--border-light);
 }
 
+.ai-safety-options {
+  min-inline-size: 0;
+  padding: 0;
+  border-inline: 0;
+}
+
+.ai-safety-options legend {
+  float: none;
+  width: auto;
+  padding: 0;
+  color: var(--text-primary);
+}
+
 .ai-tool-row {
   display: flex;
   align-items: center;

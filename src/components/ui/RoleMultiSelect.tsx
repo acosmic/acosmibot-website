@@ -8,6 +8,7 @@ interface RoleMultiSelectProps {
   label?: string;
   /** Hint shown while no roles are selected */
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
@@ -15,11 +16,13 @@ export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
   value,
   onChange,
   label,
-  placeholder = 'No roles selected — choose from the list below'
+  placeholder = 'No roles selected — choose from the list below',
+  disabled = false,
 }) => {
   const { data: roles, isLoading } = useGuildRoles(guildId);
 
   const toggleRole = (roleId: string) => {
+    if (disabled) return;
     if (value.includes(roleId)) {
       onChange(value.filter(id => id !== roleId));
     } else {
@@ -32,6 +35,7 @@ export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
       {label && <label className="form-label mb-2 d-block">{label}</label>}
       {/* Selected-roles summary — deliberately not styled as an input; selection happens in the list below */}
       <div
+        aria-disabled={disabled || undefined}
         style={{
           minHeight: '38px',
           display: 'flex',
@@ -79,13 +83,15 @@ export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
             <div 
               key={role.id} 
               className="p-2 d-flex align-items-center gap-2" 
-              style={{ cursor: 'pointer', borderBottom: '1px solid var(--border-light)' }}
+              aria-disabled={disabled || undefined}
+              style={{ cursor: disabled ? 'not-allowed' : 'pointer', borderBottom: '1px solid var(--border-light)', opacity: disabled ? 0.6 : 1 }}
               onClick={() => toggleRole(role.id)}
             >
               <input 
                 type="checkbox" 
                 checked={value.includes(role.id)} 
                 readOnly 
+                disabled={disabled}
               />
               <span style={{ color: role.color ? `#${role.color.toString(16).padStart(6, '0')}` : 'inherit' }}>
                 @{role.name}

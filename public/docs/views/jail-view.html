@@ -2,15 +2,15 @@
   <header class="docs-page-header">
     <h1>Jail System</h1>
     <p class="docs-page-description">
-      Temporarily restrict members to a designated jail channel — a lightweight moderation tool for cooling down situations without a full ban or kick.
+      An opt-in reaction-ballot Chaos feature that temporarily confines eligible members to one configured channel without replacing Discord's formal moderation tools.
     </p>
   </header>
 
   <section class="docs-section">
-    <div class="info-card info-card-warning">
-      <h3>⚠️ Feature Currently Unavailable</h3>
+    <div class="info-card info-card-info">
+      <h3>Opt-in reaction ballots</h3>
       <p>
-        The Jail system is currently disabled while it undergoes improvements. The commands documented below are not active at this time. This page reflects the planned behavior for when the feature returns. Check back or join the <a href="https://discord.gg/hrj7WhCyEv" target="_blank">support server</a> for updates.
+        Jail is configured per server from the dashboard. An administrator chooses the trigger reaction, vote threshold, ballot window, eligible channels, protected roles, sentence duration, and optional mod-log channel. The feature is disabled by default.
       </p>
     </div>
   </section>
@@ -18,18 +18,19 @@
   <section class="docs-section">
     <h2>Overview</h2>
     <p>
-      The Jail system gives moderators a middle-ground option between a warning and a kick. When a member is jailed, they lose access to all regular server channels and are confined to a designated <strong>#jail</strong> channel for the duration of the sentence. Once the time expires — or a moderator releases them early — full access is automatically restored.
+      A qualifying reaction opens one durable ballot, and later reaction changes edit the same tracker embed. When the threshold is reached, the target loses access to regular server channels and is confined to the configured Jail channel for the sentence. Once the time expires — or a moderator releases them early — only Jail-touched permission fields are restored.
     </p>
 
     <div class="info-card info-card-info">
       <h3>Key Features</h3>
       <ul>
         <li>Temporarily restrict members to a single #jail channel</li>
-        <li>Set a custom duration per sentence — seconds to days</li>
+        <li>Set a sentence from 1 minute to 7 days</li>
         <li>Automatic release when the timer expires</li>
-        <li>Moderators can release members early with <code>/unjail</code></li>
+        <li>Moderators can send, release, list, and inspect cases</li>
         <li>The jailed member can still read and send messages in the jail channel</li>
-        <li>Full channel access is restored automatically on release</li>
+        <li>Member-specific permission snapshots restore access safely</li>
+        <li>Owners, administrators, bots, webhooks, and protected roles are immune</li>
       </ul>
     </div>
   </section>
@@ -39,37 +40,43 @@
 
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/jail &lt;user&gt; &lt;duration&gt; [reason]</div>
+        <div class="command-signature">/jail send &lt;member&gt; [duration_minutes] [reason]</div>
         <div class="command-description">
-          Restrict the target member to the jail channel for the specified duration. The member immediately loses access to all other channels. An optional reason can be provided and will be logged. Requires Moderator or Administrator permissions.
+          Manually confine a member using the configured Jail channel and permission checks. Requires Manage Guild or Moderate Members at runtime.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
-          <code>/jail @username 10m</code>
-          <code>/jail @username 1h Spamming in #general</code>
-          <code>/jail @username 1d Repeated rule violations</code>
+          <code>/jail send @username 30 Spamming in #general</code>
+          <code>/jail send @username 1440 Repeated rule violations</code>
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/unjail &lt;user&gt;</div>
+        <div class="command-signature">/jail status [member]</div>
         <div class="command-description">
-          Release a jailed member before their sentence expires. Their channel access is restored immediately. Requires Moderator or Administrator permissions.
-        </div>
-        <div class="command-examples">
-          <h4>Example:</h4>
-          <code>/unjail @username</code>
+          Inspect one member or privately list active cases and release times.
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/jaillist</div>
+        <div class="command-signature">/jail release &lt;member&gt; [reason]</div>
         <div class="command-description">
-          View all currently jailed members in the server, including how much time remains on each sentence. Requires Moderator or Administrator permissions.
+          Release a jailed member before their sentence expires and restore only the permissions Jail changed.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/jaillist</code>
+          <code>/jail release @username</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/jail list</div>
+        <div class="command-description">
+          View active cases and remaining sentence time privately.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/jail list</code>
         </div>
       </div>
     </div>
@@ -78,7 +85,7 @@
   <section class="docs-section">
     <h2>Setup</h2>
     <p>
-      Before using the Jail system, a server admin needs to designate the jail channel and configure the jail role in the server dashboard.
+      Before using the Jail system, a server admin needs to configure the Jail channel, trigger, ballot safeguards, protected roles, and sentence in the Jail dashboard surface.
     </p>
 
     <div class="config-steps">
@@ -86,28 +93,28 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h3>Create a #jail channel</h3>
-          <p>Create a dedicated channel (e.g. <strong>#jail</strong>) where jailed members will be confined. This channel should be visible only to jailed members, moderators, and the bot.</p>
+          <p>Create a dedicated text channel where jailed members will be confined. The bot applies member-specific overwrites when a case starts.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-number">2</div>
         <div class="step-content">
           <h3>Configure in the dashboard</h3>
-          <p>Open the <a href="/servers" target="_blank">/server dashboard</a>, navigate to the Moderation section, and select your jail channel. Acosmibot will automatically manage the jail role and channel permissions from here.</p>
+          <p>Open the <a href="/servers" target="_blank">/server dashboard</a>, open Chaos → Jail, and select the channel, trigger emoji, vote settings, protected roles, and sentence controls.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-number">3</div>
         <div class="step-content">
           <h3>Verify bot permissions</h3>
-          <p>Ensure Acosmibot has <strong>Manage Roles</strong> and <strong>Manage Channels</strong> permissions. These are required to assign the jail role and override channel access for jailed members.</p>
+          <p>Ensure Acosmibot can view, send, and read history in the source and Jail channels, and has <strong>Manage Roles</strong>. Connected voice targets also require <strong>Move Members</strong>.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-number">4</div>
         <div class="step-content">
-          <h3>Start jailing</h3>
-          <p>Moderators can now use <code>/jail @member &lt;duration&gt;</code>. The bot handles all role assignment and permission overrides automatically.</p>
+          <h3>Start a case</h3>
+          <p>Members can react with the configured emoji in an eligible channel. Moderators can use <code>/jail send</code> for a direct case.</p>
         </div>
       </div>
     </div>
@@ -116,24 +123,23 @@
   <section class="docs-section">
     <h2>How It Works Technically</h2>
     <p>
-      When a member is jailed, Acosmibot assigns them a <strong>Jailed</strong> role. This role uses Discord channel permission overrides to deny access to all regular channels while allowing read and write access to the designated jail channel. On release — automatic or manual — the role is removed and all access is restored to normal.
+      When a member is jailed, Acosmibot uses member-specific Discord channel permission overwrites to deny access to regular channels while allowing the configured Jail channel. On release — automatic or manual — the saved tri-state fields are restored without replacing unrelated administrator changes.
     </p>
 
     <div class="info-card">
       <h3>Permission Flow</h3>
       <ul>
-        <li>Bot assigns the <strong>Jailed</strong> role to the member</li>
-        <li>The Jailed role denies <code>View Channel</code> on all regular channels via role permissions</li>
-        <li>The jail channel explicitly allows <code>View Channel</code> and <code>Send Messages</code> for the Jailed role</li>
-        <li>When released, the Jailed role is removed and access returns to normal</li>
+        <li>Member-specific overwrites deny <code>View Channel</code> on regular channels</li>
+        <li>The jail channel explicitly allows <code>View Channel</code> and <code>Send Messages</code> for the jailed member</li>
+        <li>When released, the saved Jail fields are restored without replacing unrelated permissions</li>
       </ul>
     </div>
 
     <div class="info-card info-card-warning">
-      <h3>Role Hierarchy Requirement</h3>
+      <h3>Permission and immunity notes</h3>
       <ul>
-        <li>Acosmibot's role must be positioned <strong>above</strong> the Jailed role in the server role list</li>
-        <li>Acosmibot cannot jail members whose highest role is ranked above the bot's role</li>
+        <li>Acosmibot needs <strong>Manage Roles</strong> to edit member-specific channel overwrites</li>
+        <li>Connected voice members additionally require <strong>Move Members</strong></li>
         <li>Server owners cannot be jailed</li>
         <li>Admins with "Administrator" permission may bypass the jail channel restriction — consider this when structuring roles</li>
       </ul>
@@ -141,9 +147,9 @@
   </section>
 
   <section class="docs-section">
-    <h2>Duration Reference</h2>
+    <h2>Sentence duration reference</h2>
     <p>
-      Jail durations use the same flexible time format as the Reminders system.
+      Dashboard sentence durations are configured in whole minutes, from 1 minute through 7 days.
     </p>
 
     <table class="docs-table">
@@ -155,27 +161,27 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>30s</code></td>
-          <td>30 seconds</td>
+          <td><code>1</code></td>
+          <td>1 minute</td>
         </tr>
         <tr>
-          <td><code>10m</code></td>
+          <td><code>10</code></td>
           <td>10 minutes</td>
         </tr>
         <tr>
-          <td><code>1h</code></td>
+          <td><code>60</code></td>
           <td>1 hour</td>
         </tr>
         <tr>
-          <td><code>1h30m</code></td>
+          <td><code>90</code></td>
           <td>1 hour 30 minutes</td>
         </tr>
         <tr>
-          <td><code>1d</code></td>
+          <td><code>1440</code></td>
           <td>1 day</td>
         </tr>
         <tr>
-          <td><code>7d</code></td>
+          <td><code>10080</code></td>
           <td>7 days (1 week)</td>
         </tr>
       </tbody>
@@ -191,7 +197,7 @@
         <li>Always include a reason so both the member and your mod team understand the context</li>
         <li>Use short durations (10–60 minutes) for first offenses or minor disruptions</li>
         <li>Reserve longer sentences for repeat offenders or more serious violations</li>
-        <li>Check <code>/jaillist</code> regularly so no one is accidentally left jailed past their intended sentence</li>
+        <li>Check <code>/jail list</code> regularly so no one is accidentally left jailed past their intended sentence</li>
         <li>Consider posting a pinned message in #jail explaining the process and what the member needs to do to be released</li>
       </ul>
     </div>
@@ -226,12 +232,12 @@
 
     <div class="faq-item">
       <h4>Q: Can I jail someone who already has a role higher than mine?</h4>
-      <p>A: No. Discord's role hierarchy prevents the bot from assigning roles to members who outrank the bot in the role list. Reorder the bot's role above the target's highest role in Server Settings → Roles to resolve this.</p>
+      <p>A: Owners, administrators, and members with configured protected roles are immune to reaction ballots. A direct moderator send still performs the same safety checks.</p>
     </div>
 
     <div class="faq-item">
       <h4>Q: Is there a mod log for jail actions?</h4>
-      <p>A: Yes, if you have a mod log channel configured in the dashboard, all jail and unjail actions are logged there with the moderator's name, target, duration, and reason.</p>
+      <p>A: Yes, if you have a mod-log channel configured in the dashboard, Jail events can be recorded there with the target, duration, and reason.</p>
     </div>
   </section>
 

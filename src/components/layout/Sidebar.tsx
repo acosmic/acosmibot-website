@@ -202,7 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <NavSection title="Chaos">
                 <NavItem to={`/server/${guildId}/polymorph`} icon={Shuffle} label="Polymorph" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/portals`} icon={Orbit} label="Portals" status="soon" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/jail`} icon={LockKeyhole} label="Jail" status="soon" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/jail`} icon={LockKeyhole} label="Jail" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Games">

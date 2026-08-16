@@ -652,6 +652,39 @@ export const AiPage: React.FC = () => {
 
       <CollapsibleSection title="AI Tools" defaultOpen={false}>
         <p className="ai-control-intro">Each switch filters the tool out before model planning and is checked again before execution. Slash commands remain available.</p>
+        <fieldset className="ai-tool-matrix ai-safety-options mb-4">
+          <legend className="form-label mb-2">Generated-image safety</legend>
+          <label className="ai-tool-row">
+            <span>
+              <strong>Standard filtering</strong>
+              <small>OpenAI's default image safety setting. Recommended for most servers.</small>
+            </span>
+            <input
+              type="radio"
+              name="image_moderation"
+              value="auto"
+              checked={form.image_moderation === 'auto'}
+              onChange={() => setForm({ image_moderation: 'auto' })}
+            />
+          </label>
+          <label className="ai-tool-row">
+            <span>
+              <strong>Reduced filtering in age-restricted channels</strong>
+              <small>
+                Requests use OpenAI's less restrictive mode only in Discord channels marked
+                age-restricted. Standard filtering still applies everywhere else and to ambient images.
+                OpenAI may still reject explicit content.
+              </small>
+            </span>
+            <input
+              type="radio"
+              name="image_moderation"
+              value="low"
+              checked={form.image_moderation === 'low'}
+              onChange={() => setForm({ image_moderation: 'low' })}
+            />
+          </label>
+        </fieldset>
         <div className="ai-tool-matrix">
           {AI_TOOL_CATALOG.map(tool => (
             <label key={tool.name} className="ai-tool-row">

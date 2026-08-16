@@ -11,6 +11,7 @@ interface ChannelMultiSelectProps {
   placeholder?: string;
   maxSelections?: number;
   error?: string;
+  excludeIds?: string[];
 }
 
 type DropdownStyle = React.CSSProperties & Record<`--${string}`, string>;
@@ -39,8 +40,10 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
   placeholder = 'Select channels...',
   maxSelections,
   error,
+  excludeIds = [],
 }) => {
   const { data: channels, isLoading } = useGuildChannels(guildId);
+  const visibleChannels = channels?.filter((channel) => !excludeIds.includes(channel.id));
   const [open, setOpen] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<DropdownStyle>({});
   const containerRef = useRef<HTMLDivElement>(null);
@@ -168,7 +171,7 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
           {error}
         </div>
       )}
-      {open && channels && channels.length > 0 && createPortal(
+      {open && visibleChannels && visibleChannels.length > 0 && createPortal(
         <div
           id={`${inputId}-listbox`}
           ref={dropdownRef}
@@ -201,7 +204,7 @@ export const ChannelMultiSelect: React.FC<ChannelMultiSelectProps> = ({
             }
           }}
         >
-          {channels.map(ch => {
+          {visibleChannels.map(ch => {
             const selected = value.includes(ch.id);
             const atLimit = (
               !selected

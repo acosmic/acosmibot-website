@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, Outlet, useParams, useNavigate } from 'react-router-dom';
 import { Suspense, useEffect } from 'react';
-import { LoaderCircle, Lock, Orbit, Ticket } from 'lucide-react';
+import { LoaderCircle, Orbit, Ticket } from 'lucide-react';
 import { ComingSoonPage } from './components/ui/ComingSoonPage';
 import type { Platform } from './api/streaming';
 import { useAuthStore } from './store/auth';
@@ -16,6 +16,7 @@ const StreamPlatformFeature = lazyRoute(() => import('./features/streaming/Strea
 const OverviewPage = lazyRoute(() => import('./features/overview/OverviewPage').then(module => ({ default: module.OverviewPage })));
 const CustomCommandsPage = lazyRoute(() => import('./features/custom-commands/CustomCommandsPage').then(module => ({ default: module.CustomCommandsPage })));
 const ModerationPage = lazyRoute(() => import('./features/moderation/ModerationPage').then(module => ({ default: module.ModerationPage })));
+const JailPage = lazyRoute(() => import('./features/jail/JailPage').then(module => ({ default: module.JailPage })));
 const BannedUsersPage = lazyRoute(() => import('./features/banned-users/BannedUsersPage').then(module => ({ default: module.BannedUsersPage })));
 const AiPage = lazyRoute(() => import('./features/ai/AiPage').then(module => ({ default: module.AiPage })));
 const GamesPage = lazyRoute(() => import('./features/games/GamesPage').then(module => ({ default: module.GamesPage })));
@@ -183,14 +184,7 @@ const FeatureOutlet = () => {
   }
 
   if (feature === 'jail') {
-    return (
-      <ComingSoonPage
-        title="Jail System"
-        description="Punish misbehaving members"
-        icon={Lock}
-        detail="The Jail System will let moderators send users to a restricted channel where messages cost credits to send."
-      />
-    );
+    return <JailPage />;
   }
 
   if (feature === 'lottery') {

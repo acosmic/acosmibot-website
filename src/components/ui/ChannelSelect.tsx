@@ -7,6 +7,7 @@ interface ChannelSelectProps {
   onChange: (value: string | null) => void;
   label?: string;
   placeholder?: string;
+  channelTypes?: number[];
 }
 
 export const ChannelSelect: React.FC<ChannelSelectProps> = ({
@@ -14,9 +15,11 @@ export const ChannelSelect: React.FC<ChannelSelectProps> = ({
   value,
   onChange,
   label,
-  placeholder = 'Select a channel...'
+  placeholder = 'Select a channel...',
+  channelTypes = [0, 5],
 }) => {
   const { data: channels, isLoading } = useGuildChannels(guildId);
+  const visibleChannels = channels?.filter((channel) => channelTypes.includes(channel.type));
 
   return (
     <div className="form-group mb-3">
@@ -28,7 +31,7 @@ export const ChannelSelect: React.FC<ChannelSelectProps> = ({
         disabled={isLoading}
       >
         <option value="">{isLoading ? 'Loading channels...' : placeholder}</option>
-        {channels?.map((channel) => (
+        {visibleChannels?.map((channel) => (
           <option key={channel.id} value={channel.id}>
             #{channel.name}
           </option>
