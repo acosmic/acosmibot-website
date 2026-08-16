@@ -2,13 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Upload, X } from 'lucide-react';
-import { CollapsibleSection, LoadingSpinner } from '@/components/ui';
+import { CollapsibleSection, EmojiPickerField, LoadingSpinner } from '@/components/ui';
 import {
   DiscordEmbedPreview, validateEmbed,
   type EmbedButton, type EmbedConfig, type EmbedField,
 } from '@/components/ui/DiscordEmbedPreview';
 import { embedsApi, type EmbedPayload, type UploadImageType } from '@/api/embeds';
+import { EmojiPicker } from '@/features/slots/EmojiPicker';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
+import { useGuildEmojis } from '@/hooks/useGuildEmojis';
 import { showToast } from '@/utils/toast';
 
 interface FieldDraft extends EmbedField { key: string }
@@ -27,6 +29,7 @@ export const EmbedBuilderPage: React.FC = () => {
 
   const { data: channels = [] } = useGuildChannels(guildId!);
   const textChannels = channels.filter((c) => c.type === 0);
+  const { data: serverEmojis = [] } = useGuildEmojis(guildId!);
 
   const existingQuery = useQuery({
     queryKey: ['guild', guildId, 'embeds', embedId],
@@ -52,6 +55,7 @@ export const EmbedBuilderPage: React.FC = () => {
   const [footerIcon, setFooterIcon] = useState('');
   const [includeTimestamp, setIncludeTimestamp] = useState(false);
   const [buttons, setButtons] = useState<ButtonDraft[]>([]);
+  const [emojiTargetKey, setEmojiTargetKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [seeded, setSeeded] = useState(false);
 
@@ -329,8 +333,15 @@ export const EmbedBuilderPage: React.FC = () => {
                   onChange={(e) => setButtons(buttons.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} />
                 <input className="form-control mb-2" type="url" placeholder="https://example.com (HTTPS required)" value={b.url}
                   onChange={(e) => setButtons(buttons.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} />
-                <input className="form-control" type="text" placeholder="Emoji (optional)" maxLength={2} value={b.emoji ?? ''}
-                  onChange={(e) => setButtons(buttons.map((x, j) => j === i ? { ...x, emoji: e.target.value } : x))} />
+                <div className="mb-2">
+                  <label className="form-label mb-2 d-block">Emoji (optional)</label>
+                  <EmojiPickerField
+                    value={b.emoji}
+                    onPick={() => setEmojiTargetKey(b.key)}
+                    onClear={() => setButtons((current) => current.map((button) =>
+                      button.key === b.key ? { ...button, emoji: undefined } : button))}
+                  />
+                </div>
               </div>
             ))}
             <button className="btn btn-sm" disabled={buttons.length >= 25}
@@ -364,6 +375,18 @@ export const EmbedBuilderPage: React.FC = () => {
           />
         </div>
       </div>
+
+      <EmojiPicker
+        open={emojiTargetKey !== null}
+        onClose={() => setEmojiTargetKey(null)}
+        onSelect={(emoji) => {
+          setButtons((current) => current.map((button) =>
+            button.key === emojiTargetKey ? { ...button, emoji } : button));
+          setEmojiTargetKey(null);
+        }}
+        serverEmojis={serverEmojis}
+        usedEmojis={[]}
+      />
     </div>
   );
 };

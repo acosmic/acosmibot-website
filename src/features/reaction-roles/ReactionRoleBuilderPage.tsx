@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
-import { CollapsibleSection, LoadingSpinner, RoleMultiSelect } from '@/components/ui';
+import { CollapsibleSection, EmojiPickerField, LoadingSpinner, RoleMultiSelect } from '@/components/ui';
 import { EmojiPicker } from '@/features/slots/EmojiPicker';
 import {
   reactionRolesApi,
@@ -12,7 +12,7 @@ import { useGuildChannels } from '@/hooks/useGuildChannels';
 import { useGuildEmojis } from '@/hooks/useGuildEmojis';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
 import { showToast } from '@/utils/toast';
-import { EmojiDisplay, RRPreview } from './RRPreview';
+import { RRPreview } from './RRPreview';
 
 const DEFAULT_COLOR = '#5865F2';
 const MESSAGE_MAX = 2000;
@@ -547,31 +547,6 @@ const MappingHeader: React.FC<{ label: string; onRemove: () => void }> = ({ labe
       style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
       <X size={16} />
     </button>
-  </div>
-);
-
-/** Emoji chooser rendered as a button (not a typeable field) — all picking goes through the EmojiPicker modal. */
-const EmojiPickerField: React.FC<{ value?: string; onPick: () => void; onClear: () => void }> = ({ value, onPick, onClear }) => (
-  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-    <button type="button" className="btn btn-sm" onClick={onPick}
-      style={{
-        border: '1px solid var(--border-light)', background: 'var(--bg-tertiary)',
-        color: value ? 'var(--text-primary)' : 'var(--text-muted)',
-        display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px',
-      }}>
-      {value ? (
-        <>
-          <span style={{ fontSize: 20, lineHeight: 1 }}><EmojiDisplay emoji={value} /></span>
-          Change
-        </>
-      ) : 'Pick an emoji…'}
-    </button>
-    {value && (
-      <button type="button" onClick={onClear} title="Clear emoji" aria-label="Clear emoji"
-        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
-        <X size={16} />
-      </button>
-    )}
   </div>
 );
 

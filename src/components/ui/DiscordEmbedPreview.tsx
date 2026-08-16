@@ -1,4 +1,5 @@
 import React from 'react';
+import { EmojiDisplay } from './EmojiDisplay';
 import '@/styles/discord-embed.css';
 
 /**
@@ -176,7 +177,7 @@ export const DiscordEmbedPreview: React.FC<{
             <div key={i} className="discord-button-row">
               {row.map((b, j) => (
                 <div key={j} className="discord-button discord-button-link">
-                  {b.emoji && <span className="discord-button-emoji">{b.emoji}</span>}
+                  {b.emoji && <span className="discord-button-emoji"><EmojiDisplay emoji={b.emoji} /></span>}
                   <span>{b.label}</span>
                 </div>
               ))}

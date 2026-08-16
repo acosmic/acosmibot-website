@@ -1,24 +1,7 @@
 import React from 'react';
 import { DiscordEmbedPreview, type EmbedConfig } from '@/components/ui/DiscordEmbedPreview';
+import { EmojiDisplay } from '@/components/ui/EmojiDisplay';
 import type { RRButtonConfig, RRDropdownConfig, RREmbedConfig, RRInteractionType } from '@/api/reactionRoles';
-
-/** Renders a unicode emoji as-is, or a custom Discord emoji (<a:name:id>) as its CDN image. */
-export const EmojiDisplay: React.FC<{ emoji: string }> = ({ emoji }) => {
-  const match = emoji.match(/<(a?):([^:]+):(\d+)>/);
-  if (match) {
-    const [, animated, name, id] = match;
-    const ext = animated === 'a' ? 'gif' : 'webp';
-    return (
-      <img
-        className="discord-emoji-img"
-        src={`https://cdn.discordapp.com/emojis/${id}.${ext}`}
-        alt={name}
-        title={name}
-      />
-    );
-  }
-  return <>{emoji}</>;
-};
 
 /** Map the RR flat embed config onto the shared DiscordEmbedPreview shape. */
 const toEmbedConfig = (cfg?: RREmbedConfig | null): EmbedConfig => {
