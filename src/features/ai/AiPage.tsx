@@ -11,12 +11,11 @@ import {
   TRAIT_CATEGORY_OPTIONS,
   AI_TOOL_CATALOG,
 } from './useAiConfig';
-import { AiMemorySection } from './AiMemorySection';
-import { AiServerMemorySection } from './AiServerMemorySection';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, TimezoneSelect } from '@/components/ui';
 import { detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
+import { MemoryConstellationPanel } from '@/features/memory/MemoryConstellationPanel';
 
 const NAME_MAX = 48;
 const PROFILE_FIELD_MAX = 180;
@@ -317,8 +316,6 @@ export const AiPage: React.FC = () => {
         description="Let the AI remember facts members share about themselves (favorite game, timezone, running jokes) and use them in future replies. Members can review or clear their own memory with /ai memory."
       />
 
-      <AiMemorySection guildId={guildId!} enabled={form.memory_enabled} />
-      <AiServerMemorySection guildId={guildId!} enabled={form.memory_enabled} />
 
       <CollapsibleSection title="Timezone" defaultOpen={false}>
         <p className="text-muted small mb-3">
@@ -777,6 +774,7 @@ export const AiPage: React.FC = () => {
         isSaving={isSaving}
         saveError={saveError}
       />
+      <MemoryConstellationPanel mode="manager" guildId={guildId!} />
     </div>
   );
 };

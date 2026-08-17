@@ -44,6 +44,7 @@ import { trackEvent } from '@/lib/analytics';
 import { COMPANY_BRAND } from '@/lib/company';
 import { HOME_TAGLINE } from '@/seo/publicRoutes';
 import '@/styles/home.css';
+import { PublicConstellationPanel } from '@/features/memory/MemoryConstellationPanel';
 
 const DISCORD_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 const BTC_ADDRESS = '3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS';
@@ -692,6 +693,7 @@ export const HomePage: React.FC = () => {
               </p>
             </div>
             <FeatureMap selectedId={selectedFeature} onSelect={setSelectedFeature} />
+            <PublicConstellationPanel />
             <nav className="home-feature-routes" aria-label="Explore core Acosmibot features">
               <span>Core feature guides</span>
               <Link to="/features/ai-discord-bot">Agentic AI Discord bot <ArrowRight aria-hidden="true" /></Link>

@@ -6,6 +6,11 @@ type FormState = Pick<
   AdminFeatureSettings,
   'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' |
   'ai_credit_sales_enabled' | 'ai_credit_spending_enabled' | 'ai_credit_dm_enabled' |
+  'memory_member_constellation_enabled' | 'memory_home_constellation_enabled' |
+  'memory_manager_constellation_enabled' | 'memory_admin_constellation_enabled' |
+  'memory_declared_enabled' | 'memory_derived_enabled' | 'memory_proposals_enabled' |
+  'memory_ambient_capture_enabled' | 'memory_ambient_processing_enabled' |
+  'memory_tier3_serving_enabled' |
   'stripe_mode'
 >;
 
@@ -48,6 +53,16 @@ export const FeatureSettingsTab: React.FC = () => {
         ai_credit_sales_enabled: query.data.data.ai_credit_sales_enabled ?? false,
         ai_credit_spending_enabled: query.data.data.ai_credit_spending_enabled ?? false,
         ai_credit_dm_enabled: query.data.data.ai_credit_dm_enabled ?? false,
+        memory_member_constellation_enabled: query.data.data.memory_member_constellation_enabled ?? false,
+        memory_home_constellation_enabled: query.data.data.memory_home_constellation_enabled ?? false,
+        memory_manager_constellation_enabled: query.data.data.memory_manager_constellation_enabled ?? false,
+        memory_admin_constellation_enabled: query.data.data.memory_admin_constellation_enabled ?? false,
+        memory_declared_enabled: query.data.data.memory_declared_enabled ?? false,
+        memory_derived_enabled: query.data.data.memory_derived_enabled ?? false,
+        memory_proposals_enabled: query.data.data.memory_proposals_enabled ?? false,
+        memory_ambient_capture_enabled: query.data.data.memory_ambient_capture_enabled ?? false,
+        memory_ambient_processing_enabled: query.data.data.memory_ambient_processing_enabled ?? false,
+        memory_tier3_serving_enabled: query.data.data.memory_tier3_serving_enabled ?? false,
         stripe_mode: query.data.data.stripe_mode,
       });
     }
@@ -152,6 +167,51 @@ export const FeatureSettingsTab: React.FC = () => {
                   }}
                   style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
                 />
+                <span style={{ fontWeight: 600 }}>{label}</span>
+              </label>
+              <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>{description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mb-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: 20 }}>
+          <h4 className="mb-2">Memory constellation rollout</h4>
+          <p className="text-muted small mb-3">Keep each surface off until its authorization, privacy, and deletion gates have passed. Disabled surfaces render a safe calibration state and do not request graph data.</p>
+          {([
+            ['memory_member_constellation_enabled', 'Member station', 'Enable member constellation and timeline views.'],
+            ['memory_home_constellation_enabled', 'Homepage field', 'Enable the aggregate-only public constellation.'],
+            ['memory_manager_constellation_enabled', 'Manager review', 'Enable manager graph, timeline, and review surfaces.'],
+            ['memory_admin_constellation_enabled', 'Owner operations', 'Enable super-admin aggregate health operations.'],
+          ] as const).map(([field, label, description]) => (
+            <div className="mb-3" key={field}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: mutation.isPending ? 'not-allowed' : 'pointer' }}>
+                <input type="checkbox" checked={form[field]} disabled={mutation.isPending} onChange={(event) => { mutation.reset(); setSavedAt(null); setForm({ ...form, [field]: event.target.checked }); }} style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }} />
+                <span style={{ fontWeight: 600 }}>{label}</span>
+              </label>
+              <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>{description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mb-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: 20 }}>
+          <h4 className="mb-2">Memory safety switches</h4>
+          <p className="text-muted small mb-3">
+            These controls are independent. Turning a live switch off calls the durable core
+            stop/serving boundary before the setting changes. Capture and processing also purge
+            pending raw inbox rows; durable facts are not deleted. Export, deletion, and member
+            removal remain available for privacy requests.
+          </p>
+          {([
+            ['memory_declared_enabled', 'Declared facts', 'Allow owner-controlled Tier 1 writes; turning this off leaves durable facts for explicit owner deletion.'],
+            ['memory_derived_enabled', 'Derived memory', 'Allow screened derived memory and live retrieval; turning this off stops serving without deleting durable rows.'],
+            ['memory_proposals_enabled', 'Proposals', 'Allow pending memory proposals awaiting explicit owner confirmation.'],
+            ['memory_ambient_capture_enabled', 'Ambient capture', 'Allow configured-channel capture; turning this off stops capture and purges pending raw inbox rows.'],
+            ['memory_ambient_processing_enabled', 'Ambient processing', 'Allow queued distillation; turning this off stops processing and purges pending raw inbox rows.'],
+            ['memory_tier3_serving_enabled', 'Tier 3 serving', 'Allow guild-scoped community memory to be served to authorized viewers; turning this off does not delete durable memory.'],
+          ] as const).map(([field, label, description]) => (
+            <div className="mb-3" key={field}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: mutation.isPending ? 'not-allowed' : 'pointer' }}>
+                <input type="checkbox" checked={form[field]} disabled={mutation.isPending} onChange={(event) => { mutation.reset(); setSavedAt(null); setForm({ ...form, [field]: event.target.checked }); }} style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }} />
                 <span style={{ fontWeight: 600 }}>{label}</span>
               </label>
               <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>{description}</p>

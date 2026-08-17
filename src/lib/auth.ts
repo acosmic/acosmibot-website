@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth';
 import { trackEvent } from '@/lib/analytics';
+import { purgePrivateMemoryQueries } from '@/lib/queryClient';
 
 /** Base URL for the API, from the injected runtime config (falls back to prod). */
 export const apiBase = (): string =>
@@ -25,6 +26,7 @@ let refreshPromise: Promise<boolean> | null = null;
 
 /** Clear the visible identity as soon as the API rejects the browser session. */
 export const clearExpiredSession = (): void => {
+  purgePrivateMemoryQueries();
   useAuthStore.getState().setAnonymous();
 };
 
@@ -47,14 +49,16 @@ export const refreshSession = (): Promise<boolean> => {
   refreshPromise = fetch(`${apiBase()}/auth/me`, { credentials: 'include' })
     .then(async (response) => {
       if (response.status === 401) {
-        setAnonymous();
+        clearExpiredSession();
         return false;
       }
       // A temporary API or network failure is not proof that the HttpOnly
       // session expired. Preserve an already authenticated workspace so a
       // background check cannot destroy an in-progress form.
       if (!response.ok) return keepExistingSession();
-      setUser(await response.json());
+      const nextUser = await response.json();
+      if (existingUser && nextUser?.id && nextUser.id !== existingUser.id) purgePrivateMemoryQueries();
+      setUser(nextUser);
       return true;
     })
     .catch(keepExistingSession)
@@ -71,6 +75,7 @@ export const endSession = async (): Promise<void> => {
     headers: { 'Content-Type': 'application/json' },
   });
   if (!response.ok) throw new Error('The server could not end this session.');
+  purgePrivateMemoryQueries();
   useAuthStore.getState().logout();
 };
 

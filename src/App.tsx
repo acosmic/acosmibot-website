@@ -46,6 +46,8 @@ const TermsOfServicePage = lazyRoute(() => import('./pages/legal/TermsOfServiceP
 const PrivacyPolicyPage = lazyRoute(() => import('./pages/legal/PrivacyPolicyPage').then(module => ({ default: module.PrivacyPolicyPage })));
 const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
 const AdminPage = lazyRoute(() => import('./pages/admin/AdminPage').then(module => ({ default: module.AdminPage })));
+const MemoryOperationsPage = lazyRoute(() => import('./pages/admin/MemoryOperationsPage').then(module => ({ default: module.MemoryOperationsPage })));
+const MemoryMemberPage = lazyRoute(() => import('./pages/MemoryMemberPage').then(module => ({ default: module.MemoryMemberPage })));
 
 /** Completes the cookie-backed OAuth redirect and returns the user to where
  * they started login, falling back to the server selector. */
@@ -149,6 +151,10 @@ const FeatureOutlet = () => {
     return <AiPage />;
   }
 
+  if (feature === 'memory') {
+    return <MemoryMemberPage />;
+  }
+
   if (feature === 'games') {
     return <GamesPage />;
   }
@@ -242,6 +248,7 @@ function App() {
           <Route path="reaction-roles/edit/:rrId" element={<ReactionRoleBuilderPage />} />
           <Route path=":feature" element={<FeatureOutlet />} />
         </Route>
+        <Route path="/admin/ai-memory/constellation" element={<MemoryOperationsPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Route>
       <Route path="/docs" element={<DocsPage />} />

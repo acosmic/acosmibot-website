@@ -143,6 +143,16 @@ export interface AdminFeatureSettings {
   ai_credit_sales_enabled: boolean;
   ai_credit_spending_enabled: boolean;
   ai_credit_dm_enabled: boolean;
+  memory_member_constellation_enabled: boolean;
+  memory_home_constellation_enabled: boolean;
+  memory_manager_constellation_enabled: boolean;
+  memory_admin_constellation_enabled: boolean;
+  memory_declared_enabled: boolean;
+  memory_derived_enabled: boolean;
+  memory_proposals_enabled: boolean;
+  memory_ambient_capture_enabled: boolean;
+  memory_ambient_processing_enabled: boolean;
+  memory_tier3_serving_enabled: boolean;
   stripe_mode: StripeMode;
   stripe_test_configured: boolean;
   stripe_live_configured: boolean;
@@ -344,6 +354,11 @@ export const adminApi = {
   updateFeatureSettings: (payload: Partial<Pick<AdminFeatureSettings,
     'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' |
     'ai_credit_sales_enabled' | 'ai_credit_spending_enabled' | 'ai_credit_dm_enabled' |
+    'memory_member_constellation_enabled' | 'memory_home_constellation_enabled' |
+    'memory_manager_constellation_enabled' | 'memory_admin_constellation_enabled' |
+    'memory_declared_enabled' | 'memory_derived_enabled' | 'memory_proposals_enabled' |
+    'memory_ambient_capture_enabled' | 'memory_ambient_processing_enabled' |
+    'memory_tier3_serving_enabled' |
     'stripe_mode'>>) =>
     api.fetch<{
       success: boolean;

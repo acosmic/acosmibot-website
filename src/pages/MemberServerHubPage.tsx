@@ -11,6 +11,7 @@ import { CreditCheckoutDialog } from '@/components/CreditCheckoutDialog';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { showToast } from '@/utils/toast';
+import { MemoryConstellationPanel } from '@/features/memory/MemoryConstellationPanel';
 import '@/styles/member-server-hub.css';
 
 const format = (value: number | null | undefined) => new Intl.NumberFormat().format(value ?? 0);
@@ -119,6 +120,8 @@ export const MemberServerHubPage: React.FC = () => {
             <Link to={`/leaderboard/${guildId}`} className="member-hub__section-link">View full leaderboard <ArrowRight aria-hidden="true" /></Link>
           </section>
         </div>
+
+        <MemoryConstellationPanel mode="member" guildId={guildId} />
 
         <section id="fuel" className="member-hub__fuel" aria-labelledby="fuel-title">
           <header><div><p className="member-hub__kicker">AI Fuel Reserve</p><h2 id="fuel-title">Keep shared AI ready.</h2><p>The server-owned reserve funds eligible AI requests after included plan allowance. Personal wallets and member prompt activity stay private.</p></div><span className={data.ai_fuel.server_pool_enabled ? 'member-hub__status is-on' : 'member-hub__status'}>{data.ai_fuel.server_pool_enabled ? 'Server-funded AI enabled' : 'Server-funded AI off'}</span></header>

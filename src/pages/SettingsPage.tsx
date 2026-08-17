@@ -11,6 +11,7 @@ import { Clock3, Eye, Link2, LockKeyhole, Settings2, TriangleAlert } from 'lucid
 import { profileApi, type PrivacySettings, type PublicProfile } from '@/api/profile';
 import { spotifyApi, type SpotifyStatus } from '@/api/spotify';
 import { ConnectedAccountsSettings } from '@/components/profile/ConnectedAccountsSettings';
+import { PersonalMemorySection } from '@/features/memory/PersonalMemorySection';
 import { MemberNav } from '@/components/profile/MemberNav';
 import { OwnerSettings } from '@/components/profile/OwnerSettings';
 import { PublicNav } from '@/components/layout/PublicNav';
@@ -151,6 +152,7 @@ export const SettingsPage: React.FC = () => {
                 }}
                 onTimezoneChange={(timezone) => timezoneMutation.mutate(timezone)}
               />
+              <PersonalMemorySection />
               <ConnectedAccountsSettings
                 spotify={spotifyQuery.data}
                 loading={spotifyQuery.isLoading}

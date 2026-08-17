@@ -55,7 +55,17 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>AI Credits Records:</strong> Wallet, purchase, reservation, ledger, refund/dispute, action, and call correlation identifiers; guild administrators see only guild-funded aggregate information, not personal balances or DM activity</li>
       </ul>
 
-      <LegalSubheading>2.5 Website Sign-In Data</LegalSubheading>
+      <LegalSubheading>2.5 Memory &amp; Constellation Data</LegalSubheading>
+      <p>Memory is separated by purpose and authorization. The constellation rollout is disabled until its privacy and deletion checks are enabled; a disabled surface does not request graph data.</p>
+      <ul>
+        <li><strong>Portable Tier 1 facts:</strong> Facts you explicitly declare or approve belong to you. You can inspect, edit, export, restore, or clear them from Settings. Private facts are not shown to guild managers; shared facts are projected only to servers you currently share.</li>
+        <li><strong>Guild Tier 3 memory:</strong> Community facts and episodes may be derived only from configured channels that are uniformly visible to the participating members. Hidden or uncertain channel permissions fail closed. Members can pause capture, opt out, or remove their participation independently of a manager.</li>
+        <li><strong>Encrypted snippets:</strong> Short-lived capture material is encrypted in transit and at rest and expires after a maximum of 24 hours. It is not a portable personal fact and is not serialized into constellation responses.</li>
+        <li><strong>Extraction provider:</strong> The configured extraction provider (which may be OpenAI or Google Gemini) is disclosed before guild capture is enabled. Provider requests follow the provider's applicable processing terms; prompts and raw snippets are not placed in graph DTOs.</li>
+        <li><strong>Rollout and access:</strong> Member, homepage, manager, and owner constellation surfaces have separate rollout gates. Manager projections contain only authorized guild memory; owner projections contain aggregate operations health, not a global Tier 1 browser.</li>
+      </ul>
+
+      <LegalSubheading>2.6 Website Sign-In Data</LegalSubheading>
       <p>When you log in to the Acosmibot website using Discord OAuth, we record the following for security purposes:</p>
       <ul>
         <li><strong>IP Address:</strong> Your IP address at the time of sign-in, used to detect and block abusive or unauthorized access</li>
@@ -64,7 +74,7 @@ export const PrivacyPolicyPage: React.FC = () => (
       </ul>
       <p>Sign-in logs are retained for 90 days and then automatically deleted. This data is used exclusively for security and abuse prevention and is never shared with third parties.</p>
 
-      <LegalSubheading>2.6 Server (Guild) Information</LegalSubheading>
+      <LegalSubheading>2.7 Server (Guild) Information</LegalSubheading>
       <ul>
         <li><strong>Server ID:</strong> Unique identifier for Discord servers</li>
         <li><strong>Server Name:</strong> Display name of the server</li>
@@ -165,6 +175,8 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
         <li><strong>AI Credit Accounting:</strong> Wallet, purchase, ledger, reservation, refund, and dispute records may be retained for at least seven years for tax, accounting, fraud, and service-liability obligations</li>
         <li><strong>AI Provider Telemetry:</strong> Structured provider/cost/latency records are retained for up to 90 days for operations and reconciliation; prompts and generated content are not retained in those telemetry records</li>
+        <li><strong>Encrypted Tier 3 capture snippets:</strong> Automatically expired and physically purged within a maximum of 24 hours; a member removal or guild clear installs an immediate read barrier before cleanup finishes</li>
+        <li><strong>Portable Tier 1 facts:</strong> Retained until you edit or delete them, or use the global clear control; reads hide cleared facts immediately while physical cleanup completes</li>
         <li><strong>Optional Website Analytics:</strong> Event-level analytics data is retained for no longer than 14 months</li>
       </ul>
       <p>To request data deletion, email us at{' '}
