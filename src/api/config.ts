@@ -20,4 +20,15 @@ export const configApi = {
       method: 'POST',
       body: JSON.stringify({ settings: partial }),
     }),
+
+  setupJail: (guildId: string, setup: {
+    channel_name: string;
+    inmate_role_name: string;
+    staff_role_ids: string[];
+    enable: boolean;
+  }) =>
+    api.fetch<any>(`/api/guilds/${guildId}/jail/setup`, {
+      method: 'POST',
+      body: JSON.stringify(setup),
+    }),
 };

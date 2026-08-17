@@ -215,7 +215,7 @@ const FEATURES: Feature[] = [
     x: 67,
     y: 10,
     description: 'See what members actually use across commands, reactions, AI, channels, and community growth.',
-    bullets: ['Most-used and undiscovered commands', 'Top reactions and channel activity', 'AI usage, tokens, and cost visibility', 'Member joins, departures, and net growth', 'Configurable weekly server recaps'],
+    bullets: ['Most-used and undiscovered commands', 'Top reactions and channel activity', 'AI activity by feature and member', 'Member joins, departures, and net growth', 'Configurable weekly server recaps'],
   },
   {
     id: 'chaos',

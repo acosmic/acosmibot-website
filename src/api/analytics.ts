@@ -65,14 +65,10 @@ export interface AiTopGuild {
   total_tokens: number;
   total_cost: number;
 }
-export interface AiTopUser {
+export interface GuildAiTopUser {
   user_id: string;
   username: string;
   total_usage: number;
-  chat_usage: number;
-  image_usage: number;
-  total_tokens: number;
-  total_cost: number;
 }
 export interface GlobalAiUsage {
   days: number;
@@ -99,9 +95,8 @@ export interface GlobalAiCallAggregate {
 }
 export interface GuildAiUsage {
   days: number;
-  stats_by_type: Record<string, AiUsageTypeStat>;
-  by_model: AiModelUsage[];
-  top_users: AiTopUser[];
+  stats_by_type: Record<string, { count: number }>;
+  top_users: GuildAiTopUser[];
 }
 
 // --- Channel message activity ---

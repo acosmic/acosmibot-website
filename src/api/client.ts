@@ -38,6 +38,7 @@ function configFeatureForRequest(path: string, method = 'GET'): string | null {
   if (!['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) return null;
   const configRequest = [
     '/config-hybrid',
+    '/jail/setup',
     '/giveaway-config',
     '/activity-monitor/config',
     '/custom-commands',

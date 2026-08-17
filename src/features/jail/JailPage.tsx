@@ -6,7 +6,7 @@
  * FORM: Lifecycle control matrix, grounded candidate 4, key 67ea0fb7; familiar controls carry a left-to-right operational sequence that stacks on mobile.
  */
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, Check, Clock3, Gavel, LockKeyhole, MessageSquareText, RotateCcw, Vote } from 'lucide-react';
+import { AlertTriangle, Check, Clock3, Gavel, LockKeyhole, MessageSquareText, RotateCcw, Vote, WandSparkles } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { ChannelMultiSelect, ChannelSelect, CollapsibleSection, FeatureToggle, LoadingSpinner, NumberInput, RoleMultiSelect, SaveBar } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
@@ -42,9 +42,12 @@ const getCustomEmojiId = (value: string): string | null => {
 
 export const JailPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, emojis, isLoading, loadError, save, isSaving, saveError } = useJailConfig(guildId!);
+  const { data, emojis, isLoading, loadError, save, isSaving, saveError, setup, isSettingUp, setupError } = useJailConfig(guildId!);
   const { form, setForm, isDirty, resetForm } = useDirtyState<JailConfig>(data);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [setupChannelName, setSetupChannelName] = useState('jail');
+  const [setupRoleName, setSetupRoleName] = useState('Inmate');
+  const [enableAfterSetup, setEnableAfterSetup] = useState(true);
 
   const customEmojiId = form ? getCustomEmojiId(form.trigger_emoji) : null;
   const selectedCustomEmoji = useMemo(
@@ -61,6 +64,27 @@ export const JailPage: React.FC = () => {
 
   const updateNumber = (field: keyof Pick<JailConfig, 'required_votes' | 'vote_window_seconds' | 'sentence_minutes' | 'target_cooldown_minutes'>, value: number) => {
     setForm({ [field]: value } as Partial<JailConfig>);
+  };
+
+  const handleSetup = () => {
+    setup({
+      channel_name: setupChannelName,
+      inmate_role_name: setupRoleName,
+      staff_role_ids: form.staff_role_ids,
+      enable: enableAfterSetup,
+    }, {
+      onSuccess: (response: any) => {
+        const jail = response?.data?.data?.settings?.jail;
+        if (jail) {
+          setForm({
+            channel_id: jail.channel_id,
+            inmate_role_id: jail.inmate_role_id,
+            staff_role_ids: jail.staff_role_ids ?? [],
+            enabled: jail.enabled,
+          });
+        }
+      },
+    });
   };
 
   return (
@@ -94,6 +118,40 @@ export const JailPage: React.FC = () => {
           </li>
         ))}
       </ol>
+
+      <section className="jail-autosetup" aria-labelledby="jail-autosetup-title">
+        <div className="jail-autosetup__copy">
+          <div className="jail-panel__heading">
+            <div><span className="jail-stage-label">Recommended first step</span><h2 id="jail-autosetup-title">Create the private Jail setup automatically</h2></div>
+            <WandSparkles aria-hidden="true" />
+          </div>
+          <p>We’ll create a text channel, an Inmate status role, and the permission rules that keep the channel visible to staff and jailed members. You can still fine-tune the advanced controls below.</p>
+          <ul className="jail-autosetup__checks">
+            <li><Check aria-hidden="true" /> Members only receive access while their case is active.</li>
+            <li><Check aria-hidden="true" /> Existing Jail IDs are repaired instead of creating duplicates.</li>
+            <li><AlertTriangle aria-hidden="true" /> Discord Administrator access always bypasses channel overwrites.</li>
+          </ul>
+        </div>
+        <div className="jail-autosetup__form">
+          <div className="jail-autosetup__inputs">
+            <label className="jail-setup-input"><span>Channel name</span><input className="form-control" value={setupChannelName} maxLength={100} onChange={(event) => setSetupChannelName(event.target.value)} placeholder="jail" /></label>
+            <label className="jail-setup-input"><span>Inmate role name</span><input className="form-control" value={setupRoleName} maxLength={100} onChange={(event) => setSetupRoleName(event.target.value)} placeholder="Inmate" /></label>
+          </div>
+          <RoleMultiSelect
+            guildId={guildId!}
+            value={form.staff_role_ids}
+            onChange={(staff_role_ids) => setForm({ staff_role_ids })}
+            label="Staff roles with Jail access (optional)"
+            placeholder="Leave empty to auto-detect Administrator / Manage Server roles"
+          />
+          <label className="jail-setup-enable"><input type="checkbox" checked={enableAfterSetup} onChange={(event) => setEnableAfterSetup(event.target.checked)} /><span><strong>Enable Jail after setup</strong><small>Turn the feature on as soon as Discord confirms both resources.</small></span></label>
+          <button type="button" className="jail-setup-button" onClick={handleSetup} disabled={isSettingUp || !setupChannelName.trim() || !setupRoleName.trim()}>
+            <WandSparkles aria-hidden="true" />{isSettingUp ? 'Creating Discord setup…' : form.channel_id && form.inmate_role_id ? 'Repair Jail setup' : 'Create Jail setup'}
+          </button>
+          {setupError && <p className="jail-setup-error" role="alert"><AlertTriangle aria-hidden="true" />{setupError.message}</p>}
+          {form.channel_id && form.inmate_role_id && !setupError && <p className="jail-setup-success" role="status"><Check aria-hidden="true" />Channel and Inmate role are connected. The setup button can safely repair their permissions later.</p>}
+        </div>
+      </section>
 
       <fieldset className={`jail-controls${form.enabled ? '' : ' is-gated'}`} disabled={!form.enabled}>
         <div className="jail-first-row">

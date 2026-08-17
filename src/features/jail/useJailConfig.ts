@@ -6,6 +6,8 @@ import { JailConfig } from '@/types/features';
 export const DEFAULT_JAIL_CONFIG: JailConfig = {
   enabled: false,
   channel_id: null,
+  inmate_role_id: null,
+  staff_role_ids: [],
   trigger_emoji: '🚔',
   required_votes: 5,
   vote_window_seconds: 600,
@@ -19,6 +21,12 @@ export const DEFAULT_JAIL_CONFIG: JailConfig = {
 export interface JailChannel { id: string; name: string; type: number }
 export interface JailRole { id: string; name: string; color?: number; managed?: boolean }
 export interface JailEmoji { id: string; name: string; animated: boolean; url: string }
+export interface JailSetupRequest {
+  channel_name: string;
+  inmate_role_name: string;
+  staff_role_ids: string[];
+  enable: boolean;
+}
 
 export function useJailConfig(guildId: string) {
   const queryClient = useQueryClient();
@@ -30,6 +38,13 @@ export function useJailConfig(guildId: string) {
 
   const mutation = useMutation({
     mutationFn: (jail: JailConfig) => configApi.upsertHybridSections(guildId, { jail }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
+    },
+  });
+
+  const setupMutation = useMutation({
+    mutationFn: (setup: JailSetupRequest) => configApi.setupJail(guildId, setup),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] });
     },
@@ -53,5 +68,8 @@ export function useJailConfig(guildId: string) {
     save: mutation.mutate,
     isSaving: mutation.isPending,
     saveError: mutation.error as Error | null,
+    setup: setupMutation.mutate,
+    isSettingUp: setupMutation.isPending,
+    setupError: setupMutation.error as Error | null,
   };
 }

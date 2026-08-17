@@ -8,7 +8,6 @@ import { useDirtyState } from '@/hooks/useDirtyState';
 import { useRecapConfig, RecapConfig } from './useRecapConfig';
 import { Sparkline } from './charts';
 
-const fmtCost = (n: number) => `$${n < 1 ? n.toFixed(4) : n.toFixed(2)}`;
 const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 /** Custom Discord emoji from the CDN, or the unicode char directly. */
@@ -79,7 +78,6 @@ export const GuildAnalyticsPage: React.FC = () => {
   const topReactions = reactions.data?.top_reactions ?? [];
   const aiByType = Object.entries(aiUsage.data?.stats_by_type ?? {});
   const aiTopUsers = aiUsage.data?.top_users ?? [];
-  const aiTotalCost = aiByType.reduce((sum, [, s]) => sum + s.total_cost, 0);
   const channelList = channels.data?.channels ?? [];
 
   return (
@@ -194,23 +192,17 @@ export const GuildAnalyticsPage: React.FC = () => {
       </div>
 
       <div style={panel}>
-        <div style={heading}>AI usage (last {days} days)</div>
+        <div style={heading}>AI activity (last {days} days)</div>
         {aiUsage.isLoading ? (
           <div style={{ color: 'var(--text-muted)' }}>Loading…</div>
         ) : aiByType.length === 0 ? (
           <div style={{ color: 'var(--text-muted)' }}>No AI usage recorded yet.</div>
         ) : (
           <>
-            <div style={{ ...row, fontWeight: 700 }}>
-              <span style={{ color: 'var(--text-primary)' }}>Total cost</span>
-              <span style={meta}>{fmtCost(aiTotalCost)}</span>
-            </div>
             {aiByType.sort((a, b) => b[1].count - a[1].count).map(([type, s]) => (
               <div key={type} style={row}>
                 <span style={{ color: 'var(--text-primary)' }}>{titleCase(type)}</span>
-                <span style={meta}>
-                  {s.count.toLocaleString()} · {s.total_tokens.toLocaleString()} tok · {fmtCost(s.total_cost)}
-                </span>
+                <span style={meta}>{s.count.toLocaleString()} uses</span>
               </div>
             ))}
             {aiTopUsers.length > 0 && (

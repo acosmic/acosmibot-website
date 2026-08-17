@@ -97,6 +97,8 @@ export interface ModerationConfig {
 export interface JailConfig {
   enabled: boolean;
   channel_id: string | null;
+  inmate_role_id: string | null;
+  staff_role_ids: string[];
   trigger_emoji: string;
   required_votes: number;
   vote_window_seconds: number;
