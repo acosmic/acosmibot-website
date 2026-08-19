@@ -92,11 +92,11 @@ export interface AiTraitEffect {
 }
 
 export const TRAIT_CATEGORY_OPTIONS: Record<TraitCategory, { label: string; options: { value: string; label: string }[] }> = {
-  mood: { label: 'Mood', options: [{ value: 'neutral', label: 'Neutral' }, { value: 'overenthusiastic', label: 'Overenthusiastic' }, { value: 'cosmic_melancholy', label: 'Cosmic melancholy' }] },
+  mood: { label: 'Mood', options: [{ value: 'neutral', label: 'Neutral' }, { value: 'overenthusiastic', label: 'Overenthusiastic' }, { value: 'cosmic_melancholy', label: 'Cosmic melancholy' }, { value: 'deadpan', label: 'Deadpan' }] },
   register: { label: 'Register', options: [{ value: 'neutral', label: 'Modern' }, { value: 'extremely_formal', label: 'Extremely formal' }, { value: 'shakespearean', label: 'Shakespearean' }] },
   brevity: { label: 'Brevity', options: [{ value: 'balanced', label: 'Balanced' }, { value: 'ultra_terse', label: 'Ultra terse' }] },
   imagination: { label: 'Imagination', options: [{ value: 'grounded', label: 'Grounded' }, { value: 'maximum_weirdness', label: 'Maximum weirdness' }] },
-  attitude: { label: 'Attitude', options: [{ value: 'straightforward', label: 'Straightforward' }, { value: 'excessively_suspicious', label: 'Excessively suspicious' }] },
+  attitude: { label: 'Attitude', options: [{ value: 'straightforward', label: 'Straightforward' }, { value: 'excessively_suspicious', label: 'Excessively suspicious' }, { value: 'sardonic', label: 'Sardonic' }] },
   delivery: { label: 'Delivery', options: [{ value: 'conversational', label: 'Conversational' }, { value: 'sports_commentator', label: 'Sports commentator' }] },
 };
 
