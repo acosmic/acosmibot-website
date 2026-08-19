@@ -16,6 +16,34 @@ const PLAN_LIMITS: Array<{ tier: AdminAiTier; label: string; description: string
 const DAILY_LIMIT_OPTIONS = [1, 3, 5, 10, 25, 50, 100, 200, 300, 500, 1000];
 const MONTHLY_LIMIT_OPTIONS = [30, 90, 100, 250, 500, 1000, 2000, 3000, 6000, 10000, 20000];
 const IMAGE_LIMIT_OPTIONS = [0, 5, 10, 25, 50, 75, 100, 200, 300, 500, 1000];
+const CHANNEL_DIGEST_DEFAULTS: Record<AdminAiTier, number> = {
+  free: 0,
+  plus: 0,
+  pro: 100,
+  max: 300,
+};
+
+const normalizeChannelDigestLimit = (value: unknown, fallback: number) => {
+  if (value === null || value === undefined || value === '') return fallback;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric >= 0 ? Math.trunc(numeric) : fallback;
+};
+
+const normalizeTierLimits = (limits: AdminAiTierLimits): AdminAiTierLimits => ({
+  ...limits,
+  ...Object.fromEntries(
+    PLAN_LIMITS.map(({ tier }) => [
+      tier,
+      {
+        ...limits[tier],
+        channel_digest_monthly_limit: normalizeChannelDigestLimit(
+          limits[tier]?.channel_digest_monthly_limit,
+          CHANNEL_DIGEST_DEFAULTS[tier],
+        ),
+      },
+    ]),
+  ),
+}) as AdminAiTierLimits;
 
 const limitOptions = (currentValue: number, options: number[]) =>
   options.includes(currentValue) ? options : [currentValue, ...options].sort((a, b) => a - b);
@@ -40,7 +68,7 @@ export const AiSettingsTab: React.FC = () => {
         polymorph_model,
         timezone: timezone || 'UTC',
         web_search_provider: web_search_provider || 'tavily',
-        tier_limits,
+        tier_limits: normalizeTierLimits(tier_limits),
         provider_layers,
       });
     }
@@ -217,13 +245,14 @@ export const AiSettingsTab: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <label className="form-label mb-2 d-block">AI chat limits by plan</label>
+          <label className="form-label mb-2 d-block">AI usage limits by plan</label>
           <p className="text-muted small mt-0 mb-3">
-            Limits apply per server. Defaults match the limits shown on the pricing page.
+            Limits apply per server. Fresh channel digest limits count new digests per month. Defaults match the limits shown on the pricing page.
           </p>
           <div style={{ display: 'grid', gap: 12 }}>
             {PLAN_LIMITS.map(({ tier, label, description }) => {
               const limits = form.tier_limits[tier];
+              const channelDigestLimit = limits.channel_digest_monthly_limit ?? CHANNEL_DIGEST_DEFAULTS[tier];
               return (
                 <div
                   key={tier}
@@ -295,6 +324,19 @@ export const AiSettingsTab: React.FC = () => {
                         style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
                       >
                         {limitOptions(limits.image_search_monthly_limit, IMAGE_LIMIT_OPTIONS).map((value) => (
+                          <option key={value} value={value}>{value === 0 ? 'Not included' : `${value.toLocaleString()} / month`}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="small">
+                      Fresh channel digests per month
+                      <select
+                        className="form-control mt-1"
+                        value={channelDigestLimit}
+                        onChange={(e) => setTierLimit(tier, 'channel_digest_monthly_limit', Number(e.target.value))}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+                      >
+                        {limitOptions(channelDigestLimit, IMAGE_LIMIT_OPTIONS).map((value) => (
                           <option key={value} value={value}>{value === 0 ? 'Not included' : `${value.toLocaleString()} / month`}</option>
                         ))}
                       </select>

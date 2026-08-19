@@ -126,25 +126,40 @@ const formatCatalogPrice = (row: SubscriptionCatalogRow | undefined) => {
 const catalogRowsForTier = (catalog: SubscriptionCatalogRow[], tier: PremiumTier) =>
   catalog.filter((row) => row.tier === tier);
 
+const formatQuotaValue = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric >= 0 ? Math.trunc(numeric).toLocaleString() : null;
+};
+
 const buildCatalogFeatures = (def: TierCardDef, catalog: SubscriptionCatalogRow[], quotasByTier: SubscriptionQuotaCatalog) => {
   const rows = catalogRowsForTier(catalog, def.tier);
   const quotas = quotasByTier[def.tier] ?? rows[0]?.quotas;
   if (!quotas) return def.features;
-  const aiChatFeature = {
-    text: `AI chat - ${quotas.daily_ai_actions.toLocaleString()}/day and ${quotas.monthly_ai_actions.toLocaleString()}/month`,
-  };
   const features = [...def.features];
   const firstUnavailableFeature = features.findIndex((feature) => feature.disabled);
+  const dailyAiActions = formatQuotaValue(quotas.daily_ai_actions);
+  const monthlyAiActions = formatQuotaValue(quotas.monthly_ai_actions);
 
-  if (firstUnavailableFeature >= 0) features.splice(firstUnavailableFeature, 0, aiChatFeature);
-  else features.push(aiChatFeature);
+  if (dailyAiActions !== null && monthlyAiActions !== null) {
+    const aiChatFeature = {
+      text: `AI chat - ${dailyAiActions}/day and ${monthlyAiActions}/month`,
+    };
+    if (firstUnavailableFeature >= 0) features.splice(firstUnavailableFeature, 0, aiChatFeature);
+    else features.push(aiChatFeature);
+  }
 
   if (def.tier === 'pro' || def.tier === 'max') {
-    features.push(
-      { text: `${quotas.image_monthly_limit.toLocaleString()} medium images/month` },
-      { text: `${quotas.image_analysis_monthly_limit.toLocaleString()} vision analyses/month` },
-      { text: `${quotas.image_search_monthly_limit.toLocaleString()} web image searches/month` },
-    );
+    const aiQuotaFeatures = [
+      ['image_monthly_limit', 'medium images/month'],
+      ['image_analysis_monthly_limit', 'vision analyses/month'],
+      ['image_search_monthly_limit', 'web image searches/month'],
+      ['channel_digest_monthly_limit', 'fresh channel digests/month'],
+    ] as const;
+    aiQuotaFeatures.forEach(([field, label]) => {
+      const value = formatQuotaValue(quotas[field]);
+      if (value !== null) features.push({ text: `${value} ${label}` });
+    });
   }
   return features;
 };
