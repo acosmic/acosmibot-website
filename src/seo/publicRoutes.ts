@@ -210,6 +210,7 @@ export const DOC_ROUTES = [
   ['twitch', 'Twitch Stream Alerts'],
   ['youtube', 'YouTube Alerts'],
   ['kick', 'Kick Stream Alerts'],
+  ['x-alerts', 'X Post Alerts for Discord'],
   ['slots', 'Discord Slots'],
   ['mines', 'Discord Mines'],
   ['keno', 'Discord Keno'],

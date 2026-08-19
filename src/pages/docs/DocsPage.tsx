@@ -9,7 +9,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
-  AlarmClock, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
+  AlarmClock, AtSign, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
   FileText, Gem, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
   Sparkles, Ticket, TrendingUp, TvMinimalPlay, Vault, VenetianMask, PanelLeftClose, PanelLeftOpen,
   Search, X, ArrowUpRight, HandHeart,
@@ -55,6 +55,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'twitch',  label: 'Twitch Integration', icon: TvMinimalPlay, assetIcon: 'twitch' },
       { slug: 'youtube', label: 'YouTube Integration', icon: TvMinimalPlay, assetIcon: 'youtube' },
       { slug: 'kick',    label: 'Kick Integration', icon: TvMinimalPlay, assetIcon: 'kick' },
+      { slug: 'x-alerts', label: 'X Post Alerts', icon: AtSign },
     ],
   },
   {

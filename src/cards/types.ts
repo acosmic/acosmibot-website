@@ -107,6 +107,46 @@ export interface WeatherCardDay {
   low: string;
 }
 
+/** JSON contract for the public `/ai status` telemetry card. */
+export interface AIStatusCardData {
+  /** Selects <AIStatusCard> in the shared render function. */
+  card: 'ai-status';
+  guildName: string;
+  status: 'enabled' | 'server-disabled' | 'globally-disabled' | 'not-configured';
+  statusLabel: string;
+  statusDetail: string;
+  tierName: string;
+  monthlyReset: string;
+  accessLabel: string;
+  accessTerm: string;
+  usage: AIStatusUsage[];
+  guildCreditImages: number;
+  personalCreditImages: number;
+  serverCredits: number;
+  ambientAvailable: boolean;
+  ambientRepliesEnabled: boolean;
+  ambientImagesEnabled: boolean;
+  personalityName: string;
+  personalityTraits: string;
+  personalityTemporary: boolean;
+  customPersonalityLocked: boolean;
+}
+
+export interface AIStatusUsage {
+  key:
+    | 'chat-daily'
+    | 'chat-monthly'
+    | 'images'
+    | 'analysis'
+    | 'image-search'
+    | 'summary';
+  label: string;
+  used: number;
+  limit: number;
+  detail: string;
+  locked: boolean;
+}
+
 /** JSON contract for the rendered World of Warcraft profile overview. */
 export interface WowProfileCardData {
   /** Selects <WowProfileCard> in the shared render function. */

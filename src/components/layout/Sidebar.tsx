@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ArrowLeft,
+  AtSign,
   BarChart3,
   Bot,
   ChevronDown,
@@ -197,6 +198,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavItem to={`/server/${guildId}/twitch`} icon={Tv} label="Twitch" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/youtube`} icon={Video} label="YouTube" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/kick`} icon={RadioTower} label="Kick" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/x-alerts`} icon={AtSign} label="X Posts" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Chaos">

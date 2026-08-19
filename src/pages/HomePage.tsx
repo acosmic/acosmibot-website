@@ -71,8 +71,8 @@ const FEATURES: Feature[] = [
     Icon: Radio,
     x: 12,
     y: 12,
-    description: 'Real-time go-live announcements across the three major streaming platforms, with live viewer counts and automatic VOD links.',
-    bullets: ['Twitch, YouTube, and Kick support', 'Track multiple streamers per server', 'Live viewer count updates in-message', 'Auto-edits to VOD when stream ends', 'Per-streamer mention roles and messages'],
+    description: 'Real-time go-live announcements across three major streaming platforms, plus focused post alerts from paid X accounts.',
+    bullets: ['Twitch, YouTube, Kick, and paid X post alerts', 'Track multiple creators per server', 'Live viewer count updates in-message', 'Auto-edits to VOD when stream ends', 'Flexible destination and role-mention controls'],
   },
   {
     id: 'ai',

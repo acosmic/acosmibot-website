@@ -41,6 +41,7 @@ function configFeatureForRequest(path: string, method = 'GET'): string | null {
     '/jail/setup',
     '/giveaway-config',
     '/activity-monitor/config',
+    '/x-alerts',
     '/custom-commands',
     '/embeds',
     '/reaction-roles',

@@ -25,6 +25,7 @@ const SECTION_LABELS: Record<string, string> = {
   twitch: 'Twitch',
   youtube: 'YouTube',
   kick: 'Kick',
+  'x-alerts': 'X Post Alerts',
   polymorph: 'Polymorph',
   portals: 'Portals',
   jail: 'Jail',

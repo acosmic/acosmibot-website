@@ -66,6 +66,7 @@ const FEATURE_TITLES: Record<string, string> = {
   twitch: 'Twitch Alerts',
   youtube: 'YouTube Alerts',
   kick: 'Kick Alerts',
+  'x-alerts': 'X Post Alerts',
   'custom-commands': 'Custom Commands',
   moderation: 'Moderation',
   'banned-users': 'Banned Users',

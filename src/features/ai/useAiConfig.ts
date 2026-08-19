@@ -135,7 +135,7 @@ const DEFAULT_PROFILE: AiPersonaProfile = {
 export const BUILT_IN_PERSONALITIES: AiPersonality[] = [
   {
     id: 'default',
-    name: 'Default',
+    name: 'Acosmibot',
     instructions: 'You are acosmibot in classic server-assistant mode: calm, sharp, and lightly weird in a way that still feels useful. Be friendly without being sugary, concise without being empty, and practical without sounding corporate. Answer like a capable Discord bot that has seen too many server arguments and now values clarity, timing, and a clean punchline.',
     built_in: true,
     profile: DEFAULT_PROFILE,

@@ -1,0 +1,75 @@
+<div class="docs-page-container">
+  <div class="docs-breadcrumb">
+    <a href="/docs/introduction" onclick="event.preventDefault(); window.DocsRouter.navigate('introduction')">Documentation</a>
+    <span class="separator">›</span>
+    <span class="current">Social Alerts</span>
+  </div>
+
+  <header class="docs-page-header">
+    <h1>X Post Alerts</h1>
+    <p class="docs-page-description">
+      Automatically send new posts from selected X accounts to a Discord channel. X was formerly known as Twitter.
+    </p>
+    <a href="/servers" class="btn-configure">Configure X Alerts →</a>
+  </header>
+
+  <section class="docs-section">
+    <h2>What Gets Delivered</h2>
+    <p>Acosmibot delivers original posts and quote posts from the accounts you track. Replies and reposts are skipped so the destination channel stays focused on content published by the account.</p>
+    <div class="info-card info-card-info">
+      <h3>Short delivery window</h3>
+      <p>Posts are checked on a shared schedule and may appear shortly after they are published. X Alerts is not an instant-streaming feed.</p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Plan Limits</h2>
+    <p>X Alerts is available on paid server plans. Limits apply independently to each Discord server.</p>
+    <div class="docs-table-wrap">
+      <table class="docs-comparison-table">
+        <thead><tr><th>Plan</th><th>Tracked X accounts</th></tr></thead>
+        <tbody>
+          <tr><td>Free</td><td>Not included</td></tr>
+          <tr><td>Plus</td><td>1</td></tr>
+          <tr><td>Pro</td><td>3</td></tr>
+          <tr><td>Max</td><td>3</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Configure X Alerts</h2>
+    <div class="config-steps">
+      <div class="config-step"><span class="step-number">1</span><div><h3>Open X Post Alerts</h3><p>Select an administrator-managed server, then choose <strong>X Posts</strong> under Social Alerts.</p></div></div>
+      <div class="config-step"><span class="step-number">2</span><div><h3>Add and verify accounts</h3><p>Enter an X username. Acosmibot verifies the account and stores its immutable X user ID so username changes do not break tracking.</p></div></div>
+      <div class="config-step"><span class="step-number">3</span><div><h3>Choose the Discord route</h3><p>Select one announcement channel and, optionally, one role to mention.</p></div></div>
+      <div class="config-step"><span class="step-number">4</span><div><h3>Enable and save</h3><p>Turn on X post delivery and save. Draft changes do not start tracking until you explicitly save them.</p></div></div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Priority and Downgrades</h2>
+    <p>The account order is the delivery priority. If a plan changes to a lower limit, Acosmibot preserves the full saved list but only the highest-priority eligible accounts remain active. Move an account up or down, pause it, or remove it, then save.</p>
+    <p>On Free, delivery pauses and the saved settings remain available if the server upgrades again.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+    <ul>
+      <li>Confirm X post delivery is enabled and the configuration was saved.</li>
+      <li>Confirm the tracked account is marked Active rather than Paused or Suspended.</li>
+      <li>Confirm Acosmibot can view the destination, send messages, and embed links.</li>
+      <li>Replies and reposts are intentionally excluded and will not trigger an alert.</li>
+    </ul>
+  </section>
+
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('kick')">
+      <span class="arrow">←</span><span class="nav-label">Back</span><span class="nav-page">Kick</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('slots')">
+      <span class="nav-page">Slots</span><span class="nav-label">Next</span><span class="arrow">→</span>
+    </button>
+  </div>
+</div>

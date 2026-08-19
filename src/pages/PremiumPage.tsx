@@ -54,6 +54,7 @@ const TIERS: TierCardDef[] = [
       { text: '1 Twitch streamer tracking' },
       { text: '1 YouTube streamer tracking' },
       { text: '1 Kick streamer tracking' },
+      { text: 'X post alerts require Plus', disabled: true },
       { text: '1 custom command' },
       { text: '1 reaction role message' },
       { text: '5 custom embeds' },
@@ -71,6 +72,7 @@ const TIERS: TierCardDef[] = [
       { text: '5 Twitch streamers tracking' },
       { text: '5 YouTube streamers tracking' },
       { text: '5 Kick streamers tracking' },
+      { text: '1 X account for post alerts' },
       { text: '25 custom commands' },
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
@@ -87,6 +89,7 @@ const TIERS: TierCardDef[] = [
     ctaNote: 'Billed per server',
     features: [
       { text: 'Everything in Plus, and:' },
+      { text: '3 X accounts for post alerts' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
       { text: 'AI web search' },
@@ -101,6 +104,7 @@ const TIERS: TierCardDef[] = [
     ctaNote: 'Billed per server',
     features: [
       { text: 'Everything in Plus, and:' },
+      { text: '3 X accounts for post alerts' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
       { text: 'AI web search' },
@@ -329,7 +333,7 @@ export const PricingPage: React.FC = () => {
             <p>No feature maze: Plus raises operating limits. Pro activates the complete AI layer. Max expands AI capacity.</p>
           </div>
           <div className="pricing-briefing__signals">
-            <PremiumNote icon={<Radio />} title="Creator growth" text="Plus expands Twitch, YouTube, and Kick tracking from one creator per platform to five." />
+            <PremiumNote icon={<Radio />} title="Creator growth" text="Plus expands Twitch, YouTube, and Kick tracking to five per platform and adds one X account. Pro and Max raise X tracking to three." />
             <PremiumNote icon={<ShieldCheck />} title="Community operations" text="Plus raises custom commands to 25, reaction-role messages to 10, and custom embeds to 100." />
             <PremiumNote icon={<Sparkles />} title="AI systems" text="Pro adds tools, memory, personalities, web search, ambient replies, images, and vision. Max raises the usage ceilings." />
             <PremiumNote

@@ -6,9 +6,9 @@
  * -> resvg-wasm (PNG). This is the canonical image the Discord bot fetches.
  *
  * One endpoint serves every card type: `card: 'weather'` and
- * `card: 'wow-profile'` select their components, while anything else falls
- * through to the rank card. That keeps a single CARD_RENDER_URL /
- * RENDER_SHARED_SECRET pair in production.
+ * `card: 'wow-profile'` and `card: 'ai-status'` select their components, while
+ * anything else falls through to the rank card. That keeps a single
+ * CARD_RENDER_URL / RENDER_SHARED_SECRET pair in production.
  *
  * Auth: callers must send the shared secret in `X-Render-Key`, matched against
  * the `RENDER_SHARED_SECRET` app setting. The bot (and, later, a Flask proxy)
@@ -35,7 +35,13 @@ import {
   CARD_WIDTH as WOW_PROFILE_WIDTH,
   CARD_HEIGHT as WOW_PROFILE_HEIGHT,
 } from '../../src/cards/WowProfileCard';
+import {
+  AIStatusCard,
+  CARD_WIDTH as AI_STATUS_WIDTH,
+  CARD_HEIGHT as AI_STATUS_HEIGHT,
+} from '../../src/cards/AIStatusCard';
 import type {
+  AIStatusCardData,
   RankCardData,
   WeatherCardData,
   WowProfileCardData,
@@ -71,6 +77,18 @@ async function loadFonts() {
     ];
   }
   return fontsCache;
+}
+
+// Static Acosmibot artwork is shipped beside the managed function and inlined
+// before Satori renders. Keeping it local avoids a new remote-image trust path.
+let aiStatusMascotCache: string | null = null;
+async function loadAIStatusMascot(): Promise<string> {
+  if (!aiStatusMascotCache) {
+    const imagePath = join(__dirname, 'assets', 'ai-status-mascot.png');
+    const image = await readFile(imagePath);
+    aiStatusMascotCache = `data:image/png;base64,${image.toString('base64')}`;
+  }
+  return aiStatusMascotCache;
 }
 
 // SSRF guard: each card may fetch only its purpose-specific CDN over HTTPS.
@@ -185,6 +203,27 @@ async function renderWowProfilePng(data: WowProfileCardData): Promise<Buffer> {
   return Buffer.from(resvg.render().asPng());
 }
 
+async function renderAIStatusPng(data: AIStatusCardData): Promise<Buffer> {
+  const [fonts, mascotImageUrl] = await Promise.all([
+    loadFonts(),
+    loadAIStatusMascot(),
+  ]);
+  const svg = await satori(
+    <AIStatusCard data={data} mascotImageUrl={mascotImageUrl} />,
+    {
+      width: AI_STATUS_WIDTH,
+      height: AI_STATUS_HEIGHT,
+      fonts,
+    },
+  );
+
+  await ensureWasm();
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: 'width', value: AI_STATUS_WIDTH },
+  });
+  return Buffer.from(resvg.render().asPng());
+}
+
 // Azure SWA managed functions may deliver the request body as a string (or a
 // Buffer), not a parsed object — normalize it here.
 function parseBody(req: any): unknown {
@@ -272,6 +311,64 @@ function isValidWowProfile(data: unknown): data is WowProfileCardData {
   );
 }
 
+function isValidAIStatus(data: unknown): data is AIStatusCardData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  const validStatuses = new Set([
+    'enabled',
+    'server-disabled',
+    'globally-disabled',
+    'not-configured',
+  ]);
+  const validUsageKeys = new Set([
+    'chat-daily',
+    'chat-monthly',
+    'images',
+    'analysis',
+    'image-search',
+    'summary',
+  ]);
+  return (
+    d.card === 'ai-status' &&
+    typeof d.guildName === 'string' &&
+    typeof d.status === 'string' &&
+    validStatuses.has(d.status) &&
+    typeof d.statusLabel === 'string' &&
+    typeof d.statusDetail === 'string' &&
+    typeof d.tierName === 'string' &&
+    typeof d.monthlyReset === 'string' &&
+    typeof d.accessLabel === 'string' &&
+    typeof d.accessTerm === 'string' &&
+    Array.isArray(d.usage) &&
+    d.usage.length <= 6 &&
+    d.usage.every((entry) => {
+      if (!entry || typeof entry !== 'object') return false;
+      const u = entry as Record<string, unknown>;
+      return (
+        typeof u.key === 'string' &&
+        validUsageKeys.has(u.key) &&
+        typeof u.label === 'string' &&
+        typeof u.used === 'number' &&
+        Number.isFinite(u.used) &&
+        typeof u.limit === 'number' &&
+        Number.isFinite(u.limit) &&
+        typeof u.detail === 'string' &&
+        typeof u.locked === 'boolean'
+      );
+    }) &&
+    typeof d.guildCreditImages === 'number' &&
+    typeof d.personalCreditImages === 'number' &&
+    typeof d.serverCredits === 'number' &&
+    typeof d.ambientAvailable === 'boolean' &&
+    typeof d.ambientRepliesEnabled === 'boolean' &&
+    typeof d.ambientImagesEnabled === 'boolean' &&
+    typeof d.personalityName === 'string' &&
+    typeof d.personalityTraits === 'string' &&
+    typeof d.personalityTemporary === 'boolean' &&
+    typeof d.customPersonalityLocked === 'boolean'
+  );
+}
+
 function secretsMatch(provided: unknown, expected: string): boolean {
   if (typeof provided !== 'string') return false;
   const a = Buffer.from(provided);
@@ -295,6 +392,28 @@ export async function run(context: any, req: any): Promise<void> {
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'weather';
   const wantsWowProfile =
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'wow-profile';
+  const wantsAIStatus =
+    !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'ai-status';
+
+  if (wantsAIStatus) {
+    if (!isValidAIStatus(data)) {
+      context.res = { status: 400, body: 'Invalid AI status card payload' };
+      return;
+    }
+    try {
+      const png = await renderAIStatusPng(data);
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
+        body: png,
+        isRaw: true,
+      };
+    } catch (err) {
+      context.log?.error?.('AI status card render failed', err);
+      context.res = { status: 500, body: 'Render failed' };
+    }
+    return;
+  }
 
   if (wantsWowProfile) {
     if (!isValidWowProfile(data)) {
