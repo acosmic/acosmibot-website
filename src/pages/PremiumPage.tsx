@@ -154,7 +154,7 @@ const buildCatalogFeatures = (def: TierCardDef, catalog: SubscriptionCatalogRow[
       ['image_monthly_limit', 'medium images/month'],
       ['image_analysis_monthly_limit', 'vision analyses/month'],
       ['image_search_monthly_limit', 'web image searches/month'],
-      ['channel_digest_monthly_limit', 'fresh channel digests/month'],
+      ['channel_summary_monthly_limit', 'fresh channel summaries/month'],
     ] as const;
     aiQuotaFeatures.forEach(([field, label]) => {
       const value = formatQuotaValue(quotas[field]);

@@ -44,8 +44,8 @@ export type AdminAiTierLimits = Record<AdminAiTier, {
   image_monthly_limit: number;
   image_analysis_monthly_limit: number;
   image_search_monthly_limit: number;
-  /** Omitted by older admin API payloads during the digest rollout. */
-  channel_digest_monthly_limit?: number;
+  /** Omitted by older admin API payloads during the summary rollout. */
+  channel_summary_monthly_limit?: number;
 }>;
 
 export type AiProvider = 'openai' | 'gemini';

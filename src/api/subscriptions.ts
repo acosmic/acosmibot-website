@@ -54,7 +54,7 @@ export interface SubscriptionCatalogRow {
     image_monthly_limit: number;
     image_analysis_monthly_limit: number;
     image_search_monthly_limit: number;
-    channel_digest_monthly_limit?: number;
+    channel_summary_monthly_limit?: number;
   };
 }
 
@@ -65,7 +65,7 @@ export interface SubscriptionQuotaCatalog {
     image_monthly_limit: number;
     image_analysis_monthly_limit: number;
     image_search_monthly_limit: number;
-    channel_digest_monthly_limit?: number;
+    channel_summary_monthly_limit?: number;
   };
 }
 
