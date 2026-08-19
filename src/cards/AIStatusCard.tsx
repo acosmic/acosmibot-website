@@ -8,8 +8,8 @@ import type { AIStatusCardData, AIStatusUsage } from './types';
  * STORY: Confirm readiness, scan allowance headroom, then understand funding,
  * ambient behavior, and personality without opening another surface.
  * FIRST VIEWPORT: Identity and readiness lead; six telemetry cells form one
- * compact ledger; funding and behavior share a final instrument band; the
- * mascot owns the right third without sitting behind factual copy.
+ * full-width ledger; funding and behavior share a final instrument band; the
+ * mascot remains visible beneath the translucent information layer.
  * FORM: Established-world extension in Operate mode; restrained color strategy.
  */
 
@@ -20,21 +20,26 @@ const FONT_STACK = 'Urbanist, sans-serif';
 
 const COLORS = {
   void: '#05080D',
-  panel: '#0D151D',
-  raised: '#15212B',
-  raisedQuiet: '#111C26',
-  border: 'rgba(244,251,255,0.12)',
-  borderStrong: 'rgba(103,236,255,0.30)',
+  border: 'rgba(244,251,255,0.20)',
+  borderStrong: 'rgba(103,236,255,0.42)',
   cyan: '#67ECFF',
   cyanDeep: '#00A0CC',
   white: '#F4FBFF',
-  text: '#A9BAC7',
-  muted: '#8293A0',
-  quiet: '#71808D',
+  text: '#C8D6DE',
+  muted: '#AFC0CB',
+  quiet: '#8FA0AC',
   success: '#4FE3A1',
   error: '#FF6B6B',
   warning: '#FFBE5C',
 } as const;
+
+const CONTENT_LEFT = 64;
+const CONTENT_WIDTH = CARD_WIDTH - CONTENT_LEFT * 2;
+const USAGE_GAP = 18;
+const USAGE_CELL_WIDTH = (CONTENT_WIDTH - USAGE_GAP * 2) / 3;
+const USAGE_CELL_HEIGHT = 154;
+const GLASS_PANEL = 'rgba(5,8,13,0.56)';
+const GLASS_PANEL_QUIET = 'rgba(5,8,13,0.48)';
 
 const fmt = (value: number): string => Math.max(0, value || 0).toLocaleString('en-US');
 
@@ -58,11 +63,11 @@ function UsageCell({ item, index }: { item: AIStatusUsage; index: number }) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: 445,
-        height: 112,
-        padding: '15px 20px 13px',
+        width: USAGE_CELL_WIDTH,
+        height: USAGE_CELL_HEIGHT,
+        padding: '20px 22px 18px',
         boxSizing: 'border-box',
-        backgroundColor: index % 2 === 0 ? COLORS.raised : COLORS.raisedQuiet,
+        backgroundColor: index % 2 === 0 ? GLASS_PANEL : GLASS_PANEL_QUIET,
         border: `1px solid ${COLORS.border}`,
         borderRadius: 15,
       }}
@@ -73,13 +78,13 @@ function UsageCell({ item, index }: { item: AIStatusUsage; index: number }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           color: COLORS.muted,
-          fontSize: 15,
+          fontSize: 17,
           fontWeight: 700,
-          letterSpacing: 1.7,
+          letterSpacing: 1.8,
         }}
       >
-        <span>{compact(item.label.toUpperCase(), 24)}</span>
-        <span style={{ color: accent, fontSize: 13, letterSpacing: 1.3 }}>
+        <span>{compact(item.label.toUpperCase(), 28)}</span>
+        <span style={{ color: accent, fontSize: 14, letterSpacing: 1.4 }}>
           {item.locked ? 'PLAN LOCKED' : 'LIVE'}
         </span>
       </div>
@@ -88,18 +93,18 @@ function UsageCell({ item, index }: { item: AIStatusUsage; index: number }) {
         style={{
           display: 'flex',
           alignItems: 'baseline',
-          marginTop: 7,
+          marginTop: 12,
           color: item.locked ? COLORS.quiet : COLORS.white,
         }}
       >
-        <span style={{ fontSize: 29, fontWeight: 700, lineHeight: 1 }}>
+        <span style={{ fontSize: 35, fontWeight: 700, lineHeight: 1 }}>
           {item.locked ? '—' : fmt(item.used)}
         </span>
-        <span style={{ marginLeft: 8, fontSize: 20, color: COLORS.text }}>
+        <span style={{ marginLeft: 8, fontSize: 22, color: COLORS.text }}>
           {item.locked ? '' : `/ ${fmt(item.limit)}`}
         </span>
-        <span style={{ marginLeft: 'auto', fontSize: 14, color: COLORS.muted }}>
-          {compact(item.detail, 22)}
+        <span style={{ marginLeft: 'auto', fontSize: 17, color: COLORS.text }}>
+          {compact(item.detail, 24)}
         </span>
       </div>
 
@@ -107,11 +112,11 @@ function UsageCell({ item, index }: { item: AIStatusUsage; index: number }) {
         style={{
           display: 'flex',
           width: '100%',
-          height: 7,
-          marginTop: 11,
+          height: 8,
+          marginTop: 15,
           borderRadius: 4,
           overflow: 'hidden',
-          backgroundColor: 'rgba(244,251,255,0.09)',
+          backgroundColor: 'rgba(244,251,255,0.14)',
         }}
       >
         <div
@@ -134,17 +139,17 @@ function ToggleReadout({ label, enabled }: { label: string; enabled: boolean }) 
       style={{
         display: 'flex',
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 12,
         color: COLORS.text,
-        fontSize: 19,
+        fontSize: 21,
       }}
     >
       <div
         style={{
           display: 'flex',
-          width: 11,
-          height: 11,
-          marginRight: 11,
+          width: 12,
+          height: 12,
+          marginRight: 12,
           borderRadius: '50%',
           backgroundColor: enabled ? COLORS.success : COLORS.error,
           boxShadow: `0 3px 10px ${enabled ? 'rgba(79,227,161,0.28)' : 'rgba(255,107,107,0.26)'}`,
@@ -216,7 +221,7 @@ export function AIStatusCard({
           display: 'flex',
           inset: 0,
           background:
-            'linear-gradient(90deg, rgba(5,8,13,0.99) 0%, rgba(5,8,13,0.97) 49%, rgba(5,8,13,0.82) 66%, rgba(5,8,13,0.10) 86%, rgba(5,8,13,0.04) 100%)',
+            'linear-gradient(180deg, rgba(5,8,13,0.72) 0%, rgba(5,8,13,0.28) 27%, rgba(5,8,13,0.10) 64%, rgba(5,8,13,0.46) 100%)',
         }}
       />
 
@@ -225,9 +230,9 @@ export function AIStatusCard({
           position: 'absolute',
           display: 'flex',
           flexDirection: 'column',
-          left: 64,
+          left: CONTENT_LEFT,
           top: 52,
-          width: 908,
+          width: CONTENT_WIDTH,
         }}
       >
         <div
@@ -255,14 +260,14 @@ export function AIStatusCard({
             borderBottom: `1px solid ${COLORS.borderStrong}`,
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', width: 580 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', width: 900 }}>
             <div
               style={{
                 fontSize: guildNameSize,
                 lineHeight: 1.04,
                 fontWeight: 700,
                 letterSpacing: -1.2,
-                width: 580,
+                width: 900,
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',
               }}
@@ -276,7 +281,7 @@ export function AIStatusCard({
                 marginTop: 14,
                 color: COLORS.text,
                 fontSize: 18,
-                width: 580,
+                width: 900,
                 overflow: 'hidden',
               }}
             >
@@ -286,7 +291,7 @@ export function AIStatusCard({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    width: 580,
+                    width: 900,
                     marginTop: 6,
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
@@ -306,7 +311,7 @@ export function AIStatusCard({
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: 300 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: 470 }}>
             <div
               style={{
                 display: 'flex',
@@ -326,14 +331,14 @@ export function AIStatusCard({
               style={{
                 marginTop: 10,
                 color: COLORS.muted,
-                fontSize: 15,
+                fontSize: 17,
                 textAlign: 'right',
               }}
             >
               {compact(data.statusDetail, 42)}
             </div>
             {data.monthlyReset ? (
-              <div style={{ marginTop: 7, color: COLORS.text, fontSize: 15, textAlign: 'right' }}>
+              <div style={{ marginTop: 7, color: COLORS.text, fontSize: 17, textAlign: 'right' }}>
                 {`Allowance reset · ${compact(data.monthlyReset, 36)}`}
               </div>
             ) : null}
@@ -347,10 +352,10 @@ export function AIStatusCard({
             position: 'absolute',
             display: 'flex',
             flexWrap: 'wrap',
-            left: 64,
+            left: CONTENT_LEFT,
             top: 250,
-            width: 908,
-            gap: 18,
+            width: CONTENT_WIDTH,
+            gap: USAGE_GAP,
           }}
         >
           {usage.map((item, index) => (
@@ -364,15 +369,15 @@ export function AIStatusCard({
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            left: 64,
-            top: 272,
-            width: 908,
-            height: 310,
+            left: CONTENT_LEFT,
+            top: 250,
+            width: CONTENT_WIDTH,
+            height: 326,
             padding: '0 46px',
             boxSizing: 'border-box',
             border: `1px solid ${COLORS.border}`,
             borderRadius: 15,
-            backgroundColor: COLORS.panel,
+            backgroundColor: GLASS_PANEL,
           }}
         >
           <div style={{ color: COLORS.error, fontSize: 18, fontWeight: 700, letterSpacing: 2 }}>
@@ -391,38 +396,40 @@ export function AIStatusCard({
         style={{
           position: 'absolute',
           display: 'flex',
-          left: 64,
-          top: configured ? 642 : 620,
-          width: 908,
-          height: 280,
-          borderTop: `1px solid ${COLORS.borderStrong}`,
-          borderBottom: `1px solid ${COLORS.border}`,
-          backgroundColor: COLORS.panel,
+          left: CONTENT_LEFT,
+          top: 606,
+          width: CONTENT_WIDTH,
+          height: 316,
+          boxSizing: 'border-box',
+          border: `1px solid ${COLORS.border}`,
+          borderRadius: 15,
+          overflow: 'hidden',
+          backgroundColor: GLASS_PANEL_QUIET,
         }}
       >
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            width: 302,
-            padding: '28px 28px',
+            width: 500,
+            padding: '32px 36px',
             boxSizing: 'border-box',
             borderRight: `1px solid ${COLORS.border}`,
           }}
         >
-          <span style={{ color: COLORS.cyan, fontSize: 15, fontWeight: 700, letterSpacing: 1.8 }}>
+          <span style={{ color: COLORS.cyan, fontSize: 17, fontWeight: 700, letterSpacing: 1.9 }}>
             AI CREDIT RESERVE
           </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', width: 246, marginTop: 16, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', width: 428, marginTop: 18, overflow: 'hidden' }}>
             <span style={{ color: COLORS.white, fontSize: serverCreditSize, fontWeight: 700 }}>
               {serverCreditText}
             </span>
           </div>
-          <span style={{ marginTop: 3, color: COLORS.text, fontSize: 18 }}>Server pool</span>
-          <div style={{ display: 'flex', marginTop: 23, color: COLORS.muted, fontSize: 16 }}>
+          <span style={{ marginTop: 4, color: COLORS.text, fontSize: 20 }}>Server pool</span>
+          <div style={{ display: 'flex', marginTop: 27, color: COLORS.text, fontSize: 18 }}>
             <span>{`Server-paid images  ${fmt(data.guildCreditImages)}`}</span>
           </div>
-          <div style={{ display: 'flex', marginTop: 9, color: COLORS.muted, fontSize: 16 }}>
+          <div style={{ display: 'flex', marginTop: 10, color: COLORS.text, fontSize: 18 }}>
             <span>{`Personal-paid images  ${fmt(data.personalCreditImages)}`}</span>
           </div>
         </div>
@@ -431,24 +438,24 @@ export function AIStatusCard({
           style={{
             display: 'flex',
             flexDirection: 'column',
-            width: 270,
-            padding: '28px 28px',
+            width: 412,
+            padding: '32px 36px',
             boxSizing: 'border-box',
             borderRight: `1px solid ${COLORS.border}`,
           }}
         >
-          <span style={{ color: COLORS.cyan, fontSize: 15, fontWeight: 700, letterSpacing: 1.8 }}>
+          <span style={{ color: COLORS.cyan, fontSize: 17, fontWeight: 700, letterSpacing: 1.9 }}>
             AMBIENT CHAT
           </span>
           {data.ambientAvailable ? (
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 14 }}>
               <ToggleReadout label="Replies" enabled={data.ambientRepliesEnabled} />
               <ToggleReadout label="Meme images" enabled={data.ambientImagesEnabled} />
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: 18 }}>
-              <span style={{ color: COLORS.quiet, fontSize: 25, fontWeight: 700 }}>PLAN LOCKED</span>
-              <span style={{ marginTop: 8, color: COLORS.muted, fontSize: 17, lineHeight: 1.35 }}>
+              <span style={{ color: COLORS.quiet, fontSize: 27, fontWeight: 700 }}>PLAN LOCKED</span>
+              <span style={{ marginTop: 8, color: COLORS.text, fontSize: 19, lineHeight: 1.4 }}>
                 Ambient replies are not included in this plan.
               </span>
             </div>
@@ -459,23 +466,23 @@ export function AIStatusCard({
           style={{
             display: 'flex',
             flexDirection: 'column',
-            width: 336,
-            padding: '28px 28px',
+            width: 558,
+            padding: '32px 36px',
             boxSizing: 'border-box',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ color: COLORS.cyan, fontSize: 15, fontWeight: 700, letterSpacing: 1.8 }}>
+            <span style={{ color: COLORS.cyan, fontSize: 17, fontWeight: 700, letterSpacing: 1.9 }}>
               ACTIVE PERSONALITY
             </span>
             {data.personalityTemporary ? (
-              <span style={{ color: COLORS.warning, fontSize: 13, fontWeight: 700 }}>TEMPORARY</span>
+              <span style={{ color: COLORS.warning, fontSize: 15, fontWeight: 700 }}>TEMPORARY</span>
             ) : null}
           </div>
           <span
             style={{
               marginTop: 16,
-              width: 280,
+              width: 488,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               color: COLORS.white,
@@ -486,12 +493,12 @@ export function AIStatusCard({
             {compact(data.personalityName || 'Default', 26)}
           </span>
           {data.personalityTraits ? (
-            <span style={{ marginTop: 10, color: COLORS.text, fontSize: 17, lineHeight: 1.35 }}>
+            <span style={{ marginTop: 12, color: COLORS.text, fontSize: 19, lineHeight: 1.4 }}>
               {compact(data.personalityTraits, 82)}
             </span>
           ) : null}
           {data.customPersonalityLocked ? (
-            <span style={{ marginTop: 'auto', color: COLORS.quiet, fontSize: 15 }}>
+            <span style={{ marginTop: 'auto', color: COLORS.muted, fontSize: 17 }}>
               Custom personalities are not included in this plan.
             </span>
           ) : null}
@@ -503,11 +510,11 @@ export function AIStatusCard({
           position: 'absolute',
           display: 'flex',
           alignItems: 'center',
-          left: 64,
+          left: CONTENT_LEFT,
           bottom: 38,
-          width: 700,
-          color: COLORS.quiet,
-          fontSize: 14,
+          width: CONTENT_WIDTH,
+          color: COLORS.muted,
+          fontSize: 15,
           fontWeight: 700,
           letterSpacing: 1.2,
         }}
