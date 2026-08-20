@@ -36,7 +36,7 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h3>Place Your Bet</h3>
-          <p>Start a game with <code>/blackjack &lt;bet&gt;</code>, wagering between 1 and 100,000 credits by default. Server settings can customize those bounds. The credits are immediately deducted from your balance. The dealer and player are each dealt two cards — the dealer's second card is face down (the hole card).</p>
+          <p>Start a game with <code>/games blackjack &lt;bet&gt;</code>, wagering between 1 and 100,000 credits by default. Server settings can customize those bounds. The credits are immediately deducted from your balance. The dealer and player are each dealt two cards — the dealer's second card is face down (the hole card).</p>
         </div>
       </div>
 
@@ -71,15 +71,15 @@
 
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/blackjack &lt;bet&gt;</div>
+        <div class="command-signature">/games blackjack &lt;bet&gt;</div>
         <div class="command-description">
           Start a new Blackjack game with the specified credit bet. Bets must be between 50 and 10,000 credits. You must have enough credits in your balance to cover the bet before the game starts.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
-          <code>/blackjack 100</code>
-          <code>/blackjack 5000</code>
-          <code>/blackjack 10000</code>
+          <code>/games blackjack 100</code>
+          <code>/games blackjack 5000</code>
+          <code>/games blackjack 10000</code>
         </div>
       </div>
     </div>
@@ -229,7 +229,7 @@
 
     <div class="faq-item">
       <h4>Q: The game buttons disappeared before I could take my turn</h4>
-      <p>A: Game sessions time out after a period of inactivity to free up resources. If the buttons are gone, the hand has been forfeited. Start a new game with <code>/blackjack</code>.</p>
+      <p>A: Game sessions time out after a period of inactivity to free up resources. If the buttons are gone, the hand has been forfeited. Start a new game with <code>/games blackjack</code>.</p>
     </div>
 
     <div class="faq-item">
@@ -249,7 +249,7 @@
 
     <div class="faq-item">
       <h4>Q: Can multiple people play Blackjack at the same time?</h4>
-      <p>A: Yes — each <code>/blackjack</code> command starts an independent game for that member. Multiple players can have active games simultaneously without interfering with each other.</p>
+      <p>A: Yes — each <code>/games blackjack</code> command starts an independent game for that member. Multiple players can have active games simultaneously without interfering with each other.</p>
     </div>
   </section>
 

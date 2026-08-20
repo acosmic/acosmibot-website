@@ -83,7 +83,7 @@ export const GamesPage: React.FC = () => {
 
         <CollapsibleSection title="Coinflip">
           <SimpleGameSection
-            command="/coinflip"
+            command="/games coinflip"
             description="Flip a coin for a chance to win credits."
             enabled={form.coinflip.enabled}
             onChange={(v) => setForm({ coinflip: { enabled: v } })}
@@ -92,7 +92,7 @@ export const GamesPage: React.FC = () => {
 
         <CollapsibleSection title="Rock Paper Scissors">
           <SimpleGameSection
-            command="/rockpaperscissors"
+            command="/games rockpaperscissors"
             description="Challenge another member to a best-of-three duel."
             enabled={form.rps.enabled}
             onChange={(v) => setForm({ rps: { enabled: v } })}
@@ -101,7 +101,7 @@ export const GamesPage: React.FC = () => {
 
         <CollapsibleSection title="Deathroll">
           <SimpleGameSection
-            command="/deathroll"
+            command="/games deathroll"
             description="Take turns rolling down — first to hit 1 loses the pot."
             enabled={form.deathroll.enabled}
             onChange={(v) => setForm({ deathroll: { enabled: v } })}
@@ -110,7 +110,7 @@ export const GamesPage: React.FC = () => {
 
         <CollapsibleSection title="Mines">
           <SimpleGameSection
-            command="/mines"
+            command="/games mines"
             description="Reveal safe tiles and cash out before hitting a mine."
             enabled={form.mines.enabled}
             onChange={(v) => setForm({ mines: { enabled: v } })}
@@ -119,7 +119,7 @@ export const GamesPage: React.FC = () => {
 
         <CollapsibleSection title="Keno">
           <SimpleGameSection
-            command="/keno"
+            command="/games keno"
             description="Pick your lucky numbers and match the draw to win big."
             enabled={form.keno.enabled}
             onChange={(v) => setForm({ keno: { enabled: v } })}

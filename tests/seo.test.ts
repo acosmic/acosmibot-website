@@ -65,7 +65,7 @@ test('documentation reflects current commercial and product contracts', () => {
   assert.match(stats, /most_loved/);
 
   const commands = readDoc('commands');
-  assert.match(commands, /heist-reset/);
+  assert.match(commands, /heist reset/);
   assert.match(commands, /ai credits/);
   assert.match(commands, /ai-admin emote/);
   assert.doesNotMatch(commands, /ai memory &lt;add/);

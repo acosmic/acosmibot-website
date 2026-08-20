@@ -39,47 +39,35 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>/slots &lt;bet&gt;</code></td>
-          <td>Spin the slot machine (100–25,000 credit bets)</td>
+          <td><code>/games slots &lt;bet&gt;</code></td>
+          <td>Spin the slot machine (1–100,000 Credit bets)</td>
         </tr>
         <tr>
-          <td><code>/blackjack &lt;bet&gt;</code></td>
+          <td><code>/games blackjack &lt;bet&gt;</code></td>
           <td>Play a game of blackjack against the dealer</td>
         </tr>
         <tr>
-          <td><code>/mines &lt;bet&gt; &lt;mines&gt;</code></td>
+          <td><code>/games mines &lt;bet&gt; &lt;mines&gt;</code></td>
           <td>Reveal safe tiles and cash out before hitting a mine</td>
         </tr>
         <tr>
-          <td><code>/keno &lt;bet&gt; &lt;spots&gt;</code></td>
+          <td><code>/games keno &lt;bet&gt; &lt;spots&gt;</code></td>
           <td>Pick numbers on a 40-spot board and match the 10-number draw</td>
         </tr>
         <tr>
-          <td><code>/coinflip &lt;bet&gt; &lt;side&gt;</code></td>
+          <td><code>/games coinflip &lt;side&gt; &lt;bet&gt;</code></td>
           <td>Bet on heads or tails for a 50/50 chance</td>
         </tr>
         <tr>
-          <td><code>/deathroll &lt;bet&gt;</code></td>
+          <td><code>/games deathroll &lt;target&gt; &lt;bet&gt;</code></td>
           <td>Challenge another member to a high-stakes dice duel</td>
         </tr>
         <tr>
-          <td><code>/rockpaperscissors &lt;choice&gt;</code></td>
-          <td>Play Rock Paper Scissors against the bot</td>
+          <td><code>/games rockpaperscissors &lt;bet&gt;</code></td>
+          <td>Open a first-to-three challenge for another member to join</td>
         </tr>
         <tr>
-          <td><code>/heist</code></td>
-          <td>Rally a crew to complete turn-based jobs and rob the server vault — job results set the final odds, while more crew increases the possible total take</td>
-        </tr>
-        <tr>
-          <td><code>/heist-test</code></td>
-          <td>Run the real heist lobby and jobs without moving Credits or starting the server cooldown</td>
-        </tr>
-        <tr>
-          <td><code>/heist-reset</code></td>
-          <td>Clear the server-wide heist cooldown immediately (Manage Server)</td>
-        </tr>
-        <tr>
-          <td><code>/8ball &lt;question&gt;</code></td>
+          <td><code>/games 8ball &lt;question&gt;</code></td>
           <td>Ask the magic 8-ball for a mystical answer</td>
         </tr>
         <tr>
@@ -95,8 +83,8 @@
   </section>
 
   <section class="docs-section">
-    <h2>Economy &amp; Portals</h2>
-    <p>Economy management and cross-server portal commands.</p>
+    <h2>Economy, Heist &amp; Portals</h2>
+    <p>Economy management, server-vault Heists, and cross-server portal commands.</p>
 
     <table class="docs-table">
       <thead>
@@ -141,6 +129,18 @@
         <tr>
           <td><code>/heat</code></td>
           <td>Check your Heat (heist wanted level) on this server</td>
+        </tr>
+        <tr>
+          <td><code>/heist start</code></td>
+          <td>Rally a crew to complete turn-based jobs and rob the server vault</td>
+        </tr>
+        <tr>
+          <td><code>/heist test</code></td>
+          <td>Run the Heist lobby and jobs without moving Credits or starting the server cooldown</td>
+        </tr>
+        <tr>
+          <td><code>/heist reset</code></td>
+          <td>Clear the server-wide Heist cooldown immediately (Manage Server)</td>
         </tr>
         <tr>
           <td><code>/portal-search</code></td>
@@ -407,7 +407,7 @@
           <td>Generate an experimental looping AI clip (authorized users only)</td>
         </tr>
         <tr>
-          <td><code>/admin-start-lotto &lt;hours&gt; &lt;channel&gt;</code></td>
+          <td><code>/admin-start-lotto &lt;hours&gt; [channel]</code></td>
           <td>Start a server lottery — members enter by reacting (Administrator)</td>
         </tr>
         <tr>

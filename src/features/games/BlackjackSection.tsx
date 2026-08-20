@@ -76,12 +76,12 @@ export const BlackjackSection: React.FC<BlackjackSectionProps> = ({ value, onCha
   return (
     <>
       <p className="text-muted" style={{ marginTop: 0 }}>
-        Play blackjack against the dealer. Played with <code>/blackjack</code>.
+        Play blackjack against the dealer with <code>/games blackjack</code>.
       </p>
       <FeatureToggle
         enabled={value.enabled}
         onChange={(v) => onChange({ enabled: v })}
-        description="Enable /blackjack in this server."
+        description="Enable /games blackjack in this server."
       />
 
       <div

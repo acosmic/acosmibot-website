@@ -182,7 +182,7 @@ export const FEATURE_LANDINGS: Record<string, FeatureLandingDefinition> = {
       { title: 'Records stay useful', description: 'Members can view game cards and ask AI questions about totals, streaks, opponents, biggest wins, and standings.' },
     ],
     demonstration: {
-      prompt: '/heist',
+      prompt: '/heist start',
       route: 'A crew joins the lobby, sees its assignments, and completes shared timed minigames one member at a time.',
       result: 'Each job changes the crew’s final success chance; one pass never guarantees the heist and one failure does not end it immediately.',
       note: 'Game records include live pending sessions when Acosmibot renders statistics, so recent play is not silently omitted.',

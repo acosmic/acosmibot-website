@@ -38,7 +38,7 @@ const CooldownRow: React.FC<{ guildId: string; cooldown: HeistCooldown }> = ({ g
         <div className="text-muted small">Cooldown</div>
         <div>
           {cooldown.is_ready
-            ? <span className="text-success">Ready — <code>/heist</code> can be run now.</span>
+            ? <span className="text-success">Ready — <code>/heist start</code> can be run now.</span>
             : <>Next heist unlocks <strong>{readyAt?.toLocaleString()}</strong></>}
         </div>
         {error && <div className="text-danger small mt-1">{error}</div>}
@@ -174,7 +174,7 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
       <FeatureToggle
         enabled={value.enabled}
         onChange={(v) => onChange({ enabled: v })}
-        description="Enable the /heist command in this server."
+        description="Enable /heist start in this server."
       />
 
       <div className="card p-4 mb-4">

@@ -15,7 +15,7 @@
     <div class="info-card info-card-info">
       <h3>Key Details</h3>
       <ul>
-        <li>Run <code>/heist</code> to open a crew lobby with a join button</li>
+        <li>Run <code>/heist start</code> to open a crew lobby with a join button</li>
         <li>Every crew member receives one randomly assigned interactive job</li>
         <li>Passed jobs raise the final success chance; failed or timed-out jobs lower it</li>
         <li>More crew members increase the possible total take and add more chances to improve the odds</li>
@@ -30,13 +30,24 @@
 
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/heist</div>
+        <div class="command-signature">/heist start</div>
         <div class="command-description">
           Rally a crew through a join button. When the lobby closes, the crew completes turn-based jobs before the bot rolls the final vault attempt.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/heist</code>
+          <code>/heist start</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/heist test</div>
+        <div class="command-description">
+          Run the same lobby and turn-based jobs with live settings without moving Credits or starting the real cooldown.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/heist test</code>
         </div>
       </div>
 
@@ -74,13 +85,13 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/heist-reset</div>
+        <div class="command-signature">/heist reset</div>
         <div class="command-description">
           Manage Server only. Clears the server's heist cooldown so a new heist can start right away. The same reset is a button on the dashboard's Games → Bank Heist page.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
-          <code>/heist-reset</code>
+          <code>/heist reset</code>
         </div>
       </div>
     </div>
@@ -265,7 +276,7 @@
 
     <div class="faq-item">
       <h4>Q: Are the minigames separate commands?</h4>
-      <p>A: No. They are the nine cooperative jobs inside <code>/heist</code> and do not require a separate wager or command.</p>
+      <p>A: No. They are the nine cooperative jobs inside <code>/heist start</code> and do not require a separate wager or command.</p>
     </div>
 
     <div class="faq-item">
