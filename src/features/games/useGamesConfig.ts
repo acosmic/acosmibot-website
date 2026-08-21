@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 import { GuildEmoji } from '@/hooks/useGuildEmojis';
-import { GamesConfig, GoodDeedsConfig, HeistConfig, SlotsConfig, SlotsTier } from '@/types/features';
+import { GamesConfig, GoodDeedsConfig, HeistConfig } from '@/types/features';
+import { buildSlotsConfig } from './slotSets';
 
 // Mirrors the bot's heist fallback_config (Cogs/Heist.py) and the API defaults.
 const DEFAULT_HEIST: HeistConfig = {
@@ -33,34 +34,6 @@ const DEFAULT_GOOD_DEEDS: GoodDeedsConfig = {
   max_cooldown_hours: 6,
 };
 
-const TIER_LIMITS: Record<SlotsTier, number> = {
-  common: 5,
-  uncommon: 3,
-  rare: 2,
-  legendary: 1,
-  scatter: 1,
-};
-
-const EMPTY_TIERS: Record<SlotsTier, string[]> = {
-  common: [],
-  uncommon: [],
-  rare: [],
-  legendary: [],
-  scatter: [],
-};
-
-function buildSlots(raw: any): SlotsConfig {
-  const tiers: SlotsTier[] = ['common', 'uncommon', 'rare', 'legendary', 'scatter'];
-  const tier_emojis = tiers.reduce((acc, t) => {
-    acc[t] = Array.isArray(raw?.tier_emojis?.[t]) ? [...raw.tier_emojis[t]].slice(0, TIER_LIMITS[t]) : [];
-    return acc;
-  }, {} as Record<SlotsTier, string[]>);
-  return {
-    enabled: raw?.enabled === true,
-    tier_emojis: { ...EMPTY_TIERS, ...tier_emojis },
-  };
-}
-
 /**
  * Single source of truth for the consolidated Games page. Reads the whole `games`
  * block plus top-level `heist`, and saves them in one POST so a single SaveBar
@@ -86,7 +59,7 @@ export function useGamesConfig(guildId: string) {
     const goodDeeds = settings?.good_deeds ?? {};
     return {
       enabled: g.enabled !== false,
-      slots: buildSlots(g['slots-config']),
+      slots: buildSlotsConfig(g['slots-config']),
       blackjack: { ...(g['blackjack-config'] ?? {}), enabled: g['blackjack-config']?.enabled !== false },
       coinflip: { enabled: g['coinflip-config']?.enabled !== false },
       mines: { enabled: g['mines-config']?.enabled !== false },

@@ -11,6 +11,7 @@ import { useParams } from 'react-router-dom';
 import { ChannelMultiSelect, ChannelSelect, CollapsibleSection, FeatureToggle, LoadingSpinner, NumberInput, RoleMultiSelect, SaveBar } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { JailConfig } from '@/types/features';
+import { showToast } from '@/utils/toast';
 import { validateJailConfig } from './jailValidation';
 import { useJailConfig } from './useJailConfig';
 import { EmojiPicker } from '@/features/slots/EmojiPicker';
@@ -73,16 +74,15 @@ export const JailPage: React.FC = () => {
       staff_role_ids: form.staff_role_ids,
       enable: enableAfterSetup,
     }, {
-      onSuccess: (response: any) => {
-        const jail = response?.data?.data?.settings?.jail;
-        if (jail) {
-          setForm({
-            channel_id: jail.channel_id,
-            inmate_role_id: jail.inmate_role_id,
-            staff_role_ids: jail.staff_role_ids ?? [],
-            enabled: jail.enabled,
-          });
-        }
+      onSuccess: (response) => {
+        const jail = response.data.settings.jail;
+        setForm({
+          channel_id: jail.channel_id,
+          inmate_role_id: jail.inmate_role_id,
+          staff_role_ids: jail.staff_role_ids ?? [],
+          enabled: jail.enabled,
+        });
+        showToast(response.message ?? 'Jail channel and Inmate role are ready.', 'success');
       },
     });
   };

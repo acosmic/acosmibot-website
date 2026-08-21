@@ -1,4 +1,25 @@
 import { api } from './client';
+import type { JailConfig } from '@/types/features';
+
+export interface JailSetupResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    guild_id: string;
+    settings: {
+      jail: JailConfig;
+      [key: string]: unknown;
+    };
+    setup: {
+      channel_id: string;
+      inmate_role_id: string;
+      created_channel: boolean;
+      created_role: boolean;
+      staff_role_ids: string[];
+      warning: string;
+    };
+  };
+}
 
 export const configApi = {
   getHybridConfig: (guildId: string) =>
@@ -27,7 +48,7 @@ export const configApi = {
     staff_role_ids: string[];
     enable: boolean;
   }) =>
-    api.fetch<any>(`/api/guilds/${guildId}/jail/setup`, {
+    api.fetch<JailSetupResponse>(`/api/guilds/${guildId}/jail/setup`, {
       method: 'POST',
       body: JSON.stringify(setup),
     }),

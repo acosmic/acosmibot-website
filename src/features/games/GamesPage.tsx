@@ -10,6 +10,8 @@ import { HeistSection } from './HeistSection';
 import { SimpleGameSection } from './SimpleGameSection';
 import { BlackjackSection } from './BlackjackSection';
 import { GoodDeedsSection, validateGoodDeeds } from './GoodDeedsSection';
+import { validateSlotsConfig } from './slotSets';
+import '@/styles/games.css';
 
 export const GamesPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -22,6 +24,8 @@ export const GamesPage: React.FC = () => {
 
   const masterOff = !form.enabled;
   const goodDeedsErrors = validateGoodDeeds(form.good_deeds);
+  const slotErrors = validateSlotsConfig(form.slots);
+  const validationErrors = [...slotErrors, ...goodDeedsErrors];
 
   return (
     <div className="feature-page">
@@ -130,13 +134,13 @@ export const GamesPage: React.FC = () => {
       <SaveBar
         isDirty={isDirty}
         onSave={() => {
-          if (goodDeedsErrors.length === 0) save(form);
+          if (validationErrors.length === 0) save(form);
         }}
         onDiscard={resetForm}
         isSaving={isSaving}
         saveError={saveError}
-        saveDisabled={goodDeedsErrors.length > 0}
-        validationMessage={goodDeedsErrors[0]}
+        saveDisabled={validationErrors.length > 0}
+        validationMessage={validationErrors[0]}
       />
     </div>
   );

@@ -136,9 +136,17 @@ export interface BetterEmbedsConfig {
 
 export type SlotsTier = 'common' | 'uncommon' | 'rare' | 'legendary' | 'scatter';
 
+export interface SlotSymbolSet {
+  id: string;
+  name: string;
+  built_in: boolean;
+  tier_emojis: Record<SlotsTier, string[]>;
+}
+
 export interface SlotsConfig {
   enabled: boolean;
-  tier_emojis: Record<SlotsTier, string[]>;
+  active_set_id: string;
+  symbol_sets: SlotSymbolSet[];
 }
 
 export interface PolymorphConfig {

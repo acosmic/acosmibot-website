@@ -12,13 +12,14 @@
   <section class="docs-section">
     <h2>Overview</h2>
     <p>
-      The slots game is a classic slot machine where you bet credits and spin three reels. Match symbols across the reels to win multipliers on your bet.
+      The slots game is a five-reel machine where you bet credits and match adjacent symbols for payouts, wild scatters, and free-spin bonuses.
     </p>
 
     <div class="info-card info-card-info">
       <h3>Key Features</h3>
       <ul>
-        <li>3-reel slot machine with customizable symbols</li>
+        <li>5-reel slot machine with reusable symbol sets</li>
+        <li>Protected Acosmibot art set enabled by default for every server</li>
         <li>Multiple winning combinations</li>
         <li>Configurable payout multipliers</li>
         <li>Visual slot machine display with emojis</li>
@@ -35,9 +36,9 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h3>Place Your Bet</h3>
-          <p>Use the command <code>/games slots &lt;amount&gt;</code> to bet Credits.</p>
+          <p>Use the command <code>/games slots bet:&lt;credits&gt;</code> to place a bet.</p>
           <div class="code-block">
-            <code>/games slots 100</code>
+            <code>/games slots bet:100</code>
           </div>
         </div>
       </div>
@@ -46,7 +47,7 @@
         <div class="step-number">2</div>
         <div class="step-content">
           <h3>Spin the Reels</h3>
-          <p>The bot spins three reels with random symbols from the configured symbol pool.</p>
+          <p>The bot spins five reels with random symbols from the server's active symbol set.</p>
         </div>
       </div>
 
@@ -70,15 +71,15 @@
 
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/games slots &lt;amount&gt;</div>
+        <div class="command-signature">/games slots bet:&lt;credits&gt;</div>
         <div class="command-description">
-          Bet the specified amount of credits and spin the slot machine. Minimum bet is <strong>100 credits</strong>, maximum is <strong>25,000 credits</strong>.
+          Bet the specified amount of credits and spin the slot machine. Minimum bet is <strong>1 credit</strong>, maximum is <strong>100,000 credits</strong>.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
-          <code>/games slots 100</code>
-          <code>/games slots 5000</code>
-          <code>/games slots 25000</code>
+          <code>/games slots bet:100</code>
+          <code>/games slots bet:5000</code>
+          <code>/games slots bet:100000</code>
         </div>
       </div>
     </div>
@@ -101,12 +102,12 @@
           <td>Enable/disable the slots game</td>
         </tr>
         <tr>
-          <td><strong>Symbol Pool</strong></td>
-          <td>Customize the emojis used on the reels (default: 12 symbols)</td>
+          <td><strong>Symbol Sets</strong></td>
+          <td>Create, rename, duplicate, and delete up to 10 custom sets using standard, server, or Acosmibot emoji</td>
         </tr>
         <tr>
-          <td><strong>Payout Rates</strong></td>
-          <td>Adjust multipliers for different winning combinations</td>
+          <td><strong>Active Set</strong></td>
+          <td>Switch the live reels at any time; saved sets stay ready for future themes and events</td>
         </tr>
       </tbody>
     </table>
@@ -114,15 +115,15 @@
 
   <section class="docs-section">
     <h2>Default Symbols</h2>
-    <p>The slot machine uses these emojis by default:</p>
+    <p>Every server starts with the protected Acosmibot set:</p>
 
     <div class="code-block">
-      <code>🍒 🍋 🍊 🍇 🍉 🍓 🍌 🍍 🥝 🍑 🥥 💎</code>
+      <code>Aco Coin · AI Chip · Power Cell · Cyber Gear · Energy Core · Satellite · Cozy Mug · Power Heart · Cyber Bolt · Orbit Star · Space Crystal · DARKN1DE · Cyberspace Portal</code>
     </div>
 
     <div class="info-card">
-      <h3>Custom Symbols</h3>
-      <p>You can customize these symbols in the dashboard to match your server's theme! Use any emoji or even custom server emojis.</p>
+      <h3>Custom Symbol Sets</h3>
+      <p>The Acosmibot set always stays first and cannot be edited. Duplicate it or create another named set, customize each rarity tier, choose “Use this set,” and save to switch the live reels. DARKN1DE is the default Legendary symbol and the Cyberspace Portal is the default Scatter.</p>
     </div>
   </section>
 
