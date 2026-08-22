@@ -8,7 +8,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="August 6, 2026"
+    lastUpdated="August 22, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -52,6 +52,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Thread IDs:</strong> Conversation thread identifiers for context continuity</li>
         <li><strong>Usage Metrics:</strong> Number of AI messages sent for rate limiting purposes</li>
         <li><strong>Provider Telemetry:</strong> Provider, model, layer, operation, timing, token categories, and cost-estimate metadata for safety, accounting, support, and margin monitoring; this structured telemetry does not store prompts or generated output</li>
+        <li><strong>AI Image Records:</strong> Image-generation prompts, revised prompts, analysis text, and result URLs may be stored temporarily so the requested feature and support history can be provided; those content fields are automatically erased after 30 days while non-content quota and accounting fields remain</li>
         <li><strong>AI Credits Records:</strong> Wallet, purchase, reservation, ledger, refund/dispute, action, and call correlation identifiers; guild administrators see only guild-funded aggregate information, not personal balances or DM activity</li>
       </ul>
 
@@ -93,6 +94,9 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Technical Context:</strong> Browser, device category, approximate region, referring source, and engagement information supplied by Google Analytics</li>
       </ul>
       <p>We do not send authentication credentials, Discord IDs, server IDs, usernames, form contents, configuration values, or user-entered text to Google Analytics. Analytics is disabled unless you choose to allow it.</p>
+
+      <LegalSubheading>2.9 Error and Reliability Diagnostics</LegalSubheading>
+      <p>We collect limited technical diagnostics when the bot or API fails. These records may include the service and release, an error category and code, exception type, stack-frame file and function names, operating-system/runtime context, timing, and database-pool health counts. Request bodies, headers, cookies, prompts, generated output, search queries, URLs, client IP addresses, and local variables are excluded. Local error and critical records may include the Discord user, server, channel, or message ID directly related to a failure so an authorized operator can provide support; routine local records use keyed pseudonyms instead. Raw Discord identifiers are never sent to Sentry.</p>
     </LegalSection>
 
     <LegalSection title="3. How We Use Your Data">
@@ -139,6 +143,9 @@ export const PrivacyPolicyPage: React.FC = () => (
 
       <LegalSubheading>4.5 Database &amp; Hosting</LegalSubheading>
       <p>Your data is stored on secure database servers provided by trusted hosting providers. These providers have access to infrastructure but do not actively access or use your data.</p>
+
+      <LegalSubheading>4.6 Sentry (Error Monitoring)</LegalSubheading>
+      <p>We use Sentry as an independent, off-site error and availability monitoring service so failures can be detected even when the Acosmibot server is unavailable. Sentry receives the limited technical diagnostics described in Section 2.9. Client-side filtering removes request data, user content, raw identifiers, breadcrumbs, local variables, and exception messages before an event is sent. Sentry's handling of this diagnostic data is governed by its privacy and data-processing terms.</p>
     </LegalSection>
 
     <LegalSection title="5. Data Storage & Security">
@@ -165,6 +172,10 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
         <li><strong>AI Credit Accounting:</strong> Wallet, purchase, ledger, reservation, refund, and dispute records may be retained for at least seven years for tax, accounting, fraud, and service-liability obligations</li>
         <li><strong>AI Provider Telemetry:</strong> Structured provider/cost/latency records are retained for up to 90 days for operations and reconciliation; prompts and generated content are not retained in those telemetry records</li>
+        <li><strong>Local AI Traces:</strong> Content-free routing, provider, tool, safety, delivery, and settlement spans are retained for up to 90 days</li>
+        <li><strong>AI Image Content:</strong> Stored generation prompts, revised prompts, analysis text, and result URLs are erased after 30 days; non-content quota and accounting fields may remain under the applicable operational or billing retention period</li>
+        <li><strong>Error Monitoring:</strong> Scrubbed Sentry events are retained for no longer than 90 days and may be retained for a shorter period under the active project settings</li>
+        <li><strong>Local Runtime Diagnostics:</strong> Local system journals, including raw Discord identifiers attached only to error and critical records, are capped at 14 days and are accessible only to authorized operators</li>
         <li><strong>Optional Website Analytics:</strong> Event-level analytics data is retained for no longer than 14 months</li>
       </ul>
       <p>To request data deletion, email us at{' '}

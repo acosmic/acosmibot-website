@@ -116,6 +116,74 @@ export interface AdminAiLabJob {
   quality_note: string | null;
 }
 
+export type AdminAiTraceStatus = 'in_progress' | 'success' | 'failed' | 'cancelled';
+
+export interface AdminAiTraceSummary {
+  trace_id: string;
+  entrypoint: string | null;
+  context_type: string | null;
+  status: AdminAiTraceStatus;
+  outcome: string | null;
+  started_at: string;
+  ended_at: string | null;
+  duration_ms: number | null;
+  delivery_outcome: string | null;
+  provider_call_count: number;
+  failed_call_count: number;
+  provider_total_tokens: number;
+  cost_usd: string;
+  span_count: number;
+}
+
+export interface AdminAiTraceSpan {
+  span_id: string;
+  parent_span_id: string | null;
+  span_type: 'root' | 'routing' | 'provider' | 'tool' | 'safety' | 'delivery' | 'credit' | string;
+  layer: string;
+  name: string;
+  status: string;
+  error_category: string | null;
+  error_code: string | null;
+  started_at: string;
+  ended_at: string | null;
+  duration_ms: number | null;
+  provider: string;
+  model: string;
+  input_tokens: number | null;
+  cached_input_tokens: number | null;
+  visible_output_tokens: number | null;
+  thought_tokens: number | null;
+  provider_total_tokens: number | null;
+  cost_usd: string | null;
+  cost_estimate_quality: string | null;
+  provider_response_id: string | null;
+  provider_http_request_id: string | null;
+  client_request_id: string | null;
+  build_sha: string | null;
+  template_hash: string | null;
+  tool_schema_hash: string | null;
+  config_version: string | null;
+  routing_policy_version: string | null;
+  safety_policy_version: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface AdminAiTraceDetail {
+  success: boolean;
+  trace: AdminAiTraceSummary & {
+    input_tokens: number;
+    cached_input_tokens: number;
+    visible_output_tokens: number;
+    thought_tokens: number;
+    build_sha: string | null;
+    routing_summary: Record<string, unknown>;
+    feedback_rating: -1 | 1 | null;
+    feedback_reason_code: string | null;
+    feedback_at: string | null;
+  };
+  spans: AdminAiTraceSpan[];
+}
+
 export type InterestInterval = 'daily' | 'weekly' | 'monthly';
 
 export interface AdminEconomySettings {
@@ -394,6 +462,23 @@ export const adminApi = {
     api.fetch<{ success: boolean; job: AdminAiLabJob }>(`/api/admin/ai-lab/jobs/${jobId}/rating`, {
       method: 'PATCH',
       body: JSON.stringify({ rating, note }),
+    }),
+
+  getAiTraces: (days = 7, status?: AdminAiTraceStatus) => {
+    const params = new URLSearchParams({ days: String(days), limit: '100' });
+    if (status) params.set('status', status);
+    return api.fetch<{ success: boolean; days: number; traces: AdminAiTraceSummary[] }>(
+      `/api/admin/ai-traces?${params.toString()}`,
+    );
+  },
+
+  getAiTrace: (traceId: string) =>
+    api.fetch<AdminAiTraceDetail>(`/api/admin/ai-traces/${encodeURIComponent(traceId)}`),
+
+  rateAiTrace: (traceId: string, rating: -1 | 1, reasonCode: string) =>
+    api.fetch<{ success: boolean }>(`/api/admin/ai-traces/${encodeURIComponent(traceId)}/feedback`, {
+      method: 'PATCH',
+      body: JSON.stringify({ rating, reason_code: reasonCode }),
     }),
 
   getEconomySettings: () =>

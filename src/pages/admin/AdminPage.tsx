@@ -23,6 +23,7 @@ import {
   Server,
   Sparkles,
   Trophy,
+  Waypoints,
 } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
 import {
@@ -34,6 +35,7 @@ import {
 import { clearExpiredSession } from '@/lib/auth';
 import { BotStatsTab } from './BotStatsTab';
 import { AiSettingsTab } from './AiSettingsTab';
+import { AiTracesTab } from './AiTracesTab';
 import { EconomySettingsTab } from './EconomySettingsTab';
 import { FeatureSettingsTab } from './FeatureSettingsTab';
 import { CosmeticsTab } from './CosmeticsTab';
@@ -49,6 +51,7 @@ const ADMIN_TABS = [
   { id: 'servers', label: 'Servers', group: 'Network', description: 'Inspect every connected Discord server, its status, subscription, and stored configuration.', icon: Server },
   { id: 'grants', label: 'Premium Grants', group: 'Network', description: 'Issue, schedule, extend, revoke, and restore audited complimentary server access.', icon: BadgeCheck },
   { id: 'botstats', label: 'Bot Stats', group: 'Telemetry', description: 'Observe bot health, runtime signals, and system-wide operating totals.', icon: Activity },
+  { id: 'aitraces', label: 'AI Traces', group: 'Telemetry', description: 'Follow content-free AI routing, provider, tool, safety, delivery, and settlement spans.', icon: Waypoints },
   { id: 'ai', label: 'AI Settings', group: 'Intelligence', description: 'Configure the shared AI model policy, limits, and system behavior.', icon: Bot },
   { id: 'economy', label: 'Economy', group: 'Systems', description: 'Manage global economy behavior and operational defaults.', icon: Coins },
   { id: 'features', label: 'Feature Flags', group: 'Systems', description: 'Control global feature availability and release-state switches.', icon: Flag },
@@ -492,6 +495,12 @@ export const AdminPage: React.FC = () => {
         {tab === 'botstats' && (
           <div className="admin-surface">
             <BotStatsTab />
+          </div>
+        )}
+
+        {tab === 'aitraces' && (
+          <div className="admin-surface">
+            <AiTracesTab />
           </div>
         )}
 

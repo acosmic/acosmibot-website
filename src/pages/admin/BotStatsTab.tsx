@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AdminDetailDialog } from './AdminDetailDialog';
+import { parseRuntimeLogTimestamp } from '@/utils/runtimeLogTimestamp';
 
 interface PerformanceTotals {
   messages_processed: number;
@@ -37,11 +38,18 @@ interface BotReport {
   sessions: SessionStats;
 }
 
+interface SafeStackFrame {
+  file: string;
+  line: number | null;
+  function: string;
+}
+
 interface LogEntry {
   timestamp: string;
   source: 'bot' | 'api';
   level: 'ERROR' | 'WARNING' | 'CRITICAL' | 'INFO' | 'DEBUG';
   logger: string;
+  event_name?: string;
   message: string;
   guild_id: string;
   user_id: string;
@@ -50,6 +58,13 @@ interface LogEntry {
   message_id: string;
   reply_to_message_id: string;
   entrypoint: string;
+  trace_id?: string;
+  span_id?: string;
+  call_id?: string;
+  error_category?: string;
+  error_code?: string;
+  exception_type?: string;
+  stack?: SafeStackFrame[];
   ip: string;
   method: string;
   path: string;
@@ -76,8 +91,8 @@ function relativeTime(isoString: string): string {
   return `${Math.floor(diff / 3600)}h ago`;
 }
 
-// Log files are written by the server in naive UTC, e.g. "2026-06-10 19:08:20,747".
-// Parse as UTC and render in US Central (auto-handles CST/CDT).
+// Render both legacy file timestamps and schema-v1 journal ISO timestamps in
+// US Central (auto-handles CST/CDT).
 const CENTRAL_TZ = 'America/Chicago';
 const centralFmt = new Intl.DateTimeFormat('en-US', {
   timeZone: CENTRAL_TZ,
@@ -87,9 +102,7 @@ const centralFmt = new Intl.DateTimeFormat('en-US', {
 });
 
 function parseLogTs(ts: string): Date | null {
-  if (!ts) return null;
-  const d = new Date(`${ts.replace(' ', 'T').replace(',', '.')}Z`);
-  return isNaN(d.getTime()) ? null : d;
+  return parseRuntimeLogTimestamp(ts);
 }
 
 function formatCentral(ts: string): string {
@@ -130,6 +143,11 @@ function contextItems(entry: LogEntry): { label: string; value: string }[] {
   push('message', entry.message_id);
   push('reply', entry.reply_to_message_id);
   push('entry', entry.entrypoint);
+  push('error', [entry.error_category, entry.error_code].filter(value => value && !BLANK.has(value)).join(' / '));
+  push('type', entry.exception_type ?? '');
+  push('trace', entry.trace_id ?? '');
+  push('span', entry.span_id ?? '');
+  push('call', entry.call_id ?? '');
   push('ip', entry.ip);
   if (entry.path && !BLANK.has(entry.path)) {
     push('route', `${entry.method && !BLANK.has(entry.method) ? `${entry.method} ` : ''}${entry.path}`);
@@ -183,6 +201,7 @@ export const BotStatsTab: React.FC = () => {
   const [reportError, setReportError] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [logsError, setLogsError] = useState<string | null>(null);
+  const [invalidLogCount, setInvalidLogCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [lastFetch, setLastFetch] = useState<Date | null>(null);
   const [logLimit, setLogLimit] = useState(50);
@@ -215,9 +234,11 @@ export const BotStatsTab: React.FC = () => {
 
       if (logsData.success) {
         setLogs(logsData.entries ?? []);
+        setInvalidLogCount(logsData.invalid_record_count ?? 0);
         setLogsError(null);
       } else {
         setLogs([]);
+        setInvalidLogCount(0);
         setLogsError(logsData.error ?? 'Unknown error');
       }
 
@@ -347,10 +368,15 @@ export const BotStatsTab: React.FC = () => {
           aria-label="Search runtime logs"
           value={logSearch}
           onChange={e => setLogSearch(e.target.value)}
-          placeholder="Search logs..."
+          placeholder="Search message, event, trace, or Discord ID..."
         />
-        <span className="admin-log-tools__count">{logs.length} entries</span>
+        <span className="admin-log-tools__count">
+          {logs.length} entries{invalidLogCount > 0 ? ` · ${invalidLogCount} compatibility` : ''}
+        </span>
       </div>
+      <p className="admin-log-scope-note">
+        Local journal · raw Discord IDs appear only on error and critical records; Sentry remains pseudonymized.
+      </p>
 
       {logsError ? (
         <p style={{ color: '#f87171', fontSize: '0.85rem' }}>{logsError}</p>
@@ -381,7 +407,7 @@ export const BotStatsTab: React.FC = () => {
             <tbody>
               {logs.map((entry, i) => {
                 const style = LEVEL_BADGE[entry.level] ?? LEVEL_BADGE.DEBUG;
-                const isMultiline = entry.message.includes('\n');
+                const hasStack = (entry.stack?.length ?? 0) > 0;
                 const displayMsg = entry.message.split('\n')[0];
                 return (
                   <tr
@@ -412,13 +438,16 @@ export const BotStatsTab: React.FC = () => {
                       </span>
                     </td>
                     <td className="admin-log-table__logger">
-                      {entry.logger}
+                      <span>{entry.logger}</span>
+                      {entry.event_name && entry.event_name !== 'runtime_log' && (
+                        <small>{entry.event_name}</small>
+                      )}
                     </td>
                     <td>
                       <div className="admin-log-table__message">
                         <span>{displayMsg}</span>
                         <small>
-                          {isMultiline ? 'open traceback ›' : '›'}
+                          {hasStack ? 'open safe stack ›' : '›'}
                         </small>
                       </div>
                     </td>
@@ -435,7 +464,7 @@ export const BotStatsTab: React.FC = () => {
           {logs.map((entry, i) => {
             const style = LEVEL_BADGE[entry.level] ?? LEVEL_BADGE.DEBUG;
             const firstLine = entry.message.split('\n')[0];
-            const isMultiline = entry.message.includes('\n');
+            const hasStack = (entry.stack?.length ?? 0) > 0;
             const ctx = contextItems(entry);
             return (
               <div
@@ -474,6 +503,12 @@ export const BotStatsTab: React.FC = () => {
                   <span className="admin-mobile-label">Logger</span>
                   <span className="admin-mobile-value">{entry.logger || '—'}</span>
                 </div>
+                {entry.event_name && entry.event_name !== 'runtime_log' && (
+                  <div className="admin-mobile-field">
+                    <span className="admin-mobile-label">Event</span>
+                    <span className="admin-mobile-value">{entry.event_name}</span>
+                  </div>
+                )}
                 {ctx.length > 0 && (
                   <div className="admin-mobile-field">
                     <span className="admin-mobile-label">Context</span>
@@ -481,7 +516,7 @@ export const BotStatsTab: React.FC = () => {
                   </div>
                 )}
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: 8 }}>
-                  Tap to expand{isMultiline ? ' · traceback' : ''} ›
+                  Tap to expand{hasStack ? ' · safe stack' : ''} ›
                 </span>
               </div>
             );
@@ -507,7 +542,20 @@ export const BotStatsTab: React.FC = () => {
               <ContextChips entry={detailLog} />
             </div>
           )}
-          <pre>{detailLog.message}</pre>
+          <div className="admin-log-detail__body">
+            <section className="admin-log-detail__section">
+              <h5>Sanitized message</h5>
+              <pre>{detailLog.message}</pre>
+            </section>
+            {(detailLog.stack?.length ?? 0) > 0 && (
+              <section className="admin-log-detail__section">
+                <h5>Safe stack frames</h5>
+                <pre>{detailLog.stack!.map(frame => (
+                  `${frame.file}${frame.line == null ? '' : `:${frame.line}`} in ${frame.function}`
+                )).join('\n')}</pre>
+              </section>
+            )}
+          </div>
         </AdminDetailDialog>
       )}
     </div>
