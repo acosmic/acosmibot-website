@@ -15,7 +15,7 @@ Visitors, authenticated members, and the super-admin use the bar to orient thems
 
 ## Proof and content
 
-The current route, hydrated Discord identity, avatar, global name and username, authentication state, unread-notification count, and super-admin role are the proof. Navigation includes Features, Pricing, Documentation, Leaderboards, Servers, Profile, Achievements, Settings, Admin when authorized, and an explicit logout action.
+The current route, hydrated Discord identity, avatar, global name and username, authentication state, unread-notification count, and super-admin role are the proof. Navigation includes Features, Pricing, Documentation, Leaderboards, public Status, Servers, Profile, Achievements, Settings, Admin when authorized, and an explicit logout action.
 
 ## Direction and memorable moment
 

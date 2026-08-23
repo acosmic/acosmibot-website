@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Activity,
   BarChart3,
   BookOpen,
   ChevronDown,
@@ -262,6 +263,13 @@ export const PublicNav: React.FC<PublicNavProps> = ({
                 <i aria-hidden="true" />
               </NavLink>
             </li>
+            <li>
+              <NavLink to="/status">
+                <Activity aria-hidden="true" />
+                <span>Status</span>
+                <i aria-hidden="true" />
+              </NavLink>
+            </li>
           </ul>
 
           {isAuthenticated && (
@@ -380,6 +388,7 @@ export const PublicNav: React.FC<PublicNavProps> = ({
               <li><Link to="/pricing">Pricing</Link></li>
               <li><Link to="/docs/introduction">Documentation</Link></li>
               <li><Link to="/leaderboard">Leaderboards</Link></li>
+              <li><Link to="/status">Status</Link></li>
               {isAuthenticated && <li><Link to="/servers">Servers</Link></li>}
               {isAuthenticated && <li><Link to="/credits">AI Credits</Link></li>}
               {user?.is_admin && (

@@ -237,7 +237,7 @@ export interface SeoMeta {
   socialTitle?: string;
   canonicalPath: string;
   indexable: boolean;
-  kind: 'home' | 'feature' | 'docs' | 'pricing' | 'legal' | 'app';
+  kind: 'home' | 'feature' | 'docs' | 'pricing' | 'legal' | 'status' | 'app';
 }
 
 const EXACT_PUBLIC_META: Record<string, Omit<SeoMeta, 'canonicalPath'>> = {
@@ -265,6 +265,12 @@ const EXACT_PUBLIC_META: Record<string, Omit<SeoMeta, 'canonicalPath'>> = {
     description: 'Learn what Acosmibot stores, why Discord community data is processed, how website analytics consent works, and what controls users have.',
     indexable: true,
     kind: 'legal',
+  },
+  '/status': {
+    title: 'Acosmibot Status | Live Bot, API & Database Health',
+    description: 'Check current Acosmibot website, API, Discord bot, and database health, review independent uptime monitoring, and read recent incident history.',
+    indexable: true,
+    kind: 'status',
   },
 };
 
@@ -357,6 +363,7 @@ export const INDEXABLE_PUBLIC_PATHS = [
   '/pricing',
   '/terms-of-service',
   '/privacy-policy',
+  '/status',
 ];
 
 export function buildStructuredData(meta: SeoMeta) {

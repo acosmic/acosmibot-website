@@ -29,6 +29,7 @@ const publicNav = `
     <a href="/features/discord-games-bot">Games</a>
     <a href="/docs/introduction">Documentation</a>
     <a href="/pricing">Pricing</a>
+    <a href="/status">Status</a>
   </nav>`;
 
 const linkList = (links: Array<{ href: string; label: string }>) => `
@@ -97,6 +98,8 @@ const renderSimpleBody = (pathname: string) => {
   const meta = getSeoMeta(pathname);
   const copy = pathname === '/pricing'
     ? 'Compare the Free, Plus, Pro, and Max Acosmibot plans for Discord AI, leveling, economy, games, streaming alerts, and community tools.'
+    : pathname === '/status'
+      ? 'Review current Acosmibot website, API, Discord bot, and database health with independent monitoring and a public incident record.'
     : meta.description;
   return `
     <div class="seo-prerender seo-prerender--simple">

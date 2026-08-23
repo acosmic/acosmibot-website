@@ -45,6 +45,7 @@ const DocsPage = lazyRoute(() => import('./pages/docs/DocsPage').then(module => 
 const FeatureLandingPage = lazyRoute(() => import('./pages/features/FeatureLandingPage').then(module => ({ default: module.FeatureLandingPage })));
 const TermsOfServicePage = lazyRoute(() => import('./pages/legal/TermsOfServicePage').then(module => ({ default: module.TermsOfServicePage })));
 const PrivacyPolicyPage = lazyRoute(() => import('./pages/legal/PrivacyPolicyPage').then(module => ({ default: module.PrivacyPolicyPage })));
+const StatusPage = lazyRoute(() => import('./pages/StatusPage').then(module => ({ default: module.StatusPage })));
 const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
 const AdminPage = lazyRoute(() => import('./pages/admin/AdminPage').then(module => ({ default: module.AdminPage })));
 
@@ -258,6 +259,7 @@ function App() {
       <Route path="/features/discord-games-bot" element={<FeatureLandingPage slug="discord-games-bot" />} />
       <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/status" element={<StatusPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/premium" element={<Navigate to={{ pathname: '/pricing', search: window.location.search }} replace />} />
         <Route path="*" element={<NotFoundPage />} />

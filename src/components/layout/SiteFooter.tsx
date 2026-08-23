@@ -19,6 +19,7 @@ export const SiteFooter: React.FC = () => (
     <span>© {new Date().getFullYear()} {COMPANY_BRAND}</span>
     <FooterLink href="/terms-of-service">Terms</FooterLink>
     <FooterLink href="/privacy-policy">Privacy</FooterLink>
+    <FooterLink href="/status">Status</FooterLink>
     <button
       type="button"
       onClick={openAnalyticsPreferences}

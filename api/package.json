@@ -2,9 +2,12 @@
   "name": "acosmibot-render-api",
   "version": "1.0.0",
   "private": true,
-  "description": "Azure Static Web Apps managed functions — server-side rank-card rendering (Satori -> PNG).",
+  "description": "Azure Static Web Apps managed functions for card rendering and public service status.",
   "scripts": {
-    "build": "esbuild render-card/index.tsx --bundle --platform=node --target=node18 --format=cjs --jsx=automatic --external:@resvg/resvg-wasm --outfile=render-card/index.js"
+    "build": "npm run build:render-card && npm run build:status",
+    "build:render-card": "esbuild render-card/index.tsx --bundle --platform=node --target=node18 --format=cjs --jsx=automatic --external:@resvg/resvg-wasm --outfile=render-card/index.js",
+    "build:status": "esbuild status/index.ts --bundle --platform=node --target=node18 --format=cjs --outfile=status/index.js",
+    "test": "npm run build && node --test status/status.test.cjs"
   },
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
