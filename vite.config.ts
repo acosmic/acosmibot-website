@@ -29,8 +29,14 @@ const publicNav = `
     <a href="/features/discord-games-bot">Games</a>
     <a href="/docs/introduction">Documentation</a>
     <a href="/pricing">Pricing</a>
-    <a href="/status">Status</a>
   </nav>`;
+
+const publicFooter = `
+  <footer>
+    <nav aria-label="Utility navigation">
+      <a href="/status">Status</a>
+    </nav>
+  </footer>`;
 
 const linkList = (links: Array<{ href: string; label: string }>) => `
   <ul class="seo-prerender__links">
@@ -54,6 +60,7 @@ const renderHomeBody = () => `
       <h2>Set up every system</h2>
       ${linkList(DOC_ROUTES.map(([slug, label]) => ({ href: `/docs/${slug}`, label })))}
     </main>
+    ${publicFooter}
   </div>`;
 
 const renderFeatureBody = (slug: string) => {
@@ -74,6 +81,7 @@ const renderFeatureBody = (slug: string) => {
         <h2>Related Acosmibot systems</h2>
         ${linkList(feature.related.map(link => ({ href: link.path, label: link.label })))}
       </main>
+      ${publicFooter}
     </div>`;
 };
 
@@ -91,6 +99,7 @@ const renderDocsBody = (slug: string) => {
         </aside>
         <article>${article}</article>
       </main>
+      ${publicFooter}
     </div>`;
 };
 
@@ -105,6 +114,7 @@ const renderSimpleBody = (pathname: string) => {
     <div class="seo-prerender seo-prerender--simple">
       ${publicNav}
       <main><h1>${escapeHtml(meta.title.split('|')[0].trim())}</h1><p>${escapeHtml(copy)}</p></main>
+      ${publicFooter}
     </div>`;
 };
 
@@ -175,6 +185,7 @@ const seoStaticPages = (): Plugin => ({
       <div class="seo-prerender seo-prerender--not-found">
         ${publicNav}
         <main><h1>Page not found</h1><p>This Acosmibot route does not exist. Return to the <a href="/">Acosmibot homepage</a> or browse the <a href="/docs/introduction">documentation</a>.</p></main>
+        ${publicFooter}
       </div>`;
     const notFound = injectRoot(applyHead(shell, '/not-found', false), notFoundBody)
       .replaceAll('Acosmibot Dashboard', 'Page Not Found | Acosmibot')

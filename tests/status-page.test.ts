@@ -17,6 +17,13 @@ test('the public status route is indexable and linked from the shared footer', (
   assert.match(readSource('src/App.tsx'), /path="\/status"/);
   assert.doesNotMatch(readSource('src/components/layout/PublicNav.tsx'), /to="\/status"/);
   assert.match(readSource('src/components/layout/SiteFooter.tsx'), /href="\/status"/);
+  assert.match(readSource('src/pages/HomePage.tsx'), /to="\/status">Status/);
+
+  const prerender = readSource('vite.config.ts');
+  const prerenderNav = prerender.match(/const publicNav = `([\s\S]*?)`;/)?.[1] ?? '';
+  const prerenderFooter = prerender.match(/const publicFooter = `([\s\S]*?)`;/)?.[1] ?? '';
+  assert.doesNotMatch(prerenderNav, /href="\/status"/);
+  assert.match(prerenderFooter, /href="\/status"/);
 });
 
 test('the status relay keeps credentials server-side and exposes a fixed public boundary', () => {

@@ -727,6 +727,7 @@ export const HomePage: React.FC = () => {
             <span>Community systems, connected.</span>
           </div>
           <div className="home-footer__links">
+            <Link to="/status">Status</Link>
             <Link to="/terms-of-service">Terms</Link>
             <Link to="/privacy-policy">Privacy</Link>
             <button type="button" onClick={event => {
