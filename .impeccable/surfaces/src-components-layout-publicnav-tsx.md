@@ -15,7 +15,7 @@ Visitors, authenticated members, and the super-admin use the bar to orient thems
 
 ## Proof and content
 
-The current route, hydrated Discord identity, avatar, global name and username, authentication state, unread-notification count, and super-admin role are the proof. Navigation includes Features, Pricing, Documentation, Leaderboards, public Status, Servers, Profile, Achievements, Settings, Admin when authorized, and an explicit logout action.
+The current route, hydrated Discord identity, avatar, global name and username, authentication state, unread-notification count, and super-admin role are the proof. Navigation includes Features, Pricing, Documentation, Leaderboards, Servers, Profile, Achievements, Settings, Admin when authorized, and an explicit logout action. Public service Status remains available as a utility destination in the shared footer rather than competing with primary navigation.
 
 ## Direction and memorable moment
 
@@ -23,7 +23,7 @@ Site Coordinates Relay: the desktop account panel and mobile drawer behave like 
 
 ## Constraints
 
-Preserve OAuth hydration, existing route and anchor destinations, admin visibility rules, notifications, outside-click and Escape dismissal, route-change closure, mobile body scroll locking, keyboard focus visibility, responsive overflow, reduced motion, and readable identity truncation. Use native links and buttons; account navigation and logout must remain distinct actions.
+Preserve OAuth hydration, primary route and anchor destinations, the footer-owned Status route, admin visibility rules, notifications, outside-click and Escape dismissal, route-change closure, mobile body scroll locking, keyboard focus visibility, responsive overflow, reduced motion, and readable identity truncation. Use native links and buttons; account navigation and logout must remain distinct actions.
 
 ## Unresolved decisions
 

@@ -9,13 +9,13 @@ import { PUBLIC_STATUS_INCIDENTS } from '../src/status/publicIncidents.ts';
 const testDir = fileURLToPath(new URL('.', import.meta.url));
 const readSource = (path: string) => readFileSync(`${testDir}../${path}`, 'utf8');
 
-test('the public status route is indexable and present in shared navigation', () => {
+test('the public status route is indexable and linked from the shared footer', () => {
   const meta = getSeoMeta('/status');
   assert.equal(meta.indexable, true);
   assert.equal(meta.canonicalPath, '/status');
   assert.ok(INDEXABLE_PUBLIC_PATHS.includes('/status'));
   assert.match(readSource('src/App.tsx'), /path="\/status"/);
-  assert.match(readSource('src/components/layout/PublicNav.tsx'), /to="\/status"/);
+  assert.doesNotMatch(readSource('src/components/layout/PublicNav.tsx'), /to="\/status"/);
   assert.match(readSource('src/components/layout/SiteFooter.tsx'), /href="\/status"/);
 });
 
