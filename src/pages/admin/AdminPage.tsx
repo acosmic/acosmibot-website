@@ -21,6 +21,7 @@ import {
   Package,
   Palette,
   Server,
+  Send,
   Sparkles,
   Trophy,
   Waypoints,
@@ -44,6 +45,7 @@ import { ItemsTab } from './ItemsTab';
 import { AnalyticsTab } from './AnalyticsTab';
 import { AdminDetailDialog } from './AdminDetailDialog';
 import { PremiumGrantsTab } from './PremiumGrantsTab';
+import { SocialStudioTab } from './SocialStudioTab';
 import '@/styles/admin.css';
 
 const ADMIN_TABS = [
@@ -53,6 +55,7 @@ const ADMIN_TABS = [
   { id: 'botstats', label: 'Bot Stats', group: 'Telemetry', description: 'Observe bot health, runtime signals, and system-wide operating totals.', icon: Activity },
   { id: 'aitraces', label: 'AI Traces', group: 'Telemetry', description: 'Follow content-free AI routing, provider, tool, safety, delivery, and settlement spans.', icon: Waypoints },
   { id: 'ai', label: 'AI Settings', group: 'Intelligence', description: 'Configure the shared AI model policy, limits, and system behavior.', icon: Bot },
+  { id: 'social', label: 'Social Studio', group: 'Intelligence', description: 'Define platform-aware copy rules and route branded review drafts to a private Discord channel.', icon: Send },
   { id: 'economy', label: 'Economy', group: 'Systems', description: 'Manage global economy behavior and operational defaults.', icon: Coins },
   { id: 'features', label: 'Feature Flags', group: 'Systems', description: 'Control global feature availability and release-state switches.', icon: Flag },
   { id: 'cosmetics', label: 'Cosmetics', group: 'Catalog', description: 'Maintain the global cosmetic catalog and presentation metadata.', icon: Palette },
@@ -508,6 +511,12 @@ export const AdminPage: React.FC = () => {
         {tab === 'ai' && (
           <div className="admin-surface">
             <AiSettingsTab />
+          </div>
+        )}
+
+        {tab === 'social' && (
+          <div className="admin-surface">
+            <SocialStudioTab />
           </div>
         )}
 

@@ -71,6 +71,7 @@ const FEATURE_TITLES: Record<string, string> = {
   moderation: 'Moderation',
   'banned-users': 'Banned Users',
   ai: 'AI Settings',
+  social: 'Social Studio',
   games: 'Games',
   polymorph: 'Polymorph',
   analytics: 'Server Analytics',

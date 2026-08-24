@@ -38,6 +38,63 @@ export interface AdminGuildOption {
   owner_id: string;
 }
 
+export type SocialFormatting = 'plain_text' | 'facets' | 'rich_text';
+export type SocialEmojiPolicy = 'none' | 'light' | 'expressive';
+
+export interface SocialPlatformSpec {
+  key: string;
+  label: string;
+  reviewed_at: string;
+  enabled?: boolean;
+  character_limit: number;
+  counting: string;
+  formatting: SocialFormatting;
+  markdown: false;
+  max_media: number;
+  media_types: string[];
+  max_image_mb: number;
+  aspect_ratios: string[];
+  notes: string;
+  source_urls: string[];
+}
+
+export interface SocialPlatformOverride {
+  enabled?: boolean;
+  character_limit?: number;
+  max_media?: number;
+  media_types?: string[];
+  formatting?: SocialFormatting;
+  notes?: string;
+  max_image_mb?: number;
+  aspect_ratios?: string[];
+}
+
+export interface SocialStudioSettings {
+  enabled: boolean;
+  destination: { guild_id: string; channel_id: string };
+  brand_voice: string;
+  default_call_to_action: string;
+  default_platforms: string[];
+  emoji_policy: SocialEmojiPolicy;
+  max_hashtags: number;
+  image_aspect_ratio: '1:1' | '4:5' | '16:9';
+  platform_overrides: Record<string, SocialPlatformOverride>;
+}
+
+export interface SocialDraftJob {
+  job_id: string;
+  campaign_name: string;
+  platforms: string[];
+  generate_image: boolean;
+  status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+  error_type: string | null;
+  delivery_channel_id: string | null;
+  discord_message_id: string | null;
+  created_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
 export type AdminAiTierLimits = Record<AdminAiTier, {
   daily_limit: number;
   monthly_limit: number;
@@ -367,6 +424,45 @@ export type AdminItemInput = Partial<Omit<AdminItem, 'id'>> & {
 };
 
 export const adminApi = {
+  getSocialStudioSettings: () =>
+    api.fetch<{ success: boolean; data: SocialStudioSettings; platforms: SocialPlatformSpec[] }>(
+      '/api/admin/social-studio/settings',
+    ),
+
+  updateSocialStudioSettings: (payload: SocialStudioSettings) =>
+    api.fetch<{ success: boolean; data: SocialStudioSettings }>(
+      '/api/admin/social-studio/settings',
+      { method: 'PUT', body: JSON.stringify(payload) },
+    ),
+
+  getSocialStudioChannels: (guildId: string) =>
+    api.fetch<{ success: boolean; channels: Array<{ id: string; name: string }> }>(
+      `/api/admin/social-studio/guilds/${encodeURIComponent(guildId)}/channels`,
+    ),
+
+  getSocialDraftJobs: () =>
+    api.fetch<{
+      success: boolean;
+      jobs: SocialDraftJob[];
+      limits: { active: number; per_24_hours: number };
+    }>('/api/admin/social-studio/jobs'),
+
+  createSocialDraftJob: (payload: {
+    campaign_name: string;
+    brief: string;
+    platforms: string[];
+    generate_image: boolean;
+    confirm: true;
+  }) => api.fetch<{ success: boolean; job: SocialDraftJob }>('/api/admin/social-studio/jobs', {
+    method: 'POST', body: JSON.stringify(payload),
+  }),
+
+  cancelSocialDraftJob: (jobId: string) =>
+    api.fetch<{ success: boolean }>(
+      `/api/admin/social-studio/jobs/${encodeURIComponent(jobId)}/cancel`,
+      { method: 'POST' },
+    ),
+
   getPremiumGrants: (params: {
     status?: PremiumGrantStatus | 'all'; search?: string; limit?: number; offset?: number;
   } = {}) => {
