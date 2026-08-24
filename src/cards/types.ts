@@ -41,11 +41,15 @@ export interface RankCardData {
    *  - accentColor: level text + XP-bar fill (default cyan)
    *  - background:  root background — a hex color or a CSS gradient string
    *                 (default #18191c)
+   *  - backgroundImageUrl: immutable owner-uploaded 800×250 artwork
+   *  - layoutPreset: 'artwork' shortens only the XP track to half length
    *  - ringColor:   avatar border + subtle glow (default black)
    */
   loadout?: {
     accentColor?: string;
     background?: string;
+    backgroundImageUrl?: string;
+    layoutPreset?: 'standard' | 'artwork';
     ringColor?: string;
     /**
      * Key of the equipped background cosmetic, when it's a special one whose

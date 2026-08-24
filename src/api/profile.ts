@@ -84,6 +84,8 @@ export interface PublicProfile {
   loadout?: {
     accentColor?: string;
     background?: string;
+    backgroundImageUrl?: string;
+    layoutPreset?: 'standard' | 'artwork';
     ringColor?: string;
     backgroundKey?: string;
   };

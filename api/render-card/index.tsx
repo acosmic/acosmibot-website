@@ -96,6 +96,8 @@ async function loadAIStatusMascot(): Promise<string> {
 // request proxy against internal Azure endpoints (e.g. instance metadata).
 const ALLOWED_AVATAR_HOSTS = new Set(['cdn.discordapp.com', 'media.discordapp.net']);
 const ALLOWED_WOW_RENDER_HOSTS = new Set(['render.worldofwarcraft.com']);
+const RANK_BACKGROUND_HOST = 'cdn.acosmibot.com';
+const RANK_BACKGROUND_PATH_PREFIX = '/embed-images/rank-card-backgrounds/';
 const MAX_REMOTE_IMAGE_BYTES = 8 * 1024 * 1024;
 
 function isAllowedImageUrl(raw: string, allowedHosts: Set<string>): boolean {
@@ -107,18 +109,42 @@ function isAllowedImageUrl(raw: string, allowedHosts: Set<string>): boolean {
   }
 }
 
+function isAllowedRankBackgroundUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    const filename = u.pathname.slice(RANK_BACKGROUND_PATH_PREFIX.length);
+    return (
+      u.protocol === 'https:' &&
+      u.hostname === RANK_BACKGROUND_HOST &&
+      u.port === '' &&
+      u.username === '' &&
+      u.password === '' &&
+      u.search === '' &&
+      u.hash === '' &&
+      u.pathname.startsWith(RANK_BACKGROUND_PATH_PREFIX) &&
+      /^[a-z0-9][a-z0-9-]{0,99}\.png$/.test(filename)
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Satori needs remote image bytes, not a bare URL — inline them as a data URI.
-async function imageToDataUri(url: string): Promise<string> {
+async function imageToDataUri(url: string, requiredContentType?: string): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);
   try {
     // `redirect: 'error'` stops an allowlisted host from bouncing us to an
     // internal address.
     const res = await fetch(url, { signal: controller.signal, redirect: 'error' });
-    if (!res.ok) throw new Error(`avatar fetch failed: ${res.status}`);
+    if (!res.ok) throw new Error(`image fetch failed: ${res.status}`);
 
     const contentType = res.headers.get('content-type') || 'image/png';
-    if (!/^image\//i.test(contentType)) throw new Error('avatar is not an image');
+    if (!/^image\//i.test(contentType)) throw new Error('response is not an image');
+    if (
+      requiredContentType &&
+      contentType.split(';', 1)[0].trim().toLowerCase() !== requiredContentType
+    ) throw new Error('image has an unexpected content type');
 
     const declaredLen = Number(res.headers.get('content-length') || 0);
     if (declaredLen && declaredLen > MAX_REMOTE_IMAGE_BYTES) throw new Error('image too large');
@@ -133,19 +159,28 @@ async function imageToDataUri(url: string): Promise<string> {
 }
 
 async function renderPng(data: RankCardData): Promise<Buffer> {
-  // Resolve the avatar to a data URI; on any failure fall back to no avatar
-  // (the component draws a gray circle instead).
-  let avatarUrl = '';
-  if (data.avatarUrl && isAllowedImageUrl(data.avatarUrl, ALLOWED_AVATAR_HOSTS)) {
-    try {
-      avatarUrl = await imageToDataUri(data.avatarUrl);
-    } catch {
-      avatarUrl = '';
-    }
-  }
+  // Resolve purpose-allowlisted remote assets in parallel. Any fetch failure
+  // falls back to the ordinary card/avatar placeholders.
+  const avatarSource = (
+    data.avatarUrl && isAllowedImageUrl(data.avatarUrl, ALLOWED_AVATAR_HOSTS)
+  ) ? data.avatarUrl : '';
+  const backgroundSource = (
+    data.loadout?.backgroundImageUrl &&
+    isAllowedRankBackgroundUrl(data.loadout.backgroundImageUrl)
+  ) ? data.loadout.backgroundImageUrl : '';
+  const [avatarUrl, backgroundImageUrl] = await Promise.all([
+    avatarSource ? imageToDataUri(avatarSource).catch(() => '') : Promise.resolve(''),
+    backgroundSource
+      ? imageToDataUri(backgroundSource, 'image/png').catch(() => '')
+      : Promise.resolve(''),
+  ]);
+
+  const loadout = data.loadout
+    ? { ...data.loadout, backgroundImageUrl }
+    : undefined;
 
   const fonts = await loadFonts();
-  const svg = await satori(<RankCard data={{ ...data, avatarUrl }} />, {
+  const svg = await satori(<RankCard data={{ ...data, avatarUrl, loadout }} />, {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     fonts,
@@ -243,11 +278,39 @@ function parseBody(req: any): unknown {
 function isValid(data: unknown): data is RankCardData {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
+  const loadout = d.loadout;
+  const validLoadout = loadout === undefined || (
+    loadout !== null &&
+    typeof loadout === 'object' &&
+    !Array.isArray(loadout) &&
+    (() => {
+      const value = loadout as Record<string, unknown>;
+      const optionalStrings = ['accentColor', 'background', 'ringColor', 'backgroundKey'];
+      if (optionalStrings.some((key) => (
+        value[key] !== undefined &&
+        (typeof value[key] !== 'string' || (value[key] as string).length > 1024)
+      ))) return false;
+      if (
+        value.layoutPreset !== undefined &&
+        value.layoutPreset !== 'standard' &&
+        value.layoutPreset !== 'artwork'
+      ) return false;
+      if (
+        value.backgroundImageUrl !== undefined &&
+        (
+          typeof value.backgroundImageUrl !== 'string' ||
+          !isAllowedRankBackgroundUrl(value.backgroundImageUrl)
+        )
+      ) return false;
+      return true;
+    })()
+  );
   return (
     typeof d.displayName === 'string' &&
     typeof d.guildName === 'string' &&
     typeof d.rank === 'number' &&
-    typeof d.level === 'number'
+    typeof d.level === 'number' &&
+    validLoadout
   );
 }
 

@@ -50,6 +50,8 @@ function buildPreview(
   return buildRankCardData(profile, {
     accentColor: selected.accent?.value,
     background: selected.background?.value,
+    backgroundImageUrl: selected.background?.asset_url ?? undefined,
+    layoutPreset: selected.background?.layout_preset,
     ringColor: selected.ring?.value,
     backgroundKey: selected.background?.achievement_key ?? undefined,
   });
@@ -341,8 +343,13 @@ const CosmeticSwatch: React.FC<{
   onPreview: (cosmetic: Cosmetic) => void;
   onBuy: (cosmetic: Cosmetic) => void;
 }> = ({ cosmetic, selected, busy, discount, onPreview, onBuy }) => {
-  const swatchStyle: React.CSSProperties =
-    cosmetic.type === 'background' && /gradient/i.test(cosmetic.value)
+  const swatchStyle: React.CSSProperties = cosmetic.asset_url
+    ? {
+        backgroundImage: `url("${cosmetic.asset_url}")`,
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+      }
+    : cosmetic.type === 'background' && /gradient/i.test(cosmetic.value)
       ? { background: cosmetic.value }
       : { backgroundColor: cosmetic.value };
   const hasDiscount = discount > 0 && cosmetic.price > 0;

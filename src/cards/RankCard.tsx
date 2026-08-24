@@ -58,11 +58,16 @@ export function RankCard({ data }: { data: RankCardData }) {
   const accent = loadout?.accentColor || COLORS.accent;
   const background = loadout?.background || COLORS.background;
   const ringColor = loadout?.ringColor || COLORS.outline;
+  const backgroundImageUrl = loadout?.backgroundImageUrl;
   // A `background` value may be either a solid color or a CSS gradient string;
   // the shorthand `background` property accepts both.
   const isGradient = /gradient/i.test(background);
   // The achievement-granted OG card carries extra ornamentation.
   const isOgCard = loadout?.backgroundKey === 'og_member';
+  // Special artwork cards retain the canonical overlay coordinates. Per the
+  // art direction, the XP track is the sole geometry change: exactly half of
+  // the standard 530 px width.
+  const xpBarWidth = loadout?.layoutPreset === 'artwork' ? 265 : 530;
 
   // XP bar fill: clamp 0..1, enforce an 8% minimum sliver (matches PIL).
   const ratio = expNeeded > 0 ? expProgress / expNeeded : 1;
@@ -83,6 +88,25 @@ export function RankCard({ data }: { data: RankCardData }) {
         overflow: 'hidden',
       }}
     >
+      {/* Immutable uploaded artwork. It fills the full 800×250 canvas while
+          every overlay coordinate remains shared with the standard card. */}
+      {backgroundImageUrl && (
+        <img
+          src={backgroundImageUrl}
+          width={CARD_WIDTH}
+          height={CARD_HEIGHT}
+          alt=""
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
+            objectFit: 'cover',
+          }}
+        />
+      )}
+
       {/* OG embossed monogram — behind all content so text stays legible. */}
       {isOgCard && <OgMonogram />}
 
@@ -202,14 +226,14 @@ export function RankCard({ data }: { data: RankCardData }) {
         {`${fmt(currentExp)} XP (${fmt(expProgress)} / ${fmt(expNeeded)})`}
       </div>
 
-      {/* XP bar — 530x30 track, 3px outline, cyan fill. */}
+      {/* XP bar — standard 530px or artwork-only 265px, same position/height. */}
       <div
         style={{
           position: 'absolute',
           left: 180,
           top: 180,
           display: 'flex',
-          width: 530,
+          width: xpBarWidth,
           height: 30,
           boxSizing: 'content-box',
           border: `3px solid ${COLORS.outline}`,
