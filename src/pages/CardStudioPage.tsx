@@ -38,7 +38,7 @@ const SLOT_NOTES: Record<CosmeticType, string> = {
   ring: 'Changes the border and glow around your Discord avatar.',
 };
 
-const SLOT_ORDER: CosmeticType[] = ['accent', 'background', 'ring'];
+const SLOT_ORDER: CosmeticType[] = ['background', 'ring', 'accent'];
 const fmt = (value: number): string => value.toLocaleString('en-US');
 const discounted = (price: number, discount: number): number =>
   discount > 0 ? Math.max(Math.ceil(price * (1 - discount)), 0) : price;
@@ -80,7 +80,7 @@ export const CardStudioPage: React.FC = () => {
   });
   const [pendingBuy, setPendingBuy] = useState<Cosmetic | null>(null);
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
-  const [activeType, setActiveType] = useState<CosmeticType>('accent');
+  const [activeType, setActiveType] = useState<CosmeticType>('background');
   const seededRef = useRef(false);
 
   useEffect(() => {

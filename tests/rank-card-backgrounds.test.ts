@@ -81,3 +81,10 @@ test('Card Studio uses focused, literal previews for each cosmetic slot', () => 
   assert.match(styles, /\.studio-slot-tabs/);
   assert.doesNotMatch(studio, /\{SLOT_ORDER\.map\(\(type\) => \(\s*<SlotTray/);
 });
+
+test('Card Studio prioritizes background, ring, then accent', () => {
+  const studio = source('src/pages/CardStudioPage.tsx');
+
+  assert.match(studio, /const SLOT_ORDER: CosmeticType\[\] = \['background', 'ring', 'accent'\]/);
+  assert.match(studio, /useState<CosmeticType>\('background'\)/);
+});
