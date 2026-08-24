@@ -2181,6 +2181,19 @@
   resize: vertical;
 }
 
+.admin-artwork-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-artwork-label-row small {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+
 .admin-artwork-file input {
   min-height: 44px;
   padding: 5px;

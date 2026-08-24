@@ -27,15 +27,15 @@ import type { RankCardData } from '@/cards/types';
 import '@/styles/member.css';
 
 const SLOT_LABELS: Record<CosmeticType, string> = {
-  accent: 'Accent signals',
-  background: 'Background fields',
-  ring: 'Avatar rings',
+  accent: 'Accent color',
+  background: 'Card background',
+  ring: 'Avatar ring',
 };
 
 const SLOT_NOTES: Record<CosmeticType, string> = {
-  accent: 'Sets the primary signal color throughout the card.',
-  background: 'Changes the card field while keeping data legible.',
-  ring: 'Frames the member identity at the center of the card.',
+  accent: 'Changes both the LVL number and XP bar fill.',
+  background: 'Changes the full 800×250 card behind your rank details.',
+  ring: 'Changes the border and glow around your Discord avatar.',
 };
 
 const SLOT_ORDER: CosmeticType[] = ['accent', 'background', 'ring'];
@@ -80,6 +80,7 @@ export const CardStudioPage: React.FC = () => {
   });
   const [pendingBuy, setPendingBuy] = useState<Cosmetic | null>(null);
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
+  const [activeType, setActiveType] = useState<CosmeticType>('accent');
   const seededRef = useRef(false);
 
   useEffect(() => {
@@ -224,11 +225,10 @@ export const CardStudioPage: React.FC = () => {
                 <span className="studio-stage__orbit" aria-hidden="true" />
                 <ScaledRankCard data={preview} />
               </div>
-              <p>
-                Select any material to preview it. Owned items equip immediately;
-                unowned pieces remain a local try-on until purchase.
+              <p className="studio-stage__instruction">
+                Every choice updates this preview. Owned items equip immediately.
               </p>
-              <dl>
+              <dl className="studio-stage__loadout">
                 {SLOT_ORDER.map((type) => (
                   <div key={type}>
                     <dt>{SLOT_LABELS[type]}</dt>
@@ -238,19 +238,36 @@ export const CardStudioPage: React.FC = () => {
               </dl>
             </aside>
 
-            <section className="studio-trays" aria-label="Cosmetic materials">
-              {SLOT_ORDER.map((type) => (
-                <SlotTray
-                  key={type}
-                  type={type}
-                  items={byType[type]}
-                  selectedId={selected[type]?.id ?? null}
-                  busy={busy}
-                  discount={catalog.shop_discount}
-                  onPreview={handlePreview}
-                  onBuy={setPendingBuy}
-                />
-              ))}
+            <section className="studio-materials" aria-label="Rank-card materials">
+              <div className="studio-slot-tabs" role="tablist" aria-label="Choose a card area">
+                {SLOT_ORDER.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    role="tab"
+                    id={`studio-tab-${type}`}
+                    aria-selected={activeType === type}
+                    aria-controls="studio-material-panel"
+                    className={activeType === type ? 'is-active' : ''}
+                    onClick={() => setActiveType(type)}
+                  >
+                    <i className={`studio-slot-tabs__icon is-${type}`} aria-hidden="true" />
+                    <span><strong>{SLOT_LABELS[type]}</strong><small>{byType[type].length} choices</small></span>
+                    <em>{selected[type]?.name ?? 'Default'}</em>
+                  </button>
+                ))}
+              </div>
+
+              <SlotTray
+                type={activeType}
+                items={byType[activeType]}
+                selectedId={selected[activeType]?.id ?? null}
+                avatarUrl={preview.avatarUrl}
+                busy={busy}
+                discount={catalog.shop_discount}
+                onPreview={handlePreview}
+                onBuy={setPendingBuy}
+              />
             </section>
           </div>
         ) : null}
@@ -305,12 +322,18 @@ const SlotTray: React.FC<{
   type: CosmeticType;
   items: Cosmetic[];
   selectedId: number | null;
+  avatarUrl: string;
   busy: boolean;
   discount: number;
   onPreview: (cosmetic: Cosmetic) => void;
   onBuy: (cosmetic: Cosmetic) => void;
-}> = ({ type, items, selectedId, busy, discount, onPreview, onBuy }) => (
-  <section className="studio-tray">
+}> = ({ type, items, selectedId, avatarUrl, busy, discount, onPreview, onBuy }) => (
+  <section
+    className={`studio-tray is-${type}`}
+    role="tabpanel"
+    id="studio-material-panel"
+    aria-labelledby={`studio-tab-${type}`}
+  >
     <header>
       <div><p>{SLOT_NOTES[type]}</p><h2>{SLOT_LABELS[type]}</h2></div>
       <span>{items.length} materials</span>
@@ -322,6 +345,7 @@ const SlotTray: React.FC<{
             key={cosmetic.id}
             cosmetic={cosmetic}
             selected={selectedId === cosmetic.id}
+            avatarUrl={avatarUrl}
             busy={busy}
             discount={discount}
             onPreview={onPreview}
@@ -338,22 +362,62 @@ const SlotTray: React.FC<{
 const CosmeticSwatch: React.FC<{
   cosmetic: Cosmetic;
   selected: boolean;
+  avatarUrl: string;
   busy: boolean;
   discount: number;
   onPreview: (cosmetic: Cosmetic) => void;
   onBuy: (cosmetic: Cosmetic) => void;
-}> = ({ cosmetic, selected, busy, discount, onPreview, onBuy }) => {
-  const swatchStyle: React.CSSProperties = cosmetic.asset_url
-    ? {
-        backgroundImage: `url("${cosmetic.asset_url}")`,
-        backgroundPosition: 'center',
-        backgroundSize: 'cover',
-      }
-    : cosmetic.type === 'background' && /gradient/i.test(cosmetic.value)
-      ? { background: cosmetic.value }
-      : { backgroundColor: cosmetic.value };
+}> = ({ cosmetic, selected, avatarUrl, busy, discount, onPreview, onBuy }) => {
   const hasDiscount = discount > 0 && cosmetic.price > 0;
   const finalPrice = discounted(cosmetic.price, discount);
+
+  const materialPreview = cosmetic.type === 'accent' ? (
+    <span className="studio-swatch__material studio-swatch__material--accent">
+      <b style={{ color: cosmetic.value }}>LVL&nbsp; 34</b>
+      <span className="studio-accent-demo__track">
+        <span style={{ backgroundColor: cosmetic.value }} />
+      </span>
+    </span>
+  ) : cosmetic.type === 'ring' ? (
+    <span className="studio-swatch__material studio-swatch__material--ring">
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt=""
+          style={{
+            borderColor: cosmetic.value,
+            boxShadow: `0 0 10px ${cosmetic.value}`,
+          }}
+        />
+      ) : (
+        <span
+          className="studio-ring-demo__fallback"
+          style={{ borderColor: cosmetic.value, boxShadow: `0 0 10px ${cosmetic.value}` }}
+        />
+      )}
+      <small>Your avatar</small>
+    </span>
+  ) : (
+    <span
+      className="studio-swatch__material studio-swatch__material--background"
+      style={cosmetic.asset_url
+        ? {
+            backgroundImage: `url("${cosmetic.asset_url}")`,
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+          }
+        : /gradient/i.test(cosmetic.value)
+          ? { background: cosmetic.value }
+          : { backgroundColor: cosmetic.value }}
+    >
+      {cosmetic.achievement_key === 'og_member' && (
+        <>
+          <strong>OG</strong>
+          <img src={OG_FRAME_DATA_URI} alt="" />
+        </>
+      )}
+    </span>
+  );
 
   return (
     <article className={`studio-swatch${selected ? ' is-selected' : ''}${cosmetic.owned ? ' is-owned' : ''}`}>
@@ -364,15 +428,10 @@ const CosmeticSwatch: React.FC<{
         onClick={() => onPreview(cosmetic)}
         aria-pressed={selected}
       >
-        <span className="studio-swatch__material" style={swatchStyle}>
-          {cosmetic.achievement_key === 'og_member' && (
-            <>
-              <strong>OG</strong>
-              <img src={OG_FRAME_DATA_URI} alt="" />
-            </>
-          )}
-          {hasDiscount && !cosmetic.owned && <i>-{Math.round(discount * 100)}%</i>}
-        </span>
+        {materialPreview}
+        {hasDiscount && !cosmetic.owned && (
+          <i className="studio-swatch__discount">-{Math.round(discount * 100)}%</i>
+        )}
         <span className="studio-swatch__identity">
           <strong>{cosmetic.name}</strong>
           <small>{cosmetic.owned ? (selected ? 'Equipped' : 'Owned') : cosmetic.rarity}</small>

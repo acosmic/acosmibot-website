@@ -64,10 +64,15 @@ export function RankCard({ data }: { data: RankCardData }) {
   const isGradient = /gradient/i.test(background);
   // The achievement-granted OG card carries extra ornamentation.
   const isOgCard = loadout?.backgroundKey === 'og_member';
-  // Special artwork cards retain the canonical overlay coordinates. Per the
-  // art direction, the XP track is the sole geometry change: exactly half of
-  // the standard 530 px width.
-  const xpBarWidth = loadout?.layoutPreset === 'artwork' ? 265 : 530;
+  // Artwork cards reserve more of the illustration: the XP track is half
+  // width, the avatar clears ornamental frames, and the global level joins
+  // the top identity row instead of sitting over the right-hand artwork.
+  const isArtworkCard = loadout?.layoutPreset === 'artwork';
+  const xpBarWidth = isArtworkCard ? 265 : 530;
+  const avatarSize = isArtworkCard ? 120 : 140;
+  const avatarLeft = isArtworkCard ? 35 : 25;
+  const avatarTop = isArtworkCard ? 65 : 55;
+  const avatarShadow = isArtworkCard ? 6 : 12;
 
   // XP bar fill: clamp 0..1, enforce an 8% minimum sliver (matches PIL).
   const ratio = expNeeded > 0 ? expProgress / expNeeded : 1;
@@ -110,23 +115,24 @@ export function RankCard({ data }: { data: RankCardData }) {
       {/* OG embossed monogram — behind all content so text stays legible. */}
       {isOgCard && <OgMonogram />}
 
-      {/* Avatar — 140px circle with a thin black ring, vertically centered.
+      {/* Avatar — 140px on standard cards and a centered 120px on artwork.
+          The artwork inset keeps both the ring and glow clear of ornate frames.
           Falls back to a plain gray circle when no avatar is available
           (mirrors the PIL path, which simply omits a missing avatar). */}
       {avatarUrl ? (
         <img
           src={avatarUrl}
-          width={140}
-          height={140}
+          width={avatarSize}
+          height={avatarSize}
           style={{
             position: 'absolute',
-            left: 25,
-            top: 55,
-            width: 140,
-            height: 140,
+            left: avatarLeft,
+            top: avatarTop,
+            width: avatarSize,
+            height: avatarSize,
             borderRadius: '50%',
             border: `2px solid ${ringColor}`,
-            boxShadow: `0 0 12px ${ringColor}`,
+            boxShadow: `0 0 ${avatarShadow}px ${ringColor}`,
             boxSizing: 'border-box',
             objectFit: 'cover',
           }}
@@ -135,13 +141,13 @@ export function RankCard({ data }: { data: RankCardData }) {
         <div
           style={{
             position: 'absolute',
-            left: 25,
-            top: 55,
-            width: 140,
-            height: 140,
+            left: avatarLeft,
+            top: avatarTop,
+            width: avatarSize,
+            height: avatarSize,
             borderRadius: '50%',
             border: `2px solid ${ringColor}`,
-            boxShadow: `0 0 12px ${ringColor}`,
+            boxShadow: `0 0 ${avatarShadow}px ${ringColor}`,
             boxSizing: 'border-box',
             backgroundColor: '#2b2d31',
           }}
@@ -154,19 +160,26 @@ export function RankCard({ data }: { data: RankCardData }) {
           position: 'absolute',
           left: 180,
           top: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
           fontSize: 18,
           fontWeight: 400,
           color: COLORS.guild,
+          whiteSpace: 'nowrap',
         }}
       >
-        {topLeftLabel ?? `in ${guildName}`}
+        <span>{topLeftLabel ?? `in ${guildName}`}</span>
+        {isArtworkCard && !hideGlobalLevel && (
+          <span style={{ color: COLORS.global, fontSize: 14, fontWeight: 600 }}>
+            {`· Global Lvl ${globalLevel}`}
+          </span>
+        )}
       </div>
 
-      {/* Global level — sits just above the far-right end of the XP bar (the
-          bar spans left:180 + width:530 + 3px border = right edge x716, so a
-          right offset of 84 aligns the label's right edge to it). Hidden on the
-          global card variant, where the main LVL already shows the global level. */}
-      {!hideGlobalLevel && (
+      {/* Global level — standard cards keep the legacy far-right placement.
+          Artwork cards append it to the guild label in the top identity row. */}
+      {!hideGlobalLevel && !isArtworkCard && (
         <div
           style={{
             position: 'absolute',
@@ -175,6 +188,7 @@ export function RankCard({ data }: { data: RankCardData }) {
             fontSize: 16,
             fontWeight: 400,
             color: COLORS.global,
+            whiteSpace: 'nowrap',
           }}
         >
           {`Global Lvl ${globalLevel}`}

@@ -640,14 +640,20 @@ export const adminApi = {
     return data as { success: true; message: string; cosmetic: AdminCosmetic };
   },
 
-  grantRankCardBackground: (discordUserId: string, cosmeticId: number) =>
-    api.fetch<{ success: boolean; message: string; already_owned: boolean }>(
+  grantRankCardBackground: (discordUserId: string, cosmeticId: number, message: string) =>
+    api.fetch<{
+      success: boolean;
+      message: string;
+      already_owned: boolean;
+      notification_queued: boolean;
+    }>(
       '/api/admin/cosmetics/grant',
       {
         method: 'POST',
         body: JSON.stringify({
           discord_user_id: discordUserId,
           cosmetic_id: cosmeticId,
+          message,
         }),
       },
     ),

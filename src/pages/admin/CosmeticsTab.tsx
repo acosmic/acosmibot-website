@@ -4,6 +4,7 @@ import { ImagePlus, UserRoundPlus } from 'lucide-react';
 import {
   adminApi,
   type AdminCosmetic,
+  type AdminCosmeticsResponse,
   type RankCardBackgroundUpload,
 } from '@/api/admin';
 import { NumberInput } from '@/components/ui';
@@ -73,6 +74,7 @@ export const CosmeticsTab: React.FC = () => {
   });
   const [grantUserId, setGrantUserId] = useState('');
   const [grantCosmeticId, setGrantCosmeticId] = useState<number | null>(null);
+  const [grantMessage, setGrantMessage] = useState('');
 
   useEffect(() => {
     if (!query.data?.data) return;
@@ -100,11 +102,16 @@ export const CosmeticsTab: React.FC = () => {
     [query.data],
   );
 
+  const selectedGrantArtwork = useMemo(
+    () => artworkBackgrounds.find((item) => item.id === grantCosmeticId) ?? null,
+    [artworkBackgrounds, grantCosmeticId],
+  );
+
   useEffect(() => {
-    if (grantCosmeticId === null && artworkBackgrounds.length > 0) {
-      setGrantCosmeticId(artworkBackgrounds[0].id);
+    if (!selectedGrantArtwork) {
+      setGrantCosmeticId(artworkBackgrounds[0]?.id ?? null);
     }
-  }, [artworkBackgrounds, grantCosmeticId]);
+  }, [artworkBackgrounds, selectedGrantArtwork]);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, draft }: { id: number; draft: Draft }) =>
@@ -119,8 +126,21 @@ export const CosmeticsTab: React.FC = () => {
     mutationFn: (payload: RankCardBackgroundUpload) =>
       adminApi.uploadRankCardBackground(payload),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cosmetics'] });
+      // Put the created row into the cache before selecting it. Without this,
+      // the selected ID renders one frame ahead of the invalidated catalog and
+      // the artwork preview receives `undefined` on a user's first upload.
+      queryClient.setQueryData<AdminCosmeticsResponse>(
+        ['admin', 'cosmetics'],
+        (current) => ({
+          success: true,
+          data: [
+            ...(current?.data ?? []).filter((item) => item.id !== response.cosmetic.id),
+            response.cosmetic,
+          ],
+        }),
+      );
       setGrantCosmeticId(response.cosmetic.id);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cosmetics'] });
       setUploadFile(null);
       setPreviewUrl('');
       setFileError('');
@@ -136,10 +156,12 @@ export const CosmeticsTab: React.FC = () => {
   });
 
   const grantMutation = useMutation({
-    mutationFn: ({ discordUserId, cosmeticId }: {
+    mutationFn: ({ discordUserId, cosmeticId, message }: {
       discordUserId: string;
       cosmeticId: number;
-    }) => adminApi.grantRankCardBackground(discordUserId, cosmeticId),
+      message: string;
+    }) => adminApi.grantRankCardBackground(discordUserId, cosmeticId, message),
+    onSuccess: () => setGrantMessage(''),
   });
 
   const byType = useMemo(() => {
@@ -198,6 +220,7 @@ export const CosmeticsTab: React.FC = () => {
     grantMutation.mutate({
       discordUserId: grantUserId,
       cosmeticId: grantCosmeticId,
+      message: grantMessage.trim(),
     });
   };
 
@@ -391,12 +414,9 @@ export const CosmeticsTab: React.FC = () => {
               </select>
             </label>
 
-            {grantCosmeticId && (
+            {selectedGrantArtwork && (
               <div className="admin-artwork-grant-preview">
-                <div style={swatchStyle(
-                  artworkBackgrounds.find((item) => item.id === grantCosmeticId)
-                    ?? artworkBackgrounds[0],
-                )} />
+                <div style={swatchStyle(selectedGrantArtwork)} />
                 <p>
                   This grants access but does not force-equip it. The member can
                   select it from Card Studio.
@@ -419,6 +439,24 @@ export const CosmeticsTab: React.FC = () => {
             </label>
             <p className="admin-artwork-help">
               The user must have used Acosmibot at least once so their Discord ID exists in the database.
+            </p>
+
+            <label>
+              <span className="admin-artwork-label-row">
+                Message to recipient <small>{grantMessage.length}/500 · optional</small>
+              </span>
+              <textarea
+                className="form-control"
+                value={grantMessage}
+                onChange={(event) => setGrantMessage(event.target.value)}
+                maxLength={500}
+                rows={4}
+                placeholder="A note about why they received this special card…"
+              />
+            </label>
+            <p className="admin-artwork-help">
+              Acosmibot will DM this note with the full artwork and a button to open Card Studio.
+              Leave it blank to use the standard congratulations message.
             </p>
 
             <button
