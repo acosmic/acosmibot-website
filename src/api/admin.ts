@@ -314,6 +314,11 @@ export interface AdminCosmetic {
   rarity: string;
   price: number;
   value: string;
+  source: 'shop' | 'achievement' | 'admin';
+  achievement_key: string | null;
+  asset_key: string | null;
+  asset_url: string | null;
+  layout_preset: 'standard' | 'artwork';
   is_available: boolean;
   sort_order: number;
 }
@@ -327,6 +332,15 @@ export interface AdminCosmeticsResponse {
 export type AdminCosmeticUpdate = Partial<
   Pick<AdminCosmetic, 'price' | 'is_available' | 'name' | 'description' | 'rarity' | 'sort_order'>
 >;
+
+export interface RankCardBackgroundUpload {
+  file: File;
+  name: string;
+  description: string;
+  rarity: string;
+  price: number;
+  isAvailable: boolean;
+}
 
 export interface AdminAchievement {
   key: string;
@@ -600,6 +614,41 @@ export const adminApi = {
       {
         method: 'POST',
         body: JSON.stringify(payload),
+      },
+    ),
+
+  // Multipart upload uses raw fetch because api.fetch sets JSON Content-Type.
+  uploadRankCardBackground: async (payload: RankCardBackgroundUpload) => {
+    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+    const form = new FormData();
+    form.append('background', payload.file);
+    form.append('name', payload.name);
+    form.append('description', payload.description);
+    form.append('rarity', payload.rarity);
+    form.append('price', String(payload.price));
+    form.append('is_available', String(payload.isAvailable));
+
+    const response = await fetch(`${apiBase}/api/admin/cosmetics/backgrounds`, {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Background upload failed');
+    }
+    return data as { success: true; message: string; cosmetic: AdminCosmetic };
+  },
+
+  grantRankCardBackground: (discordUserId: string, cosmeticId: number) =>
+    api.fetch<{ success: boolean; message: string; already_owned: boolean }>(
+      '/api/admin/cosmetics/grant',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          discord_user_id: discordUserId,
+          cosmetic_id: cosmeticId,
+        }),
       },
     ),
 

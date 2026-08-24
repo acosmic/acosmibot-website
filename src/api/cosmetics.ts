@@ -14,6 +14,10 @@ export interface Cosmetic {
   value: string;
   /** Achievement key when granted by one (e.g. 'og_member'); else null. */
   achievement_key?: string | null;
+  /** Immutable CDN image for an owner-uploaded 800×250 background. */
+  asset_url?: string | null;
+  /** Uploaded artwork keeps the overlay but uses the half-width XP bar. */
+  layout_preset?: 'standard' | 'artwork';
   owned: boolean;
   equipped: boolean;
 }
