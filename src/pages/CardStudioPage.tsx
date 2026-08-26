@@ -190,7 +190,7 @@ export const CardStudioPage: React.FC = () => {
         <header className="member-header">
           <div>
             <p className="member-kicker">Rank-card workbench</p>
-            <h1>Build your visible identity.</h1>
+            <h1>Build your identity.</h1>
             <p>Try materials against your real <code>/rank</code> card. Owned pieces equip immediately in Discord.</p>
           </div>
           {catalog && <BalanceReadout balance={catalog.bank_balance} discount={catalog.shop_discount} />}
