@@ -88,3 +88,29 @@ test('Card Studio prioritizes background, ring, then accent', () => {
   assert.match(studio, /const SLOT_ORDER: CosmeticType\[\] = \['background', 'ring', 'accent'\]/);
   assert.match(studio, /useState<CosmeticType>\('background'\)/);
 });
+
+test('Card Studio previews loadout changes and requires an explicit save', () => {
+  const studio = source('src/pages/CardStudioPage.tsx');
+  const saveBar = source('src/components/ui/SaveBar.tsx');
+
+  assert.match(studio, /useDirtyState\(savedLoadout\)/);
+  assert.match(studio, /<SaveBar/);
+  assert.match(studio, /onSave=\{handleSave\}/);
+  assert.match(studio, /onDiscard=\{resetForm\}/);
+  assert.match(studio, /Unsaved card changes/);
+  assert.match(studio, /preview every change before you commit it to Discord/);
+  assert.match(studio, /await cosmeticsApi\.equip\(type, draft\[type\]\)/);
+  assert.doesNotMatch(studio, /const handlePreview = async/);
+  assert.doesNotMatch(studio, /await equipMutation\.mutateAsync/);
+  assert.match(saveBar, /dirtyTitle\?: string/);
+  assert.match(saveBar, /successMessage\?: string/);
+});
+
+test('buying a Card Studio material adds it to the draft without auto-equipping it', () => {
+  const studio = source('src/pages/CardStudioPage.tsx');
+
+  assert.match(studio, /Added to your collection/);
+  assert.match(studio, /Save changes when you’re ready to equip it/);
+  assert.match(studio, /bank_balance: response\.bank_balance/);
+  assert.match(studio, /Purchase previewed materials before saving/);
+});

@@ -1,7 +1,7 @@
 /**
  * THESIS: Card Studio is a live material workbench, not a shop grid with a preview appended beside it.
  * OWN-WORLD: Observatory workbench, sticky card stage, three cosmetic trays, physical swatches, and literal ownership states.
- * STORY: Read balance, try a material, see the real rank card change, then equip owned pieces or confirm a purchase.
+ * STORY: Read balance, try a material, see the real rank card change, then commit a saved loadout or confirm a purchase.
  * FIRST VIEWPORT: The live equipped card holds the left stage while balance and the first material tray begin on the right.
  * FORM: Fourth-ranked sticky-preview workbench structure; established world; seed 0038e941.
  */
@@ -9,9 +9,11 @@ import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BadgePercent, Check, Coins, Hourglass, Palette, TriangleAlert } from 'lucide-react';
 import { CenteredMessage } from '@/components/ui/CenteredMessage';
+import { SaveBar } from '@/components/ui/SaveBar';
 import { MemberNav } from '@/components/profile/MemberNav';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { useDirtyState } from '@/hooks/useDirtyState';
 import { useAuthStore } from '@/store/auth';
 import { profileApi, type PublicProfile } from '@/api/profile';
 import {
@@ -19,6 +21,7 @@ import {
   type Cosmetic,
   type CosmeticCatalog,
   type CosmeticType,
+  type LoadoutSlots,
 } from '@/api/cosmetics';
 import { ScaledRankCard } from '@/cards/ScaledRankCard';
 import { buildRankCardData } from '@/cards/buildRankCardData';
@@ -39,9 +42,19 @@ const SLOT_NOTES: Record<CosmeticType, string> = {
 };
 
 const SLOT_ORDER: CosmeticType[] = ['background', 'ring', 'accent'];
+const EMPTY_LOADOUT: LoadoutSlots = { accent: null, background: null, ring: null };
 const fmt = (value: number): string => value.toLocaleString('en-US');
 const discounted = (price: number, discount: number): number =>
   discount > 0 ? Math.max(Math.ceil(price * (1 - discount)), 0) : price;
+
+function buildEquippedLoadout(catalog: CosmeticCatalog | undefined): LoadoutSlots | undefined {
+  if (!catalog) return undefined;
+  const loadout = { ...EMPTY_LOADOUT };
+  for (const cosmetic of catalog.cosmetics) {
+    if (cosmetic.equipped) loadout[cosmetic.type] = cosmetic.id;
+  }
+  return loadout;
+}
 
 function buildPreview(
   profile: PublicProfile | undefined,
@@ -73,100 +86,108 @@ export const CardStudioPage: React.FC = () => {
     enabled: isAuthenticated,
   });
 
-  const [selected, setSelected] = useState<Record<CosmeticType, Cosmetic | null>>({
-    accent: null,
-    background: null,
-    ring: null,
-  });
+  const catalog = catalogQuery.data;
+  const savedLoadout = useMemo(() => buildEquippedLoadout(catalog), [catalog]);
+  const {
+    form: draftLoadout,
+    setForm: setDraftLoadout,
+    isDirty,
+    resetForm,
+  } = useDirtyState(savedLoadout);
   const [pendingBuy, setPendingBuy] = useState<Cosmetic | null>(null);
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
   const [activeType, setActiveType] = useState<CosmeticType>('background');
-  const seededRef = useRef(false);
 
-  useEffect(() => {
-    if (!catalogQuery.data || seededRef.current) return;
-    const next: Record<CosmeticType, Cosmetic | null> = {
-      accent: null,
-      background: null,
-      ring: null,
-    };
-    for (const cosmetic of catalogQuery.data.cosmetics) {
-      if (cosmetic.equipped) next[cosmetic.type] = cosmetic;
-    }
-    setSelected(next);
-    seededRef.current = true;
-  }, [catalogQuery.data]);
-
-  const equipMutation = useMutation({
-    mutationFn: ({ type, cosmeticId }: { type: CosmeticType; cosmeticId: number | null }) =>
-      cosmeticsApi.equip(type, cosmeticId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cosmetics'] }),
+  const saveMutation = useMutation({
+    mutationFn: async ({
+      draft,
+      baseline,
+    }: {
+      draft: LoadoutSlots;
+      baseline: LoadoutSlots;
+    }) => {
+      for (const type of SLOT_ORDER) {
+        if (draft[type] !== baseline[type]) {
+          await cosmeticsApi.equip(type, draft[type]);
+        }
+      }
+      return draft;
+    },
+    onSuccess: (nextLoadout) => {
+      queryClient.setQueryData<CosmeticCatalog>(['cosmetics', 'catalog'], (current) => (
+        current
+          ? {
+              ...current,
+              cosmetics: current.cosmetics.map((cosmetic) => ({
+                ...cosmetic,
+                equipped: nextLoadout[cosmetic.type] === cosmetic.id,
+              })),
+            }
+          : current
+      ));
+      return queryClient.invalidateQueries({ queryKey: ['cosmetics'] });
+    },
+    onError: () => queryClient.invalidateQueries({ queryKey: ['cosmetics'] }),
   });
 
   const purchaseMutation = useMutation({
     mutationFn: (cosmeticId: number) => cosmeticsApi.purchase(cosmeticId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cosmetics'] }),
+    onSuccess: (response, cosmeticId) => {
+      queryClient.setQueryData<CosmeticCatalog>(['cosmetics', 'catalog'], (current) => (
+        current
+          ? {
+              ...current,
+              bank_balance: response.bank_balance,
+              cosmetics: current.cosmetics.map((cosmetic) => (
+                cosmetic.id === cosmeticId ? { ...cosmetic, owned: true } : cosmetic
+              )),
+            }
+          : current
+      ));
+      return queryClient.invalidateQueries({ queryKey: ['cosmetics'] });
+    },
   });
 
-  const handlePreview = async (cosmetic: Cosmetic) => {
-    const isSelected = selected[cosmetic.type]?.id === cosmetic.id;
-    if (cosmetic.owned) {
-      const previous = selected[cosmetic.type];
-      const next = isSelected ? null : cosmetic;
-      setSelected((current) => ({
-        ...current,
-        [cosmetic.type]: next,
-      }));
-      try {
-        await equipMutation.mutateAsync({
-          type: cosmetic.type,
-          cosmeticId: next?.id ?? null,
-        });
-      } catch (error) {
-        setSelected((current) => (
-          current[cosmetic.type]?.id === next?.id
-            ? { ...current, [cosmetic.type]: previous }
-            : current
-        ));
-        setNotice({
-          title: 'Couldn’t update your loadout',
-          body: error instanceof Error ? error.message : 'The cosmetic could not be equipped.',
-        });
-      }
-    } else {
-      setSelected((current) => ({ ...current, [cosmetic.type]: cosmetic }));
-    }
+  const handlePreview = (cosmetic: Cosmetic) => {
+    if (!draftLoadout) return;
+    const update: Partial<LoadoutSlots> = {
+      [cosmetic.type]: draftLoadout[cosmetic.type] === cosmetic.id ? null : cosmetic.id,
+    };
+    setDraftLoadout(update);
   };
 
   const confirmBuy = async () => {
     const cosmetic = pendingBuy;
     setPendingBuy(null);
     if (!cosmetic) return;
-    const previous = selected[cosmetic.type];
-    let purchased = false;
     try {
       await purchaseMutation.mutateAsync(cosmetic.id);
-      purchased = true;
-      setSelected((current) => ({ ...current, [cosmetic.type]: cosmetic }));
-      await equipMutation.mutateAsync({ type: cosmetic.type, cosmeticId: cosmetic.id });
-    } catch (error) {
-      if (purchased) {
-        setSelected((current) => (
-          current[cosmetic.type]?.id === cosmetic.id
-            ? { ...current, [cosmetic.type]: previous }
-            : current
-        ));
-      }
+      const update: Partial<LoadoutSlots> = { [cosmetic.type]: cosmetic.id };
+      setDraftLoadout(update);
       setNotice({
-        title: purchased ? 'Purchased, but not equipped' : 'Purchase unavailable',
-        body: purchased
-          ? `${cosmetic.name} is now in your collection, but it could not be equipped. Try selecting it again.`
-          : error instanceof Error ? error.message : 'The purchase could not be completed.',
+        title: 'Added to your collection',
+        body: `${cosmetic.name} is ready in your preview. Save changes when you’re ready to equip it.`,
+      });
+    } catch (error) {
+      setNotice({
+        title: 'Purchase unavailable',
+        body: error instanceof Error ? error.message : 'The purchase could not be completed.',
       });
     }
   };
 
-  const catalog = catalogQuery.data;
+  const selected = useMemo(() => {
+    const selectedByType: Record<CosmeticType, Cosmetic | null> = {
+      accent: null,
+      background: null,
+      ring: null,
+    };
+    const loadout = draftLoadout ?? savedLoadout ?? EMPTY_LOADOUT;
+    for (const cosmetic of catalog?.cosmetics ?? []) {
+      if (loadout[cosmetic.type] === cosmetic.id) selectedByType[cosmetic.type] = cosmetic;
+    }
+    return selectedByType;
+  }, [catalog, draftLoadout, savedLoadout]);
   const preview = useMemo(
     () => buildPreview(profileQuery.data, selected),
     [profileQuery.data, selected],
@@ -177,8 +198,23 @@ export const CardStudioPage: React.FC = () => {
     return map;
   }, [catalog]);
 
-  const busy = equipMutation.isPending || purchaseMutation.isPending;
-  const studioLoading = catalogQuery.isLoading || profileQuery.isLoading;
+  const unownedSelections = SLOT_ORDER
+    .map((type) => selected[type])
+    .filter((cosmetic): cosmetic is Cosmetic => Boolean(cosmetic && !cosmetic.owned));
+  const saveValidationMessage = unownedSelections.length > 0
+    ? `Buy ${unownedSelections.map((cosmetic) => cosmetic.name).join(', ')} before saving this loadout.`
+    : undefined;
+
+  const handleSave = () => {
+    if (!draftLoadout || !savedLoadout || unownedSelections.length > 0) return;
+    saveMutation.mutate({
+      draft: { ...draftLoadout },
+      baseline: { ...savedLoadout },
+    });
+  };
+
+  const busy = saveMutation.isPending || purchaseMutation.isPending;
+  const studioLoading = catalogQuery.isLoading || profileQuery.isLoading || !draftLoadout;
   const studioError = catalogQuery.isError || profileQuery.isError;
 
   return (
@@ -191,7 +227,7 @@ export const CardStudioPage: React.FC = () => {
           <div>
             <p className="member-kicker">Rank-card workbench</p>
             <h1>Build your identity.</h1>
-            <p>Try materials against your real <code>/rank</code> card. Owned pieces equip immediately in Discord.</p>
+            <p>Customize your real <code>/rank</code> card and preview every change before you commit it to Discord.</p>
           </div>
           {catalog && <BalanceReadout balance={catalog.bank_balance} discount={catalog.shop_discount} />}
         </header>
@@ -219,14 +255,20 @@ export const CardStudioPage: React.FC = () => {
               <div className="studio-stage__heading">
                 <span><Palette aria-hidden="true" /></span>
                 <div><p>Live output</p><h2>Your rank card</h2></div>
-                <small>{busy ? 'Applying…' : 'Preview ready'}</small>
+                <small>
+                  {saveMutation.isPending
+                    ? 'Saving…'
+                    : purchaseMutation.isPending
+                      ? 'Adding…'
+                      : isDirty ? 'Unsaved preview' : 'Saved loadout'}
+                </small>
               </div>
               <div className="studio-stage__card">
                 <span className="studio-stage__orbit" aria-hidden="true" />
                 <ScaledRankCard data={preview} />
               </div>
               <p className="studio-stage__instruction">
-                Every choice updates this preview. Owned items equip immediately.
+                Every choice updates this preview. Save when you’re ready to update your <code>/rank</code> card in Discord.
               </p>
               <dl className="studio-stage__loadout">
                 {SLOT_ORDER.map((type) => (
@@ -269,6 +311,19 @@ export const CardStudioPage: React.FC = () => {
                 onBuy={setPendingBuy}
               />
             </section>
+            <SaveBar
+              isDirty={isDirty}
+              onSave={handleSave}
+              onDiscard={resetForm}
+              isSaving={saveMutation.isPending}
+              saveError={saveMutation.error}
+              saveDisabled={unownedSelections.length > 0}
+              validationTitle="Purchase previewed materials before saving"
+              validationMessage={saveValidationMessage}
+              dirtyTitle="Unsaved card changes"
+              dirtyDescription="Review this preview, then save it to your /rank card in Discord."
+              successMessage="Rank card saved"
+            />
           </div>
         ) : null}
       </main>
@@ -345,6 +400,7 @@ const SlotTray: React.FC<{
             key={cosmetic.id}
             cosmetic={cosmetic}
             selected={selectedId === cosmetic.id}
+            equipped={cosmetic.equipped}
             avatarUrl={avatarUrl}
             busy={busy}
             discount={discount}
@@ -362,12 +418,13 @@ const SlotTray: React.FC<{
 const CosmeticSwatch: React.FC<{
   cosmetic: Cosmetic;
   selected: boolean;
+  equipped: boolean;
   avatarUrl: string;
   busy: boolean;
   discount: number;
   onPreview: (cosmetic: Cosmetic) => void;
   onBuy: (cosmetic: Cosmetic) => void;
-}> = ({ cosmetic, selected, avatarUrl, busy, discount, onPreview, onBuy }) => {
+}> = ({ cosmetic, selected, equipped, avatarUrl, busy, discount, onPreview, onBuy }) => {
   const hasDiscount = discount > 0 && cosmetic.price > 0;
   const finalPrice = discounted(cosmetic.price, discount);
 
@@ -434,12 +491,16 @@ const CosmeticSwatch: React.FC<{
         )}
         <span className="studio-swatch__identity">
           <strong>{cosmetic.name}</strong>
-          <small>{cosmetic.owned ? (selected ? 'Equipped' : 'Owned') : cosmetic.rarity}</small>
+          <small>{selected && !equipped ? 'Previewing' : equipped ? 'Equipped' : cosmetic.owned ? 'Owned' : cosmetic.rarity}</small>
         </span>
         {selected && <Check aria-hidden="true" />}
       </button>
       {cosmetic.owned ? (
-        <small className="studio-swatch__hint">{selected ? 'Select again to clear' : 'Select to equip'}</small>
+        <small className="studio-swatch__hint">
+          {selected
+            ? equipped ? 'Saved on your card' : 'Selected for preview'
+            : equipped ? 'Currently saved' : 'Select to preview'}
+        </small>
       ) : (
         <button
           type="button"

@@ -9,6 +9,10 @@ interface SaveBarProps {
   saveError?: Error | null;
   saveDisabled?: boolean;
   validationMessage?: string;
+  dirtyTitle?: string;
+  dirtyDescription?: string;
+  validationTitle?: string;
+  successMessage?: string;
 }
 
 export const SaveBar: React.FC<SaveBarProps> = ({
@@ -19,6 +23,10 @@ export const SaveBar: React.FC<SaveBarProps> = ({
   saveError,
   saveDisabled = false,
   validationMessage,
+  dirtyTitle = 'Unsaved server changes',
+  dirtyDescription = 'Review and commit this configuration to Discord.',
+  validationTitle = 'Resolve validation before saving',
+  successMessage = 'Changes saved successfully',
 }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -46,7 +54,7 @@ export const SaveBar: React.FC<SaveBarProps> = ({
         role="status"
       >
         <Check size={20} />
-        <span>Changes saved successfully</span>
+        <span>{successMessage}</span>
       </div>
     );
   }
@@ -71,8 +79,8 @@ export const SaveBar: React.FC<SaveBarProps> = ({
       role="status"
     >
       <div className="server-save-bar__message">
-        <span>{saveDisabled ? 'Resolve validation before saving' : 'Unsaved server changes'}</span>
-        <small>{saveDisabled && validationMessage ? validationMessage : 'Review and commit this configuration to Discord.'}</small>
+        <span>{saveDisabled ? validationTitle : dirtyTitle}</span>
+        <small>{saveDisabled && validationMessage ? validationMessage : dirtyDescription}</small>
       </div>
       <div className="server-save-bar__actions">
         <button
