@@ -81,14 +81,20 @@ async function loadFonts() {
 
 // Static Acosmibot artwork is shipped beside the managed function and inlined
 // before Satori renders. Keeping it local avoids a new remote-image trust path.
-let aiStatusMascotCache: string | null = null;
-async function loadAIStatusMascot(): Promise<string> {
-  if (!aiStatusMascotCache) {
-    const imagePath = join(__dirname, 'assets', 'ai-status-mascot.png');
-    const image = await readFile(imagePath);
-    aiStatusMascotCache = `data:image/png;base64,${image.toString('base64')}`;
+let aiStatusAssetsCache: { frameImageUrl: string; logoImageUrl: string } | null = null;
+async function loadAIStatusAssets(): Promise<{ frameImageUrl: string; logoImageUrl: string }> {
+  if (!aiStatusAssetsCache) {
+    const assetsDir = join(__dirname, 'assets');
+    const [frame, logo] = await Promise.all([
+      readFile(join(assetsDir, 'ai-status-frame.png')),
+      readFile(join(assetsDir, 'ai-status-logo.png')),
+    ]);
+    aiStatusAssetsCache = {
+      frameImageUrl: `data:image/png;base64,${frame.toString('base64')}`,
+      logoImageUrl: `data:image/png;base64,${logo.toString('base64')}`,
+    };
   }
-  return aiStatusMascotCache;
+  return aiStatusAssetsCache;
 }
 
 // SSRF guard: each card may fetch only its purpose-specific CDN over HTTPS.
@@ -239,12 +245,12 @@ async function renderWowProfilePng(data: WowProfileCardData): Promise<Buffer> {
 }
 
 async function renderAIStatusPng(data: AIStatusCardData): Promise<Buffer> {
-  const [fonts, mascotImageUrl] = await Promise.all([
+  const [fonts, assets] = await Promise.all([
     loadFonts(),
-    loadAIStatusMascot(),
+    loadAIStatusAssets(),
   ]);
   const svg = await satori(
-    <AIStatusCard data={data} mascotImageUrl={mascotImageUrl} />,
+    <AIStatusCard data={data} {...assets} />,
     {
       width: AI_STATUS_WIDTH,
       height: AI_STATUS_HEIGHT,

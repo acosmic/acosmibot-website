@@ -1,45 +1,47 @@
 import type { AIStatusCardData, AIStatusUsage } from './types';
 
 /**
- * THESIS: AI status should read like a live observatory instrument, not a stack
- * of Discord embed fields. It refuses the generic vertical status list.
- * OWN-WORLD: Observatory black, stepped graphite, polar white, signal cyan,
- * literal state colors, fine instrument rules, and the Acosmibot rocket scene.
- * STORY: Confirm readiness, scan allowance headroom, then understand funding,
- * ambient behavior, and personality without opening another surface.
- * FIRST VIEWPORT: Identity and readiness lead; six telemetry cells form one
- * full-width ledger; funding and behavior share a final instrument band; the
- * mascot remains visible beneath the translucent information layer.
- * FORM: Established-world extension in Operate mode; restrained color strategy.
+ * THESIS: AI status is a portrait usage ledger framed like an Acosmibot slot
+ * instrument, not a landscape dashboard of small cards.
+ * OWN-WORLD: Opaque observatory black, a bundled gunmetal/cyan frame, the exact
+ * Acosmibot wordmark, polar-white telemetry, and one literal status accent.
+ * STORY: Recognize AI status, read every allowance immediately, then scan the
+ * server's credit, ambient-chat, and personality state in one anchored band.
+ * FIRST VIEWPORT: Identity and readiness lead; six label-plus-meter rows place
+ * large values on one right edge; the navy status band closes against the frame.
+ * FORM: Approved portrait usage ledger in Operate mode; restrained color.
  */
 
-export const CARD_WIDTH = 1600;
-export const CARD_HEIGHT = 1000;
+export const CARD_WIDTH = 1086;
+export const CARD_HEIGHT = 1448;
 
 const FONT_STACK = 'Urbanist, sans-serif';
+const CONTENT_LEFT = 112;
+const CONTENT_TOP = 106;
+const CONTENT_WIDTH = 862;
+const INNER_LEFT = 92;
+const INNER_TOP = 86;
+const INNER_WIDTH = 902;
+const INNER_HEIGHT = 1280;
+const USAGE_LEDGER_HEIGHT = 852;
+const FOOTER_HEIGHT = 229;
 
 const COLORS = {
-  void: '#05080D',
-  border: 'rgba(244,251,255,0.20)',
-  borderStrong: 'rgba(103,236,255,0.42)',
-  cyan: '#67ECFF',
+  inner: '#050B11',
+  footer: '#0A151E',
+  track: '#2A3640',
+  border: 'rgba(244,251,255,0.18)',
+  cyan: '#00F0FF',
+  cyanSoft: '#67ECFF',
   cyanDeep: '#00A0CC',
   white: '#F4FBFF',
   text: '#C8D6DE',
-  muted: '#AFC0CB',
-  quiet: '#8FA0AC',
+  muted: '#8FA0AC',
+  quiet: '#667783',
   success: '#4FE3A1',
   error: '#FF6B6B',
   warning: '#FFBE5C',
 } as const;
-
-const CONTENT_LEFT = 64;
-const CONTENT_WIDTH = CARD_WIDTH - CONTENT_LEFT * 2;
-const USAGE_GAP = 18;
-const USAGE_CELL_WIDTH = (CONTENT_WIDTH - USAGE_GAP * 2) / 3;
-const USAGE_CELL_HEIGHT = 154;
-const GLASS_PANEL = 'rgba(5,8,13,0.56)';
-const GLASS_PANEL_QUIET = 'rgba(5,8,13,0.48)';
 
 const fmt = (value: number): string => Math.max(0, value || 0).toLocaleString('en-US');
 
@@ -49,99 +51,133 @@ const compact = (value: string, max: number): string => {
 };
 
 function statusColor(status: AIStatusCardData['status']): string {
-  return status === 'enabled' ? COLORS.success : COLORS.error;
+  if (status === 'enabled') return COLORS.success;
+  if (status === 'not-configured') return COLORS.warning;
+  return COLORS.error;
 }
 
-function UsageCell({ item, index }: { item: AIStatusUsage; index: number }) {
+function ProgressMeter({ item }: { item: AIStatusUsage }) {
   const fraction = item.limit > 0 ? Math.min(1, Math.max(0, item.used / item.limit)) : 0;
-  const fillWidth = `${Math.round(fraction * 100)}%`;
   const overLimit = item.limit > 0 && item.used >= item.limit;
   const accent = item.locked ? COLORS.quiet : overLimit ? COLORS.warning : COLORS.cyan;
+  const fillWidth = item.locked ? 0 : Math.max(item.used > 0 ? 3 : 0, Math.round(230 * fraction));
 
   return (
     <div
       style={{
         display: 'flex',
-        flexDirection: 'column',
-        width: USAGE_CELL_WIDTH,
-        height: USAGE_CELL_HEIGHT,
-        padding: '20px 22px 18px',
-        boxSizing: 'border-box',
-        backgroundColor: index % 2 === 0 ? GLASS_PANEL : GLASS_PANEL_QUIET,
-        border: `1px solid ${COLORS.border}`,
-        borderRadius: 15,
+        width: 230,
+        height: 10,
+        borderRadius: 5,
+        overflow: 'hidden',
+        backgroundColor: COLORS.track,
       }}
     >
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          color: COLORS.muted,
-          fontSize: 17,
-          fontWeight: 700,
-          letterSpacing: 1.8,
+          width: fillWidth,
+          height: 10,
+          borderRadius: 5,
+          backgroundColor: accent,
+        }}
+      />
+    </div>
+  );
+}
+
+function UsageRow({ item, height, isLast }: { item: AIStatusUsage; height: number; isLast: boolean }) {
+  const usedText = fmt(item.used);
+  const limitText = fmt(item.limit);
+  const combinedLength = usedText.length + limitText.length;
+  const valueSize = combinedLength > 16 ? 52 : combinedLength > 13 ? 62 : combinedLength > 10 ? 72 : 82;
+  const limitSize = valueSize <= 52 ? 30 : valueSize <= 62 ? 34 : 39;
+  const atLimit = item.limit > 0 && item.used >= item.limit;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        width: '100%',
+        height,
+        padding: '0 8px',
+        boxSizing: 'border-box',
+        borderBottom: isLast ? 'none' : `1px solid ${COLORS.border}`,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          width: 470,
+          height: '100%',
+          paddingBottom: 8,
         }}
       >
-        <span>{compact(item.label.toUpperCase(), 28)}</span>
-        <span style={{ color: accent, fontSize: 14, letterSpacing: 1.4 }}>
-          {item.locked ? 'PLAN LOCKED' : 'LIVE'}
+        <span
+          style={{
+            color: item.locked ? COLORS.quiet : COLORS.white,
+            fontSize: 34,
+            fontWeight: 700,
+            lineHeight: 1.05,
+            letterSpacing: 0.2,
+          }}
+        >
+          {compact(item.label.toUpperCase(), 24)}
         </span>
+        <div style={{ display: 'flex', marginTop: 17 }}>
+          <ProgressMeter item={item} />
+        </div>
       </div>
 
       <div
         style={{
           display: 'flex',
           alignItems: 'baseline',
-          marginTop: 12,
-          color: item.locked ? COLORS.quiet : COLORS.white,
-        }}
-      >
-        <span style={{ fontSize: 35, fontWeight: 700, lineHeight: 1 }}>
-          {item.locked ? '—' : fmt(item.used)}
-        </span>
-        <span style={{ marginLeft: 8, fontSize: 22, color: COLORS.text }}>
-          {item.locked ? '' : `/ ${fmt(item.limit)}`}
-        </span>
-        <span style={{ marginLeft: 'auto', fontSize: 17, color: COLORS.text }}>
-          {compact(item.detail, 24)}
-        </span>
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          height: 8,
-          marginTop: 15,
-          borderRadius: 4,
+          justifyContent: 'flex-end',
+          width: 360,
+          marginLeft: 'auto',
           overflow: 'hidden',
-          backgroundColor: 'rgba(244,251,255,0.14)',
+          whiteSpace: 'nowrap',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            width: item.locked ? '0%' : fillWidth,
-            height: '100%',
-            borderRadius: 4,
-            background: `linear-gradient(90deg, ${COLORS.cyanDeep}, ${accent})`,
-          }}
-        />
+        {item.locked ? (
+          <span style={{ color: COLORS.quiet, fontSize: 42, fontWeight: 700 }}>PLAN LOCKED</span>
+        ) : (
+          <>
+            <span
+              style={{
+                color: atLimit ? COLORS.warning : COLORS.white,
+                fontSize: valueSize,
+                fontWeight: 700,
+                lineHeight: 1,
+              }}
+            >
+              {usedText}
+            </span>
+            <span style={{ color: COLORS.text, fontSize: limitSize, marginLeft: 11 }}>
+              {`/ ${limitText}`}
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 function ToggleReadout({ label, enabled }: { label: string; enabled: boolean }) {
+  const color = enabled ? COLORS.success : COLORS.error;
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        marginTop: 12,
-        color: COLORS.text,
-        fontSize: 21,
+        width: '100%',
+        marginTop: 7,
+        color: COLORS.white,
+        fontSize: 32,
       }}
     >
       <div
@@ -149,21 +185,149 @@ function ToggleReadout({ label, enabled }: { label: string; enabled: boolean }) 
           display: 'flex',
           width: 12,
           height: 12,
-          marginRight: 12,
-          borderRadius: '50%',
-          backgroundColor: enabled ? COLORS.success : COLORS.error,
-          boxShadow: `0 3px 10px ${enabled ? 'rgba(79,227,161,0.28)' : 'rgba(255,107,107,0.26)'}`,
+          marginRight: 10,
+          borderRadius: 6,
+          backgroundColor: color,
         }}
       />
       <span>{label}</span>
-      <span
+      <span style={{ color, fontWeight: 700, marginLeft: 'auto' }}>{enabled ? 'ON' : 'OFF'}</span>
+    </div>
+  );
+}
+
+function StatusBand({ data }: { data: AIStatusCardData }) {
+  const creditText = fmt(data.serverCredits);
+  const creditSize = creditText.length > 12 ? 38 : creditText.length > 8 ? 48 : 58;
+  const personality = compact(data.personalityName || 'Default', 22);
+  const personalitySize = personality.length > 18 ? 29 : personality.length > 13 ? 35 : 43;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'stretch',
+        width: INNER_WIDTH,
+        height: FOOTER_HEIGHT,
+        marginLeft: -20,
+        marginTop: 2,
+        backgroundColor: COLORS.footer,
+        borderTop: `1px solid ${COLORS.cyanDeep}`,
+        borderBottomLeftRadius: 9,
+        borderBottomRightRadius: 9,
+        overflow: 'hidden',
+      }}
+    >
+      <div
         style={{
-          marginLeft: 'auto',
-          color: enabled ? COLORS.success : COLORS.error,
-          fontWeight: 700,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          width: '31%',
+          padding: '0 28px',
+          boxSizing: 'border-box',
         }}
       >
-        {enabled ? 'ON' : 'OFF'}
+        <span style={{ color: COLORS.muted, fontSize: 25, fontWeight: 700, letterSpacing: 1.2 }}>
+          AI CREDITS
+        </span>
+        <span style={{ color: COLORS.white, fontSize: creditSize, fontWeight: 700, lineHeight: 1, marginTop: 12 }}>
+          {creditText}
+        </span>
+        <span style={{ color: COLORS.text, fontSize: 24, lineHeight: 1.15, marginTop: 9 }}>
+          {`${fmt(data.guildCreditImages)} server · ${fmt(data.personalCreditImages)} personal images`}
+        </span>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          width: '37%',
+          padding: '0 28px',
+          boxSizing: 'border-box',
+          borderLeft: `1px solid ${COLORS.border}`,
+          borderRight: `1px solid ${COLORS.border}`,
+        }}
+      >
+        <span style={{ color: COLORS.muted, fontSize: 25, fontWeight: 700, letterSpacing: 1.2 }}>
+          AMBIENT CHAT
+        </span>
+        {data.ambientAvailable ? (
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: 8 }}>
+            <ToggleReadout label="Replies" enabled={data.ambientRepliesEnabled} />
+            <ToggleReadout label="Memes" enabled={data.ambientImagesEnabled} />
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: 15 }}>
+            <span style={{ color: COLORS.quiet, fontSize: 30, fontWeight: 700 }}>PLAN LOCKED</span>
+            <span style={{ color: COLORS.text, fontSize: 22, marginTop: 7 }}>Not included in this plan</span>
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          width: '32%',
+          padding: '0 28px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <span style={{ color: COLORS.muted, fontSize: 25, fontWeight: 700, letterSpacing: 1.2 }}>
+          PERSONALITY
+        </span>
+        <span
+          style={{
+            color: COLORS.white,
+            fontSize: personalitySize,
+            fontWeight: 700,
+            lineHeight: 1.05,
+            marginTop: 15,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {personality}
+        </span>
+        <span
+          style={{
+            color: data.personalityTemporary ? COLORS.warning : COLORS.text,
+            fontSize: 24,
+            marginTop: 7,
+          }}
+        >
+          {data.personalityTemporary ? 'temporary style' : 'active style'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SetupRequired({ data }: { data: AIStatusCardData }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        width: '100%',
+        height: USAGE_LEDGER_HEIGHT,
+        padding: '0 28px',
+        boxSizing: 'border-box',
+      }}
+    >
+      <span style={{ color: COLORS.warning, fontSize: 28, fontWeight: 700, letterSpacing: 1.6 }}>
+        SETUP REQUIRED
+      </span>
+      <span style={{ color: COLORS.white, fontSize: 54, fontWeight: 700, lineHeight: 1.12, marginTop: 18 }}>
+        AI settings are not configured.
+      </span>
+      <span style={{ color: COLORS.text, fontSize: 30, lineHeight: 1.35, marginTop: 18 }}>
+        {compact(data.statusDetail || 'A server manager can configure AI from the Acosmibot dashboard.', 92)}
       </span>
     </div>
   );
@@ -171,19 +335,23 @@ function ToggleReadout({ label, enabled }: { label: string; enabled: boolean }) 
 
 export function AIStatusCard({
   data,
-  mascotImageUrl,
+  frameImageUrl,
+  logoImageUrl,
 }: {
   data: AIStatusCardData;
-  mascotImageUrl: string;
+  frameImageUrl: string;
+  logoImageUrl: string;
 }) {
   const stateColor = statusColor(data.status);
   const usage = (data.usage || []).slice(0, 6);
-  const configured = data.status !== 'not-configured';
-  const guildNameSize = data.guildName.length > 28 ? 34 : data.guildName.length > 23 ? 40 : 51;
-  const personalityNameSize =
-    data.personalityName.length > 21 ? 21 : data.personalityName.length > 16 ? 25 : 31;
-  const serverCreditText = fmt(data.serverCredits);
-  const serverCreditSize = serverCreditText.length > 10 ? 24 : serverCreditText.length > 7 ? 35 : 43;
+  const configured = data.status !== 'not-configured' && usage.length > 0;
+  const usageRowHeight = configured ? USAGE_LEDGER_HEIGHT / usage.length : USAGE_LEDGER_HEIGHT;
+  const guildPlan = `${compact(data.guildName, 18)} · ${compact(data.tierName.toUpperCase(), 10)}`;
+  const guildPlanSize = guildPlan.length > 28 ? 21 : guildPlan.length > 22 ? 24 : 28;
+  const headerDetail =
+    data.status === 'enabled' && data.monthlyReset
+      ? `Monthly reset · ${compact(data.monthlyReset, 27)}`
+      : compact(data.statusDetail, 35);
 
   return (
     <div
@@ -193,25 +361,18 @@ export function AIStatusCard({
         width: CARD_WIDTH,
         height: CARD_HEIGHT,
         overflow: 'hidden',
-        backgroundColor: COLORS.void,
+        backgroundColor: 'transparent',
         color: COLORS.white,
         fontFamily: FONT_STACK,
       }}
     >
-      {mascotImageUrl ? (
+      {frameImageUrl ? (
         <img
-          src={mascotImageUrl}
+          src={frameImageUrl}
           alt=""
-          width={1320}
-          height={825}
-          style={{
-            position: 'absolute',
-            left: 280,
-            top: 110,
-            width: 1320,
-            height: 825,
-            objectFit: 'cover',
-          }}
+          width={CARD_WIDTH}
+          height={CARD_HEIGHT}
+          style={{ position: 'absolute', inset: 0, width: CARD_WIDTH, height: CARD_HEIGHT }}
         />
       ) : null}
 
@@ -219,9 +380,12 @@ export function AIStatusCard({
         style={{
           position: 'absolute',
           display: 'flex',
-          inset: 0,
-          background:
-            'linear-gradient(180deg, rgba(5,8,13,0.72) 0%, rgba(5,8,13,0.28) 27%, rgba(5,8,13,0.10) 64%, rgba(5,8,13,0.46) 100%)',
+          left: INNER_LEFT,
+          top: INNER_TOP,
+          width: INNER_WIDTH,
+          height: INNER_HEIGHT,
+          borderRadius: 9,
+          backgroundColor: COLORS.inner,
         }}
       />
 
@@ -231,297 +395,71 @@ export function AIStatusCard({
           display: 'flex',
           flexDirection: 'column',
           left: CONTENT_LEFT,
-          top: 52,
+          top: CONTENT_TOP,
           width: CONTENT_WIDTH,
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            color: COLORS.muted,
-            fontSize: 16,
-            fontWeight: 700,
-            letterSpacing: 2.4,
-          }}
-        >
-          <span style={{ color: COLORS.cyan }}>ACOSMIBOT</span>
-          <span style={{ margin: '0 12px', color: COLORS.quiet }}>//</span>
-          <span>AI SYSTEM TELEMETRY</span>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            marginTop: 14,
-            paddingBottom: 22,
-            borderBottom: `1px solid ${COLORS.borderStrong}`,
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', width: 900 }}>
-            <div
-              style={{
-                fontSize: guildNameSize,
-                lineHeight: 1.04,
-                fontWeight: 700,
-                letterSpacing: -1.2,
-                width: 900,
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {compact(data.guildName, 32)}
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                marginTop: 14,
-                color: COLORS.text,
-                fontSize: 18,
-                width: 900,
-                overflow: 'hidden',
-              }}
-            >
-              <span style={{ color: COLORS.cyan, fontWeight: 700 }}>{compact(data.tierName, 20)}</span>
-              {data.accessLabel || data.accessTerm ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: 900,
-                    marginTop: 6,
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    fontSize: 16,
-                  }}
-                >
-                  {data.accessLabel ? (
-                    <span style={{ color: COLORS.warning }}>{compact(data.accessLabel, 28)}</span>
-                  ) : null}
-                  {data.accessTerm ? (
-                    <span style={{ marginLeft: 10, color: COLORS.muted }}>
-                      {compact(data.accessTerm, 24)}
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: 470 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '10px 15px',
-                borderRadius: 8,
-                border: `1px solid ${stateColor}66`,
-                backgroundColor: `${stateColor}18`,
-                color: stateColor,
-                fontSize: 18,
-                fontWeight: 700,
-              }}
-            >
-              <span>{compact(data.statusLabel.toUpperCase(), 28)}</span>
-            </div>
-            <div
-              style={{
-                marginTop: 10,
-                color: COLORS.muted,
-                fontSize: 17,
-                textAlign: 'right',
-              }}
-            >
-              {compact(data.statusDetail, 42)}
-            </div>
-            {data.monthlyReset ? (
-              <div style={{ marginTop: 7, color: COLORS.text, fontSize: 17, textAlign: 'right' }}>
-                {`Allowance reset · ${compact(data.monthlyReset, 36)}`}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      {configured ? (
-        <div
-          style={{
-            position: 'absolute',
-            display: 'flex',
-            flexWrap: 'wrap',
-            left: CONTENT_LEFT,
-            top: 250,
-            width: CONTENT_WIDTH,
-            gap: USAGE_GAP,
-          }}
-        >
-          {usage.map((item, index) => (
-            <UsageCell key={item.key} item={item} index={index} />
-          ))}
-        </div>
-      ) : (
-        <div
-          style={{
-            position: 'absolute',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            left: CONTENT_LEFT,
-            top: 250,
-            width: CONTENT_WIDTH,
-            height: 326,
-            padding: '0 46px',
-            boxSizing: 'border-box',
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: 15,
-            backgroundColor: GLASS_PANEL,
-          }}
-        >
-          <div style={{ color: COLORS.error, fontSize: 18, fontWeight: 700, letterSpacing: 2 }}>
-            SETUP REQUIRED
-          </div>
-          <div style={{ marginTop: 13, color: COLORS.white, fontSize: 42, fontWeight: 700 }}>
-            AI settings are not configured.
-          </div>
-          <div style={{ marginTop: 12, width: 760, color: COLORS.text, fontSize: 22, lineHeight: 1.45 }}>
-            A server manager can configure AI from the Acosmibot dashboard. The shared credit reserve remains available below.
-          </div>
-        </div>
-      )}
-
-      <div
-        style={{
-          position: 'absolute',
-          display: 'flex',
-          left: CONTENT_LEFT,
-          top: 606,
-          width: CONTENT_WIDTH,
-          height: 316,
-          boxSizing: 'border-box',
-          border: `1px solid ${COLORS.border}`,
-          borderRadius: 15,
-          overflow: 'hidden',
-          backgroundColor: GLASS_PANEL_QUIET,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: 500,
-            padding: '32px 36px',
-            boxSizing: 'border-box',
-            borderRight: `1px solid ${COLORS.border}`,
-          }}
-        >
-          <span style={{ color: COLORS.cyan, fontSize: 17, fontWeight: 700, letterSpacing: 1.9 }}>
-            AI CREDIT RESERVE
-          </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', width: 428, marginTop: 18, overflow: 'hidden' }}>
-            <span style={{ color: COLORS.white, fontSize: serverCreditSize, fontWeight: 700 }}>
-              {serverCreditText}
-            </span>
-          </div>
-          <span style={{ marginTop: 4, color: COLORS.text, fontSize: 20 }}>Server pool</span>
-          <div style={{ display: 'flex', marginTop: 27, color: COLORS.text, fontSize: 18 }}>
-            <span>{`Server-paid images  ${fmt(data.guildCreditImages)}`}</span>
-          </div>
-          <div style={{ display: 'flex', marginTop: 10, color: COLORS.text, fontSize: 18 }}>
-            <span>{`Personal-paid images  ${fmt(data.personalCreditImages)}`}</span>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: 412,
-            padding: '32px 36px',
-            boxSizing: 'border-box',
-            borderRight: `1px solid ${COLORS.border}`,
-          }}
-        >
-          <span style={{ color: COLORS.cyan, fontSize: 17, fontWeight: 700, letterSpacing: 1.9 }}>
-            AMBIENT CHAT
-          </span>
-          {data.ambientAvailable ? (
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 14 }}>
-              <ToggleReadout label="Replies" enabled={data.ambientRepliesEnabled} />
-              <ToggleReadout label="Meme images" enabled={data.ambientImagesEnabled} />
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          {logoImageUrl ? (
+            <img
+              src={logoImageUrl}
+              alt="Acosmibot"
+              width={455}
+              height={69}
+              style={{ width: 455, height: 69, objectFit: 'contain' }}
+            />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 18 }}>
-              <span style={{ color: COLORS.quiet, fontSize: 27, fontWeight: 700 }}>PLAN LOCKED</span>
-              <span style={{ marginTop: 8, color: COLORS.text, fontSize: 19, lineHeight: 1.4 }}>
-                Ambient replies are not included in this plan.
-              </span>
-            </div>
+            <span style={{ color: COLORS.cyan, fontSize: 38, fontWeight: 700 }}>ACOSMIBOT</span>
           )}
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: 558,
-            padding: '32px 36px',
-            boxSizing: 'border-box',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ color: COLORS.cyan, fontSize: 17, fontWeight: 700, letterSpacing: 1.9 }}>
-              ACTIVE PERSONALITY
-            </span>
-            {data.personalityTemporary ? (
-              <span style={{ color: COLORS.warning, fontSize: 15, fontWeight: 700 }}>TEMPORARY</span>
-            ) : null}
-          </div>
-          <span
+          <div
             style={{
-              marginTop: 16,
-              width: 488,
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              color: COLORS.white,
-              fontSize: personalityNameSize,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '9px 15px',
+              border: `1px solid ${stateColor}`,
+              borderRadius: 8,
+              backgroundColor: `${stateColor}18`,
+              color: stateColor,
+              fontSize: data.statusLabel.length > 18 ? 17 : 20,
               fontWeight: 700,
+              letterSpacing: 1.2,
             }}
           >
-            {compact(data.personalityName || 'Default', 26)}
-          </span>
-          {data.personalityTraits ? (
-            <span style={{ marginTop: 12, color: COLORS.text, fontSize: 19, lineHeight: 1.4 }}>
-              {compact(data.personalityTraits, 82)}
-            </span>
-          ) : null}
-          {data.customPersonalityLocked ? (
-            <span style={{ marginTop: 'auto', color: COLORS.muted, fontSize: 17 }}>
-              Custom personalities are not included in this plan.
-            </span>
-          ) : null}
+            {compact(data.statusLabel.toUpperCase(), 22)}
+          </div>
         </div>
-      </div>
 
-      <div
-        style={{
-          position: 'absolute',
-          display: 'flex',
-          alignItems: 'center',
-          left: CONTENT_LEFT,
-          bottom: 38,
-          width: CONTENT_WIDTH,
-          color: COLORS.muted,
-          fontSize: 15,
-          fontWeight: 700,
-          letterSpacing: 1.2,
-        }}
-      >
-        <span>DAILY CHAT RESETS AT 00:00 UTC</span>
-        <span style={{ margin: '0 12px', color: COLORS.quiet }}>//</span>
-        <span>MEDIA AND SUMMARIES RESET MONTHLY</span>
+        <div style={{ display: 'flex', alignItems: 'flex-end', width: '100%', marginTop: 18 }}>
+          <span style={{ color: COLORS.white, fontSize: 66, fontWeight: 700, lineHeight: 1, letterSpacing: -1.2 }}>
+            AI STATUS
+          </span>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              marginLeft: 'auto',
+              paddingBottom: 2,
+            }}
+          >
+            <span style={{ color: COLORS.cyanSoft, fontSize: guildPlanSize, fontWeight: 700 }}>{guildPlan}</span>
+            <span style={{ color: COLORS.text, fontSize: 22, marginTop: 5 }}>{headerDetail}</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', width: '100%', height: 2, backgroundColor: COLORS.cyanDeep, marginTop: 22 }} />
+
+        {configured ? (
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: USAGE_LEDGER_HEIGHT }}>
+            {usage.map((item, index) => (
+              <UsageRow key={item.key} item={item} height={usageRowHeight} isLast={index === usage.length - 1} />
+            ))}
+          </div>
+        ) : (
+          <SetupRequired data={data} />
+        )}
+
+        <StatusBand data={data} />
       </div>
     </div>
   );
