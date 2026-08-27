@@ -394,7 +394,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
             <div className="card p-4 mb-4">
               <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Emoji → Role Mappings</h3>
               {emojiMappings.map((m, i) => (
-                <div key={m.key} className="card p-3 mb-3" style={{ background: 'var(--bg-tertiary)' }}>
+                <div key={m.key} className="nested-control-group p-3 mb-3">
                   <MappingHeader label={`Emoji ${i + 1}`} onRemove={() => setEmojiMappings(emojiMappings.filter((_, j) => j !== i))} />
                   <div className="mb-2">
                     <label className="form-label mb-2 d-block">Emoji</label>
@@ -416,7 +416,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
             <div className="card p-4 mb-4">
               <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Buttons</h3>
               {buttons.map((b, i) => (
-                <div key={b.key} className="card p-3 mb-3" style={{ background: 'var(--bg-tertiary)' }}>
+                <div key={b.key} className="nested-control-group p-3 mb-3">
                   <MappingHeader label={`Button ${i + 1}`} onRemove={() => setButtons(buttons.filter((_, j) => j !== i))} />
                   <div className="mb-2">
                     <label className="form-label mb-2 d-block">Label</label>
@@ -455,7 +455,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
                   onChange={(e) => setDropdownPlaceholder(e.target.value)} />
               </div>
               {dropdownOptions.map((o, i) => (
-                <div key={o.key} className="card p-3 mb-3" style={{ background: 'var(--bg-tertiary)' }}>
+                <div key={o.key} className="nested-control-group p-3 mb-3">
                   <MappingHeader label={`Option ${i + 1}`} onRemove={() => setDropdownOptions(dropdownOptions.filter((_, j) => j !== i))} />
                   <div className="mb-2">
                     <label className="form-label mb-2 d-block">Label</label>

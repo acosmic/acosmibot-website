@@ -1,8 +1,8 @@
 ---
 version: 1
 slug: "cosmibot-website-src-pages-memberserverhubpage-tsx"
-primary_target: "acosmibot-website/src/pages/MemberServerHubPage.tsx"
-related_targets: ["acosmibot-website/src/styles/member-server-hub.css","acosmibot-website/src/components/CreditCheckoutDialog.tsx"]
+primary_target: "src/pages/MemberServerHubPage.tsx"
+related_targets: ["src/styles/member-server-hub.css","src/components/CreditCheckoutDialog.tsx"]
 ---
 
 ## Scope

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-01T15:19:39Z",
+  "generatedAt": "2026-08-27T00:36:50Z",
   "title": "Design System: Acosmibot",
   "extensions": {
     "colorMeta": {
@@ -48,6 +48,96 @@
           "oklch(86% 0.07 220)",
           "oklch(95% 0.03 220)"
         ]
+      },
+      "constellation-cyan-bright": {
+        "role": "primary",
+        "displayName": "Constellation Cyan",
+        "canonical": "#67ECFF",
+        "tonalRamp": ["oklch(15% 0.05 205)", "oklch(26% 0.08 205)", "oklch(38% 0.11 205)", "oklch(50% 0.13 205)", "oklch(62% 0.13 205)", "oklch(74% 0.11 205)", "oklch(86% 0.07 205)", "oklch(95% 0.03 205)"]
+      },
+      "constellation-violet": {
+        "role": "secondary",
+        "displayName": "Constellation Violet",
+        "canonical": "#9F8BFF",
+        "tonalRamp": ["oklch(15% 0.05 285)", "oklch(26% 0.09 285)", "oklch(38% 0.12 285)", "oklch(50% 0.14 285)", "oklch(62% 0.14 285)", "oklch(74% 0.12 285)", "oklch(86% 0.08 285)", "oklch(95% 0.03 285)"]
+      },
+      "constellation-coral": {
+        "role": "secondary",
+        "displayName": "Constellation Coral",
+        "canonical": "#FF8F72",
+        "tonalRamp": ["oklch(15% 0.05 35)", "oklch(26% 0.09 35)", "oklch(38% 0.12 35)", "oklch(50% 0.15 35)", "oklch(62% 0.16 35)", "oklch(74% 0.13 35)", "oklch(86% 0.08 35)", "oklch(95% 0.03 35)"]
+      },
+      "constellation-green": {
+        "role": "tertiary",
+        "displayName": "Constellation Green",
+        "canonical": "#4FE3A1",
+        "tonalRamp": ["oklch(15% 0.04 160)", "oklch(26% 0.08 160)", "oklch(38% 0.11 160)", "oklch(50% 0.14 160)", "oklch(62% 0.15 160)", "oklch(74% 0.12 160)", "oklch(86% 0.08 160)", "oklch(95% 0.03 160)"]
+      },
+      "observatory-void": {
+        "role": "neutral",
+        "displayName": "Observatory Void",
+        "canonical": "#05080D",
+        "tonalRamp": ["#05080D", "#08111A", "#0D151D", "#111C26", "#15212B", "#263541", "#8293A0", "#F4FBFF"]
+      },
+      "observatory-space": {
+        "role": "neutral",
+        "displayName": "Observatory Space",
+        "canonical": "#08111A",
+        "tonalRamp": ["#05080D", "#08111A", "#0D151D", "#111C26", "#15212B", "#263541", "#8293A0", "#F4FBFF"]
+      },
+      "observatory-panel": {
+        "role": "neutral",
+        "displayName": "Observatory Panel",
+        "canonical": "#0D151D",
+        "tonalRamp": ["#05080D", "#08111A", "#0D151D", "#111C26", "#15212B", "#263541", "#8293A0", "#F4FBFF"]
+      },
+      "observatory-node": {
+        "role": "neutral",
+        "displayName": "Observatory Node",
+        "canonical": "#15212B",
+        "tonalRamp": ["#05080D", "#08111A", "#0D151D", "#111C26", "#15212B", "#263541", "#8293A0", "#F4FBFF"]
+      },
+      "observatory-raised": {
+        "role": "neutral",
+        "displayName": "Observatory Raised",
+        "canonical": "#111C26",
+        "tonalRamp": ["#05080D", "#08111A", "#0D151D", "#111C26", "#15212B", "#263541", "#8293A0", "#F4FBFF"]
+      },
+      "observatory-hover": {
+        "role": "neutral",
+        "displayName": "Observatory Hover",
+        "canonical": "#13212C",
+        "tonalRamp": ["#05080D", "#08111A", "#0D151D", "#111C26", "#15212B", "#263541", "#8293A0", "#F4FBFF"]
+      },
+      "constellation-white": {
+        "role": "neutral",
+        "displayName": "Constellation White",
+        "canonical": "#F4FBFF",
+        "tonalRamp": ["#05080D", "#15212B", "#34434F", "#5C6C78", "#8293A0", "#A9BAC7", "#D3E2EB", "#F4FBFF"]
+      },
+      "constellation-text": {
+        "role": "neutral",
+        "displayName": "Constellation Text",
+        "canonical": "#A9BAC7",
+        "tonalRamp": ["#05080D", "#15212B", "#34434F", "#5C6C78", "#8293A0", "#A9BAC7", "#D3E2EB", "#F4FBFF"]
+      },
+      "constellation-muted": {
+        "role": "neutral",
+        "displayName": "Constellation Muted",
+        "canonical": "#71808D",
+        "tonalRamp": ["#05080D", "#15212B", "#34434F", "#5C6C78", "#71808D", "#A9BAC7", "#D3E2EB", "#F4FBFF"]
+      },
+      "constellation-muted-bright": {
+        "role": "neutral",
+        "displayName": "Constellation Muted Bright",
+        "canonical": "#8293A0",
+        "tonalRamp": ["#05080D", "#15212B", "#34434F", "#5C6C78", "#8293A0", "#A9BAC7", "#D3E2EB", "#F4FBFF"]
+      },
+      "observatory-backdrop": {
+        "role": "neutral",
+        "displayName": "Observatory Backdrop",
+        "canonical": "rgba(0, 0, 0, 0.68)",
+        "tonalRamp": ["rgba(0,0,0,0.18)", "rgba(0,0,0,0.28)", "rgba(0,0,0,0.4)", "rgba(0,0,0,0.52)", "rgba(0,0,0,0.68)", "rgba(0,0,0,0.76)", "rgba(0,0,0,0.84)", "rgba(0,0,0,0.92)"]
       },
       "control-black": {
         "role": "neutral",
@@ -432,12 +522,20 @@
       "name": "Feature Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "The bordered graphite panel with a restrained cyan interaction signal.",
+    "description": "An interactive, selectable responsibility whose complete border is justified by its independent action.",
       "html": "<article class=\"ds-feature-card\" tabindex=\"0\"><div class=\"ds-feature-icon\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2 2 7l10 5 8.18-4.09V14h2V7L12 2Zm-6 9.05V16l6 3 6-3v-4.95l-6 3-6-3Z\" /></svg></div><h3>Leveling</h3><p>Reward activity with roles, XP, and server-specific progression.</p></article>",
       "css": ".ds-feature-card { position: relative; overflow: hidden; max-width: 360px; background: var(--bg-card, #2D2D2D); border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)); border-radius: 16px; padding: 32px; color: var(--text-primary, #FFFFFF); font-family: Poppins, sans-serif; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease; } .ds-feature-card::before { content: ''; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--primary-color, #00D9FF), transparent); opacity: 0; transition: opacity 0.25s ease; } .ds-feature-card:hover { transform: translateY(-3px); border-color: var(--border-cyan, rgba(0, 217, 255, 0.4)); background: var(--bg-card-hover, #3A3A3A); } .ds-feature-card:hover::before { opacity: 0.6; } .ds-feature-card:focus-visible { outline: 2px solid var(--primary-color, #00D9FF); outline-offset: 3px; } .ds-feature-icon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 20px; border-radius: 12px; background: rgba(0, 217, 255, 0.08); border: 1px solid rgba(0, 217, 255, 0.2); color: var(--primary-color, #00D9FF); } .ds-feature-icon svg { width: 24px; height: 24px; fill: currentColor; } .ds-feature-card h3 { margin: 0 0 12px; font-size: 20px; font-weight: 700; } .ds-feature-card p { margin: 0; color: var(--text-secondary, #B0B0B0); font-size: 14px; line-height: 1.6; }"
-    },
-    {
-      "name": "Active Status Chip",
+  },
+  {
+    "name": "Segmented Metric Grid",
+    "kind": "custom",
+    "refersTo": "card",
+    "description": "Related read-only values share one perimeter and internal dividers instead of becoming nested cards.",
+    "html": "<dl class=\"ds-metric-grid\"><div><dt>Members</dt><dd>49</dd></div><div><dt>Messages</dt><dd>38,220</dd></div><div><dt>Reactions</dt><dd>8,178</dd></div><div><dt>Net growth</dt><dd class=\"is-positive\">+7</dd></div></dl>",
+    "css": ".ds-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0; overflow: hidden; border: 1px solid var(--border-light, rgba(134, 163, 181, 0.18)); border-radius: 13px; background: var(--border-light, rgba(134, 163, 181, 0.18)); font-family: Poppins, sans-serif; } .ds-metric-grid > div { min-width: 0; display: flex; flex-direction: column-reverse; gap: 5px; padding: 17px 15px; background: var(--bg-card, #0D151D); } .ds-metric-grid dt { color: var(--text-muted, #8293A0); font-size: 12px; } .ds-metric-grid dd { margin: 0; overflow-wrap: anywhere; color: var(--primary-color, #67ECFF); font-size: 22px; font-weight: 750; letter-spacing: -0.02em; } .ds-metric-grid dd.is-positive { color: var(--success-color, #4FE3A1); } @media (max-width: 560px) { .ds-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }"
+  },
+  {
+    "name": "Active Status Chip",
       "kind": "chip",
       "refersTo": "status-chip-active",
       "description": "An explicit enabled-state label with semantic tint and compact uppercase type.",
@@ -468,7 +566,7 @@
       "Dark operational canvas with clearly stepped graphite surfaces.",
       "Signal Cyan reserved for actions, active state, focus, and high-value data.",
       "Single-family Poppins typography with strong weight contrast.",
-      "Rounded, bordered panels that feel substantial without looking soft.",
+      "Earned container boundaries with segmented or tonal treatment for subordinate groups.",
       "Fast, visible interaction feedback through lift, glow, and tonal change."
     ],
     "rules": [
@@ -513,6 +611,11 @@
         "section": "layout"
       },
       {
+        "name": "The Container Must Earn Its Border Rule",
+        "body": "Use a complete framed panel only for a selectable object, independent workflow, overlay, or meaningfully distinct data group. Repeated child metrics and field groups use a segmented grid, tonal step, or divider instead of another complete card boundary.",
+        "section": "layout"
+      },
+      {
         "name": "The Layered-at-Rest Rule",
         "body": "Establish hierarchy with graphite tone and border before reaching for shadow.",
         "section": "elevation"
@@ -539,14 +642,16 @@
       "Do keep dashboard pages scan-friendly with compact labels, 20–24px panel padding, and 32–40px major-group spacing.",
       "Do preserve visible hover, focus-visible, active, disabled, loading, success, and error feedback.",
       "Do retain Poppins and use weight contrast to connect marketing and product surfaces.",
-      "Do keep explanatory copy at 14px or larger, feature lists and actions at 13px or larger, and primary touch targets at least 44px high."
+      "Do keep explanatory copy at 14px or larger, feature lists and actions at 13px or larger, and primary touch targets at least 44px high.",
+      "Do use segmented grids, dividers, or tonal steps when several related values or fields belong to one parent responsibility."
     ],
     "donts": [
       "Don't flatten the interface into generic enterprise SaaS white, gray, and brand-blue conventions.",
       "Don't flood large ordinary surfaces with Signal Cyan or persistent neon glow.",
       "Don't introduce unrelated accent hues for routine features when cyan or a literal status color already communicates the role.",
       "Don't use pill geometry for routine dashboard controls or inflate card radius beyond its place in the shape hierarchy.",
-      "Don't create page-local shell offsets, sidebars, or mobile navigation rules that conflict with the shared responsive frame."
+      "Don't create page-local shell offsets, sidebars, or mobile navigation rules that conflict with the shared responsive frame.",
+      "Don't nest a complete bordered card inside another complete bordered card or give every section equal visual authority."
     ]
   }
 }

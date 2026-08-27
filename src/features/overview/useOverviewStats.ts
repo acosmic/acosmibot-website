@@ -36,6 +36,8 @@ export function useOverviewStats(guildId: string, userId: string) {
     userStats: userStatsQuery.data?.success ? userStatsQuery.data.data : userStatsQuery.data,
     guildStats: guildStatsQuery.data?.success ? guildStatsQuery.data.data : guildStatsQuery.data,
     isLoading: userStatsQuery.isLoading || guildStatsQuery.isLoading,
+    isFetching: userStatsQuery.isFetching || guildStatsQuery.isFetching,
     error: userStatsQuery.error || guildStatsQuery.error,
+    refetch: () => Promise.all([userStatsQuery.refetch(), guildStatsQuery.refetch()]),
   };
 }

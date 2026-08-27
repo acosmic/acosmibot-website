@@ -36,6 +36,9 @@ export function useModerationConfig(guildId: string) {
   return {
     data,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    error: query.error as Error | null,
+    refetch: query.refetch,
     save: mutation.mutate,
     isSaving: mutation.isPending,
     saveError: mutation.error as Error | null,

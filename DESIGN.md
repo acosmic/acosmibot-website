@@ -283,13 +283,15 @@ Signal Cyan leads a tightly controlled graphite palette; white and cool gray est
 
 ## Layout
 
-The dashboard is a fixed-shell workspace: a 56px top bar, a 72px guild rail, a 280px navigation sidebar, and a flexible content region offset by their combined 352px width. Working pages use a focused 960px maximum where configuration density benefits from a stable reading width, while the main canvas keeps 40px outer padding. Content rhythm is built from 8px and 4px increments, with 16–24px internal panel spacing and 32–40px separation between major groups.
+The dashboard is a fixed-shell workspace: a 56px top bar, a 72px guild rail, a 280px navigation sidebar, and a flexible content region offset by their combined 352px width. Working pages use a focused 960–1080px maximum where configuration density benefits from a stable reading width, while the main canvas keeps 40px outer padding. Content rhythm is built from 8px and 4px increments, with 16–24px internal panel spacing and 32–40px separation between major groups.
 
 At 768px and below, the guild rail disappears, navigation becomes a left drawer with a dimmed backdrop, current-guild context moves into a 52px mobile bar, and the main region loses its fixed offset and uses 20px padding. Grids collapse by task: dashboard content stacks, admin tables become labeled card rows, and full-width primary actions are preferred when horizontal competition would reduce clarity. Marketing content uses a centered 1200px container with 20px gutters; feature cards flow responsively, while pricing moves from four columns to two at 1180px and one at 640px.
 
 **The Shell Before Page Rule.** Preserve top-bar, rail, sidebar, and content offsets as one responsive system; do not solve page layout by locally compensating for shell geometry.
 
 **The Dense, Never Cramped Rule.** Compact labels and rows may be tight, but primary interactive targets remain at least 44px high and panel padding stays generous enough for confident operation.
+
+**The Container Must Earn Its Border Rule.** Use a complete framed panel only for a selectable object, independent workflow, overlay, or meaningfully distinct data group. Repeated child metrics and field groups use a segmented grid, tonal step, or divider instead of another complete card boundary.
 
 ## Elevation & Depth
 
@@ -374,6 +376,7 @@ Components should feel tactile and confident: substantial enough to invite actio
 - **Shadow Strategy:** Use Panel Rest by default and Signal Lift only when the card is interactive.
 - **Border:** One-pixel subtle border at rest; signal border for selection or hover.
 - **Internal Padding:** 20–24px for dashboard panels and 32px for expansive marketing cards.
+- **Hierarchy:** Frame a responsibility once. Use shared perimeter plus one-pixel internal dividers for repeated metrics, and a tonal inset without its own perimeter for subordinate field groups.
 
 ### Inputs / Fields
 
@@ -403,6 +406,7 @@ Unsaved work appears as a fixed, substantial status surface with direct Save and
 - **Do** preserve visible hover, focus-visible, active, disabled, loading, success, and error feedback.
 - **Do** retain Poppins and use weight contrast to connect marketing and product surfaces.
 - **Do** keep explanatory copy at 14px or larger, feature lists and actions at 13px or larger, and primary touch targets at least 44px high.
+- **Do** use segmented grids, dividers, or tonal steps when several related values or fields belong to one parent responsibility.
 
 ### Don't:
 
@@ -411,3 +415,4 @@ Unsaved work appears as a fixed, substantial status surface with direct Save and
 - **Don't** introduce unrelated accent hues for routine features when cyan or a literal status color already communicates the role.
 - **Don't** use pill geometry for routine dashboard controls or inflate card radius beyond its place in the shape hierarchy.
 - **Don't** create page-local shell offsets, sidebars, or mobile navigation rules that conflict with the shared responsive frame.
+- **Don't** nest a complete bordered card inside another complete bordered card or give every section equal visual authority.

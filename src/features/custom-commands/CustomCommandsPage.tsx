@@ -328,9 +328,9 @@ export const CustomCommandsPage: React.FC = () => {
           {/* ── Embed section ─────────────────────────────────── */}
           {form.response_type === 'embed' && (
             <div className="mb-4">
-              <div className="card p-3" style={{ background: 'var(--bg-overlay)', borderRadius: '8px' }}>
+              <div className="nested-control-group p-3">
                 {/* Accent preview bar */}
-                <div style={{ height: '4px', borderRadius: '2px', background: form.embed_color, marginBottom: '12px' }} />
+                <div style={{ height: '4px', borderRadius: '3px', background: form.embed_color, marginBottom: '12px' }} />
 
                 <div className="mb-3">
                   <label className="form-label mb-2 d-block">Title</label>
@@ -413,7 +413,7 @@ export const CustomCommandsPage: React.FC = () => {
 
           <div className="mb-4">
             <label className="form-label mb-2 d-block">Auto Delete</label>
-            <div className="card p-3" style={{ background: 'var(--bg-overlay)', borderRadius: '8px' }}>
+            <div className="nested-control-group p-3">
               <div className="d-flex flex-wrap gap-3">
                 <div style={{ minWidth: '220px', flex: '1 1 220px' }}>
                   <label className="form-label mb-2 d-block">Input message</label>

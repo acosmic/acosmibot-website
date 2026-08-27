@@ -2,7 +2,7 @@
 version: 1
 slug: "src-components-layout-dashboardshell-tsx"
 primary_target: "src/components/layout/DashboardShell.tsx"
-related_targets: ["src/styles/dashboard.css","src/components/layout/Sidebar.tsx","src/components/layout/ServerContextBar.tsx","src/components/ui/FeatureToggle.tsx","src/components/ui/CollapsibleSection.tsx","src/components/ui/SaveBar.tsx","src/features/overview/OverviewPage.tsx","src/features/analytics/GuildAnalyticsPage.tsx","src/features/embeds/EmbedBuilderPage.tsx","src/features/reaction-roles/ReactionRoleBuilderPage.tsx"]
+related_targets: ["src/styles/dashboard.css","src/components/layout/Sidebar.tsx","src/components/layout/ServerContextBar.tsx","src/components/ui/FeatureToggle.tsx","src/components/ui/CollapsibleSection.tsx","src/components/ui/SaveBar.tsx","src/features/overview/OverviewPage.tsx","src/features/moderation/ModerationPage.tsx","src/features/custom-commands/CustomCommandsPage.tsx","src/features/analytics/GuildAnalyticsPage.tsx","src/features/embeds/EmbedBuilderPage.tsx","src/features/reaction-roles/ReactionRoleBuilderPage.tsx"]
 ---
 
 ## Scope and mode
@@ -19,11 +19,11 @@ The authenticated guild response, owner or administrator permission, current hyb
 
 ## Direction and memorable moment
 
-Server Control Matrix: a compact guild-coordinate rail and grouped subsystem rail remain fixed around one focused observatory workspace. A persistent context bar names the server and current system; cyan routing signals expose selection, live state, and the explicit save boundary.
+Server Control Matrix: a compact guild-coordinate rail and grouped subsystem rail remain fixed around one focused observatory workspace. A persistent context bar names the server and current system; cyan routing signals expose selection, live state, and the explicit save boundary. Overview reads as server identity and subscription, personal KPIs, one combined activity-and-growth surface, then unboxed resource exits.
 
 ## Constraints
 
-Preserve OAuth authentication, selected-guild store behavior, server-side permission enforcement, management gating, existing route compatibility, TanStack query and mutation behavior, premium limits, real channels and roles, dirty-state guards, save and discard behavior, builder previews, loading and error states, keyboard access, responsive drawer behavior, and reduced motion.
+Preserve OAuth authentication, selected-guild store behavior, server-side permission enforcement, management gating, existing route compatibility, TanStack query and mutation behavior, premium limits, real channels and roles, dirty-state guards, save and discard behavior, builder previews, loading and error states, keyboard access, responsive drawer behavior, and reduced motion. Complete borders are reserved for independent responsibilities; repeated metrics use a segmented perimeter, and subordinate field groups use tonal separation without nested card borders.
 
 ## Unresolved decisions
 

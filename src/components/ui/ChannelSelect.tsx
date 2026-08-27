@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 
 interface ChannelSelectProps {
@@ -18,14 +18,17 @@ export const ChannelSelect: React.FC<ChannelSelectProps> = ({
   placeholder = 'Select a channel...',
   channelTypes = [0, 5],
 }) => {
+  const selectId = useId();
   const { data: channels, isLoading } = useGuildChannels(guildId);
   const visibleChannels = channels?.filter((channel) => channelTypes.includes(channel.type));
 
   return (
     <div className="form-group mb-3">
-      {label && <label className="form-label mb-2 d-block">{label}</label>}
+      {label && <label className="form-label mb-2 d-block" htmlFor={selectId}>{label}</label>}
       <select
+        id={selectId}
         className="form-control"
+        aria-label={label ? undefined : placeholder}
         value={value || ''}
         onChange={(e) => onChange(e.target.value || null)}
         disabled={isLoading}

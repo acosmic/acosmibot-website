@@ -7,11 +7,25 @@ import { ModerationConfig } from '@/types/features';
 
 export const ModerationPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, isLoading, save, isSaving, saveError } = useModerationConfig(guildId!);
+  const { data, isLoading, isFetching, error, refetch, save, isSaving, saveError } = useModerationConfig(guildId!);
   const { form, setForm, isDirty, resetForm } = useDirtyState<ModerationConfig>(data);
 
   if (isLoading) return <LoadingSpinner />;
-  if (!form) return <div>No data found.</div>;
+  if (!form) return (
+    <div className="feature-page">
+      <div className="page-header text-start mt-0">
+        <h1>Moderation Tools</h1>
+        <p>Monitor and manage your community effectively.</p>
+      </div>
+      <div className="feature-load-state" role={error ? 'alert' : 'status'}>
+        <strong>{error ? 'Moderation settings could not be loaded.' : 'No moderation settings are available.'}</strong>
+        <span>{error ? 'Check your connection or permissions, then try again.' : 'Try refreshing this server configuration.'}</span>
+        <button type="button" className="btn" disabled={isFetching} onClick={() => void refetch()}>
+          {isFetching ? 'Retrying…' : 'Try again'}
+        </button>
+      </div>
+    </div>
+  );
 
   const updateEvent = (category: string, eventName: string | null, updates: { enabled?: boolean; channel_id?: string | null; ignored_channel_ids?: string[] }) => {
     const newEvents = { ...form.events };
@@ -70,14 +84,18 @@ export const ModerationPage: React.FC = () => {
 
       <CollapsibleSection title="Audit Log Events" defaultOpen={true}>
         <div className="row">
-          {['ban', 'unban', 'kick', 'mute'].map(event => (
+          {['ban', 'unban', 'kick', 'mute'].map(event => {
+            const switchId = `moderation-audit-${event}`;
+            return (
             <div key={event} className="col-md-6 mb-4">
-              <div className="card bg-tertiary p-3">
+              <div className="nested-control-group p-3">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span className="fw-bold text-capitalize">{event} Logs</span>
+                  <label className="fw-bold text-capitalize" htmlFor={switchId}>{event} Logs</label>
                   <div className="form-check form-switch">
                     <input 
+                      id={switchId}
                       type="checkbox" 
+                      role="switch"
                       className="form-check-input"
                       checked={form.events.on_audit_log_entry?.[event]?.enabled || false}
                       onChange={(e) => updateEvent('on_audit_log_entry', event, { enabled: e.target.checked })}
@@ -92,20 +110,25 @@ export const ModerationPage: React.FC = () => {
                 />
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </CollapsibleSection>
 
       <CollapsibleSection title="Message Monitoring">
         <div className="row">
-          {['on_message_edit', 'on_message_delete'].map(event => (
+          {['on_message_edit', 'on_message_delete'].map(event => {
+            const switchId = `moderation-message-${event}`;
+            return (
             <div key={event} className="col-md-6 mb-4">
-              <div className="card bg-tertiary p-3">
+              <div className="nested-control-group p-3">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span className="fw-bold">{event.replace(/_/g, ' ').replace('on ', '').toUpperCase()}</span>
+                  <label className="fw-bold" htmlFor={switchId}>{event.replace(/_/g, ' ').replace('on ', '').toUpperCase()}</label>
                   <div className="form-check form-switch">
                     <input 
+                      id={switchId}
                       type="checkbox" 
+                      role="switch"
                       className="form-check-input"
                       checked={(form.events as any)[event]?.enabled || false}
                       onChange={(e) => updateEvent(event, null, { enabled: e.target.checked })}
@@ -127,7 +150,8 @@ export const ModerationPage: React.FC = () => {
                 />
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </CollapsibleSection>
 

@@ -162,10 +162,10 @@ export interface MemberFlowDay {
 }
 
 const FLOW_COLORS = {
-  join: '#3ba55d',
-  leave: '#ed4245',
-  kick: '#faa61a',
-  ban: '#992d22',
+  join: 'var(--success-color)',
+  leave: 'var(--error-color)',
+  kick: 'var(--warning-color)',
+  ban: 'color-mix(in srgb, var(--error-color) 64%, #05080D)',
 };
 
 /**
@@ -191,7 +191,15 @@ export const MemberFlowChart: React.FC<{ data: MemberFlowDay[] }> = ({ data }) =
   const segHeight = (value: number) => (value / maxDepart) * (half - 2);
 
   return (
-    <div>
+    <figure style={{ margin: 0 }}>
+      <figcaption className="visually-hidden">Daily server member joins, leaves, kicks, bans, and net change.</figcaption>
+      <ol className="visually-hidden">
+        {data.map((day) => (
+          <li key={day.date}>
+            {fmtDate(day.date)}: {day.joins} joined, {day.leaves} left, {day.kicks} kicked, {day.bans} banned; net {day.net >= 0 ? '+' : ''}{day.net}.
+          </li>
+        ))}
+      </ol>
       <div style={{ height: 22, marginBottom: 6, fontSize: 13, color: 'var(--text-muted)' }}>
         {active && (
           <span>
@@ -228,7 +236,7 @@ export const MemberFlowChart: React.FC<{ data: MemberFlowDay[] }> = ({ data }) =
               <div style={{ height: half, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
                 <div style={{
                   width: '100%', height: (d.joins / maxJoin) * (half - 2),
-                  background: FLOW_COLORS.join, opacity: dim ? 0.45 : 1, borderRadius: '2px 2px 0 0',
+                  background: FLOW_COLORS.join, opacity: dim ? 0.45 : 1, borderRadius: '3px 3px 0 0',
                 }} />
               </div>
               {/* departures (down), stacked leaves → kicks → bans */}
@@ -259,6 +267,6 @@ export const MemberFlowChart: React.FC<{ data: MemberFlowDay[] }> = ({ data }) =
         <span><span style={{ color: FLOW_COLORS.kick }}>■</span> Kicks</span>
         <span><span style={{ color: FLOW_COLORS.ban }}>■</span> Bans</span>
       </div>
-    </div>
+    </figure>
   );
 };
