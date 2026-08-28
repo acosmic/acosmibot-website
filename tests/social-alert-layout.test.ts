@@ -33,10 +33,34 @@ test('shared records expose literal state and an accessible pause switch', () =>
   assert.match(streaming, /onEnabledChange=\{\(enabled\) => updateStreamer\(index, \{ enabled \}\)\}/);
 });
 
+test('social alert avatars load private-safe HTTPS images with a resilient fallback', () => {
+  assert.match(shared, /\^https:\\\/\\\//);
+  assert.match(shared, /loading="lazy"/);
+  assert.match(shared, /decoding="async"/);
+  assert.match(shared, /referrerPolicy="no-referrer"/);
+  assert.match(shared, /onError=\{\(\) => setFailedSrc\(safeSrc\)\}/);
+  assert.match(xAlerts, /<SocialAlertAvatar/);
+  assert.match(streaming, /<SocialAlertAvatar/);
+});
+
+test('streaming hydrates provider avatars and reuses successful validation responses', () => {
+  assert.match(streamingApi, /profile_image_url\?: string \| null/);
+  assert.match(streamingApi, /result\?\.channel_info\?\.thumbnail_url/);
+  assert.match(streaming, /const profileQueries = useQueries/);
+  assert.match(streaming, /streamerProfileQueryKey\(platform, streamer\.username\)/);
+  assert.match(streaming, /queryClient\.setQueryData<StreamerValidationResult>/);
+  assert.match(streaming, /getStreamerProfileImage\(profileQueries\[index\]\?\.data\)/);
+});
+
 test('legacy streaming records normalize to enabled and verified without losing saved settings', () => {
   assert.match(streamingApi, /enabled: streamer\.enabled !== false/);
   assert.match(streamingApi, /isValid: streamer\.isValid !== false && Boolean\(username\)/);
   assert.match(streamingApi, /mention_role_ids: Array\.isArray/);
+
+  const normalizeStart = streamingApi.indexOf('const normalizeStreamers');
+  const normalizeEnd = streamingApi.indexOf('export const streamingApi');
+  assert.ok(normalizeStart >= 0 && normalizeEnd > normalizeStart);
+  assert.doesNotMatch(streamingApi.slice(normalizeStart, normalizeEnd), /profile_image_url/);
 });
 
 test('streaming validates new creators before adding and blocks incomplete saves', () => {

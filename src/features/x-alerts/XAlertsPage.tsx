@@ -19,6 +19,7 @@ import {
   LoadingSpinner,
   RoleSelect,
   SaveBar,
+  SocialAlertAvatar,
   SocialAlertRecord,
   SocialAlertsAdd,
   SocialAlertsEmpty,
@@ -309,9 +310,10 @@ export const XAlertsPage: React.FC = () => {
                     key={account.user_id}
                     leading={<span aria-label={`Priority ${index + 1}`}>{index + 1}</span>}
                     avatar={
-                      account.profile_image_url
-                        ? <img src={account.profile_image_url} alt="" />
-                        : <span>{account.display_name.charAt(0).toUpperCase() || 'X'}</span>
+                      <SocialAlertAvatar
+                        src={account.profile_image_url}
+                        fallback={<span>{account.display_name.charAt(0).toUpperCase() || 'X'}</span>}
+                      />
                     }
                     title={account.display_name}
                     subtitle={`@${account.username}`}

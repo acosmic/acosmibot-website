@@ -9,10 +9,15 @@ export interface StreamerValidationResult {
   valid: boolean;
   message?: string;
   channel_id?: string | null;
+  profile_image_url?: string | null;
   channel_info?: {
     title?: string;
+    thumbnail_url?: string | null;
   };
 }
+
+export const getStreamerProfileImage = (result?: StreamerValidationResult | null): string | null =>
+  result?.profile_image_url ?? result?.channel_info?.thumbnail_url ?? null;
 
 const DEFAULT_CONFIG: StreamPlatformConfig = {
   enabled: false,

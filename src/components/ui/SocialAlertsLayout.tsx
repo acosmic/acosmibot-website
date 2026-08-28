@@ -103,6 +103,29 @@ export const SocialAlertsEmpty: React.FC<SocialAlertsEmptyProps> = ({ icon: Icon
   </div>
 );
 
+interface SocialAlertAvatarProps {
+  src?: string | null;
+  fallback: React.ReactNode;
+}
+
+export const SocialAlertAvatar: React.FC<SocialAlertAvatarProps> = ({ src, fallback }) => {
+  const safeSrc = src && /^https:\/\//i.test(src) ? src : null;
+  const [failedSrc, setFailedSrc] = React.useState<string | null>(null);
+
+  if (!safeSrc || failedSrc === safeSrc) return <>{fallback}</>;
+
+  return (
+    <img
+      src={safeSrc}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={() => setFailedSrc(safeSrc)}
+    />
+  );
+};
+
 const STATE_ICONS: Record<SocialAlertState, LucideIcon> = {
   active: BellRing,
   ready: Radio,

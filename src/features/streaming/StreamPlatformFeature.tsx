@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import {
   Check,
@@ -21,6 +22,7 @@ import {
   LoadingSpinner,
   RoleMultiSelect,
   SaveBar,
+  SocialAlertAvatar,
   SocialAlertRecord,
   SocialAlertsAdd,
   SocialAlertsEmpty,
@@ -31,7 +33,12 @@ import {
   type SocialAlertState,
 } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
-import { type Platform, streamingApi } from '@/api/streaming';
+import {
+  getStreamerProfileImage,
+  type Platform,
+  streamingApi,
+  type StreamerValidationResult,
+} from '@/api/streaming';
 import type { Streamer } from '@/types/features';
 
 interface StreamPlatformFeatureProps {
@@ -93,8 +100,13 @@ const TIER_LABELS = {
   max: 'Max',
 } as const;
 
+const streamerProfileQueryKey = (platform: Platform, username: string) => (
+  ['streaming-profile', platform, username.trim().toLowerCase()] as const
+);
+
 export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ platform }) => {
   const { guildId = '' } = useParams<{ guildId: string }>();
+  const queryClient = useQueryClient();
   const query = useStreamPlatformConfig(guildId, platform);
   const { form, setForm, isDirty, resetForm } = useDirtyState(query.data);
   const formRef = useRef(form);
@@ -109,6 +121,16 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
   const validationRunRef = useRef(0);
   const meta = PLATFORM_META[platform];
   const PlatformIcon = meta.icon;
+  const profileQueries = useQueries({
+    queries: (form?.tracked_streamers ?? []).map((streamer) => ({
+      queryKey: streamerProfileQueryKey(platform, streamer.username),
+      queryFn: () => streamingApi.validateStreamer(platform, streamer.username),
+      enabled: Boolean(streamer.username.trim() && streamer.isValid),
+      staleTime: 30 * 60 * 1000,
+      gcTime: 60 * 60 * 1000,
+      retry: 1,
+    })),
+  });
 
   useEffect(() => {
     if (selectedStreamerIndex === null) return undefined;
@@ -204,6 +226,11 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
         return;
       }
 
+      queryClient.setQueryData<StreamerValidationResult>(
+        streamerProfileQueryKey(platform, candidate),
+        result,
+      );
+
       const latestForm = formRef.current;
       if (!latestForm) return;
       const latestStreamers = latestForm.tracked_streamers ?? [];
@@ -291,6 +318,10 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
       if (!currentStreamer || currentStreamer.username.trim().toLowerCase() !== usernameKey) return;
 
       if (result.success && result.valid) {
+        queryClient.setQueryData<StreamerValidationResult>(
+          streamerProfileQueryKey(platform, username),
+          result,
+        );
         const latestStreamers = formRef.current?.tracked_streamers ?? [];
         const isDuplicate = latestStreamers.some((other, otherIndex) => (
           otherIndex !== index
@@ -448,7 +479,12 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
               {streamers.map((streamer, index) => (
                 <SocialAlertRecord
                   key={`${streamer.channel_id || streamer.username}-${index}`}
-                  avatar={<PlatformIcon />}
+                  avatar={
+                    <SocialAlertAvatar
+                      src={streamer.isValid ? getStreamerProfileImage(profileQueries[index]?.data) : null}
+                      fallback={<PlatformIcon />}
+                    />
+                  }
                   title={streamer.username}
                   subtitle={meta.subtitle}
                   state={stateFor(streamer)}
