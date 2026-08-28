@@ -18,6 +18,7 @@
         <li>Run <code>/heist start</code> to open a crew lobby with a join button</li>
         <li>Every crew member receives one randomly assigned interactive job</li>
         <li>Passed jobs raise the final success chance; failed or timed-out jobs lower it</li>
+        <li>The final result names each member's task outcome and completion time</li>
         <li>More crew members increase the possible total take and add more chances to improve the odds</li>
         <li>Crew Heat applies a separate penalty to the final success chance</li>
         <li>Only the shared server vault is at stake — personal wallets and the global bank are never taken</li>
@@ -85,6 +86,13 @@
       </div>
 
       <div class="command-card">
+        <div class="command-signature">/leaderboard → Heist Tasks</div>
+        <div class="command-description">
+          Rank recorded interactive-job success percentage, with attempts and average successful completion speed. The separate <strong>Heists</strong> board still ranks personal loot.
+        </div>
+      </div>
+
+      <div class="command-card">
         <div class="command-signature">/heist reset</div>
         <div class="command-description">
           Manage Server only. Clears the server's heist cooldown so a new heist can start right away. The same reset is a button on the dashboard's Games → Bank Heist page.
@@ -113,7 +121,7 @@
         <div class="step-number">2</div>
         <div class="step-content">
           <h3>Review the assignments</h3>
-          <p>Every crew member receives one random job. Jobs are dealt without repeats until all nine job types have been used.</p>
+          <p>Every crew member receives one random job. Jobs are dealt without repeats until all nine job types have been used. The briefing is posted as a fresh message at the bottom of the channel, and the original lobby becomes a link to the live board.</p>
         </div>
       </div>
 
@@ -129,7 +137,7 @@
         <div class="step-number">4</div>
         <div class="step-content">
           <h3>Complete each turn</h3>
-          <p>Jobs run one at a time in random order. Everyone can watch, but only the member named for the current turn can use its controls.</p>
+          <p>Jobs run one at a time in random order. Everyone can watch, but only the member named for the current turn can use its controls. Each pass, failure, or timeout is recorded with its completion time.</p>
         </div>
       </div>
 
@@ -137,7 +145,7 @@
         <div class="step-number">5</div>
         <div class="step-content">
           <h3>Roll the final attempt</h3>
-          <p>Passed jobs raise the crew's odds, failed or timed-out jobs lower them, and crew Heat applies an additional penalty before the final roll.</p>
+          <p>Passed jobs raise the crew's odds, failed or timed-out jobs lower them, and crew Heat applies an additional penalty before the final roll. The bot posts a fresh final result, deletes the live board, and updates the original lobby to link to that result.</p>
         </div>
       </div>
     </div>
