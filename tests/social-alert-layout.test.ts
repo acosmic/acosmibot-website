@@ -4,13 +4,18 @@ import test from 'node:test';
 
 const readSource = (path: string) => readFile(new URL(path, import.meta.url), 'utf8');
 
-const [shared, sharedCss, streaming, streamingApi, xAlerts] = await Promise.all([
+const [app, shared, sharedCss, streaming, streamingApi, xAlerts] = await Promise.all([
+  readSource('../src/App.tsx'),
   readSource('../src/components/ui/SocialAlertsLayout.tsx'),
   readSource('../src/components/ui/SocialAlertsLayout.css'),
   readSource('../src/features/streaming/StreamPlatformFeature.tsx'),
   readSource('../src/api/streaming.ts'),
   readSource('../src/features/x-alerts/XAlertsPage.tsx'),
 ]);
+
+test('streaming routes isolate drafts by guild and provider', () => {
+  assert.match(app, /key=\{`\$\{guildId \?\? ''\}:\$\{feature\}`\}/);
+});
 
 test('X and streaming alerts consume the same operational layout primitives', () => {
   for (const source of [xAlerts, streaming]) {

@@ -132,7 +132,15 @@ const FeatureOutlet = () => {
   }
   
   if (feature === 'twitch' || feature === 'youtube' || feature === 'kick') {
-    return <StreamPlatformFeature platform={feature as Platform} />;
+    // These routes intentionally share one component type. Key it to the full
+    // configuration scope so React cannot carry a provider draft, validation
+    // state, or dirty baseline into another guild/provider route.
+    return (
+      <StreamPlatformFeature
+        key={`${guildId ?? ''}:${feature}`}
+        platform={feature as Platform}
+      />
+    );
   }
 
   if (feature === 'x-alerts') {
