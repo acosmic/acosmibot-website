@@ -29,51 +29,53 @@ export const PolymorphPage: React.FC = () => {
         description="Enable the /polymorph command in this server."
       />
 
-      <div className="card p-4 mb-4">
-        <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Cost and Duration</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-          <div>
-            <label className="form-label mb-2 d-block">Credit Cost</label>
-            <NumberInput
-              className="form-control"
-              min={0}
-              value={form.cost}
-              onValueChange={(value) => updateNumber('cost', value)}
-            />
-            <p className="text-muted small mt-2 mb-0">Credits charged for each successful polymorph.</p>
+      <div className="dashboard-workflow-ledger">
+        <section className="dashboard-workflow-section">
+          <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Cost and Duration</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+            <div>
+              <label className="form-label mb-2 d-block">Credit Cost</label>
+              <NumberInput
+                className="form-control"
+                min={0}
+                value={form.cost}
+                onValueChange={(value) => updateNumber('cost', value)}
+              />
+              <p className="text-muted small mt-2 mb-0">Credits charged for each successful polymorph.</p>
+            </div>
+            <div>
+              <label className="form-label mb-2 d-block">Duration Minutes</label>
+              <NumberInput
+                className="form-control"
+                min={1}
+                value={form.duration_minutes}
+                onValueChange={(value) => updateNumber('duration_minutes', value)}
+              />
+              <p className="text-muted small mt-2 mb-0">Nickname is restored after this many minutes.</p>
+            </div>
           </div>
-          <div>
-            <label className="form-label mb-2 d-block">Duration Minutes</label>
-            <NumberInput
-              className="form-control"
-              min={1}
-              value={form.duration_minutes}
-              onValueChange={(value) => updateNumber('duration_minutes', value)}
-            />
-            <p className="text-muted small mt-2 mb-0">Nickname is restored after this many minutes.</p>
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <div className="card p-4 mb-4">
-        <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>AI Random Names</h3>
-        <label className="d-flex align-items-start gap-3" style={{ cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            className="form-check-input mt-1"
-            checked={form.allow_ai_random_names}
-            onChange={(e) => setForm({
-              allow_ai_random_names: e.target.checked,
-              mode: e.target.checked ? 'ai_random' : 'manual',
-            })}
-          />
-          <span>
-            <strong>Allow blank nicknames to use AI</strong>
-            <span className="d-block text-muted small mt-1">
-              Members can still type a specific nickname. When this is enabled, leaving the nickname blank lets AI generate one from recent channel context.
+        <section className="dashboard-workflow-section">
+          <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>AI Random Names</h3>
+          <label className="d-flex align-items-start gap-3" style={{ cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              className="form-check-input mt-1"
+              checked={form.allow_ai_random_names}
+              onChange={(e) => setForm({
+                allow_ai_random_names: e.target.checked,
+                mode: e.target.checked ? 'ai_random' : 'manual',
+              })}
+            />
+            <span>
+              <strong>Allow blank nicknames to use AI</strong>
+              <span className="d-block text-muted small mt-1">
+                Members can still type a specific nickname. When this is enabled, leaving the nickname blank lets AI generate one from recent channel context.
+              </span>
             </span>
-          </span>
-        </label>
+          </label>
+        </section>
       </div>
 
       <SaveBar

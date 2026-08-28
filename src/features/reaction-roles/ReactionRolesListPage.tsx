@@ -89,20 +89,20 @@ export const ReactionRolesListPage: React.FC = () => {
       </div>
 
       {items.length === 0 ? (
-        <div className="card p-5 text-center">
+        <div className="dashboard-open-section text-center">
           <div style={{ color: 'var(--text-muted)', marginBottom: 12 }}><Sparkles size={40} /></div>
           <h3 style={{ color: 'var(--text-primary)', fontSize: 18 }}>No Reaction Roles Yet</h3>
           <p className="text-muted mb-0">Create your first reaction role message to let members pick their own roles.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+        <div className="dashboard-record-ledger">
           {items.map((rr) => {
             const channelName = channels.find((c) => String(c.id) === String(rr.channel_id))?.name ?? 'Unknown Channel';
             const TypeIcon = TYPE_ICONS[rr.interaction_type] ?? Smile;
             const count = mappingsCount(rr);
             const previewText = rr.text_content || rr.embed_config?.title || rr.embed_config?.description || 'No content';
             return (
-              <div key={rr.id} className="card p-3" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <article key={rr.id} className="dashboard-record-row" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <h3 style={{
                     margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)',
@@ -155,7 +155,7 @@ export const ReactionRolesListPage: React.FC = () => {
                     Delete
                   </button>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>

@@ -64,7 +64,7 @@ export const ModerationPage: React.FC = () => {
         description="Enable moderation logging and automated monitoring."
       />
 
-      <div className="card p-4 mb-4">
+      <section className="dashboard-open-section">
         <h3 className="mb-4">Global Logging</h3>
         <ChannelSelect
           guildId={guildId!}
@@ -80,7 +80,7 @@ export const ModerationPage: React.FC = () => {
           label="Member Activity Log"
           placeholder="Select a channel for join/leave/activity..."
         />
-      </div>
+      </section>
 
       <CollapsibleSection title="Audit Log Events" defaultOpen={true}>
         <div className="row">

@@ -20,8 +20,8 @@ export const BetterEmbedsPage: React.FC = () => {
         <p>Automatically replace supported social links with versions that embed reliably in Discord.</p>
       </div>
 
-      <div className="card p-4 mb-4">
-        <p className="text-secondary mb-4">
+      <div className="feature-toggle-ledger">
+        <p className="dashboard-workflow-section text-secondary mb-0">
           Acosmibot suppresses Discord&apos;s original embed and posts an improved one while keeping the
           user&apos;s message intact. It needs Send Messages and Manage Messages permissions in the channel.
         </p>

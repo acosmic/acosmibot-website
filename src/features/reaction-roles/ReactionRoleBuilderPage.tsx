@@ -287,7 +287,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
       <div className="server-builder-grid">
         {/* Left — form */}
         <div>
-          <div className="card p-4 mb-4">
+          <section className="dashboard-open-section">
             <div className="mb-3">
               <label className="form-label mb-2 d-block">Name *</label>
               <input className="form-control" type="text" value={name}
@@ -329,7 +329,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
                 onChange={(e) => setAllowRemoval(e.target.checked)} />
               Allow members to remove the role by un-reacting / re-clicking
             </label>
-          </div>
+          </section>
 
           <CollapsibleSection title="Embed (alternative to message text)" defaultOpen={hasEmbedContent}>
             <div className="mb-3">
@@ -364,7 +364,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
             </div>
           </CollapsibleSection>
 
-          <div className="card p-4 mb-4">
+          <section className="dashboard-open-section">
             <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Interaction Type</h3>
             {isSent && (
               <p style={{
@@ -387,11 +387,11 @@ export const ReactionRoleBuilderPage: React.FC = () => {
                 </label>
               ))}
             </div>
-          </div>
+          </section>
 
           {/* Mapping editors */}
           {interactionType === 'emoji' && (
-            <div className="card p-4 mb-4">
+            <section className="dashboard-open-section">
               <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Emoji → Role Mappings</h3>
               {emojiMappings.map((m, i) => (
                 <div key={m.key} className="nested-control-group p-3 mb-3">
@@ -409,11 +409,11 @@ export const ReactionRoleBuilderPage: React.FC = () => {
               ))}
               <AddButton label="Add Emoji Mapping"
                 onClick={() => setEmojiMappings([...emojiMappings, { key: crypto.randomUUID(), emoji: '', roleIds: [] }])} />
-            </div>
+            </section>
           )}
 
           {interactionType === 'button' && (
-            <div className="card p-4 mb-4">
+            <section className="dashboard-open-section">
               <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Buttons</h3>
               {buttons.map((b, i) => (
                 <div key={b.key} className="nested-control-group p-3 mb-3">
@@ -443,11 +443,11 @@ export const ReactionRoleBuilderPage: React.FC = () => {
               ))}
               <AddButton label="Add Button"
                 onClick={() => setButtons([...buttons, { key: crypto.randomUUID(), label: '', style: 1, roleIds: [] }])} />
-            </div>
+            </section>
           )}
 
           {interactionType === 'dropdown' && (
-            <div className="card p-4 mb-4">
+            <section className="dashboard-open-section">
               <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Dropdown</h3>
               <div className="mb-3">
                 <label className="form-label mb-2 d-block">Placeholder</label>
@@ -480,7 +480,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
               ))}
               <AddButton label="Add Option"
                 onClick={() => setDropdownOptions([...dropdownOptions, { key: crypto.randomUUID(), label: '', roleIds: [] }])} />
-            </div>
+            </section>
           )}
 
           <label className="d-flex align-items-center gap-2 mb-3" style={{ fontSize: 14, cursor: 'pointer' }}>

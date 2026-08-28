@@ -234,7 +234,7 @@ export const EmbedBuilderPage: React.FC = () => {
       <div className="server-builder-grid">
         {/* Left — form */}
         <div>
-          <div className="card p-4 mb-4">
+          <div className="dashboard-open-section">
             <div className="mb-3">
               <label className="form-label mb-2 d-block">Embed Name *</label>
               <input className="form-control" type="text" value={name}
@@ -284,16 +284,17 @@ export const EmbedBuilderPage: React.FC = () => {
 
           <CollapsibleSection title={`Fields (${fields.length})`} defaultOpen={fields.length > 0}>
             {fields.map((f, i) => (
-              <div key={f.key} className="card p-3 mb-3" style={{ background: 'var(--bg-tertiary)' }}>
+              <div key={f.key} className="nested-control-group p-3 mb-3">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span className="small text-muted">Field {i + 1}</span>
                   <label className="d-flex align-items-center gap-2 m-0" style={{ fontSize: 13, cursor: 'pointer' }}>
                     <input type="checkbox" className="form-check-input m-0" checked={!!f.inline}
                       onChange={(e) => setFields(fields.map((x, j) => j === i ? { ...x, inline: e.target.checked } : x))} />
                     Inline
                   </label>
-                  <button onClick={() => setFields(fields.filter((_, j) => j !== i))}
+                  <button type="button" aria-label={`Remove field ${i + 1}`} onClick={() => setFields(fields.filter((_, j) => j !== i))}
                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
-                    <X size={16} />
+                    <X size={16} aria-hidden="true" />
                   </button>
                 </div>
                 <input className="form-control mb-2" type="text" placeholder="Field name" maxLength={256} value={f.name}
@@ -321,12 +322,12 @@ export const EmbedBuilderPage: React.FC = () => {
 
           <CollapsibleSection title={`Link Buttons (${buttons.length}/25)`} defaultOpen={buttons.length > 0}>
             {buttons.map((b, i) => (
-              <div key={b.key} className="card p-3 mb-3" style={{ background: 'var(--bg-tertiary)' }}>
+              <div key={b.key} className="nested-control-group p-3 mb-3">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Button {i + 1}</span>
-                  <button onClick={() => setButtons(buttons.filter((_, j) => j !== i))}
+                  <button type="button" aria-label={`Remove link button ${i + 1}`} onClick={() => setButtons(buttons.filter((_, j) => j !== i))}
                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
-                    <X size={16} />
+                    <X size={16} aria-hidden="true" />
                   </button>
                 </div>
                 <input className="form-control mb-2" type="text" placeholder="Click here!" maxLength={80} value={b.label}

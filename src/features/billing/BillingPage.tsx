@@ -813,24 +813,18 @@ export const BillingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="row g-3 mt-4">
-              <div className="col-sm-4">
-                <div className="p-3 rounded bg-tertiary border border-light">
-                  <div className="small text-muted">Status</div>
-                  <div className="fw-bold text-capitalize">{isComplimentary ? 'Complimentary' : status.replace(/_/g, ' ')}</div>
-                </div>
+            <div className="billing-summary-grid mt-4">
+              <div className="billing-summary-item">
+                <div className="small text-muted">Status</div>
+                <div className="fw-bold text-capitalize">{isComplimentary ? 'Complimentary' : status.replace(/_/g, ' ')}</div>
               </div>
-              <div className="col-sm-4">
-                <div className="p-3 rounded bg-tertiary border border-light">
-                  <div className="small text-muted">{isComplimentary ? (entitlement?.permanent ? 'Access' : 'Access Ends') : isCanceling ? 'Access Ends' : 'Renews'}</div>
-                  <div className="fw-bold">{isComplimentary ? (entitlement?.permanent ? 'Permanent' : formatDate(entitlement?.expires_at)) : formatDate(record?.cancel_at || record?.current_period_end)}</div>
-                </div>
+              <div className="billing-summary-item">
+                <div className="small text-muted">{isComplimentary ? (entitlement?.permanent ? 'Access' : 'Access Ends') : isCanceling ? 'Access Ends' : 'Renews'}</div>
+                <div className="fw-bold">{isComplimentary ? (entitlement?.permanent ? 'Permanent' : formatDate(entitlement?.expires_at)) : formatDate(record?.cancel_at || record?.current_period_end)}</div>
               </div>
-              <div className="col-sm-4">
-                <div className="p-3 rounded bg-tertiary border border-light">
-                  <div className="small text-muted">Server</div>
-                  <div className="fw-bold">{currentGuild?.name || 'Current server'}</div>
-                </div>
+              <div className="billing-summary-item">
+                <div className="small text-muted">Server</div>
+                <div className="fw-bold">{currentGuild?.name || 'Current server'}</div>
               </div>
             </div>
             {isComplimentary && (
@@ -870,7 +864,7 @@ export const BillingPage: React.FC = () => {
             )}
           </div>
 
-          {!isComplimentary && <div className="card p-4 mb-4">
+          {!isComplimentary && <section className="dashboard-open-section">
             <div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
               <div>
                 <h3 className="mb-0">Plans</h3>
@@ -964,11 +958,11 @@ export const BillingPage: React.FC = () => {
                 );
               })}
             </div>
-          </div>}
+          </section>}
         </div>
 
         <div className="col-lg-4">
-          {hasStripeSubscription && <div className="card p-4 mb-4">
+          {hasStripeSubscription && <section className="dashboard-open-section">
             <h3 className="mb-4">Payment</h3>
             {isComplimentary && (
               <p className="small text-muted mt-n2 mb-3">
@@ -1003,9 +997,9 @@ export const BillingPage: React.FC = () => {
                 <ExternalLink size={16} className="ms-auto" />
               </button>
             </div>
-          </div>}
+          </section>}
 
-          <div className="card p-4 mb-4">
+          <section className="dashboard-open-section">
             <h3 className="mb-4">Subscription</h3>
             {hasStripeSubscription ? (
               isCanceling ? (
@@ -1051,7 +1045,7 @@ export const BillingPage: React.FC = () => {
             ) : (
               <p className="text-muted mb-0">This server is on the Free plan.</p>
             )}
-          </div>
+          </section>
         </div>
       </div>
 

@@ -97,7 +97,7 @@ export const GiveawayPage: React.FC = () => {
       />
 
       {/* General */}
-      <div className="card p-4 mb-4">
+      <section className="dashboard-open-section">
         <h3 className="mb-4">General Configuration</h3>
 
         <ChannelSelect
@@ -152,7 +152,7 @@ export const GiveawayPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Entry Requirements */}
       <CollapsibleSection title="Entry Requirements" defaultOpen={true}>
@@ -333,30 +333,31 @@ export const GiveawayPage: React.FC = () => {
         {!activeGiveaways?.length ? (
           <p className="text-muted small">No active giveaways.</p>
         ) : (
-          <div className="d-flex flex-column gap-3">
+          <div className="dashboard-record-ledger">
             {activeGiveaways.map((g: any) => {
               const end = new Date(g.end_time);
               const diff = end.getTime() - Date.now();
               return (
-                <div key={g.id} className="card p-3" style={{ background: 'var(--bg-tertiary)' }}>
+                <article key={g.id} className="dashboard-record-row">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="fw-bold">{g.prize}</span>
                     <span className="badge bg-success">Active</span>
                   </div>
                   {g.description && <p className="small text-muted mb-2">{g.description}</p>}
-                  <div className="d-flex gap-3 small text-muted mb-3">
+                  <div className="d-flex flex-wrap gap-3 small text-muted mb-3">
                     <span><InlineIcon icon={Ticket} /> {(g.entry_count || 0).toLocaleString()} entries</span>
                     <span><InlineIcon icon={Clock} /> {diff > 0 ? formatTimeLeft(diff) : 'Ending soon'}</span>
                     <span><InlineIcon icon={Calendar} /> {end.toLocaleString()}</span>
                   </div>
                   <button
+                    type="button"
                     className="btn btn-sm"
                     style={{ color: 'var(--error-color)', border: '1px solid var(--error-color)', background: 'transparent' }}
                     onClick={() => cancelGiveaway(g.id)}
                   >
                     Cancel Giveaway
                   </button>
-                </div>
+                </article>
               );
             })}
           </div>

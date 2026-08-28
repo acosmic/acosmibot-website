@@ -66,7 +66,7 @@ export const GoodDeedsSection: React.FC<GoodDeedsSectionProps> = ({
         description="Post commandless mystery drops that reward the first member who claims and completes a public challenge."
       />
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Drop channels</h3>
         <p className="text-muted small mb-3" style={{ maxWidth: '70ch' }}>
           Each mystery chooses one configured text channel at random. Acosmibot needs permission to view the channel, send messages, embed links, and read message history.
@@ -85,7 +85,7 @@ export const GoodDeedsSection: React.FC<GoodDeedsSectionProps> = ({
         </div>
       </div>
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Cadence</h3>
         <p className="text-muted small mb-3" style={{ maxWidth: '70ch' }}>
           The next drop is scheduled randomly inside this window after the previous mystery closes.
@@ -136,7 +136,7 @@ export const GoodDeedsSection: React.FC<GoodDeedsSectionProps> = ({
         </div>
       </div>
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 16px', fontSize: 18 }}>Fixed rewards</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
           <div style={rewardStyle}>
@@ -155,7 +155,7 @@ export const GoodDeedsSection: React.FC<GoodDeedsSectionProps> = ({
         </p>
       </div>
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 16px', fontSize: 18 }}>What members see</h3>
         <div
           aria-label="Good Deed lifecycle"

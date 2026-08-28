@@ -69,7 +69,7 @@ const VaultWidget: React.FC<{ guildId: string }> = ({ guildId }) => {
     : 0;
 
   return (
-    <div className="card p-4 mb-4">
+    <div className="dashboard-workflow-section">
       <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>🏦 The Vault</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
         <Stat label="Vault Balance" value={`${fmt(vault_currency)} credits`} />
@@ -110,7 +110,7 @@ const Leaderboard: React.FC<{ guildId: string }> = ({ guildId }) => {
   if (!data.length) return null;
 
   return (
-    <div className="card p-4 mb-4">
+    <div className="dashboard-workflow-section">
       <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>🦝 Top Crew</h3>
       <div className="table-responsive">
         <table className="table table-dark table-hover table-sm align-middle mb-0" style={{ background: 'transparent' }}>
@@ -177,7 +177,7 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         description="Enable /heist start in this server."
       />
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Pacing</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <Field label="Cooldown (hours)" hint="Server-wide wait between heists.">
@@ -199,7 +199,7 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         </div>
       </div>
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Active Phase (Minigames)</h3>
         <FeatureToggle
           enabled={value.minigames_enabled}
@@ -230,7 +230,7 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         </div>
       </div>
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Odds</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <Field label="Base Success (%)" hint="Solo success chance with one crew member.">
@@ -248,7 +248,7 @@ export const HeistSection: React.FC<HeistSectionProps> = ({ guildId, value, onCh
         </div>
       </div>
 
-      <div className="card p-4 mb-4">
+      <div className="dashboard-workflow-section">
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Loot &amp; Penalties</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <Field label="Base Loot (% of vault)" hint="Solo take as a share of the vault.">

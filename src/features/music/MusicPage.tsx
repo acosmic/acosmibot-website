@@ -35,7 +35,7 @@ export const MusicPage: React.FC = () => {
         description="Record members' Spotify listening (from Discord presence) for WhoKnows leaderboards and stats."
       />
 
-      <div className="card p-4 mb-4">
+      <section className="dashboard-open-section">
         <h3 className="mb-3">How it works</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <InfoRow
@@ -65,7 +65,7 @@ export const MusicPage: React.FC = () => {
           <Link to="/settings">account settings</Link> page. See the{' '}
           <Link to="/docs/music">Music docs</Link> for the full command list.
         </p>
-      </div>
+      </section>
 
       {/*
         SPOTIFY OAUTH DEFERRED — see SPOTIFY_OAUTH_DEFERRED.md. This "Without vs. with a

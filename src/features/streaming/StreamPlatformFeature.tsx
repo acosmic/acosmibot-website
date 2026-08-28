@@ -136,8 +136,8 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
       />
 
       <div className="stream-config-layout">
-        <div>
-          <div className="card p-4 mb-4 stream-list-card">
+        <div className="dashboard-workflow-ledger">
+          <section className="dashboard-workflow-section stream-list-card">
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h3 className="mb-0">{trackedTitle}</h3>
               <button 
@@ -149,34 +149,35 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
               </button>
             </div>
 
-            <div className="streamers-list">
+            <div className="streamers-list dashboard-record-ledger">
               {streamers.length === 0 && (
-                <div className="text-center p-4 text-muted">
+                <div className="dashboard-record-row text-center p-4 text-muted">
                   {emptyLabel}
                 </div>
               )}
               {streamers.map((streamer, index) => (
-                <div 
-                  key={index} 
-                  className={`card mb-2 p-3 d-flex flex-row justify-content-between align-items-center ${selectedStreamerIndex === index ? 'border-primary' : ''}`}
-                  onClick={() => setSelectedStreamerIndex(index)}
-                  style={{ cursor: 'pointer', background: selectedStreamerIndex === index ? 'var(--bg-overlay)' : 'var(--bg-tertiary)' }}
+                <div
+                  key={index}
+                  className={`dashboard-record-row d-flex align-items-center gap-2${selectedStreamerIndex === index ? ' is-selected' : ''}`}
                 >
-                  <div className="d-flex align-items-center gap-3 overflow-hidden">
-                    <div className={`status-dot ${streamer.isValid ? 'bg-success' : 'bg-secondary'}`} style={{ width: '10px', height: '10px', borderRadius: '50%' }}></div>
+                  <button
+                    type="button"
+                    className="streamer-select-button"
+                    aria-pressed={selectedStreamerIndex === index}
+                    onClick={() => setSelectedStreamerIndex(index)}
+                  >
+                    <span className={`status-dot ${streamer.isValid ? 'bg-success' : 'bg-secondary'}`} aria-hidden="true" />
                     <span className="text-truncate fw-bold">{streamer.username || `New ${streamerLabel}`}</span>
-                  </div>
-                  <div className="d-flex gap-2">
-                    <button
-                      type="button"
-                      className="streamer-remove-button"
-                      onClick={(e) => { e.stopPropagation(); removeStreamer(index); }}
-                      aria-label={`Remove ${streamer.username || `new ${streamerLabel.toLowerCase()}`}`}
-                      title={`Remove ${streamer.username || streamerLabel.toLowerCase()}`}
-                    >
-                      <X size={19} strokeWidth={2.5} aria-hidden="true" />
-                    </button>
-                  </div>
+                  </button>
+                  <button
+                    type="button"
+                    className="streamer-remove-button"
+                    onClick={() => removeStreamer(index)}
+                    aria-label={`Remove ${streamer.username || `new ${streamerLabel.toLowerCase()}`}`}
+                    title={`Remove ${streamer.username || streamerLabel.toLowerCase()}`}
+                  >
+                    <X size={19} strokeWidth={2.5} aria-hidden="true" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -184,9 +185,9 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
             <div className="mt-3 text-muted small">
               Limit: {streamers.length} of {maxStreamers} {limitLabel}
             </div>
-          </div>
+          </section>
 
-          <div className="card p-4 mb-4">
+          <section className="dashboard-workflow-section">
             <h3 className="mb-4">Global Settings</h3>
             <ChannelSelect
               guildId={guildId!}
@@ -263,7 +264,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
                 </div>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </div>
 

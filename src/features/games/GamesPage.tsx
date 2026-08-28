@@ -43,8 +43,8 @@ export const GamesPage: React.FC = () => {
 
       {masterOff && (
         <div
-          className="card p-3 mb-4 d-flex align-items-center gap-2"
-          style={{ border: '1px solid var(--error-color, #FF4444)', color: 'var(--error-color, #FF4444)' }}
+          className="dashboard-inline-alert"
+          style={{ color: 'var(--error-color)' }}
         >
           <TriangleAlert size={18} />
           <span>Games are turned off for this server — the individual games below are inactive until you re-enable the master switch.</span>

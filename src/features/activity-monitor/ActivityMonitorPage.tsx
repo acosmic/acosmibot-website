@@ -73,7 +73,7 @@ export const ActivityMonitorPage: React.FC = () => {
       />
 
       {!config.enabled ? (
-        <div className="card p-5 text-center">
+        <div className="dashboard-open-section text-center">
           <div style={{ color: 'var(--warning-color, #FFB800)', marginBottom: 12 }}>
             <TriangleAlert size={40} />
           </div>
@@ -81,7 +81,7 @@ export const ActivityMonitorPage: React.FC = () => {
           <p className="text-muted mb-0">Enable the activity monitor above to start creating rules.</p>
         </div>
       ) : (
-        <div className="card p-4 mb-4">
+        <section className="dashboard-open-section">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <h3 style={{ margin: 0, fontSize: 18 }}>Activity Rules</h3>
             <button className="btn primary" disabled={isSaving} onClick={() => setEditing('new')}>
@@ -96,19 +96,14 @@ export const ActivityMonitorPage: React.FC = () => {
               <p className="text-muted">Create your first activity monitoring rule to get started.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+            <div className="dashboard-record-ledger">
               {config.rules.map((rule) => {
                 const type = ACTIVITY_TYPES.find((t) => t.value === rule.activity_type);
                 const TypeIcon = type?.icon ?? MessageCircle;
                 const trigger = roles.find((r) => r.id === rule.trigger_role_id);
                 const assigned = roles.find((r) => r.id === rule.assigned_role_id);
                 return (
-                  <div key={rule.id} style={{
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-light)',
-                    borderRadius: 12, padding: 16,
-                    opacity: rule.enabled ? 1 : 0.6,
-                  }}>
+                  <div key={rule.id} className="dashboard-record-row" style={{ opacity: rule.enabled ? 1 : 0.6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                         <span style={{ color: 'var(--primary-color)', display: 'flex' }}><TypeIcon size={22} /></span>
@@ -125,6 +120,8 @@ export const ActivityMonitorPage: React.FC = () => {
                         <input
                           className="form-check-input"
                           type="checkbox"
+                          role="switch"
+                          aria-label={`${rule.name} enabled`}
                           checked={rule.enabled}
                           disabled={isSaving}
                           onChange={() => void persist({
@@ -156,7 +153,7 @@ export const ActivityMonitorPage: React.FC = () => {
               })}
             </div>
           )}
-        </div>
+        </section>
       )}
 
       {editing && (
