@@ -35,6 +35,29 @@ const STREAMER_LIMITS: Record<string, number> = {
   max: 5,
 };
 
+const normalizeStreamers = (value: unknown, platform: Platform): StreamPlatformConfig['tracked_streamers'] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((streamer): streamer is Record<string, unknown> => Boolean(streamer) && typeof streamer === 'object')
+    .map((streamer) => {
+      const username = typeof streamer.username === 'string' ? streamer.username : '';
+      return {
+        platform,
+        username,
+        channel_id: typeof streamer.channel_id === 'string' ? streamer.channel_id : null,
+        isValid: streamer.isValid !== false && Boolean(username),
+        enabled: streamer.enabled !== false,
+        mention_role_ids: Array.isArray(streamer.mention_role_ids)
+          ? streamer.mention_role_ids.filter((roleId): roleId is string => typeof roleId === 'string')
+          : [],
+        mention_everyone: streamer.mention_everyone === true,
+        mention_here: streamer.mention_here === true,
+        custom_message: typeof streamer.custom_message === 'string' ? streamer.custom_message : null,
+        skip_vod_check: streamer.skip_vod_check === true,
+      };
+    });
+};
+
 export const streamingApi = {
   getConfig: async (guildId: string, platform: Platform): Promise<StreamPlatformConfig> => {
     const res = await api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`);
@@ -45,6 +68,7 @@ export const streamingApi = {
       ...platformSettings,
       premium_tier: premiumTier,
       max_streamers: STREAMER_LIMITS[premiumTier] ?? STREAMER_LIMITS.free,
+      tracked_streamers: normalizeStreamers(platformSettings.tracked_streamers, platform),
       vod_settings: {
         ...DEFAULT_CONFIG.vod_settings,
         ...(platformSettings.vod_settings ?? {}),
@@ -71,6 +95,7 @@ export const streamingApi = {
       ...nextPlatform,
       premium_tier: premiumTier,
       max_streamers: STREAMER_LIMITS[premiumTier] ?? STREAMER_LIMITS.free,
+      tracked_streamers: normalizeStreamers(nextPlatform.tracked_streamers, platform),
     };
   },
 

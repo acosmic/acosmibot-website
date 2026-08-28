@@ -39,7 +39,7 @@ const [
 ]);
 
 test('configuration workflows use one perimeter or an open section instead of stacked cards', () => {
-  for (const source of [activityMonitor, betterEmbeds, goodDeeds, heist, giveaway, polymorph, streaming]) {
+  for (const source of [activityMonitor, betterEmbeds, goodDeeds, heist, giveaway, polymorph]) {
     assert.match(source, /dashboard-(?:workflow-ledger|workflow-section|open-section)|feature-toggle-ledger/);
   }
 
@@ -51,17 +51,17 @@ test('configuration workflows use one perimeter or an open section instead of st
 });
 
 test('saved collections share a ledger perimeter instead of wrapping every row in a card', () => {
-  for (const source of [activityMonitor, embedsList, giveaway, reactionRolesList, streaming]) {
+  for (const source of [activityMonitor, embedsList, giveaway, reactionRolesList]) {
     assert.match(source, /dashboard-record-ledger/);
     assert.match(source, /dashboard-record-row/);
   }
 });
 
-test('streamer records expose separate keyboard-operable select and remove actions', () => {
-  assert.match(streaming, /className="streamer-select-button"/);
-  assert.match(streaming, /aria-pressed=/);
-  assert.match(streaming, /className="streamer-remove-button"/);
-  assert.doesNotMatch(streaming, /onClick=\{\(\) => setSelectedStreamerIndex\(index\)\}[\s\S]*?style=\{\{ cursor: 'pointer'/);
+test('streaming uses the shared social roster instead of nested record cards', () => {
+  assert.match(streaming, /<SocialAlertRecord/);
+  assert.match(streaming, /<SocialAlertsPanel/);
+  assert.doesNotMatch(streaming, /dashboard-record-ledger/);
+  assert.doesNotMatch(streaming, /className={`card/);
 });
 
 test('builders keep preview artifacts bordered while their editors use open or tonal groups', () => {

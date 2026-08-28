@@ -65,6 +65,7 @@ export interface Streamer {
   username: string;
   channel_id?: string | null;
   isValid: boolean;
+  enabled: boolean;
   mention_role_ids: string[];
   mention_everyone: boolean;
   mention_here: boolean;

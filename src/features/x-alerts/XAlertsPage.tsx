@@ -5,7 +5,6 @@ import {
   ArrowRight,
   ArrowUp,
   AtSign,
-  BellRing,
   CircleAlert,
   LockKeyhole,
   Pause,
@@ -14,7 +13,20 @@ import {
   Trash2,
 } from 'lucide-react';
 import { xAlertsApi, type XAlertAccount, type XAlertSettings } from '@/api/xAlerts';
-import { ChannelSelect, FeatureToggle, LoadingSpinner, RoleSelect, SaveBar } from '@/components/ui';
+import {
+  ChannelSelect,
+  FeatureToggle,
+  LoadingSpinner,
+  RoleSelect,
+  SaveBar,
+  SocialAlertRecord,
+  SocialAlertsAdd,
+  SocialAlertsEmpty,
+  SocialAlertsKicker,
+  SocialAlertsNotice,
+  SocialAlertsPanel,
+  SocialAlertsTelemetry,
+} from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useXAlertsConfig } from './useXAlertsConfig';
 import './XAlertsPage.css';
@@ -62,7 +74,7 @@ export const XAlertsPage: React.FC = () => {
   if (query.isError || !query.data || !form) {
     return (
       <div className="feature-page">
-        <div className="x-alerts-state" role="alert">
+        <div className="social-alerts-state" role="alert">
           <CircleAlert aria-hidden="true" />
           <h1>X Alerts could not load</h1>
           <p>{query.error instanceof Error ? query.error.message : 'The configuration service is unavailable right now.'}</p>
@@ -74,9 +86,9 @@ export const XAlertsPage: React.FC = () => {
 
   if (tier === 'free') {
     return (
-      <div className="feature-page x-alerts-page">
+      <div className="feature-page social-alerts-page x-alerts-page">
         <header className="page-header text-start mt-0 mb-4">
-          <span className="x-alerts-kicker"><AtSign aria-hidden="true" /> Social signal</span>
+          <SocialAlertsKicker icon={AtSign}>Social signal</SocialAlertsKicker>
           <h1>X Post Alerts</h1>
           <p>Send new posts from selected X accounts to one Discord channel.</p>
         </header>
@@ -84,7 +96,7 @@ export const XAlertsPage: React.FC = () => {
         <section className="x-alerts-lock" aria-labelledby="x-alerts-lock-title">
           <div className="x-alerts-lock__signal" aria-hidden="true"><LockKeyhole /></div>
           <div>
-            <span className="x-alerts-kicker">Plus feature</span>
+            <span className="social-alerts-kicker">Plus feature</span>
             <h2 id="x-alerts-lock-title">Track one X account with Plus.</h2>
             <p>
               X Alerts starts on Plus. Pro and Max can track up to three accounts.
@@ -195,9 +207,9 @@ export const XAlertsPage: React.FC = () => {
       : undefined;
 
   return (
-    <div className="feature-page x-alerts-page">
+    <div className="feature-page social-alerts-page x-alerts-page">
       <header className="page-header text-start mt-0 mb-4">
-        <span className="x-alerts-kicker"><AtSign aria-hidden="true" /> Social signal</span>
+        <SocialAlertsKicker icon={AtSign}>Social signal</SocialAlertsKicker>
         <h1>X Post Alerts</h1>
         <p>Route original posts and quote posts from X (formerly Twitter) into Discord.</p>
       </header>
@@ -209,45 +221,39 @@ export const XAlertsPage: React.FC = () => {
         description="Enable or pause delivery for every configured account. Saved accounts remain in place while paused."
       />
 
-      <section className="x-alerts-telemetry" aria-label="X Alerts plan status">
-        <div>
-          <span>Current plan</span>
-          <strong>{TIER_LABELS[tier]}</strong>
-        </div>
-        <div>
-              <span>Saved capacity</span>
-              <strong>{form.accounts.length} / {limit}</strong>
-        </div>
-        <div>
-          <span>Delivery filter</span>
-          <strong>Posts + quotes</strong>
-        </div>
-      </section>
+      <SocialAlertsTelemetry
+        ariaLabel="X Alerts plan status"
+        items={[
+          { label: 'Current plan', value: TIER_LABELS[tier] },
+          { label: 'Saved capacity', value: `${form.accounts.length} / ${limit}` },
+          { label: 'Delivery filter', value: 'Posts + quotes' },
+        ]}
+      />
 
       {overLimit && (
-        <div className="x-alerts-notice is-warning" role="alert">
-          <CircleAlert aria-hidden="true" />
-          <div>
-            <strong>Choose the accounts that stay active.</strong>
-            <span>Your plan covers {limit}. Move the accounts that should keep delivering to the top; the rest stay saved but suspended.</span>
-          </div>
-        </div>
+        <SocialAlertsNotice icon={CircleAlert} title="Choose the accounts that stay active." tone="warning">
+          Your plan covers {limit}. Move the accounts that should keep delivering to the top; the rest stay saved but suspended.
+        </SocialAlertsNotice>
       )}
 
-      <div className="x-alerts-grid">
-        <section className="x-alerts-panel" aria-labelledby="x-accounts-title">
-          <div className="x-alerts-panel__header">
-            <div>
-              <span className="x-alerts-kicker">Priority queue</span>
-              <h2 id="x-accounts-title">Tracked accounts</h2>
-            </div>
-            <span className="x-alerts-capacity">{form.accounts.length} saved</span>
-          </div>
-
-          <div className="x-alerts-add" aria-busy={isValidating}>
-            <label htmlFor="x-alert-username">X username</label>
-            <div className="x-alerts-add__control">
-              <div className="x-alerts-handle-input">
+      <div className="social-alerts-grid">
+        <SocialAlertsPanel
+          titleId="x-accounts-title"
+          kicker="Priority queue"
+          title="Tracked accounts"
+          badge={`${form.accounts.length} saved`}
+        >
+          <SocialAlertsAdd
+            label="X username"
+            labelFor="x-alert-username"
+            isBusy={isValidating}
+            hint={atCapacity
+              ? `${TIER_LABELS[tier]} capacity is full. Remove a saved account before adding another.`
+              : `Accounts are verified with X before they are added. Your ${TIER_LABELS[tier]} plan can add ${limit}.`}
+            error={validationError}
+          >
+            <div className="social-alerts-add__control">
+              <div className="social-alerts-handle-input">
                 <AtSign aria-hidden="true" />
                 <input
                   id="x-alert-username"
@@ -279,22 +285,16 @@ export const XAlertsPage: React.FC = () => {
                 <Plus aria-hidden="true" /> {isValidating ? 'Checking…' : 'Add account'}
               </button>
             </div>
-            <p id="x-alert-username-hint">
-              {atCapacity
-                ? `${TIER_LABELS[tier]} capacity is full. Remove a saved account before adding another.`
-                : `Accounts are verified with X before they are added. Your ${TIER_LABELS[tier]} plan can add ${limit}.`}
-            </p>
-            {validationError && <div id="x-alert-username-error" className="x-alerts-field-error" role="alert">{validationError}</div>}
-          </div>
+          </SocialAlertsAdd>
 
           {form.accounts.length === 0 ? (
-            <div className="x-alerts-empty">
-              <Radio aria-hidden="true" />
-              <h3>No X accounts tracked yet</h3>
-              <p>Add a username above. Tracking begins only after you save.</p>
-            </div>
+            <SocialAlertsEmpty
+              icon={Radio}
+              title="No X accounts tracked yet"
+              description="Add a username above. Tracking begins only after you save."
+            />
           ) : (
-            <ol className="x-alerts-account-list">
+            <ol className="social-alerts-record-list">
               {form.accounts.map((account, index) => {
                 const enabledPosition = enabledPositionById.get(account.user_id) ?? Number.POSITIVE_INFINITY;
                 const state = !account.enabled
@@ -305,35 +305,22 @@ export const XAlertsPage: React.FC = () => {
                       ? 'active'
                       : 'ready';
                 return (
-                  <li key={account.user_id} className={`x-alerts-account is-${state}`}>
-                    <span className="x-alerts-account__priority" aria-label={`Priority ${index + 1}`}>{index + 1}</span>
-                    <div className="x-alerts-account__avatar" aria-hidden="true">
-                      {account.profile_image_url
+                  <SocialAlertRecord
+                    key={account.user_id}
+                    leading={<span aria-label={`Priority ${index + 1}`}>{index + 1}</span>}
+                    avatar={
+                      account.profile_image_url
                         ? <img src={account.profile_image_url} alt="" />
-                        : <span>{account.display_name.charAt(0).toUpperCase() || 'X'}</span>}
-                    </div>
-                    <div className="x-alerts-account__identity">
-                      <strong>{account.display_name}</strong>
-                      <span>@{account.username}</span>
-                    </div>
-                    <span className={`x-alerts-account__state is-${state}`}>
-                      {state === 'active'
-                        ? <BellRing aria-hidden="true" />
-                        : state === 'ready'
-                          ? <Radio aria-hidden="true" />
-                          : <Pause aria-hidden="true" />}
-                      {state}
-                    </span>
-                    <label className="x-alerts-account__toggle">
-                      <span className="visually-hidden">Deliver posts from @{account.username}</span>
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={account.enabled}
-                        onChange={(event) => updateAccount(index, { enabled: event.target.checked })}
-                      />
-                    </label>
-                    <div className="x-alerts-account__actions" role="group" aria-label={`Priority controls for @${account.username}`}>
+                        : <span>{account.display_name.charAt(0).toUpperCase() || 'X'}</span>
+                    }
+                    title={account.display_name}
+                    subtitle={`@${account.username}`}
+                    state={state}
+                    enabled={account.enabled}
+                    toggleLabel={`Deliver posts from @${account.username}`}
+                    onEnabledChange={(enabled) => updateAccount(index, { enabled })}
+                    actionsLabel={`Priority controls for @${account.username}`}
+                    actions={<>
                       <button type="button" onClick={() => moveAccount(index, -1)} disabled={index === 0} aria-label={`Move @${account.username} up`}>
                         <ArrowUp aria-hidden="true" />
                       </button>
@@ -343,22 +330,16 @@ export const XAlertsPage: React.FC = () => {
                       <button type="button" className="is-danger" onClick={() => removeAccount(index)} aria-label={`Remove @${account.username}`}>
                         <Trash2 aria-hidden="true" />
                       </button>
-                    </div>
-                  </li>
+                    </>}
+                  />
                 );
               })}
             </ol>
           )}
-        </section>
+        </SocialAlertsPanel>
 
-        <div className="x-alerts-side-stack">
-          <section className="x-alerts-panel" aria-labelledby="x-destination-title">
-            <div className="x-alerts-panel__header">
-              <div>
-                <span className="x-alerts-kicker">Discord route</span>
-                <h2 id="x-destination-title">Delivery destination</h2>
-              </div>
-            </div>
+        <div className="social-alerts-side-stack">
+          <SocialAlertsPanel titleId="x-destination-title" kicker="Discord route" title="Delivery destination">
             <ChannelSelect
               guildId={guildId}
               value={form.channel_id}
@@ -373,19 +354,13 @@ export const XAlertsPage: React.FC = () => {
               label="Role mention (optional)"
               placeholder="Do not mention a role"
             />
-            <p className="x-alerts-panel__hint">Acosmibot needs permission to view the channel, send messages, and embed links.</p>
-          </section>
+            <p className="social-alerts-panel__hint">Acosmibot needs permission to view the channel, send messages, and embed links.</p>
+          </SocialAlertsPanel>
 
-          <aside className="x-alerts-notice" aria-labelledby="x-data-note-title">
-            <Radio aria-hidden="true" />
-            <div>
-              <strong id="x-data-note-title">Measured X data use</strong>
-              <span>
-                Acosmibot checks only the accounts you save. Replies and reposts are skipped;
-                original and quote posts may arrive shortly after publishing.
-              </span>
-            </div>
-          </aside>
+          <SocialAlertsNotice icon={Radio} title="Measured X data use" titleId="x-data-note-title">
+            Acosmibot checks only the accounts you save. Replies and reposts are skipped;
+            original and quote posts may arrive shortly after publishing.
+          </SocialAlertsNotice>
         </div>
       </div>
 

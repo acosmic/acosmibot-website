@@ -16,3 +16,4 @@ export * from './NumberInput';
 export * from './PremiumTierIcon';
 export * from './EmojiDisplay';
 export * from './EmojiPickerField';
+export * from './SocialAlertsLayout';
