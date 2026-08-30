@@ -224,7 +224,7 @@ export const LevelingPage: React.FC = () => {
             rows={3}
             value={levelForm.level_up_message_with_streak}
             onChange={(e) => setLevelForm({ level_up_message_with_streak: e.target.value })}
-            placeholder="{mention} reached level {level}! +{credits} Credits!"
+            placeholder="{mention} reached level {level}! +{credits} Acosmicoins!"
           />
           <p className="text-muted small mt-1">Variables: {'{username}'}, {'{mention}'}, {'{level}'}, {'{credits}'}, {'{base_credits}'}, {'{streak_bonus}'}, {'{streak}'}</p>
         </div>
@@ -287,7 +287,7 @@ export const LevelingPage: React.FC = () => {
             rows={3}
             value={levelForm.daily_announcement_message_with_streak}
             onChange={(e) => setLevelForm({ daily_announcement_message_with_streak: e.target.value })}
-            placeholder="{mention} claimed their daily reward! +{credits} Credits!"
+            placeholder="{mention} claimed their daily reward! +{credits} Acosmicoins!"
           />
           <p className="text-muted small mt-1">Variables: {'{username}'}, {'{mention}'}, {'{credits}'}, {'{base_credits}'}, {'{streak_bonus}'}, {'{streak}'}</p>
         </div>

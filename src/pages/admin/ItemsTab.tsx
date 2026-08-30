@@ -10,7 +10,7 @@ import { NumberInput } from '@/components/ui';
 
 /**
  * Admin: items management. Create/edit catalog items, configure the effects
- * they grant (xp/credit boosts, global or per-server, timed or permanent),
+ * they grant (XP/Acosmicoin boosts, global or per-server, timed or permanent),
  * pricing & flags (giftable/tradeable/purchasable), and grant items to users.
  */
 
@@ -85,7 +85,7 @@ const typeOrder = (type: string) => {
 };
 
 const formatCredits = (credits: number | null | undefined) =>
-  credits == null ? 'Not for sale' : `${credits.toLocaleString()} credits`;
+  credits == null ? 'Not for sale' : `${credits.toLocaleString()} Acosmicoins`;
 
 const summarizeEffects = (effects: AdminItemEffect[] | undefined) => {
   if (!effects?.length) return 'No effects';
@@ -192,7 +192,7 @@ const ItemFields: React.FC<{
         {itemTypes.map((t) => <option key={t} value={t}>{t}</option>)}
       </select>
     </Field>
-    <Field label="Price (credits, blank = not for sale)">
+    <Field label="Price (Acosmicoins, blank = not for sale)">
       <NumberInput min={0} className="form-control" style={inputStyle}
         value={draft.price_credits}
         onValueChange={(value) => onChange({ ...draft, price_credits: value })}
@@ -320,7 +320,7 @@ export const ItemsTab: React.FC = () => {
         )}
       </div>
       <p className="text-muted mb-4">
-        Define what an item does via its effects (xp/credit boosts, every-server or one-server,
+        Define what an item does via its effects (XP/Acosmicoin boosts, every-server or one-server,
         timed or permanent), set pricing and flags, and grant items to users. Items default to
         <strong> not available</strong> — flip "Available" when ready.
       </p>

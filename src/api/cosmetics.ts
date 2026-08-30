@@ -45,7 +45,7 @@ export const cosmeticsApi = {
   getLoadout: (): Promise<{ loadout: LoadoutSlots }> =>
     api.fetch<{ loadout: LoadoutSlots }>('/api/cosmetics/loadout'),
 
-  /** Buy a cosmetic with bank credits. Returns the new balance on success. */
+  /** Buy a cosmetic with bank Acosmicoins. Returns the new balance on success. */
   purchase: (cosmeticId: number): Promise<{ success: boolean; bank_balance: number }> =>
     api.fetch<{ success: boolean; bank_balance: number }>('/api/cosmetics/purchase', {
       method: 'POST',

@@ -34,7 +34,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_NOTES: Record<string, string> = {
   leveling: 'XP, levels, and long-term progression.',
   social: 'Conversation, reactions, and community participation.',
-  economy: 'Credits, banking, collecting, and trade.',
+  economy: 'Acosmicoins, banking, collecting, and trade.',
   games: 'Play, wins, streaks, and risk.',
   special: 'Events, milestones, and rare moments.',
 };
@@ -190,7 +190,7 @@ const AchievementNode: React.FC<{ achievement: AchievementCatalogEntry }> = ({ a
         )}
         {(achievement.reward_credits || achievement.reward_cosmetic_id) && (
           <div className="achievement-node__reward">
-            Reward · {achievement.reward_credits ? `${achievement.reward_credits.toLocaleString()} credits` : ''}
+            Reward · {achievement.reward_credits ? `${achievement.reward_credits.toLocaleString()} Acosmicoins` : ''}
             {achievement.reward_credits && achievement.reward_cosmetic_id ? ' + ' : ''}
             {achievement.reward_cosmetic_id ? 'cosmetic' : ''}
           </div>

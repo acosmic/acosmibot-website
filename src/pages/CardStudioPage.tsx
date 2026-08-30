@@ -339,9 +339,9 @@ export const CardStudioPage: React.FC = () => {
               : (catalog?.shop_discount ?? 0) > 0
                 ? <>Buy <strong>{pendingBuy.name}</strong> for{' '}
                     <del>{fmt(pendingBuy.price)}</del>{' '}
-                    <strong>{fmt(discounted(pendingBuy.price, catalog!.shop_discount))}</strong> credits?
+                    <strong>{fmt(discounted(pendingBuy.price, catalog!.shop_discount))}</strong> Acosmicoins?
                   </>
-                : <>Buy <strong>{pendingBuy.name}</strong> for <strong>{fmt(pendingBuy.price)}</strong> credits?</>}
+                : <>Buy <strong>{pendingBuy.name}</strong> for <strong>{fmt(pendingBuy.price)}</strong> Acosmicoins?</>}
           </p>
           <div className="studio-dialog__actions">
             <button type="button" onClick={() => setPendingBuy(null)}>Cancel</button>
@@ -368,7 +368,7 @@ export const CardStudioPage: React.FC = () => {
 const BalanceReadout: React.FC<{ balance: number; discount: number }> = ({ balance, discount }) => (
   <div className="studio-balance">
     <Coins aria-hidden="true" />
-    <div><small>Bank balance</small><strong>{fmt(balance)} credits</strong></div>
+    <div><small>Bank balance</small><strong>{fmt(balance)} Acosmicoins</strong></div>
     {discount > 0 && <span><BadgePercent aria-hidden="true" /> {Math.round(discount * 100)}% off</span>}
   </div>
 );
@@ -510,14 +510,14 @@ const CosmeticSwatch: React.FC<{
           aria-label={
             cosmetic.price === 0
               ? `Get ${cosmetic.name} free`
-              : `Buy ${cosmetic.name} for ${fmt(finalPrice)} credits`
+              : `Buy ${cosmetic.name} for ${fmt(finalPrice)} Acosmicoins`
           }
         >
           {cosmetic.price === 0
             ? 'Get free'
             : hasDiscount
-              ? <><del>{fmt(cosmetic.price)}</del> {fmt(finalPrice)} credits</>
-              : `${fmt(cosmetic.price)} credits`}
+              ? <><del>{fmt(cosmetic.price)}</del> {fmt(finalPrice)} Acosmicoins</>
+              : `${fmt(cosmetic.price)} Acosmicoins`}
         </button>
       )}
     </article>

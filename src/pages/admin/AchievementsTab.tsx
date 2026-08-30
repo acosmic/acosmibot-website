@@ -12,7 +12,7 @@ import { NumberInput } from '@/components/ui';
 /**
  * Admin: achievements management. Create brand-new achievements and configure
  * both their requirement (metric + threshold, or an event-type granted by the
- * bot) and their reward (bank credits + an optional cosmetic, incl. the OG card).
+ * bot) and their reward (bank Acosmicoins + an optional cosmetic, incl. the OG card).
  * Existing achievements can be edited per-row or deleted.
  */
 
@@ -50,7 +50,7 @@ const summarizeRequirement = (a: AdminAchievement) => (
 
 const summarizeReward = (a: AdminAchievement) => {
   const rewards = [];
-  if (a.reward_credits) rewards.push(`${a.reward_credits.toLocaleString()} credits`);
+  if (a.reward_credits) rewards.push(`${a.reward_credits.toLocaleString()} Acosmicoins`);
   if (a.reward_cosmetic_id != null) rewards.push('cosmetic');
   if (a.reward_item_id != null) rewards.push('item');
   return rewards.length ? rewards.join(' + ') : 'No reward';
@@ -143,7 +143,7 @@ const AchievementFields: React.FC<{
           </Field>
         </>
       )}
-      <Field label="Reward credits">
+      <Field label="Reward Acosmicoins">
         <NumberInput min={0} className="form-control" style={inputStyle} value={draft.reward_credits ?? 0}
           onValueChange={(value) => onChange({ ...draft, reward_credits: value })} />
       </Field>
@@ -275,7 +275,7 @@ export const AchievementsTab: React.FC = () => {
       </div>
       <p className="text-muted mb-4">
         Define a requirement (a metric threshold, or an event the bot grants) and a reward
-        (bank credits and/or a cosmetic). Unlocking awards the badge immediately; the reward
+        (bank Acosmicoins and/or a cosmetic). Unlocking awards the badge immediately; the reward
         is delivered via a claimable notification.
       </p>
 

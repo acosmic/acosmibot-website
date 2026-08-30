@@ -105,7 +105,7 @@ const FEATURES: Feature[] = [
     x: 93,
     y: 42,
     description: 'A complete in-server currency with daily rewards, banking, member-to-member transfers, and a weekly lottery.',
-    bullets: ['Daily reward and activity streak bonuses', 'Personal balances and server bank', 'Member-to-member credit transfers', 'Weekly lottery with rolling jackpot', 'Economy leaderboards'],
+    bullets: ['Daily reward and activity streak bonuses', 'Personal balances and server bank', 'Member-to-member Acosmicoin transfers', 'Weekly lottery with rolling jackpot', 'Economy leaderboards'],
   },
   {
     id: 'items',
@@ -115,8 +115,8 @@ const FEATURES: Feature[] = [
     Icon: Package,
     x: 88,
     y: 68,
-    description: 'A credit-funded shop where members buy items, stock an inventory, and activate boosts that stack with the economy and leveling systems.',
-    bullets: ['Buy items from the credits shop', 'Personal inventory per member', 'Equip items for always-on effects', 'Consumable items with one-time effects', 'Gift and trade items to other members'],
+    description: 'An Acosmicoin-funded shop where members buy items, stock an inventory, and activate boosts that stack with the economy and leveling systems.',
+    bullets: ['Buy items with Acosmicoins', 'Personal inventory per member', 'Equip items for always-on effects', 'Consumable items with one-time effects', 'Gift and trade items to other members'],
   },
   {
     id: 'games',
@@ -126,8 +126,8 @@ const FEATURES: Feature[] = [
     Icon: Dices,
     x: 68,
     y: 88,
-    description: 'A full slate of interactive games and credit-based wagering to keep members engaged.',
-    bullets: ['Blackjack, Slots, Mines, and Coinflip', 'Deathroll and Rock Paper Scissors PvP', 'Magic 8-Ball predictions', 'Credit-based wagering on every game', 'Game-specific leaderboards'],
+    description: 'A full slate of interactive games and Acosmicoin wagering to keep members engaged.',
+    bullets: ['Blackjack, Slots, Mines, and Coinflip', 'Deathroll and Rock Paper Scissors PvP', 'Magic 8-Ball predictions', 'Acosmicoin wagering on every game', 'Game-specific leaderboards'],
   },
   {
     id: 'giveaways',

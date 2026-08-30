@@ -72,10 +72,10 @@ const VaultWidget: React.FC<{ guildId: string }> = ({ guildId }) => {
     <div className="dashboard-workflow-section">
       <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>🏦 The Vault</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
-        <Stat label="Vault Balance" value={`${fmt(vault_currency)} credits`} />
+        <Stat label="Vault Balance" value={`${fmt(vault_currency)} Acosmicoins`} />
         <Stat label="Heists Pulled" value={fmt(summary.total_heists)} />
         <Stat label="Success Rate" value={`${successRate}%`} />
-        <Stat label="Biggest Score" value={`${fmt(summary.biggest_loot)} credits`} />
+        <Stat label="Biggest Score" value={`${fmt(summary.biggest_loot)} Acosmicoins`} />
       </div>
 
       <h4 className="mt-4" style={{ fontSize: 15 }}>Recent Activity</h4>

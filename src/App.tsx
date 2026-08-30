@@ -207,7 +207,7 @@ const FeatureOutlet = () => {
         title="Lottery"
         description="Run exciting lottery events"
         icon={Ticket}
-        detail="The Lottery feature will let you run server-wide lottery events where members can buy tickets for a chance to win big credit prizes."
+        detail="The Lottery feature will let you run server-wide lottery events where members can buy tickets for a chance to win big Acosmicoin prizes."
       />
     );
   }

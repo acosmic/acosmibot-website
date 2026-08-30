@@ -20,7 +20,7 @@ export const PolymorphPage: React.FC = () => {
     <div className="feature-page">
       <div className="page-header text-start mt-0 mb-4">
         <h1>Polymorph</h1>
-        <p>Let members spend credits to temporarily rename someone.</p>
+        <p>Let members spend Acosmicoins to temporarily rename someone.</p>
       </div>
 
       <FeatureToggle
@@ -34,14 +34,14 @@ export const PolymorphPage: React.FC = () => {
           <h3 style={{ margin: '0 0 16px 0', fontSize: 18 }}>Cost and Duration</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
             <div>
-              <label className="form-label mb-2 d-block">Credit Cost</label>
+              <label className="form-label mb-2 d-block">Acosmicoin cost</label>
               <NumberInput
                 className="form-control"
                 min={0}
                 value={form.cost}
                 onValueChange={(value) => updateNumber('cost', value)}
               />
-              <p className="text-muted small mt-2 mb-0">Credits charged for each successful polymorph.</p>
+              <p className="text-muted small mt-2 mb-0">Acosmicoins charged for each successful polymorph.</p>
             </div>
             <div>
               <label className="form-label mb-2 d-block">Duration Minutes</label>

@@ -63,7 +63,7 @@ export const notificationsApi = {
       method: 'POST',
     }),
 
-  /** Claim a reward-bearing notification (grants credits / cosmetic). */
+  /** Claim a reward-bearing notification (grants Acosmicoins / cosmetic). */
   claim: (id: number): Promise<ClaimResult> =>
     api.fetch<ClaimResult>(`/api/notifications/${id}/claim`, { method: 'POST' }),
 };

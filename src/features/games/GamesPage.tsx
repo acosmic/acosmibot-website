@@ -88,7 +88,7 @@ export const GamesPage: React.FC = () => {
         <CollapsibleSection title="Coinflip">
           <SimpleGameSection
             command="/games coinflip"
-            description="Flip a coin for a chance to win credits."
+            description="Flip a coin for a chance to win Acosmicoins."
             enabled={form.coinflip.enabled}
             onChange={(v) => setForm({ coinflip: { enabled: v } })}
           />

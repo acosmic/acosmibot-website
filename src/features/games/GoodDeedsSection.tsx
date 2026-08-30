@@ -141,7 +141,7 @@ export const GoodDeedsSection: React.FC<GoodDeedsSectionProps> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
           <div style={rewardStyle}>
             <Gift size={20} color="var(--primary-color)" aria-hidden="true" />
-            <div className="mt-2 text-muted small">Possible credits</div>
+            <div className="mt-2 text-muted small">Possible Acosmicoins</div>
             <strong style={{ fontSize: 20 }}>500–50,000</strong>
           </div>
           <div style={rewardStyle}>

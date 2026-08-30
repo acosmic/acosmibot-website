@@ -102,7 +102,7 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
     username: entry.discord_username,
     userId: entry.user_id,
     value: metric === 'economy'
-      ? `${fmt(economyValue(entry))} credits`
+      ? `${fmt(economyValue(entry))} Acosmicoins`
       : `${fmt(entry.global_exp)} XP`,
     sub: `Lvl ${fmt(entry.global_level)}`,
     isMe: !!meId && meId === entry.user_id,

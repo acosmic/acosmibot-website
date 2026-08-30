@@ -8,7 +8,7 @@ import './DailyReward.css';
 /**
  * Owner-only notifications feed shown on the profile (the bell links here via
  * the #notifications anchor). Each reward-bearing notification has a Claim
- * button that grants credits / a cosmetic and plays a small celebration.
+ * button that grants Acosmicoins / a cosmetic and plays a small celebration.
  */
 export const NotificationList: React.FC = () => {
   const queryClient = useQueryClient();
@@ -188,7 +188,7 @@ const NotificationRow: React.FC<{
         {(credits > 0 || n.reward?.cosmetic_id) && (
           <div style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 2 }}>
             Reward:{' '}
-            {credits > 0 && <strong style={{ color: '#ffd700' }}>{credits.toLocaleString()} credits</strong>}
+            {credits > 0 && <strong style={{ color: '#ffd700' }}>{credits.toLocaleString()} Acosmicoins</strong>}
             {credits > 0 && n.reward?.cosmetic_id ? ' + ' : ''}
             {n.reward?.cosmetic_id ? <strong style={{ color: '#a855f7' }}>{n.reward?.cosmetic_name || 'a cosmetic'}</strong> : ''}
           </div>

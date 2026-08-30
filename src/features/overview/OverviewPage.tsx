@@ -152,7 +152,7 @@ export const OverviewPage: React.FC = () => {
 
           <dl className="overview-metric-grid" aria-label="Personal statistics">
             <Metric label="Level" value={userStats?.level} />
-            <Metric label="Credits" value={userStats?.currency} />
+            <Metric label="Acosmicoins" value={userStats?.currency} />
             <Metric label="Messages" value={userStats?.messages} />
             <Metric label="Total XP" value={userStats?.exp} />
           </dl>

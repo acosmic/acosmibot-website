@@ -109,8 +109,8 @@ export const EconomySettingsTab: React.FC = () => {
             Limits are disabled. These values are still saved and will take effect when enforcement is enabled.
           </p>
         )}
-        {numField('Minimum transaction', 'min_transaction', 'Smallest credit amount allowed in a deposit/withdraw.')}
-        {numField('Maximum transaction', 'max_transaction', 'Largest credit amount allowed in a single deposit/withdraw.')}
+        {numField('Minimum transaction', 'min_transaction', 'Smallest Acosmicoin amount allowed in a deposit or withdrawal.')}
+        {numField('Maximum transaction', 'max_transaction', 'Largest Acosmicoin amount allowed in a single deposit or withdrawal.')}
         {limitsInvalid && (
           <p role="alert" style={{ color: 'var(--error-color)', marginTop: '-8px' }}>
             Maximum transaction must be greater than or equal to the minimum.
