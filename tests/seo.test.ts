@@ -53,11 +53,16 @@ test('documentation reflects current commercial and product contracts', () => {
   assert.match(plans, /20% off the first two monthly payments/i);
   assert.match(plans, /December 31, 2026/i);
   assert.match(plans, /Max.*emote awareness/is);
+  assert.match(plans, /Fresh channel summaries.*0\/month.*0\/month.*100\/month.*300\/month/is);
+  assert.match(plans, /Web image searches.*0\/month.*0\/month.*50\/month.*100\/month/is);
+  assert.match(plans, /owner-only.*not a subscription benefit/i);
 
   const credits = readDoc('ai-credits');
   assert.match(credits, /Fuel Cell 25K/);
   assert.match(credits, /350/);
   assert.match(credits, /full maximum charge is reserved/i);
+  assert.match(credits, /separate from Acosmicoins/i);
+  assert.match(credits, /Server Boost Log/i);
 
   const stats = readDoc('stats');
   assert.match(stats, /reactions_received/);
@@ -67,7 +72,11 @@ test('documentation reflects current commercial and product contracts', () => {
   const commands = readDoc('commands');
   assert.match(commands, /heist reset/);
   assert.match(commands, /ai credits/);
+  assert.match(commands, /ai summary/);
+  assert.match(commands, /ai style/);
   assert.match(commands, /ai-admin emote/);
+  assert.match(commands, /confirmation for 350 AI Credits/);
+  assert.doesNotMatch(commands, /350-Acosmicoin/i);
   assert.doesNotMatch(commands, /ai memory &lt;add/);
 
   const ai = readDoc('ai');
@@ -75,6 +84,9 @@ test('documentation reflects current commercial and product contracts', () => {
   assert.doesNotMatch(ai, /GPT-4o|DALL-E|GPT-4 Vision/i);
   assert.match(ai, /World of Warcraft/i);
   assert.match(ai, /same visual character card/i);
+  assert.match(ai, /Channel Summaries/i);
+  assert.match(ai, /Web Image Search/i);
+  assert.match(ai, /base server-role flags/i);
 
   const wow = readDoc('wow');
   assert.match(wow, /\/wow profile/);

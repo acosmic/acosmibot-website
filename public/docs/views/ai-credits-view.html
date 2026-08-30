@@ -9,25 +9,25 @@
   <section class="docs-section">
     <h2>What AI Credits do</h2>
     <p>
-      Your subscription includes a monthly AI allowance. AI Credits can fund eligible requests after that allowance is unavailable; they do not unlock subscription features or raise the plan's basic daily limit.
+      AI Credits are prepaid service capacity for eligible, explicit requests after included plan allowance runs out. They are separate from Acosmicoins, Acosmibot's virtual community currency, and from Free, Plus, Pro, or Max subscriptions. AI Credits extend eligible usage; they do not unlock Pro or Max tools, memory, personalities, ambient replies, or other plan features.
     </p>
     <div class="info-card info-card-info">
       <h3>Fuel Cell packs</h3>
       <table class="docs-table">
-        <thead><tr><th>Pack</th><th>Credits</th><th>Price</th></tr></thead>
+        <thead><tr><th>Pack</th><th>AI Credits</th><th>Price</th><th>Pack savings</th></tr></thead>
         <tbody>
-          <tr><td>Fuel Cell 5K</td><td>5,000</td><td>$5.00</td></tr>
-          <tr><td>Fuel Cell 10K</td><td>10,000</td><td>$9.50</td></tr>
-          <tr><td>Fuel Cell 25K</td><td>25,000</td><td>$22.50</td></tr>
+          <tr><td>Fuel Cell 5K</td><td>5,000</td><td>$5.00</td><td>—</td></tr>
+          <tr><td>Fuel Cell 10K</td><td>10,000</td><td>$9.50</td><td>5%</td></tr>
+          <tr><td>Fuel Cell 25K</td><td>25,000</td><td>$22.50</td><td>10%</td></tr>
         </tbody>
       </table>
-      <p>When sales are enabled, server owners can buy packs from the server dashboard. Purchased credits do not expire.</p>
+      <p>Prices are in US dollars before applicable tax. Purchased AI Credits do not expire under current terms and cannot be transferred; promotional credits may carry a stated expiration. Personal and server wallets are separate, and test-mode and live-mode balances never mix.</p>
     </div>
   </section>
 
   <section class="docs-section">
     <h2>Rates</h2>
-    <p>Providers may vary, so charges use a stable Acosmibot rate card instead of a provider's token names.</p>
+    <p>One AI Credit has a list value of $0.001. Providers may vary, so charges use a stable Acosmibot rate card instead of changing when the owner selects a supported OpenAI or Gemini model.</p>
     <table class="docs-table">
       <thead><tr><th>Operation</th><th>Minimum</th><th>Input / 1K</th><th>Cached / 1K</th><th>Output / 1K</th><th>Thought / 1K</th><th>Maximum</th></tr></thead>
       <tbody>
@@ -37,7 +37,7 @@
         <tr><td>Image generation</td><td colspan="5">Fixed price</td><td>350</td></tr>
       </tbody>
     </table>
-    <p>Direct-message chat follows the chat rate. Paid direct-message image and vision funding are not currently live.</p>
+    <p>Direct-message text chat follows the 25–250 chat rate. Paid direct-message image and vision funding are not currently live.</p>
   </section>
 
   <section class="docs-section">
@@ -46,29 +46,36 @@
       <li>The included monthly allowance is used first when the operation is eligible.</li>
       <li>If paid overage is enabled, Acosmibot checks the server wallet.</li>
       <li>Personal guild fallback is considered only when the server allows it and the member has enabled both global guild spending and that guild.</li>
-      <li>The full maximum charge is reserved before the request starts. Any unused reservation is released after the final charge is calculated.</li>
+      <li>The full maximum charge is reserved before the request starts. The actual charge settles only after screened content is delivered, and any unused reservation is released.</li>
     </ol>
+    <p>A request uses one complete wallet and is never split. Role, channel, operation, per-request, and daily caps can still block spending. Ambient and autonomous replies never spend AI Credits.</p>
     <div class="info-card info-card-warning">
       <h3>Images require confirmation</h3>
-      <p><code>/ai image</code> shows a confirmation before a paid 350-credit charge. Canceling or letting the confirmation expire spends nothing.</p>
+      <p><code>/ai image</code> and mention-based image requests show an editable confirmation before included quota or a paid charge of 350 AI Credits. Canceling or letting the five-minute confirmation expire spends nothing. Confirming rechecks the live allowance, policy, and balance; if the included unit disappeared while the confirmation was open, Acosmibot asks for a fresh confirmation instead of charging silently.</p>
     </div>
   </section>
 
   <section class="docs-section">
     <h2>Wallet controls and contributions</h2>
     <p>
-      Server managers choose which paid operations are allowed, whether members may contribute, whether personal fallback is allowed, and the server's spending guardrails. Members control their own global guild-spending switch, per-server opt-in, and personal caps from <a href="/credits">AI Credits</a>.
+      Use private <code>/ai credits</code> for personal balance, reserved amount, mode, DM spending, guild fallback, current-server consent, and chat scope. Open <a href="/credits">AI Credits</a> to buy personal Fuel Cells and manage caps, low-balance notifications, DM spending, and per-server consent. Server owners and administrators manage the shared wallet, eligible operations, role and channel access, personal fallback, contributions, caps, and notifications from the server Billing page.
     </p>
     <p>
-      When contributions are enabled, members can add Fuel Cells to the server wallet. Contributions belong to that server wallet and cannot be withdrawn or transferred back to the member.
+      Any current server member can open the authenticated member hub at <code>/server/&lt;server-id&gt;</code>. When contributions and sales are enabled, a member can buy a Fuel Cell directly for the server wallet and choose a named or anonymous contribution. The optional Server Boost Log shows the display choice, Fuel Cell, amount, status, and time—never personal balances, prompts, individual consumption, payment identifiers, or DM activity. Refunds and disputes remain visible as reversed entries instead of disappearing.
     </p>
   </section>
 
   <section class="docs-section">
+    <h2>Allowance renewal and status</h2>
+    <p>AI Credits do not renew with included allowance. Free monthly allowance resets with the UTC calendar month; paid allowance follows the server's subscription anniversary window.</p>
+    <p><code>/ai status</code> posts the server's renewal time, included usage, paid-image counts by funding source, and shared server balance without exposing a member's personal wallet. Use the private <code>/ai credits</code> response for personal balance and controls.</p>
+  </section>
+
+  <section class="docs-section">
     <h2>Common funding problems</h2>
-    <div class="faq-item"><h4>Why did the request stop instead of spending credits?</h4><p>Paid overage, that operation, or the needed funding source may be disabled, or the wallet may not have enough credits for the full reservation.</p></div>
-    <div class="faq-item"><h4>Why was my personal balance skipped?</h4><p>Personal fallback needs server permission, your global guild-spending switch, and your opt-in for that server. Your caps must also allow the reservation.</p></div>
-    <div class="faq-item"><h4>Where can I see usage?</h4><p>Use <code>/ai status</code> for private allowance and renewal details. Server managers can review the shared wallet and ledger in the dashboard; members can review personal balances and controls at <a href="/credits">/credits</a>.</p></div>
+    <div class="faq-item"><h4>Why did the request stop instead of spending AI Credits?</h4><p>A platform spending pause, disabled server pool, disallowed operation, insufficient full-wallet balance, role or channel restriction, personal cap, disabled global guild fallback, or missing current-server consent can all block a paid request.</p></div>
+    <div class="faq-item"><h4>Why was my personal balance skipped?</h4><p>Personal fallback needs all three keys: server permission, your global guild-spending switch, and your opt-in for that server. Your caps and the server's live operation policy must also allow the full reservation.</p></div>
+    <div class="faq-item"><h4>Where can I see usage?</h4><p>Use public <code>/ai status</code> for server allowance and renewal details. Server managers can review the shared wallet and ledger in Billing; members can privately review personal balances and controls with <code>/ai credits</code> or at <a href="/credits">/credits</a>.</p></div>
   </section>
 
   <div class="docs-nav-container">

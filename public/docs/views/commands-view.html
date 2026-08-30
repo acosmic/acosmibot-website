@@ -375,6 +375,10 @@
           <td>Check AI status, usage, personality, and ambient reply settings</td>
         </tr>
         <tr>
+          <td><code>/ai summary [period] [date] [channel]</code></td>
+          <td>Summarize a readable current or selected same-server channel (Pro or Max)</td>
+        </tr>
+        <tr>
           <td><code>/ai credits</code></td>
           <td>Privately check personal AI Credit balance and spending state; administrators may also see the server wallet summary</td>
         </tr>
@@ -387,12 +391,16 @@
           <td>Review or clear facts learned from conversation; members cannot add memory entries manually</td>
         </tr>
         <tr>
+          <td><code>/ai style &lt;shop|active|persona|trait&gt;</code></td>
+          <td>Browse or activate manager-published temporary personality effects with Acosmicoins</td>
+        </tr>
+        <tr>
           <td><code>/ai-admin ambient &lt;enable|disable|frequency|images-enable|images-disable|images-chance&gt;</code></td>
           <td>Control ambient AI replies and meme images (Pro or Max)</td>
         </tr>
         <tr>
           <td><code>/ai image &lt;prompt&gt;</code></td>
-          <td>Generate an image with the configured provider (Pro or Max, medium quality); eligible overage requires a 350-Acosmicoin confirmation</td>
+          <td>Generate an image with the configured provider (Pro or Max, medium quality); eligible overage requires confirmation for 350 AI Credits</td>
         </tr>
         <tr>
           <td><code>/ai analyze</code></td>
@@ -434,7 +442,7 @@
       <ul>
         <li><strong>Everyone</strong> — Games, economy, bank, reminders, rank, stats, weather, World of Warcraft lookups, and other utilities</li>
         <li><strong>Administrator</strong> — Lottery admin and server dashboard settings</li>
-        <li><strong>Manage Server</strong> — AI controls and giveaway controls (start, cancel, reroll)</li>
+        <li><strong>Manage Server</strong> — Server-wide <code>/ai-admin</code> controls and giveaway controls (start, cancel, reroll)</li>
         <li><strong>Paid servers</strong> — Plus raises custom command limits; Pro and Max add image generation and analysis</li>
         <li><strong>Server Owner</strong> — Full access to all commands and dashboard settings</li>
       </ul>
@@ -443,7 +451,7 @@
     <div class="info-card info-card-info">
       <h3>AI — Mention-Based Interaction</h3>
       <p>
-        AI chat does not require a slash command. Members interact with the bot by mentioning it: <code>@Acosmibot what is the leveling system?</code>. The bot must be enabled by a server manager first using <code>/ai-admin enable</code>.
+        AI chat does not require a slash command. Members interact with the bot by mentioning it: <code>@Acosmibot what is the leveling system?</code>. Basic chat defaults on, and a server manager can opt out or restore it with <code>/ai-admin disable</code> and <code>/ai-admin enable</code>.
       </p>
     </div>
   </section>

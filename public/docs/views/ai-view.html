@@ -2,7 +2,7 @@
   <header class="docs-page-header">
     <h1>AI Integration</h1>
     <p class="docs-page-description">
-      Connect Acosmibot to an AI model and let your members have natural conversations directly in Discord — mention the bot anywhere and it responds with context-aware replies shaped by your custom instructions.
+      Mention Acosmibot for documentation-grounded conversation, live Discord context, native tools, summaries, search, memory, and creative actions controlled by your server.
     </p>
     <button id="configureInServerBtn" class="btn-configure" style="display: none;">
       Configure in /server →
@@ -22,9 +22,12 @@
         <li>Uses recent Discord channel history for context</li>
         <li>Built-in 3-second per-user cooldown to prevent spam</li>
         <li>Daily and monthly usage limits set by the active subscription tier</li>
-        <li>Custom system prompt to define the AI's personality and rules</li>
+        <li>Neutral, safety-screened answers with structured personas on Pro or Max</li>
         <li>Saved personalities — switch the bot's persona with <code>/ai-admin personality</code> or from the dashboard (Pro or Max)</li>
-        <li>Per-user memories — the AI remembers facts members tell it via <code>/ai memory</code></li>
+        <li>Per-user memories extracted from screened conversation, with private review and clear controls</li>
+        <li>Permission-checked Channel Summaries for the current or one selected same-server channel (Pro or Max)</li>
+        <li>Native tools for live Discord facts, statistics, reminders, weather, Acosmibot help, web results, and World of Warcraft</li>
+        <li>Moderated web-image search that uploads a real Discord attachment (Pro or Max)</li>
         <li>Ambient replies — the AI can occasionally chime into conversation unprompted (Pro or Max)</li>
         <li>Restrict AI responses to specific channels</li>
         <li>Provider-neutral chat, image, and vision support selected through Acosmibot's owner configuration</li>
@@ -32,6 +35,33 @@
         <li>Explicit personal text chat in Discord DMs when DM spending is enabled and opted in</li>
       </ul>
     </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Live Discord Data and Native Tools</h2>
+    <p>
+      Acosmibot exposes only the tools allowed by the server's plan, settings, channel, and request. It can ground answers in current channels, roles, events, server facts, permission-safe member information, activity and game statistics, weather, reminders, official Acosmibot documentation, web results, and supported Blizzard character data instead of guessing from model memory.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>Role permission answers</h3>
+      <p>Explicit questions about a role's permissions or which roles grant a permission read the live base server-role flags. Results include <code>@everyone</code> and managed roles and distinguish a direct permission grant from effective access through <strong>Administrator</strong>. Channel overwrites and a member's other roles can change that member's final permissions, so this is not presented as a complete member permission audit.</p>
+    </div>
+    <p>Pro and Max managers can independently enable or disable each model-facing tool in AI settings. A tool switch affects natural-language AI use only and does not disable the corresponding slash command. Final text still crosses Acosmibot's output-screening, trusted-link, and Discord-mention boundaries before delivery.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Channel Summaries</h2>
+    <p>
+      On Pro and Max, use <code>/ai summary</code> or mention Acosmibot and ask for a TL;DR, catch-up, or summary. The request can read the current channel or one explicitly selected same-server message channel. Both the requester and Acosmibot must be able to view that target and read its message history before any history is loaded.
+    </p>
+    <ul>
+      <li>Choose today, yesterday, the last 1, 3, 6, 12, or 24 hours, or one recent calendar date.</li>
+      <li>Unsupported rolling durations snap to the nearest supported window, and the answer names the period actually read.</li>
+      <li>At most the latest 500 eligible human messages and 120,000 source characters are used; bots and webhooks are excluded.</li>
+      <li>Source text is treated as untrusted data and is not persisted as a transcript.</li>
+      <li>Pro includes 100 and Max 300 fresh summaries per allowance month. A matching result may be reused for ten minutes without another summary unit.</li>
+      <li>Mention-chat summaries also use one normal chat request; direct <code>/ai summary</code> use does not. AI Credits cannot unlock or bypass the summary allowance.</li>
+    </ul>
   </section>
 
   <section class="docs-section">
@@ -54,6 +84,14 @@
   </section>
 
   <section class="docs-section">
+    <h2>Web Image Search</h2>
+    <p>
+      On Pro and Max servers with image search enabled, ask Acosmibot to find, show, or post an existing picture. Pro includes 50 and Max 100 successfully delivered web-image searches per allowance month. Each picture requested uses one image-search unit, and the containing mention also uses its normal single chat request.
+    </p>
+    <p>Acosmibot searches with Exa, filters obvious placeholders, checks that the requested subject is visibly present and usable, moderates the candidate, and uploads one normalized image as a real Discord attachment. Failed candidates do not consume delivered-use quota. Ask for the source explicitly if you also want the source-page link. Requests to create new artwork use image generation; questions about an attachment or supported Discord sticker use image analysis.</p>
+  </section>
+
+  <section class="docs-section">
     <h2>AI Credits and DMs</h2>
     <p>
       Included daily and monthly quota is always checked first. If the server enables paid overage, a request may use the guild wallet and then a member's personal wallet only when the server policy, member policy, and per-guild consent all allow it. A request uses one complete wallet; credits are never split between wallets.
@@ -61,7 +99,7 @@
     <div class="info-card info-card-info">
       <h3>Controlled spending</h3>
       <ul>
-        <li>AI Credits are prepaid service capacity, not Discord or Acosmibot virtual currency.</li>
+        <li>AI Credits are prepaid service capacity, separate from the Acosmicoins economy currency.</li>
         <li>Purchased credits do not expire under current terms and cannot be transferred; promotional credits may have a stated expiry.</li>
         <li>Ambient and autonomous replies never spend AI Credits.</li>
         <li>Manage personal balance, consent, and guardrails at <a href="/credits" target="_blank">AI Credits</a>; server administrators manage the guild pool in the server Billing page.</li>
@@ -79,8 +117,8 @@
       <div class="step">
         <div class="step-number">1</div>
         <div class="step-content">
-          <h3>Enable AI for Your Server</h3>
-          <p>Use <code>/ai-admin enable</code> to turn on AI responses. Once enabled, the bot will begin watching for mentions across all channels (or only the channels you restrict it to).</p>
+          <h3>Confirm Where AI May Respond</h3>
+          <p>Basic chat defaults on. Server managers can opt out or restore it with <code>/ai-admin disable</code> and <code>/ai-admin enable</code>, then choose whether mentions are allowed everywhere or only in selected channels.</p>
         </div>
       </div>
 
@@ -139,11 +177,22 @@
       <div class="command-card">
         <div class="command-signature">/ai status</div>
         <div class="command-description">
-          Privately view daily and monthly chat usage, the monthly renewal time, included image and analysis usage, paid-image counts by funding source, separate server and personal AI Credit balances, ambient reply and meme-image toggles, and the active personality.
+          Post the server's daily and monthly chat usage, monthly renewal time, summary, included image, analysis, and web-image-search allowances, paid-image counts by funding source, shared server AI Credit balance, ambient toggles, and active personality. Personal wallet balances remain private to <code>/ai credits</code>.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
           <code>/ai status</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/ai summary [period] [date] [channel]</div>
+        <div class="command-description">
+          Create a bounded summary of the current channel or one selected same-server channel after requester and bot permission checks. <strong>Pro or Max feature</strong>.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai summary period:Last 6 hours channel:#github</code>
         </div>
       </div>
 
@@ -181,6 +230,17 @@
       </div>
 
       <div class="command-card">
+        <div class="command-signature">/ai style &lt;shop|active|persona|trait&gt;</div>
+        <div class="command-description">
+          Browse manager-published full personas and compatible traits, see active temporary effects, or spend the listed Acosmicoins to activate one. A rejected or conflicting purchase spends nothing. <strong>Pro or Max server feature when the marketplace is enabled</strong>.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai style shop</code>
+        </div>
+      </div>
+
+      <div class="command-card">
         <div class="command-signature">/ai-admin ambient &lt;enable|disable|frequency|images-enable|images-disable|images-chance&gt;</div>
         <div class="command-description">
           Control whether the AI occasionally chimes into conversation without being mentioned, how often, and whether up to 25% of ambient replies may generate a meme image. Requires Manage Server permission. <strong>Pro or Max feature</strong>.
@@ -214,9 +274,20 @@
       </div>
 
       <div class="command-card">
+        <div class="command-signature">/ai-admin emote name:&lt;name&gt; description:&lt;prompt&gt;</div>
+        <div class="command-description">
+          Generate and install a transparent custom server emote after an editable confirmation. This is Max-only and requires Manage Server plus the requester's and bot's relevant expression permissions and an available static emote slot.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/ai-admin emote name:starwave description:a cheerful cyan star waving</code>
+        </div>
+      </div>
+
+      <div class="command-card">
         <div class="command-signature">/ai clip &lt;prompt&gt;</div>
         <div class="command-description">
-          Generate a short looping AI clip. This is an experimental feature available only to authorized users.
+          Generate a short looping AI clip. This experimental feature is available only to the bot owner.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -227,7 +298,7 @@
 
     <div class="info-card info-card-info">
       <h3>Confirmation before image spending</h3>
-      <p><code>/ai image</code> and mention-based image requests show an editable confirmation before quota or credits are spent. Included requests show 0 credits; eligible paid overage shows the fixed 350-credit cost. Cancelling or letting the five-minute confirmation expire spends nothing, and paid images do not advance the included monthly image allowance.</p>
+      <p><code>/ai image</code> and mention-based image requests show an editable confirmation before quota or AI Credits are spent. Included requests show 0 AI Credits; eligible paid overage shows the fixed cost of 350 AI Credits. Cancelling or letting the five-minute confirmation expire spends nothing, and paid images do not advance the included monthly image allowance.</p>
       <p><a href="/docs/ai-credits" onclick="event.preventDefault(); window.DocsRouter.navigate('ai-credits')">Read the AI Credits and Fuel Cells guide →</a></p>
     </div>
   </section>
@@ -250,21 +321,17 @@
   </section>
 
   <section class="docs-section">
-    <h2>Writing a Good System Prompt</h2>
-    <p>The system prompt is the most powerful tool for customizing your AI's behavior. It is configured through the <a href="/servers" target="_blank">server dashboard</a> under AI settings. Here are some examples of what you can define:</p>
-
-    <div class="code-block">
-      <code>You are a helpful assistant for [Server Name]. You only answer questions related to [your topic]. Keep responses under 3 sentences. Always be friendly and encouraging. Never discuss competitor products.</code>
-    </div>
+    <h2>Structured Personalities and Tool Controls</h2>
+    <p>Pro and Max managers customize presentation from the <a href="/servers" target="_blank">server dashboard</a> under AI settings or switch saved personalities with <code>/ai-admin personality</code>. A structured persona is built from bounded identity fields, voice facets, catchphrases, motifs, and terms of address. Older free-form personality prompts remain visible only for migration and are not executed.</p>
 
     <div class="info-card info-card-success">
-      <h3>Tips for Effective Instructions</h3>
+      <h3>What personality can and cannot change</h3>
       <ul>
-        <li>Give the AI a <strong>name and personality</strong> that fits your community's vibe</li>
-        <li>Specify the <strong>scope of topics</strong> the AI should focus on or avoid</li>
-        <li>Set a <strong>tone</strong> — casual, professional, humorous, concise, etc.</li>
-        <li>Include any <strong>server-specific context</strong> the AI should know (game name, rules, lore, etc.)</li>
-        <li>Define what the AI should do when asked something <strong>out of scope</strong></li>
+        <li>Personality changes the wording and presentation of a finished answer.</li>
+        <li>It cannot grant Discord permissions, change verified facts, select unavailable tools, override safety, or bypass quotas.</li>
+        <li>Managers can publish selected full personas or category-slotted traits with an Acosmicoin price and duration.</li>
+        <li>Traits from different categories can compose up to the configured limit; conflicting categories and full-persona overlaps are rejected without spending.</li>
+        <li>Each model-facing AI tool has its own switch. Disabling AI tool use does not disable the tool's normal slash command.</li>
       </ul>
     </div>
   </section>
