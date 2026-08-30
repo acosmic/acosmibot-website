@@ -31,6 +31,14 @@ const select: React.CSSProperties = {
   border: '1px solid var(--border-light)', borderRadius: 8,
   padding: '4px 8px', fontSize: 13,
 };
+const metricGrid: React.CSSProperties = {
+  display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))',
+  margin: '18px -20px 20px', borderTop: '1px solid var(--border-light)',
+  borderBottom: '1px solid var(--border-light)', background: 'var(--border-light)', gap: 1,
+};
+const metricCell: React.CSSProperties = {
+  display: 'grid', gap: 4, padding: '14px 20px', background: 'var(--bg-card)',
+};
 
 const RANGE_OPTIONS: Array<{ label: string; days: number }> = [
   { label: 'Last 24 hours', days: 1 },
@@ -41,6 +49,9 @@ const RANGE_OPTIONS: Array<{ label: string; days: number }> = [
 
 const fmtCost = (n: number) => `$${n < 1 ? n.toFixed(4) : n.toFixed(2)}`;
 const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+const platformLabel = (platform: string) => (
+  platform === 'twitter' ? 'X / Twitter' : titleCase(platform)
+);
 
 const RangeSelect: React.FC<{ value: number; onChange: (d: number) => void }> = ({ value, onChange }) => (
   <select style={select} value={value} onChange={(e) => onChange(Number(e.target.value))}>
@@ -55,6 +66,7 @@ export const AnalyticsTab: React.FC = () => {
   const [days, setDays] = useState(30);     // command-volume chart range
   const [aiDays, setAiDays] = useState(30);  // AI usage range
   const [msgDays, setMsgDays] = useState(30); // messages range
+  const [embedsDays, setEmbedsDays] = useState(30); // Better Embeds range
 
   const commands = useQuery({
     queryKey: ['global-analytics-commands'],
@@ -80,6 +92,10 @@ export const AnalyticsTab: React.FC = () => {
     queryKey: ['global-analytics-messages', msgDays],
     queryFn: () => analyticsApi.globalMessages(msgDays),
   });
+  const betterEmbeds = useQuery({
+    queryKey: ['global-analytics-better-embeds', embedsDays],
+    queryFn: () => analyticsApi.globalBetterEmbeds(embedsDays),
+  });
 
   if (commands.isLoading || reactions.isLoading) {
     return <p className="text-muted">Loading…</p>;
@@ -93,6 +109,14 @@ export const AnalyticsTab: React.FC = () => {
   const aiTopGuilds = ai.data?.top_guilds ?? [];
   const aiTotalCost = aiByType.reduce((sum, [, s]) => sum + s.total_cost, 0);
   const msgTopGuilds = messages.data?.top_guilds ?? [];
+  const embedTopPlatform = [...(betterEmbeds.data?.platforms ?? [])]
+    .sort((a, b) => b.replaced - a.replaced)[0];
+  const fallbackResolutions = (betterEmbeds.data?.providers ?? [])
+    .filter((provider) => provider.status === 'fallback_validated')
+    .reduce((sum, provider) => sum + provider.count, 0);
+  const uncertainResolutions = (betterEmbeds.data?.providers ?? [])
+    .filter((provider) => ['default_unverified', 'probe_error'].includes(provider.status))
+    .reduce((sum, provider) => sum + provider.count, 0);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
@@ -184,6 +208,145 @@ export const AnalyticsTab: React.FC = () => {
         {volume.isLoading || !volume.data
           ? <p className="text-muted" style={{ margin: 0 }}>Loading…</p>
           : <VolumeChart data={volume.data} />}
+      </div>
+
+      {/* ---- Better Social Embeds ---- */}
+      <div style={{ ...panel, gridColumn: '1 / -1' }}>
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          flexWrap: 'wrap', gap: 12,
+        }}>
+          <div>
+            <div style={{ ...heading, marginBottom: 4 }}>Better Social Embeds</div>
+            <p style={{ ...meta, margin: 0 }}>
+              Content-free replacement outcomes across all servers. Posted means the bot transaction completed.
+            </p>
+          </div>
+          <RangeSelect value={embedsDays} onChange={setEmbedsDays} />
+        </div>
+
+        {betterEmbeds.isLoading && (
+          <p className="text-muted" style={{ margin: '18px 0 0' }}>Loading…</p>
+        )}
+        {betterEmbeds.isError && (
+          <p style={{ color: 'var(--error-color)', margin: '18px 0 0' }}>
+            Better Embeds activity is unavailable.
+          </p>
+        )}
+        {betterEmbeds.data && betterEmbeds.data.totals.eligible_messages === 0 && (
+          <p className="text-muted" style={{ margin: '18px 0 0' }}>
+            No supported links have been recorded in this range.
+          </p>
+        )}
+        {betterEmbeds.data && betterEmbeds.data.totals.eligible_messages > 0 && (
+          <>
+            <div style={metricGrid}>
+              <div style={metricCell}>
+                <span style={meta}>Replacements posted</span>
+                <strong>{betterEmbeds.data.totals.replacements_posted.toLocaleString()}</strong>
+              </div>
+              <div style={metricCell}>
+                <span style={meta}>Completion</span>
+                <strong>{Math.round(betterEmbeds.data.totals.completion_rate * 100)}%</strong>
+              </div>
+              <div style={metricCell}>
+                <span style={meta}>Active servers</span>
+                <strong>{betterEmbeds.data.active_guilds.toLocaleString()}</strong>
+              </div>
+              <div style={metricCell}>
+                <span style={meta}>Top platform</span>
+                <strong>{embedTopPlatform ? platformLabel(embedTopPlatform.platform) : '—'}</strong>
+              </div>
+              <div style={metricCell}>
+                <span style={meta}>Fallback resolutions</span>
+                <strong>{fallbackResolutions.toLocaleString()}</strong>
+              </div>
+              <div style={metricCell}>
+                <span style={meta}>Unverified / probe errors</span>
+                <strong>{uncertainResolutions.toLocaleString()}</strong>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))',
+              gap: 24,
+            }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={heading}>Daily replacements (UTC)</div>
+                <VolumeChart
+                  unit="replacement"
+                  data={{
+                    granularity: 'day',
+                    days: embedsDays,
+                    buckets: betterEmbeds.data.daily.map((day) => ({
+                      bucket: day.date,
+                      count: day.replacements_posted,
+                    })),
+                  }}
+                />
+              </div>
+              <div>
+                <div style={heading}>Platform mix</div>
+                {betterEmbeds.data.platforms.map((platform) => (
+                  <div key={platform.platform} style={compactRow}>
+                    <span style={{ color: 'var(--text-primary)' }}>
+                      {platformLabel(platform.platform)}
+                    </span>
+                    <span style={meta}>
+                      {platform.replaced.toLocaleString()} / {platform.detected.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+                <p style={{ ...meta, margin: '10px 0 0' }}>Posted / detected links</p>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 24, marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--border-light)',
+            }}>
+              <div>
+                <div style={heading}>Top servers by replacements</div>
+                {betterEmbeds.data.top_guilds.map((guild, index) => (
+                  <div key={guild.guild_id} style={compactRow}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                      <span style={num}>{index + 1}</span>
+                      <span style={{
+                        color: 'var(--text-primary)', overflow: 'hidden',
+                        textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {guild.name}
+                      </span>
+                    </span>
+                    <span style={meta}>{guild.replacements_posted.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div style={heading}>Provider resolution</div>
+                {betterEmbeds.data.providers.slice(0, 10).map((provider) => (
+                  <div
+                    key={`${provider.platform}:${provider.provider}:${provider.status}`}
+                    style={compactRow}
+                  >
+                    <span style={{ color: 'var(--text-primary)' }}>
+                      {platformLabel(provider.platform)} · {provider.provider}
+                    </span>
+                    <span style={meta}>
+                      {titleCase(provider.status)} · {provider.count.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {betterEmbeds.data.tracking_started_at && (
+              <p style={{ ...meta, margin: '18px 0 0' }}>
+                Forward-only history starts {betterEmbeds.data.tracking_started_at}; aggregates retain up to 400 days.
+              </p>
+            )}
+          </>
+        )}
       </div>
 
       {/* ---- AI usage ---- */}

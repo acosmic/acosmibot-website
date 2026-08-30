@@ -49,12 +49,13 @@ const TIERS: TierCardDef[] = [
     features: [
       { text: 'Leveling & XP system' },
       { text: 'Economy, games & gambling' },
-      { text: 'Server analytics' },
+      { text: 'Server overview' },
       { text: 'Better Social Embeds' },
       { text: '1 Twitch streamer tracking' },
       { text: '1 YouTube streamer tracking' },
       { text: '1 Kick streamer tracking' },
       { text: 'X post alerts require Plus', disabled: true },
+      { text: 'Server analytics & weekly recaps require Plus', disabled: true },
       { text: '1 custom command' },
       { text: '1 reaction role message' },
       { text: '5 custom embeds' },
@@ -73,6 +74,9 @@ const TIERS: TierCardDef[] = [
       { text: '5 YouTube streamers tracking' },
       { text: '5 Kick streamers tracking' },
       { text: '1 X account for post alerts' },
+      { text: '7, 30 & 90-day server analytics' },
+      { text: 'Custom scheduled weekly recaps' },
+      { text: 'Better Social Embeds reporting' },
       { text: '25 custom commands' },
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
@@ -330,11 +334,11 @@ export const PricingPage: React.FC = () => {
           <div className="pricing-briefing__intro">
             <span>Signal briefing</span>
             <h2 id="pricing-briefing-title">Pick the pressure point you need to relieve.</h2>
-            <p>No feature maze: Plus raises operating limits. Pro activates the complete AI layer. Max expands AI capacity.</p>
+            <p>Plus adds community intelligence and raises operating limits. Pro activates the complete AI layer. Max expands AI capacity.</p>
           </div>
           <div className="pricing-briefing__signals">
             <PremiumNote icon={<Radio />} title="Creator growth" text="Plus expands Twitch, YouTube, and Kick tracking to five per platform and adds one X account. Pro and Max raise X tracking to three." />
-            <PremiumNote icon={<ShieldCheck />} title="Community operations" text="Plus raises custom commands to 25, reaction-role messages to 10, and custom embeds to 100." />
+            <PremiumNote icon={<ShieldCheck />} title="Community operations" text="Plus adds 7, 30, and 90-day analytics, configurable weekly recaps, Better Social Embeds reporting, and higher automation limits." />
             <PremiumNote icon={<Sparkles />} title="AI systems" text="Pro adds tools, memory, personalities, web search, ambient replies, images, and vision. Max raises the usage ceilings." />
             <PremiumNote
               icon={<BarChart3 />}

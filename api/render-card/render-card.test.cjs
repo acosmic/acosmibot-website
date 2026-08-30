@@ -20,7 +20,7 @@ function aiStatusPayload(overrides = {}) {
     usage: [
       { key: 'chat-daily', label: 'Chat Today', used: 2, limit: 200, detail: 'used today', locked: false },
       { key: 'chat-monthly', label: 'Chat This Month', used: 1312, limit: 3000, detail: 'this month', locked: false },
-      { key: 'images', label: 'Included Images', used: 98, limit: 100, detail: 'generated', locked: false },
+      { key: 'images', label: 'Images Generated', used: 98, limit: 100, detail: 'generated', locked: false },
       { key: 'analysis', label: 'Image Analysis', used: 121, limit: 200, detail: 'analyses', locked: false },
       { key: 'image-search', label: 'Image Search', used: 16, limit: 100, detail: 'searches', locked: false },
       { key: 'summary', label: 'Channel Summary', used: 2, limit: 300, detail: 'summaries', locked: false },

@@ -1,16 +1,23 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { ArrowRight, BarChart3 } from 'lucide-react';
 import { FeatureToggle, LoadingSpinner, SaveBar } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import type { BetterEmbedsConfig } from '@/types/features';
 import { useBetterEmbedsConfig } from './useBetterEmbedsConfig';
+import { BetterEmbedsUsagePanel } from './BetterEmbedsUsagePanel';
+import { useGuildStore } from '@/store/guild';
+import { getGuildTier, hasGuildAnalyticsAccess } from '@/features/analytics/entitlement';
 
 export const BetterEmbedsPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
+  const guild = useGuildStore((state) => state.guilds.find((item) => item.id === guildId));
+  const tier = getGuildTier(guild);
+  const hasAnalytics = hasGuildAnalyticsAccess(tier);
   const { data, isLoading, save, isSaving, saveError } = useBetterEmbedsConfig(guildId!);
   const { form, setForm, isDirty, resetForm } = useDirtyState<BetterEmbedsConfig>(data);
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading || !guild || tier === null) return <LoadingSpinner />;
   if (!form) return <div className="feature-page"><p>Unable to load embed settings.</p></div>;
 
   return (
@@ -19,6 +26,21 @@ export const BetterEmbedsPage: React.FC = () => {
         <h1>Better Social Embeds</h1>
         <p>Automatically replace supported social links with versions that embed reliably in Discord.</p>
       </div>
+
+      {hasAnalytics ? (
+        <BetterEmbedsUsagePanel guildId={guildId!} />
+      ) : (
+        <section className="better-embeds-usage better-embeds-usage--locked" aria-labelledby="better-embeds-reporting-title">
+          <BarChart3 aria-hidden="true" />
+          <div>
+            <h2 id="better-embeds-reporting-title">Replacement reporting starts with Plus</h2>
+            <p>Unlock forward-only platform activity, delivery health, and weekly recap reporting. Better Social Embeds themselves remain available on Free.</p>
+          </div>
+          <Link to={`/pricing?guild=${guildId}`} className="btn">
+            View Plus <ArrowRight aria-hidden="true" />
+          </Link>
+        </section>
+      )}
 
       <div className="feature-toggle-ledger">
         <p className="dashboard-workflow-section text-secondary mb-0">

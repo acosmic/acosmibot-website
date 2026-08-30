@@ -170,47 +170,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         <nav className="sidebar-nav" aria-label="Server systems">
           <NavSection title="General">
-            <NavItem to={`/server/${guildId}/overview`} icon={LayoutDashboard} label="Overview" onClick={onClose} />
-            {canManage && <NavItem to={`/server/${guildId}`} icon={Eye} label="Member page" end onClick={onClose} />}
             {canManage && <NavItem to={`/server/${guildId}/billing`} icon={CreditCard} label="Billing" onClick={onClose} />}
+            {canManage && <NavItem to={`/server/${guildId}`} icon={Eye} label="Member page" end onClick={onClose} />}
+            <NavItem to={`/server/${guildId}/overview`} icon={LayoutDashboard} label="Overview" onClick={onClose} />
           </NavSection>
 
           {canManage && (
             <>
               <NavSection title="Systems">
-                <NavItem to={`/server/${guildId}/leveling`} icon={Trophy} label="Leveling" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/analytics`} icon={BarChart3} label="Analytics" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/leveling`} icon={Trophy} label="Leveling" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/music`} icon={Music2} label="Music" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Utilities">
-                <NavItem to={`/server/${guildId}/embeds`} icon={PanelTop} label="Embeds" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/better-embeds`} icon={MessageSquareHeart} label="Better Social Embeds" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/reaction-roles`} icon={UsersRound} label="Reaction Roles" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/activity-monitor`} icon={Radar} label="Activity Monitor" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/custom-commands`} icon={Command} label="Custom Commands" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/moderation`} icon={Shield} label="Moderation" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/banned-users`} icon={UserRoundX} label="Banned Users" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/ai`} icon={Bot} label="AI Customization" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/banned-users`} icon={UserRoundX} label="Banned Users" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/better-embeds`} icon={MessageSquareHeart} label="Better Social Embeds" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/custom-commands`} icon={Command} label="Custom Commands" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/embeds`} icon={PanelTop} label="Embeds" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/moderation`} icon={Shield} label="Moderation" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/reaction-roles`} icon={UsersRound} label="Reaction Roles" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Social alerts">
-                <NavItem to={`/server/${guildId}/twitch`} icon={Tv} label="Twitch" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/youtube`} icon={Video} label="YouTube" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/kick`} icon={RadioTower} label="Kick" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/twitch`} icon={Tv} label="Twitch" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/x-alerts`} icon={AtSign} label="X Posts" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/youtube`} icon={Video} label="YouTube" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Chaos">
+                <NavItem to={`/server/${guildId}/jail`} icon={LockKeyhole} label="Jail" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/polymorph`} icon={Shuffle} label="Polymorph" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/portals`} icon={Orbit} label="Portals" status="soon" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/jail`} icon={LockKeyhole} label="Jail" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Games">
                 <NavItem to={`/server/${guildId}/games`} icon={Gamepad2} label="Games" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/lottery`} icon={Ticket} label="Lottery" status="soon" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/giveaway`} icon={Gift} label="Giveaway" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/lottery`} icon={Ticket} label="Lottery" status="soon" onClick={onClose} />
               </NavSection>
             </>
           )}

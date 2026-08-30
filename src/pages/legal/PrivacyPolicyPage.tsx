@@ -8,7 +8,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="August 22, 2026"
+    lastUpdated="August 29, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -33,6 +33,7 @@ export const PrivacyPolicyPage: React.FC = () => (
       <LegalSubheading>2.2 Activity &amp; Usage Data</LegalSubheading>
       <ul>
         <li><strong>Message Statistics:</strong> Count of messages sent in servers (not message content)</li>
+        <li><strong>Better Social Embeds Activity:</strong> Daily server-level counts of supported links, replacement outcomes, social platform, and embed-provider resolution status. These aggregates do not store the member&apos;s user ID, channel or message IDs, message text, social URLs, account handles, or profile names.</li>
         <li><strong>Activity Streaks:</strong> Consecutive days of server activity for leveling features</li>
         <li><strong>Experience Points (XP):</strong> Calculated based on your server participation</li>
         <li><strong>Level Information:</strong> Your current level in each server and globally</li>
@@ -176,6 +177,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>AI Image Content:</strong> Stored generation prompts, revised prompts, analysis text, and result URLs are erased after 30 days; non-content quota and accounting fields may remain under the applicable operational or billing retention period</li>
         <li><strong>Error Monitoring:</strong> Scrubbed Sentry events are retained for no longer than 90 days and may be retained for a shorter period under the active project settings</li>
         <li><strong>Local Runtime Diagnostics:</strong> Local system journals, including raw Discord identifiers attached only to error and critical records, are capped at 14 days and are accessible only to authorized operators</li>
+        <li><strong>Better Social Embeds Aggregates:</strong> Content-free daily server, outcome, platform, and provider-resolution counts are retained for up to 400 days</li>
         <li><strong>Optional Website Analytics:</strong> Event-level analytics data is retained for no longer than 14 months</li>
       </ul>
       <p>To request data deletion, email us at{' '}

@@ -2,12 +2,14 @@ import { api } from './client';
 import type { TopCommand, TopReaction } from './profile';
 
 export interface GuildCommandAnalytics {
+  days: number;
   top_commands: Array<TopCommand & { users?: number }>;
   least_used: TopCommand[];
   never_used: string[];
 }
 
 export interface GuildReactionAnalytics {
+  days: number;
   top_reactions: TopReaction[];
 }
 
@@ -140,12 +142,40 @@ export interface MemberFlow {
   totals: MemberFlowTotals;
 }
 
-export const analyticsApi = {
-  guildCommands: (guildId: string): Promise<GuildCommandAnalytics> =>
-    api.fetch<GuildCommandAnalytics>(`/api/guilds/${guildId}/analytics/commands`),
+export interface BetterEmbedsAnalytics {
+  days: number;
+  tracking_started_at: string | null;
+  totals: {
+    eligible_messages: number;
+    replacements_posted: number;
+    blocked_permissions: number;
+    failed_transactions: number;
+    detected_links: number;
+    links_replaced: number;
+    completion_rate: number;
+  };
+  outcomes: Record<string, number>;
+  daily: Array<{ date: string; replacements_posted: number; links_replaced: number }>;
+  platforms: Array<{ platform: string; detected: number; replaced: number }>;
+  providers?: Array<{ platform: string; provider: string; status: string; count: number }>;
+}
 
-  guildReactions: (guildId: string): Promise<GuildReactionAnalytics> =>
-    api.fetch<GuildReactionAnalytics>(`/api/guilds/${guildId}/analytics/reactions`),
+export interface GlobalBetterEmbedsAnalytics extends BetterEmbedsAnalytics {
+  providers: Array<{ platform: string; provider: string; status: string; count: number }>;
+  active_guilds: number;
+  top_guilds: Array<{
+    guild_id: string;
+    name: string;
+    replacements_posted: number;
+  }>;
+}
+
+export const analyticsApi = {
+  guildCommands: (guildId: string, days: number): Promise<GuildCommandAnalytics> =>
+    api.fetch<GuildCommandAnalytics>(`/api/guilds/${guildId}/analytics/commands?days=${days}`),
+
+  guildReactions: (guildId: string, days: number): Promise<GuildReactionAnalytics> =>
+    api.fetch<GuildReactionAnalytics>(`/api/guilds/${guildId}/analytics/reactions?days=${days}`),
 
   globalCommands: (): Promise<GlobalCommandAnalytics> =>
     api.fetch<GlobalCommandAnalytics>('/api/admin/analytics/commands'),
@@ -175,4 +205,10 @@ export const analyticsApi = {
 
   guildMemberFlow: (guildId: string, days: number): Promise<MemberFlow> =>
     api.fetch<MemberFlow>(`/api/guilds/${guildId}/analytics/member-flow?days=${days}`),
+
+  guildBetterEmbeds: (guildId: string, days: number): Promise<BetterEmbedsAnalytics> =>
+    api.fetch<BetterEmbedsAnalytics>(`/api/guilds/${guildId}/analytics/better-embeds?days=${days}`),
+
+  globalBetterEmbeds: (days: number): Promise<GlobalBetterEmbedsAnalytics> =>
+    api.fetch<GlobalBetterEmbedsAnalytics>(`/api/admin/analytics/better-embeds?days=${days}`),
 };
