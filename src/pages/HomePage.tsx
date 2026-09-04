@@ -46,6 +46,7 @@ import { HOME_TAGLINE } from '@/seo/publicRoutes';
 import '@/styles/home.css';
 
 const DISCORD_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+const STRIPE_DONATION_URL = 'https://donate.stripe.com/bJe3co1sfayvcMD16xgnK00';
 const BTC_ADDRESS = '3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS';
 
 type FeatureFamily = 'connect' | 'intelligence' | 'reward' | 'operate' | 'chaos';
@@ -754,10 +755,10 @@ export const HomePage: React.FC = () => {
               <div className="donation-option">
                 <span className="method-icon"><CreditCard aria-hidden="true" /></span>
                 <div>
-                  <span className="method-name">PayPal</span>
-                  <p className="method-description">Quick and secure donation</p>
+                  <span className="method-name">Stripe</span>
+                  <p className="method-description">Choose a one-time amount; no public attribution</p>
                 </div>
-                <a href="https://www.paypal.com/ncp/payment/BTN7ZAB3B632G" target="_blank" rel="noreferrer" className="donation-btn">
+                <a href={STRIPE_DONATION_URL} target="_blank" rel="noopener noreferrer" className="donation-btn">
                   Donate <ArrowRight aria-hidden="true" />
                 </a>
               </div>
