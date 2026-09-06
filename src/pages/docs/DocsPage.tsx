@@ -80,6 +80,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'embeds',            label: 'Better Embeds', icon: FileText },
       { slug: 'reminders',         label: 'Reminders', icon: AlarmClock },
       { slug: 'wow',               label: 'World of Warcraft', icon: Shield },
+      { slug: 'lol',               label: 'League of Legends', icon: Shield, iconColor: '#67ECFF' },
     ],
   },
   {
