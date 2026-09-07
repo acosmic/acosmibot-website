@@ -19,4 +19,5 @@ test('feed exposes pause, fullscreen, live status, and a detail dialog', () => {
   assert.match(source, /requestFullscreen/);
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /role="dialog"/);
+  assert.match(source, /Error reason/);
 });

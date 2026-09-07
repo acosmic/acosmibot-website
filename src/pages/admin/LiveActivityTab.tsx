@@ -256,6 +256,7 @@ export const LiveActivityTab: React.FC = () => {
             <div><dt>User</dt><dd>{selected.user_name || 'Acosmibot system'}</dd></div>
             <div><dt>Duration</dt><dd>{elapsed(selected)}</dd></div>
             <div><dt>Category</dt><dd>{selected.category}</dd></div>
+            {typeof selected.metadata?.error_code === 'string' && <div><dt>Error reason</dt><dd><code>{selected.metadata.error_code}</code></dd></div>}
             {selected.trace_id && <div><dt>AI trace</dt><dd><code>{selected.trace_id}</code></dd></div>}
           </dl>
           <section><span>Safe metadata</span><pre>{JSON.stringify(selected.metadata || {}, null, 2)}</pre></section>
