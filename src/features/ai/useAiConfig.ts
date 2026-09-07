@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 import personaCatalog from './personaCatalog.json';
+import { personalityDuration } from './personalityDuration';
 import { normalizePersonalityIntensity, PersonalityIntensity } from './personalityIntensity';
 
 const AMBIENT_IMAGE_DAILY_MAX = 5;
@@ -145,7 +146,7 @@ export const BUILT_IN_PERSONALITIES: AiPersonality[] = [
     profile: DEFAULT_PROFILE,
     member_enabled: false,
     price_acosmicoins: 0,
-    duration_minutes: 60,
+    duration_minutes: 10,
     legacy_unstructured: false,
   },
 
@@ -154,7 +155,7 @@ export const BUILT_IN_PERSONALITIES: AiPersonality[] = [
 BUILT_IN_PERSONALITIES.push(...personaCatalog.map(preset => ({
   id: preset.id, name: preset.name, instructions: '', built_in: true,
   profile: { ...DEFAULT_PROFILE, ...preset.profile, facets: { ...DEFAULT_PROFILE.facets, ...preset.profile.facets } },
-  member_enabled: false, price_acosmicoins: 0, duration_minutes: 60, legacy_unstructured: false,
+  member_enabled: false, price_acosmicoins: 0, duration_minutes: 10, legacy_unstructured: false,
 })));
 
 export const BUILT_IN_TRAITS: AiTrait[] = [
@@ -168,7 +169,7 @@ export const BUILT_IN_TRAITS: AiTrait[] = [
   ['sports-commentator-delivery', 'Sports Commentator Delivery', 'delivery', 'sports_commentator'],
 ].map(([id, name, category, value]) => ({
   id, name, category: category as TraitCategory, value, style_note: '', built_in: true,
-  member_enabled: false, price_acosmicoins: 0, duration_minutes: 60,
+  member_enabled: false, price_acosmicoins: 0, duration_minutes: 10,
 }));
 
 const DEFAULT_TOOLS = Object.fromEntries(
@@ -224,9 +225,9 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
   const personalities = [
     ...BUILT_IN_PERSONALITIES.map(personality => ({
       ...personality,
-      member_enabled: Boolean(savedPersonalityById.get(personality.id)?.member_enabled),
+      member_enabled: personality.id !== 'default' && Boolean(savedPersonalityById.get(personality.id)?.member_enabled),
       price_acosmicoins: Number(savedPersonalityById.get(personality.id)?.price_acosmicoins) || 0,
-      duration_minutes: Number(savedPersonalityById.get(personality.id)?.duration_minutes) || 60,
+      duration_minutes: personalityDuration(savedPersonalityById.get(personality.id)?.duration_minutes),
     })),
     ...custom.map(p => ({
       ...p,
@@ -234,7 +235,7 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
       profile: normalizeProfile(p.profile),
       member_enabled: Boolean(p.member_enabled),
       price_acosmicoins: Number(p.price_acosmicoins) || 0,
-      duration_minutes: Number(p.duration_minutes) || 60,
+      duration_minutes: personalityDuration(p.duration_minutes),
       legacy_unstructured: Boolean(p.legacy_unstructured || (!p.profile && p.instructions)),
     })),
   ];
@@ -246,14 +247,14 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
       ...trait,
       member_enabled: Boolean(savedTraitById.get(trait.id)?.member_enabled),
       price_acosmicoins: Number(savedTraitById.get(trait.id)?.price_acosmicoins) || 0,
-      duration_minutes: Number(savedTraitById.get(trait.id)?.duration_minutes) || 60,
+      duration_minutes: Number(savedTraitById.get(trait.id)?.duration_minutes) || 10,
     })),
     ...savedTraits.filter(trait => !trait.built_in).map(trait => ({
       ...trait,
       built_in: false,
       member_enabled: Boolean(trait.member_enabled),
       price_acosmicoins: Number(trait.price_acosmicoins) || 0,
-      duration_minutes: Number(trait.duration_minutes) || 60,
+      duration_minutes: Number(trait.duration_minutes) || 10,
     })),
   ];
 

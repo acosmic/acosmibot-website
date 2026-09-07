@@ -18,10 +18,14 @@ const uniqueName = (base: string, items: { name: string }[]) => {
 };
 
 type Listing = Pick<AiTrait, 'member_enabled' | 'price_acosmicoins' | 'duration_minutes'>;
-const ListingControls = ({ item, onChange }: { item: Listing; onChange: (updates: Partial<Listing>) => void }) => (
+const ListingControls = ({ item, onChange, allowPermanent = false }: { item: Listing; onChange: (updates: Partial<Listing>) => void; allowPermanent?: boolean }) => (
   <div className="personality-listing">
     <label><span>Price · Acosmicoins</span><NumberInput className="form-control" min={0} max={1000000000} value={item.price_acosmicoins} onValueChange={value => onChange({ price_acosmicoins: clamp(value, 0, 1000000000) })} /><small>0 makes this effect free.</small></label>
-    <label><span>Duration · minutes</span><NumberInput className="form-control" min={5} max={10080} value={item.duration_minutes} onValueChange={value => onChange({ duration_minutes: clamp(value, 5, 10080) })} /></label>
+    <div>
+      {allowPermanent && <label><span>Duration</span><select className="form-control" value={item.duration_minutes === 0 ? 'permanent' : 'temporary'} onChange={event => onChange({ duration_minutes: event.target.value === 'permanent' ? 0 : 10 })}><option value="temporary">Temporary</option><option value="permanent">Permanent</option></select></label>}
+      {item.duration_minutes !== 0 && <label><span>{allowPermanent ? 'Minutes' : 'Duration · minutes'}</span><NumberInput className="form-control" min={5} max={10080} value={item.duration_minutes} onValueChange={value => onChange({ duration_minutes: clamp(value, 5, 10080) })} /></label>}
+      {allowPermanent && <small>{item.duration_minutes === 0 ? 'Sets the server personality until changed. Admins can restore Acosmibot above.' : 'Acosmibot returns when the time is up.'}</small>}
+    </div>
   </div>
 );
 
@@ -61,7 +65,7 @@ export function PersonalitySettings({ form, setForm, saved, onEndEffect }: { for
   const createPersonality = (copy: boolean) => {
     const personality: AiPersonality = {
       id: newId('custom'), name: uniqueName(copy ? `${selected.name} Copy` : 'My Personality', form.personalities), instructions: '', built_in: false,
-      profile: structuredClone(copy ? selected.profile : DEFAULT_PROFILE), member_enabled: false, price_acosmicoins: 0, duration_minutes: 60, legacy_unstructured: false,
+      profile: structuredClone(copy ? selected.profile : DEFAULT_PROFILE), member_enabled: false, price_acosmicoins: 0, duration_minutes: 10, legacy_unstructured: false,
     };
     setForm({ personalities: [...form.personalities, personality] });
     setBrowsingId(personality.id);
@@ -165,17 +169,24 @@ export function PersonalitySettings({ form, setForm, saved, onEndEffect }: { for
       </section>}
     </CollapsibleSection>
 
-    <CollapsibleSection title="Member effects" defaultOpen={false}>
-      <FeatureToggle label="Let members change the bot’s style" enabled={form.personality_marketplace_enabled} onChange={enabled => setForm({ personality_marketplace_enabled: enabled })} description="Members spend Acosmicoins on temporary effects for the whole server. Choose which ones they can use with /ai style." />
+    <CollapsibleSection title="Member personalities" defaultOpen={true}>
+      <FeatureToggle label="Let members choose a personality" enabled={form.personality_marketplace_enabled} onChange={enabled => setForm({ personality_marketplace_enabled: enabled })} description="Choose the personalities members can buy with Acosmicoins using /ai style. Purchases apply to the whole server." />
       {!form.personality_marketplace_enabled && (personaLease || traitLeases.length > 0) && <p className="personality-note">New purchases are off. Active effects keep their remaining time.</p>}
       {form.personality_marketplace_enabled && <>
-        <p className="personality-note">Enable an effect to set its price and duration. Your server personality returns to normal when effects expire.</p>
+        <p className="personality-note">The same personality library as the admin picker, without the default Acosmibot voice. Timed purchases return to Acosmibot; permanent purchases stay until changed.</p>
+        <div className="personality-effect-catalog" aria-label="Personalities members can purchase">
+          {form.personalities.filter(item => item.id !== 'default').map(item => <div className="personality-effect" key={item.id}>
+            <label className="personality-effect-toggle"><input type="checkbox" checked={item.member_enabled} onChange={event => updatePersonality(item.id, { member_enabled: event.target.checked })} /><span><strong>{item.name}</strong><small>{(item.built_in && PERSONALITY_PRESENTATION[item.id]?.description) || item.profile.role}</small></span></label>
+            {item.member_enabled && <ListingControls item={item} allowPermanent onChange={updates => updatePersonality(item.id, updates)} />}
+          </div>)}
+        </div>
+        <details className="personality-details">
+          <summary>Advanced · traits & stacking</summary>
+          <p className="personality-note">Traits change one aspect of the voice. They can stack with other categories, but not with a timed full personality.</p>
         <div className="personality-effect-catalog">{form.traits.map(trait => <div className="personality-effect" key={trait.id}>
           <label className="personality-effect-toggle"><input type="checkbox" checked={trait.member_enabled} onChange={event => updateTrait(trait.id, { member_enabled: event.target.checked })} /><span><strong>{effectName(trait.id, trait.name)}</strong><small>{EFFECT_DESCRIPTIONS[trait.id] || trait.style_note || `${CATEGORY_LABELS[trait.category]}: ${TRAIT_CATEGORY_OPTIONS[trait.category].options.find(option => option.value === trait.value)?.label || trait.value}`}</small></span></label>
           {trait.member_enabled && <ListingControls item={trait} onChange={updates => updateTrait(trait.id, updates)} />}
         </div>)}</div>
-        <details className="personality-details">
-          <summary>Advanced effect settings</summary>
           <div className="ai-effect-rule"><div><strong>Effects combine automatically.</strong><span>One effect per style category. Conflicting purchases are blocked.</span></div><label><span>Maximum simultaneous effects</span><select className="form-control" value={form.max_active_traits} onChange={event => setForm({ max_active_traits: Number(event.target.value) })}>{[1, 2, 3].map(value => <option key={value} value={value}>{value}</option>)}</select></label></div>
           <h3>Custom effects</h3>
           {form.traits.filter(trait => !trait.built_in).map(trait => <details className="personality-details" key={trait.id}>
@@ -188,13 +199,7 @@ export function PersonalitySettings({ form, setForm, saved, onEndEffect }: { for
             </div>
             <button className="btn personality-remove" type="button" disabled={traitLeases.some(lease => lease.trait_id === trait.id)} onClick={() => setForm({ traits: form.traits.filter(item => item.id !== trait.id) })}>Remove effect</button>
           </details>)}
-          <button className="btn" type="button" disabled={form.traits.filter(trait => !trait.built_in).length >= 24} onClick={() => setForm({ traits: [...form.traits, { id: newId('trait'), name: uniqueName('My Effect', form.traits), category: 'mood', value: 'overenthusiastic', style_note: '', built_in: false, member_enabled: false, price_acosmicoins: 0, duration_minutes: 60 }] })}>Create an effect</button>
-          <h3 className="personality-publishing-heading">Offer full personalities</h3>
-          <p className="personality-note">A full personality temporarily replaces the server’s voice and cannot combine with other effects.</p>
-          {form.personalities.map(item => <div className="personality-effect" key={item.id}>
-            <label className="personality-effect-toggle"><input type="checkbox" checked={item.member_enabled} onChange={event => updatePersonality(item.id, { member_enabled: event.target.checked })} /><span>{item.name}</span></label>
-            {item.member_enabled && <ListingControls item={item} onChange={updates => updatePersonality(item.id, updates)} />}
-          </div>)}
+          <button className="btn" type="button" disabled={form.traits.filter(trait => !trait.built_in).length >= 24} onClick={() => setForm({ traits: [...form.traits, { id: newId('trait'), name: uniqueName('My Effect', form.traits), category: 'mood', value: 'overenthusiastic', style_note: '', built_in: false, member_enabled: false, price_acosmicoins: 0, duration_minutes: 10 }] })}>Create an effect</button>
         </details>
       </>}
     </CollapsibleSection>

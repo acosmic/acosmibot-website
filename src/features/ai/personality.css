@@ -74,6 +74,9 @@
 .personality-effect-toggle strong { display: block; font-size: 15px; color: var(--text-primary); }
 .personality-effect-toggle small { display: block; margin-top: 4px; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 .personality-listing { margin-top: 16px; max-width: 520px; padding-left: 32px; }
+.personality-listing label { display: block; }
+.personality-listing select { width: 100%; min-height: 44px; }
+.personality-listing label + label { margin-top: 12px; }
 .personality-publishing-heading { margin-top: 28px; }
 .personality-choice:focus-visible, .personality-details > summary:focus-visible, .personality-effect-toggle input:focus-visible, .personality-intensity input:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
 @media (max-width: 900px) {
