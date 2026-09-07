@@ -44,6 +44,10 @@ function elapsed(event: LiveEvent) {
   return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
 }
 
+function locationLabel(event: LiveEvent) {
+  return event.guild_name || (event.category === 'website' ? 'Website' : 'Direct / global');
+}
+
 export const LiveActivityTab: React.FC = () => {
   const [categories, setCategories] = useState<Set<Category>>(() => {
     const stored = localStorage.getItem('admin-live-activity-filters');
@@ -236,7 +240,7 @@ export const LiveActivityTab: React.FC = () => {
           : <>{events.map((event) => (
             <button className={`live-event is-${event.outcome}`} type="button" key={event.activity_id} onClick={() => setSelected(event)}>
               <span className="live-event__pulse" aria-hidden="true" />
-              <span className="live-event__identity"><strong>{event.guild_name || 'Direct / global'}</strong><span>{event.user_name || 'Acosmibot system'}</span></span>
+              <span className="live-event__identity"><strong>{locationLabel(event)}</strong><span>{event.user_name || 'Acosmibot system'}</span></span>
               <span className="live-event__action"><strong>{event.action}</strong><span>{event.outcome === 'running' ? 'In progress' : event.outcome}</span></span>
               <span className="live-event__time"><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</time><span>{elapsed(event)}</span></span>
             </button>
@@ -248,7 +252,7 @@ export const LiveActivityTab: React.FC = () => {
           <header><div><span>Activity log</span><h3 id="live-detail-title">{selected.action}</h3></div><button autoFocus type="button" onClick={() => setSelected(null)} aria-label="Close activity log"><X /></button></header>
           <div className="live-detail__status"><i className={`is-${selected.outcome}`} /><strong>{selected.outcome}</strong><span>{new Date(selected.occurred_at).toLocaleString()}</span></div>
           <dl>
-            <div><dt>Server</dt><dd>{selected.guild_name || 'Direct / global'}</dd></div>
+            <div><dt>Location</dt><dd>{locationLabel(selected)}</dd></div>
             <div><dt>User</dt><dd>{selected.user_name || 'Acosmibot system'}</dd></div>
             <div><dt>Duration</dt><dd>{elapsed(selected)}</dd></div>
             <div><dt>Category</dt><dd>{selected.category}</dd></div>

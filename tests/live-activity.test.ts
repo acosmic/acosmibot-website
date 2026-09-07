@@ -10,6 +10,7 @@ test('live activity is the owner landing view with independent filters', () => {
   assert.match(source, /Commands/);
   assert.match(source, /AI usage/);
   assert.match(source, /Website actions/);
+  assert.match(source, /event\.category === 'website' \? 'Website' : 'Direct \/ global'/);
   assert.match(source, /aria-pressed=\{active\}/);
 });
 
