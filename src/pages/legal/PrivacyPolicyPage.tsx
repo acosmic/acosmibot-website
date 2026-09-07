@@ -8,7 +8,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="August 29, 2026"
+    lastUpdated="September 6, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -37,6 +37,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Activity Streaks:</strong> Consecutive days of server activity for leveling features</li>
         <li><strong>Experience Points (XP):</strong> Calculated based on your server participation</li>
         <li><strong>Level Information:</strong> Your current level in each server and globally</li>
+        <li><strong>Owner Activity Feed:</strong> Command names, AI route and tool labels, completed website actions, outcome, timing, Discord display name, and server name may appear for up to 24 hours in an owner-only operational feed. Command arguments, message content, AI prompts and output, tool payloads, and configuration values are excluded.</li>
       </ul>
 
       <LegalSubheading>2.3 Economy &amp; Game Data</LegalSubheading>
@@ -173,6 +174,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
         <li><strong>AI Credit Accounting:</strong> Wallet, purchase, ledger, reservation, refund, and dispute records may be retained for at least seven years for tax, accounting, fraud, and service-liability obligations</li>
         <li><strong>AI Provider Telemetry:</strong> Structured provider/cost/latency records are retained for up to 90 days for operations and reconciliation; prompts and generated content are not retained in those telemetry records</li>
+        <li><strong>Owner Activity Feed:</strong> Content-safe activity summaries are retained for up to 24 hours</li>
         <li><strong>Local AI Traces:</strong> Content-free routing, provider, tool, safety, delivery, and settlement spans are retained for up to 90 days</li>
         <li><strong>AI Image Content:</strong> Stored generation prompts, revised prompts, analysis text, and result URLs are erased after 30 days; non-content quota and accounting fields may remain under the applicable operational or billing retention period</li>
         <li><strong>Error Monitoring:</strong> Scrubbed Sentry events are retained for no longer than 90 days and may be retained for a shorter period under the active project settings</li>

@@ -46,9 +46,11 @@ import { AnalyticsTab } from './AnalyticsTab';
 import { AdminDetailDialog } from './AdminDetailDialog';
 import { PremiumGrantsTab } from './PremiumGrantsTab';
 import { SocialStudioTab } from './SocialStudioTab';
+import { LiveActivityTab } from './LiveActivityTab';
 import '@/styles/admin.css';
 
 const ADMIN_TABS = [
+  { id: 'live', label: 'Live Activity', group: 'Now', description: 'Watch commands, AI routes, tools, and website actions as they happen.', icon: Activity },
   { id: 'signins', label: 'Sign-In Log', group: 'Security', description: 'Review recent website authentication events and reveal network details only when needed.', icon: Fingerprint },
   { id: 'servers', label: 'Servers', group: 'Network', description: 'Inspect every connected Discord server, its status, subscription, and stored configuration.', icon: Server },
   { id: 'grants', label: 'Premium Grants', group: 'Network', description: 'Issue, schedule, extend, revoke, and restore audited complimentary server access.', icon: BadgeCheck },
@@ -327,7 +329,7 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<AdminTab>('signins');
+  const [tab, setTab] = useState<AdminTab>('live');
   const [authChecked, setAuthChecked] = useState(false);
   const activeTab = ADMIN_TABS.find((item) => item.id === tab) ?? ADMIN_TABS[0];
   const ActiveIcon = activeTab.icon;
@@ -463,6 +465,7 @@ export const AdminPage: React.FC = () => {
             </header>
 
             <div className="admin-workspace__body">
+        {tab === 'live' && <LiveActivityTab />}
         {tab === 'signins' && (
           <div className="admin-surface">
             {signinResult.loading ? (
