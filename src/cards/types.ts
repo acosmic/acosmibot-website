@@ -184,3 +184,195 @@ export interface WowProfileTalent {
   name: string;
   points: number;
 }
+
+/**
+ * League cards deliberately carry identifiers rather than image URLs. The
+ * render function owns every Data Dragon URL, so callers cannot turn a card
+ * request into an arbitrary network request.
+ */
+export type LolCardKind =
+  | 'lol-profile'
+  | 'lol-history'
+  | 'lol-match'
+  | 'lol-player'
+  | 'lol-timeline';
+
+export type LolResult = 'victory' | 'defeat' | 'remake' | 'unknown';
+export type LolRole = 'top' | 'jungle' | 'middle' | 'bottom' | 'support' | 'unknown';
+export type LolTimelineEventType =
+  | 'champion-kill'
+  | 'tower'
+  | 'inhibitor'
+  | 'dragon'
+  | 'herald'
+  | 'baron'
+  | 'unknown';
+
+export interface LolCardBase {
+  card: LolCardKind;
+  /** Public Riot ID only; raw PUUID, encrypted ID, and full match ID never belong here. */
+  riotId: string;
+  platform: string;
+  /** A reviewed Data Dragon release, or null/absent when static assets are unavailable. */
+  dataDragonVersion?: string | null;
+  /** A factual degradation message supplied only for an optional unavailable section. */
+  notice?: string;
+}
+
+export type LolRankedEntry =
+  | {
+      status: 'ranked';
+      tier: string;
+      division: string;
+      leaguePoints: number;
+      wins: number;
+      losses: number;
+    }
+  | { status: 'unranked' | 'unavailable'; detail?: string };
+
+export interface LolMasteryEntry {
+  championId: number;
+  championName: string;
+  level: number;
+  points: number;
+  lastPlayed?: string;
+}
+
+export interface LolProfileCardData extends LolCardBase {
+  card: 'lol-profile';
+  level: number;
+  profileIconId?: number;
+  soloDuo: LolRankedEntry;
+  flex: LolRankedEntry;
+  mastery: LolMasteryEntry[];
+}
+
+export interface LolHistoryMatch {
+  result: LolResult;
+  relativeTime: string;
+  durationSeconds: number;
+  queueLabel: string;
+  championId?: number;
+  championName: string;
+  role: LolRole;
+  kills: number;
+  deaths: number;
+  assists: number;
+  cs: number;
+  /** Derived and explicitly presented as such in the card. */
+  csPerMin?: number;
+}
+
+export interface LolHistoryCardData extends LolCardBase {
+  card: 'lol-history';
+  matches: LolHistoryMatch[];
+  unavailableCount?: number;
+}
+
+export interface LolItemSlot {
+  /** Data Dragon item ID; null means the slot was empty or unavailable. */
+  itemId: number | null;
+  /** Text fallback that keeps the item field factual if its icon is unavailable. */
+  itemName: string | null;
+}
+
+export interface LolParticipant {
+  riotId: string;
+  teamSide: 'blue' | 'red';
+  championId?: number;
+  championName: string;
+  role: LolRole;
+  level: number;
+  /** Numeric Match-V5 spell IDs; the renderer resolves canonical Data Dragon asset names. */
+  summonerSpellIds: number[];
+  kills: number;
+  deaths: number;
+  assists: number;
+  cs: number;
+  gold: number;
+  damage: number;
+  items: LolItemSlot[];
+}
+
+export interface LolTeam {
+  side: 'blue' | 'red';
+  result: LolResult;
+  /** All following totals are derived from the displayed participant facts. */
+  kills: number;
+  deaths: number;
+  assists: number;
+  gold: number;
+  towers: number;
+  dragons: number;
+  heralds: number;
+  barons: number;
+  inhibitors: number;
+}
+
+export interface LolMatchCardData extends LolCardBase {
+  card: 'lol-match';
+  matchSuffix: string;
+  queueLabel: string;
+  durationSeconds: number;
+  patch: string;
+  teams: LolTeam[];
+  participants: LolParticipant[];
+}
+
+export interface LolPlayerDerivedMetrics {
+  /** All values in this object are computed from public match facts. */
+  killParticipation?: number;
+  csPerMin?: number;
+  goldPerMin?: number;
+  teamDamageShare?: number;
+}
+
+export interface LolPlayerCardData extends LolCardBase {
+  card: 'lol-player';
+  matchSuffix: string;
+  queueLabel: string;
+  durationSeconds: number;
+  patch: string;
+  result: LolResult;
+  player: LolParticipant & {
+    damageTaken: number;
+    visionScore: number;
+    /** Numeric Match-V5 rune IDs; no caller supplies a rune image path. */
+    runeIds: number[];
+  };
+  derived: LolPlayerDerivedMetrics;
+  /** Timeline-only reconstruction; absent until the user explicitly requests it. */
+  purchaseOrder?: number[];
+}
+
+export interface LolTimelineLeadFrame {
+  minute: number;
+  blueGold: number;
+  redGold: number;
+}
+
+export interface LolTimelineEvent {
+  timestampSeconds: number;
+  type: LolTimelineEventType;
+  side: 'blue' | 'red' | 'neutral';
+  summary: string;
+}
+
+export interface LolTimelineCardData extends LolCardBase {
+  card: 'lol-timeline';
+  matchSuffix: string;
+  queueLabel: string;
+  durationSeconds: number;
+  status: 'available' | 'unavailable';
+  unavailableReason?: string;
+  /** Maximum 31 minute frames and 40 event summaries are accepted by the renderer. */
+  leadFrames: LolTimelineLeadFrame[];
+  events: LolTimelineEvent[];
+}
+
+export type LolCardData =
+  | LolProfileCardData
+  | LolHistoryCardData
+  | LolMatchCardData
+  | LolPlayerCardData
+  | LolTimelineCardData;

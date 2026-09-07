@@ -1,0 +1,96 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>League of Legends Public Lookups</h1>
+    <p class="docs-page-description">
+      Read public League profile, recent-match, scoreboard, player-detail, and on-demand timeline facts in an Acosmibot field report—without account linking, hidden ratings, or live-game scouting.
+    </p>
+  </header>
+
+  <section class="docs-section">
+    <h2>Availability and Scope</h2>
+    <p>
+      League lookups are available only in qualified, configured deployments. This repository's private, fixture-driven implementation is not enabled in public Acosmibot deployments until Riot eligibility, production-key, terms, privacy, support, and required notice requirements are complete. This page documents the feature behavior; it does not imply Riot endorsement.
+    </p>
+    <div class="info-card info-card-warning">
+      <h3>Public data only</h3>
+      <p>
+        When configured, the feature reads public profile and completed-match data. It does not link Riot accounts, store Riot IDs or match history, expose live spectator data, reveal hidden MMR, estimate LP change, or create subjective player labels.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+    <p>Every lookup requires an explicit platform. The platform is where the account plays, not the requester’s physical location.</p>
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/lol profile riot_id:&lt;gameName#tagLine&gt; platform:&lt;NA1|EUW1|...&gt;</div>
+        <div class="command-description">Shows the public Riot ID, platform, level, Solo/Duo and Flex entries, and up to three champion-mastery records. Unranked and unavailable sections are labeled directly.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">/lol history riot_id:&lt;gameName#tagLine&gt; platform:&lt;...&gt; [queue] [count:1..10]</div>
+        <div class="command-description">Shows up to five recent eligible matches by default and ten at most, with result, time, duration, champion, role, K/D/A, CS, and derived CS per minute where valid.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">/lol match riot_id:&lt;gameName#tagLine&gt; platform:&lt;...&gt; [game_number:1..10]</div>
+        <div class="command-description">Shows one completed-match scoreboard. Requester-only controls can switch to player detail or explicitly load the optional timeline.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>What the Cards Show</h2>
+    <table class="docs-table">
+      <thead><tr><th>Field report</th><th>Factual coverage</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Profile</strong></td><td>Riot ID, platform, level, separate rank queues, and mastery. Missing optional data remains explicitly unavailable.</td></tr>
+        <tr><td><strong>History</strong></td><td>Eligible public completed matches only. Custom and private games are excluded.</td></tr>
+        <tr><td><strong>Scoreboard</strong></td><td>Queue, duration, patch, safe match suffix, two team totals, objectives, and up to ten participant rows.</td></tr>
+        <tr><td><strong>Player detail</strong></td><td>Raw K/D/A, CS, gold, damage, vision, items, spells, and explicitly marked derived metrics such as kill participation.</td></tr>
+        <tr><td><strong>Timeline</strong></td><td>Lazy-loaded deterministic event summaries and minute-frame team gold state. If unavailable, the scoreboard remains valid and the absence is stated.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Icons support the data but never replace it: results are written as Victory, Defeat, Remake, or unknown; roles, champions, items, and numbers stay readable when a static asset is unavailable.
+    </p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Direct Facts and Derived Metrics</h2>
+    <p>
+      Match and profile fields returned by Riot are presented as direct facts. KDA ratio, CS per minute, gold per minute, kill participation, team shares, team K/D/A and gold totals, event sequence, and gold-state summaries are calculated from those facts and labeled <strong>derived</strong>.
+    </p>
+    <div class="info-card info-card-info">
+      <h3>What Acosmibot does not infer</h3>
+      <p>
+        A card will not invent MMR/ELO, per-match LP, win probability, a performance rating, a replay, a Riot-written recap, or labels such as MVP, carried, or inting. An unavailable value remains unavailable.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>AI Tool Control</h2>
+    <p>
+      In a qualified, configured deployment, managers can independently enable or disable <strong>League of Legends Lookups</strong> in the AI Tools section of the Acosmibot dashboard. The setting filters the native <code>lol_lookup</code> tool before model planning and is checked again before execution; it does not disable ordinary slash commands.
+    </p>
+    <p>
+      The tool is foreground-only, read-only, and free. A natural-language request uses the usual AI-chat allowance. It only performs a timeline fetch when the request explicitly asks for a match timeline; it is never called for ambient replies and returns no trusted URLs or raw account identifiers.
+    </p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Refresh Timing and Troubleshooting</h2>
+    <div class="faq-item"><h4>Q: Why is a match missing?</h4><p>A: Match history may be empty, delayed, partially unavailable, or filtered because custom/private queues are out of scope. Acosmibot reports the returned count rather than estimating missing rows.</p></div>
+    <div class="faq-item"><h4>Q: Why is an icon missing?</h4><p>A: The renderer uses allowlisted official Data Dragon assets with strict size, timeout, and request limits. An asset outage falls back to factual text and does not change the match data.</p></div>
+    <div class="faq-item"><h4>Q: Why is the Timeline unavailable?</h4><p>A: Timeline data is intentionally loaded only after an explicit request. A rate limit or upstream failure disables that view for the current result while keeping the completed-match scoreboard available.</p></div>
+  </section>
+
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('wow')">
+      <span class="arrow">←</span><span class="nav-label">Back</span><span class="nav-page">World of Warcraft</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('portals')">
+      <span class="nav-page">Cross-Server Portals</span><span class="nav-label">Next</span><span class="arrow">→</span>
+    </button>
+  </div>
+</div>

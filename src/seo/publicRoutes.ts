@@ -225,6 +225,7 @@ export const DOC_ROUTES = [
   ['embeds', 'Discord Embed Builder'],
   ['reminders', 'Discord Reminders'],
   ['wow', 'World of Warcraft Character Lookups'],
+  ['lol', 'League of Legends Public Lookups'],
   ['portals', 'Cross-Server Portals'],
   ['polymorph', 'Discord Polymorph'],
   ['jail', 'Discord Jail System'],
@@ -298,6 +299,10 @@ const SPECIAL_DOC_META: Partial<Record<(typeof DOC_ROUTES)[number][0], Pick<SeoM
   wow: {
     title: 'WoW Character Lookup Bot for Discord | Acosmibot Docs',
     description: 'Look up Retail and Classic World of Warcraft characters in Discord with full-body profile cards, combat stats, gear, talents, PvP, raids, and Retail Mythic+ data.',
+  },
+  lol: {
+    title: 'League of Legends Profile & Match Lookup for Discord | Acosmibot Docs',
+    description: 'Learn how qualified, configured Acosmibot deployments provide public League of Legends profiles, match history, scoreboards, player detail, timelines, and optional AI lookup controls for Discord.',
   },
   commands: {
     title: 'Acosmibot Discord Commands | Complete Command List',

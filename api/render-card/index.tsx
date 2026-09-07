@@ -40,8 +40,12 @@ import {
   CARD_WIDTH as AI_STATUS_WIDTH,
   CARD_HEIGHT as AI_STATUS_HEIGHT,
 } from '../../src/cards/AIStatusCard';
+import { isValidLolCard, renderLolPng } from './lol';
+export { isAllowedDataDragonAssetUrl, LOL_RENDER_LIMITS } from './lol';
+export { compactLolText } from '../../src/cards/LolCards';
 import type {
   AIStatusCardData,
+  LolCardData,
   RankCardData,
   WeatherCardData,
   WowProfileCardData,
@@ -265,6 +269,10 @@ async function renderAIStatusPng(data: AIStatusCardData): Promise<Buffer> {
   return Buffer.from(resvg.render().asPng());
 }
 
+async function renderLeaguePng(data: LolCardData): Promise<Buffer> {
+  return renderLolPng(data, loadFonts, ensureWasm);
+}
+
 // Azure SWA managed functions may deliver the request body as a string (or a
 // Buffer), not a parsed object — normalize it here.
 function parseBody(req: any): unknown {
@@ -463,6 +471,33 @@ export async function run(context: any, req: any): Promise<void> {
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'wow-profile';
   const wantsAIStatus =
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'ai-status';
+  const wantsLeagueCard =
+    !!data
+    && typeof data === 'object'
+    && typeof (data as Record<string, unknown>).card === 'string'
+    && (data as Record<string, unknown>).card!.startsWith('lol-');
+
+  if (wantsLeagueCard) {
+    if (!isValidLolCard(data)) {
+      context.res = { status: 400, body: 'Invalid League card payload' };
+      return;
+    }
+    try {
+      const png = await renderLeaguePng(data);
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
+        body: png,
+        isRaw: true,
+      };
+    } catch {
+      // The payload carries public Riot IDs. Never log it or a renderer error,
+      // which may include a string from the SVG tree.
+      context.log?.error?.('League card render failed');
+      context.res = { status: 500, body: 'Render failed' };
+    }
+    return;
+  }
 
   if (wantsAIStatus) {
     if (!isValidAIStatus(data)) {

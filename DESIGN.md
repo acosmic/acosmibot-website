@@ -353,6 +353,25 @@ Authenticated selection and control surfaces use a restrained operational expres
 - **Responsive behavior:** Server bands become one-column catalogs. The owner module rail becomes a compact two-column selector above its workspace, and tables become labeled record cards instead of forcing horizontal page scroll.
 - **Motion and depth:** Operational surfaces animate only state changes, loading signals, and deliberate hover or focus feedback. Panels are opaque enough for sustained reading; blur is reserved for true overlays.
 
+## League Field-report Cards
+
+League lookup cards are compact public-data field reports, not an imitation of
+the League client. They use Observatory Void, graphite ledger planes, fine
+instrument dividers, Signal Cyan for selected/factual emphasis, and literal
+green/coral result states. The rendering direction is deliberately split by
+job: **A — Balanced Ledger** is the ten-player scoreboard because the result,
+player, and K/D/A path must remain readable after Discord downscales the image;
+**B** informs only the Player Detail hierarchy; **C** informs only the Timeline
+with a connected gold plot and side-labelled event spine. Factual text remains
+present when art cannot load; no Riot logo belongs on these reports.
+
+Public product UI retains Poppins. The server-rendered 1200×675 PNG cards are
+an intentional, documented Urbanist exception: the renderer bundles Urbanist
+locally for predictable Satori shaping and a tighter data-ledger measure. It
+must not silently become a new website-wide typeface. Unavailable asset states
+use a readable name where known, otherwise a kind plus public numeric ID; an
+ARIA label alone is insufficient because Discord receives raster output.
+
 ## Components
 
 Components should feel tactile and confident: substantial enough to invite action, restrained enough to support long configuration sessions.
