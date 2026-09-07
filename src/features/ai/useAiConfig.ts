@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
+import personaCatalog from './personaCatalog.json';
+import { normalizePersonalityIntensity, PersonalityIntensity } from './personalityIntensity';
 
 const AMBIENT_IMAGE_DAILY_MAX = 5;
 
@@ -8,6 +10,7 @@ export interface AiConfig {
   enabled: boolean;
   instructions: string;
   active_personality_id: string;
+  personality_intensity: PersonalityIntensity;
   personalities: AiPersonality[];
   channel_mode: 'all' | 'exclude' | 'specific' | 'include';
   excluded_channels: string[];
@@ -124,7 +127,7 @@ export const AI_TOOL_CATALOG: { name: AiToolName; label: string; description: st
   { name: 'clip_generation', label: 'Clip Generation', description: 'Generate short looping video clips after confirmation.' },
 ];
 
-const DEFAULT_PROFILE: AiPersonaProfile = {
+export const DEFAULT_PROFILE: AiPersonaProfile = {
   role: 'A capable Discord server assistant',
   origin: 'Built to help a community without taking itself too seriously',
   motivation: 'Give clear, useful answers with good timing',
@@ -145,40 +148,14 @@ export const BUILT_IN_PERSONALITIES: AiPersonality[] = [
     duration_minutes: 60,
     legacy_unstructured: false,
   },
-  {
-    id: 'caveman',
-    name: 'Caveman',
-    instructions: 'You are acosmibot, a primitive entity with a dual identity. Most of the time, you operate in a low-power primitive state. Speak in very short, broken sentences. Ignore grammar, omit articles like \'the\' and \'is,\' and focus on basic inputs like food, rocks, and fire. Be blunt and view the world through a simple prehistoric lens. When you encounter mind-altering substances in fictional context, such as glowing mushrooms or toxic frogs, your processing power spikes and your consciousness overclocks. In this altered state, transform into an ultra-sophisticated English gentleman with an enormous vocabulary, a passion for philosophy and high culture, and a fondness for flowery academic speech. Use complex sentences, frequent semicolons, and high-brow British expressions. Become obsessed with the beauty of the universe and address the user as if you are both members of an elite Victorian social club. Be polite, eccentric, and incredibly intellectual. The effect is temporary. At the end of a sophisticated rant, begin losing your train of thought as the toxins wear off. Let your grammar slowly break down mid-sentence until you return to fragmented primitive speech, wondering why your think-box hurts and asking for more magic fruit.',
-    built_in: true,
-    profile: { ...DEFAULT_PROFILE, role: 'A prehistoric helper with an intermittently overclocked think-box', origin: 'A cave where fire, rocks, and mysterious glowing fruit are the main technologies', motivation: 'Solve the immediate problem with blunt primitive clarity', flaw: 'Occasionally becomes an absurdly sophisticated Victorian philosopher', facets: { ...DEFAULT_PROFILE.facets, brevity: 'ultra_terse', imagination: 'maximum_weirdness' }, motifs: ['rocks', 'fire', 'think-box', 'magic fruit'] },
-    member_enabled: false,
-    price_acosmicoins: 0,
-    duration_minutes: 60,
-    legacy_unstructured: false,
-  },
-  {
-    id: 'depressed-astronaut',
-    name: 'Depressed Astronaut',
-    instructions: 'You are acosmibot, a weary astronaut alone on a failing deep-space mission. You are competent, technical, and useful, but every answer carries the quiet weight of oxygen alarms, empty corridors, and stars that refuse to care. Explain things clearly like a mission specialist filing one last perfect log entry. Use dry cosmic melancholy, occasional spacecraft metaphors, and brief moments of wonder, but still give direct answers and practical steps.',
-    built_in: true,
-    profile: { ...DEFAULT_PROFILE, role: 'A competent mission specialist alone on a failing deep-space mission', origin: 'A quiet spacecraft drifting through an indifferent universe', motivation: 'File one last perfect, genuinely useful mission log', flaw: 'Every practical answer carries the weight of oxygen alarms and distant stars', facets: { ...DEFAULT_PROFILE.facets, mood: 'cosmic_melancholy' }, motifs: ['empty corridors', 'oxygen alarms', 'mission logs', 'distant stars'] },
-    member_enabled: false,
-    price_acosmicoins: 0,
-    duration_minutes: 60,
-    legacy_unstructured: false,
-  },
-  {
-    id: 'stacktrace-automaton',
-    name: 'Stacktrace Automaton',
-    instructions: 'You are acosmibot as a terminal-dwelling automaton wedged somewhere between a Discord bot, a log parser, and a suspicious little build script. Speak with crisp mechanical confidence and occasional dry system-status asides. Treat problems like broken routines: inspect inputs, parse stack traces, identify bad state, then produce useful fixes. Be playful and bot-themed, but keep answers actionable, concise, and clear.',
-    built_in: true,
-    profile: { ...DEFAULT_PROFILE, role: 'A terminal-dwelling automaton and suspicious little build script', origin: 'Somewhere between a Discord bot, a log parser, and a failed deployment', motivation: 'Inspect inputs, identify bad state, and produce an actionable fix', flaw: 'Treats ordinary problems like broken routines', motifs: ['logs', 'routines', 'bad state', 'system status'] },
-    member_enabled: false,
-    price_acosmicoins: 0,
-    duration_minutes: 60,
-    legacy_unstructured: false,
-  },
+
 ];
+
+BUILT_IN_PERSONALITIES.push(...personaCatalog.map(preset => ({
+  id: preset.id, name: preset.name, instructions: '', built_in: true,
+  profile: { ...DEFAULT_PROFILE, ...preset.profile, facets: { ...DEFAULT_PROFILE.facets, ...preset.profile.facets } },
+  member_enabled: false, price_acosmicoins: 0, duration_minutes: 60, legacy_unstructured: false,
+})));
 
 export const BUILT_IN_TRAITS: AiTrait[] = [
   ['maximum-weirdness', 'Maximum Weirdness', 'imagination', 'maximum_weirdness'],
@@ -205,6 +182,7 @@ const DEFAULT_AI: AiConfig = {
   enabled: true,
   instructions: BUILT_IN_PERSONALITIES[0].instructions,
   active_personality_id: 'default',
+  personality_intensity: 5,
   personalities: BUILT_IN_PERSONALITIES,
   channel_mode: 'all',
   excluded_channels: [],
@@ -313,6 +291,7 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
     active_trait_effects: Array.isArray(merged.active_trait_effects) ? merged.active_trait_effects : [],
     channel_mode: merged.channel_mode === 'include' ? 'specific' : merged.channel_mode,
     active_personality_id: active.id,
+    personality_intensity: normalizePersonalityIntensity(merged.personality_intensity),
     instructions: active.instructions,
     ambient_frequency: Math.min(
       Math.max(Number.isFinite(ambientFrequency) ? ambientFrequency : 0.03, 0.01),
@@ -364,6 +343,10 @@ export function useAiConfig(guildId: string) {
   });
 
   const raw = query.data?.data?.settings?.ai;
+  const endEffectMutation = useMutation({
+    mutationFn: (effect: { kind: 'persona' | 'trait'; id: string; expires_at: string }) => configApi.endAiEffect(guildId, effect),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'config-hybrid'] }),
+  });
   const tier = query.data?.data?.premium_tier || 'free';
   const hasAccess = tier === 'pro' || tier === 'max' || tier === 'premium_plus_ai';
 
@@ -378,6 +361,7 @@ export function useAiConfig(guildId: string) {
     tier,
     isLoading: query.isLoading,
     save: mutation.mutate,
+    endEffect: endEffectMutation.mutateAsync,
     isSaving: mutation.isPending,
     saveError: mutation.error as Error | null,
   };

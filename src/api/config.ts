@@ -22,6 +22,11 @@ export interface JailSetupResponse {
 }
 
 export const configApi = {
+  endAiEffect: (guildId: string, effect: { kind: 'persona' | 'trait'; id: string; expires_at: string }) =>
+    api.fetch<{ success: boolean }>(`/api/guilds/${guildId}/ai/effects/end`, {
+      method: 'POST', body: JSON.stringify(effect),
+    }),
+
   getHybridConfig: (guildId: string) =>
     api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`),
 

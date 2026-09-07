@@ -1,26 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, Bot, WalletCards } from 'lucide-react';
 import {
   useAiConfig,
   AiConfig,
-  AiPersonality,
-  AiTrait,
-  AiPersonaProfile,
-  TraitCategory,
-  TRAIT_CATEGORY_OPTIONS,
   AI_TOOL_CATALOG,
 } from './useAiConfig';
+import { PersonalitySettings } from './PersonalitySettings';
 import { AiMemorySection } from './AiMemorySection';
 import { AiServerMemorySection } from './AiServerMemorySection';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, TimezoneSelect } from '@/components/ui';
 import { detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
-
-const NAME_MAX = 48;
-const PROFILE_FIELD_MAX = 180;
-const TRAIT_STYLE_MAX = 240;
 
 // Ambient chat bounds — must mirror acosmibot-core ai_personalities.
 const AMBIENT_MIN_COOLDOWN_MIN = 2;     // 120s
@@ -31,8 +23,6 @@ const AMBIENT_IMAGE_DAILY_MAX = 5;
 
 const clamp = (value: number, min: number, max: number) =>
   Number.isNaN(value) ? min : Math.min(Math.max(value, min), max);
-
-const createPersonalityId = () => `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 const AIPaidOveragePanel: React.FC<{ guildId: string }> = ({ guildId }) => (
   <section className="ai-paid-overage-panel" aria-labelledby="ai-paid-overage-heading">
@@ -49,24 +39,11 @@ const AIPaidOveragePanel: React.FC<{ guildId: string }> = ({ guildId }) => (
   </section>
 );
 
-const uniqueName = (baseName: string, personalities: AiPersonality[]) => {
-  const existingNames = new Set(personalities.map(p => p.name.toLowerCase()));
-  let name = baseName.slice(0, NAME_MAX);
-  let index = 2;
-  while (existingNames.has(name.toLowerCase())) {
-    const suffix = ` ${index}`;
-    name = `${baseName.slice(0, NAME_MAX - suffix.length)}${suffix}`;
-    index += 1;
-  }
-  return name;
-};
-
 export const AiPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { data, hasAccess, tier, isLoading, save, isSaving, saveError } = useAiConfig(guildId!);
+  const { data, hasAccess, tier, isLoading, save, isSaving, saveError, endEffect } = useAiConfig(guildId!);
   const { form, setForm, isDirty, resetForm } = useDirtyState<AiConfig>(data);
   const { data: channels } = useGuildChannels(guildId!);
-  const [selectedTraitId, setSelectedTraitId] = useState('maximum-weirdness');
 
   const textChannels = useMemo(
     () => (channels ?? []).filter(c => c.type === 0 || c.type === 5),
@@ -139,15 +116,6 @@ export const AiPage: React.FC = () => {
   const activePersonality = form.personalities.find(p => p.id === form.active_personality_id) || form.personalities[0];
   if (!activePersonality) return <div>No AI personalities found.</div>;
 
-  const customPersonalities = form.personalities.filter(p => !p.built_in);
-  const selectedTrait = form.traits.find(trait => trait.id === selectedTraitId) || form.traits[0];
-  const leasedPersonality = form.active_personality_effect
-    ? form.personalities.find(personality => personality.id === form.active_personality_effect?.personality_id)
-    : null;
-  const leasedTraits = form.active_trait_effects.flatMap(effect => {
-    const trait = form.traits.find(item => item.id === effect.trait_id);
-    return trait ? [{ effect, trait }] : [];
-  });
   const ambientDailyMax = tier === 'max' ? 100 : 25;
   const ambientFrequencyPct = clamp(
     Math.round((form.ambient_frequency ?? 0.03) * 100),
@@ -168,70 +136,6 @@ export const AiPage: React.FC = () => {
     / (AMBIENT_CHANCE_MAX_PCT - AMBIENT_CHANCE_MIN_PCT)
   ) * 100;
 
-  const updatePersonalities = (personalities: AiPersonality[], activeId = form.active_personality_id) => {
-    const active = personalities.find(p => p.id === activeId) || personalities[0];
-    setForm({
-      personalities,
-      active_personality_id: active.id,
-      instructions: active.instructions,
-    });
-  };
-
-  const selectPersonality = (personalityId: string) => {
-    updatePersonalities(form.personalities, personalityId);
-  };
-
-  const updateActivePersonality = (updates: Partial<AiPersonality>) => {
-    const next = form.personalities.map(p =>
-      p.id === activePersonality.id ? { ...p, ...updates } : p
-    );
-    updatePersonalities(next, activePersonality.id);
-  };
-
-  const updateActiveProfile = (updates: Partial<AiPersonaProfile>) => {
-    updateActivePersonality({
-      profile: { ...activePersonality.profile, ...updates },
-      legacy_unstructured: false,
-    });
-  };
-
-  const addPersonality = () => {
-    const nextPersonality: AiPersonality = {
-      id: createPersonalityId(),
-      name: uniqueName('Custom Personality', form.personalities),
-      instructions: '',
-      built_in: false,
-      profile: JSON.parse(JSON.stringify(activePersonality.profile)),
-      member_enabled: false,
-      price_acosmicoins: 0,
-      duration_minutes: 60,
-      legacy_unstructured: false,
-    };
-    updatePersonalities([...form.personalities, nextPersonality], nextPersonality.id);
-  };
-
-  const copyBuiltIn = () => {
-    if (!activePersonality) return;
-    const copy: AiPersonality = {
-      id: createPersonalityId(),
-      name: uniqueName(`${activePersonality.name} Copy`, form.personalities),
-      instructions: '',
-      built_in: false,
-      profile: JSON.parse(JSON.stringify(activePersonality.profile)),
-      member_enabled: false,
-      price_acosmicoins: 0,
-      duration_minutes: 60,
-      legacy_unstructured: false,
-    };
-    updatePersonalities([...form.personalities, copy], copy.id);
-  };
-
-  const deleteActivePersonality = () => {
-    if (!activePersonality || activePersonality.built_in) return;
-    const next = form.personalities.filter(p => p.id !== activePersonality.id);
-    updatePersonalities(next, 'default');
-  };
-
   const saveAiConfig = () => {
     if (!activePersonality) return;
     const {
@@ -247,45 +151,6 @@ export const AiPage: React.FC = () => {
     });
   };
 
-  const updateTrait = (traitId: string, updates: Partial<AiTrait>) => {
-    setForm({
-      traits: form.traits.map(trait => trait.id === traitId ? { ...trait, ...updates } : trait),
-    });
-  };
-
-  const addTrait = () => {
-    const trait: AiTrait = {
-      id: `trait-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
-      name: 'Custom Trait',
-      category: 'mood',
-      value: 'neutral',
-      style_note: '',
-      built_in: false,
-      member_enabled: false,
-      price_acosmicoins: 0,
-      duration_minutes: 60,
-    };
-    setForm({ traits: [...form.traits, trait] });
-    setSelectedTraitId(trait.id);
-  };
-
-  const deleteTrait = () => {
-    if (!selectedTrait || selectedTrait.built_in) return;
-    const next = form.traits.filter(trait => trait.id !== selectedTrait.id);
-    setForm({ traits: next });
-    setSelectedTraitId(next[0]?.id || '');
-  };
-
-  const updateFacet = (category: TraitCategory, value: string) => {
-    updateActiveProfile({ facets: { ...activePersonality.profile.facets, [category]: value } });
-  };
-
-  const updateProfileList = (key: 'catchphrases' | 'motifs' | 'terms_of_address', value: string) => {
-    updateActiveProfile({
-      [key]: value.split(',').map(item => item.trim()).filter(Boolean),
-    } as Pick<AiPersonaProfile, typeof key>);
-  };
-
   const toggleChannel = (channelId: string, listKey: 'excluded_channels' | 'allowed_channels') => {
     const current = form[listKey] || [];
     const next = current.includes(channelId)
@@ -298,8 +163,10 @@ export const AiPage: React.FC = () => {
     <div className="feature-page">
       <div className="page-header text-start mt-0 mb-4">
         <h1>AI Customization</h1>
-        <p>Give your server's AI a unique personality and set of rules.</p>
+        <p>Choose your server’s AI voice and how it joins the conversation.</p>
       </div>
+
+      <PersonalitySettings form={form} setForm={setForm} saved={data} onEndEffect={endEffect} />
 
       <AIPaidOveragePanel guildId={guildId!} />
 
@@ -543,109 +410,6 @@ export const AiPage: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
-        )}
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Personality Studio" defaultOpen={true}>
-        <p className="ai-control-intro">
-          Personas shape only the finished wording. Tool choice, permissions, facts, and safety stay under Acosmibot's code-owned rules.
-        </p>
-        <div className="ai-studio-toolbar">
-          <label>
-            <span>Server persona</span>
-            <select className="form-control" value={activePersonality.id} onChange={(event) => selectPersonality(event.target.value)}>
-              {form.personalities.map(personality => (
-                <option key={personality.id} value={personality.id}>{personality.name}{personality.built_in ? ' · built-in' : ''}</option>
-              ))}
-            </select>
-          </label>
-          <div className="ai-studio-toolbar__actions">
-            <button className="btn primary" type="button" onClick={addPersonality}>New persona</button>
-            {activePersonality.built_in ? (
-              <button className="btn" type="button" onClick={copyBuiltIn}>Copy to edit</button>
-            ) : (
-              <button className="btn" type="button" onClick={deleteActivePersonality} disabled={customPersonalities.length === 0}>Delete</button>
-            )}
-          </div>
-        </div>
-
-        {activePersonality.legacy_unstructured && (
-          <div className="ai-boundary-note" role="status">
-            This persona used the retired free-form prompt format. Its old instructions are no longer executed. Complete the structured profile below to migrate it safely.
-          </div>
-        )}
-
-        <div className="ai-profile-fields">
-          <label><span>Name</span><input className="form-control" value={activePersonality.name} disabled={activePersonality.built_in} maxLength={NAME_MAX} onChange={(event) => updateActivePersonality({ name: event.target.value })} /></label>
-          {(['role', 'origin', 'motivation', 'flaw'] as const).map(field => (
-            <label key={field}>
-              <span>{field === 'flaw' ? 'Comedic flaw' : field[0].toUpperCase() + field.slice(1)}</span>
-              <input className="form-control" value={activePersonality.profile[field]} disabled={activePersonality.built_in} maxLength={PROFILE_FIELD_MAX} onChange={(event) => updateActiveProfile({ [field]: event.target.value })} />
-            </label>
-          ))}
-        </div>
-
-        <div className="ai-facet-grid" aria-label="Persona voice facets">
-          {(Object.entries(TRAIT_CATEGORY_OPTIONS) as [TraitCategory, typeof TRAIT_CATEGORY_OPTIONS[TraitCategory]][]).map(([category, definition]) => (
-            <label key={category}>
-              <span>{definition.label}</span>
-              <select className="form-control" value={activePersonality.profile.facets[category]} disabled={activePersonality.built_in} onChange={(event) => updateFacet(category, event.target.value)}>
-                {definition.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </label>
-          ))}
-        </div>
-
-        <div className="ai-profile-fields ai-profile-fields--speech">
-          <label><span>Catchphrases</span><input className="form-control" value={activePersonality.profile.catchphrases.join(', ')} disabled={activePersonality.built_in} onChange={(event) => updateProfileList('catchphrases', event.target.value)} placeholder="Comma-separated, used sparingly" /></label>
-          <label><span>Recurring motifs</span><input className="form-control" value={activePersonality.profile.motifs.join(', ')} disabled={activePersonality.built_in} onChange={(event) => updateProfileList('motifs', event.target.value)} placeholder="Stars, clocks, old machinery" /></label>
-          <label><span>Terms of address</span><input className="form-control" value={activePersonality.profile.terms_of_address.join(', ')} disabled={activePersonality.built_in} onChange={(event) => updateProfileList('terms_of_address', event.target.value)} placeholder="Captain, esteemed traveler" /></label>
-        </div>
-        {activePersonality.built_in && <p className="text-muted small mt-3 mb-0">Built-in identities are locked. Copy one to create an editable persona.</p>}
-
-        <div className="ai-market-listing">
-          <label className="ai-market-listing__publish"><input type="checkbox" role="switch" checked={activePersonality.member_enabled} onChange={(event) => updateActivePersonality({ member_enabled: event.target.checked })} /><span>Publish this full persona for members</span></label>
-          <label><span>Price</span><NumberInput className="form-control" min={0} max={1000000000} value={activePersonality.price_acosmicoins} onValueChange={(value) => updateActivePersonality({ price_acosmicoins: Math.max(0, Math.trunc(value)) })} /><small>Acosmicoins</small></label>
-          <label><span>Duration</span><NumberInput className="form-control" min={5} max={10080} value={activePersonality.duration_minutes} onValueChange={(value) => updateActivePersonality({ duration_minutes: clamp(Math.trunc(value), 5, 10080) })} /><small>minutes</small></label>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Member Personality Effects" defaultOpen={true}>
-        <FeatureToggle label="Member effects" enabled={form.personality_marketplace_enabled} onChange={(enabled) => setForm({ personality_marketplace_enabled: enabled })} description="Let members spend Acosmicoins on the personas and traits you publish. Effects apply server-wide." />
-        {(leasedPersonality || leasedTraits.length > 0) && (
-          <div className="ai-active-effects" role="status">
-            <strong>Active member effect{leasedTraits.length > 1 ? 's' : ''}</strong>
-            {leasedPersonality && form.active_personality_effect && (
-              <span>{leasedPersonality.name} · until {new Date(form.active_personality_effect.expires_at).toLocaleString()}</span>
-            )}
-            {leasedTraits.map(({ effect, trait }) => (
-              <span key={effect.trait_id}>{trait.name} ({TRAIT_CATEGORY_OPTIONS[trait.category].label}) · until {new Date(effect.expires_at).toLocaleString()}</span>
-            ))}
-          </div>
-        )}
-        <div className="ai-effect-rule">
-          <div><strong>Compatibility is automatic.</strong><span>One active trait per category; traits in different categories can stack.</span></div>
-          <label><span>Maximum active traits</span><select className="form-control" value={form.max_active_traits} onChange={(event) => setForm({ max_active_traits: Number(event.target.value) })}>{[1, 2, 3].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-        </div>
-
-        {selectedTrait && (
-          <div className="ai-trait-editor">
-            <div className="ai-studio-toolbar">
-              <label><span>Trait</span><select className="form-control" value={selectedTrait.id} onChange={(event) => setSelectedTraitId(event.target.value)}>{form.traits.map(trait => <option key={trait.id} value={trait.id}>{trait.name} · {TRAIT_CATEGORY_OPTIONS[trait.category].label}</option>)}</select></label>
-              <div className="ai-studio-toolbar__actions"><button className="btn primary" type="button" onClick={addTrait}>New trait</button>{!selectedTrait.built_in && <button className="btn" type="button" onClick={deleteTrait}>Delete</button>}</div>
-            </div>
-            <div className="ai-trait-fields">
-              <label><span>Name</span><input className="form-control" value={selectedTrait.name} disabled={selectedTrait.built_in} maxLength={NAME_MAX} onChange={(event) => updateTrait(selectedTrait.id, { name: event.target.value })} /></label>
-              <label><span>Category slot</span><select className="form-control" value={selectedTrait.category} disabled={selectedTrait.built_in} onChange={(event) => { const category = event.target.value as TraitCategory; updateTrait(selectedTrait.id, { category, value: TRAIT_CATEGORY_OPTIONS[category].options[0].value }); }}><option value="mood">Mood</option><option value="register">Register</option><option value="brevity">Brevity</option><option value="imagination">Imagination</option><option value="attitude">Attitude</option><option value="delivery">Delivery</option></select></label>
-              <label><span>Style</span><select className="form-control" value={selectedTrait.value} disabled={selectedTrait.built_in} onChange={(event) => updateTrait(selectedTrait.id, { value: event.target.value })}>{TRAIT_CATEGORY_OPTIONS[selectedTrait.category].options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-              <label className="ai-trait-fields__note"><span>Extra flavor</span><textarea className="form-control" rows={3} value={selectedTrait.style_note} disabled={selectedTrait.built_in} maxLength={TRAIT_STYLE_MAX} onChange={(event) => updateTrait(selectedTrait.id, { style_note: event.target.value })} placeholder="A bounded presentation note—never a rule or tool instruction." /></label>
-            </div>
-            <div className="ai-market-listing">
-              <label className="ai-market-listing__publish"><input type="checkbox" role="switch" checked={selectedTrait.member_enabled} onChange={(event) => updateTrait(selectedTrait.id, { member_enabled: event.target.checked })} /><span>Publish this trait for members</span></label>
-              <label><span>Price</span><NumberInput className="form-control" min={0} max={1000000000} value={selectedTrait.price_acosmicoins} onValueChange={(value) => updateTrait(selectedTrait.id, { price_acosmicoins: Math.max(0, Math.trunc(value)) })} /><small>Acosmicoins</small></label>
-              <label><span>Duration</span><NumberInput className="form-control" min={5} max={10080} value={selectedTrait.duration_minutes} onValueChange={(value) => updateTrait(selectedTrait.id, { duration_minutes: clamp(Math.trunc(value), 5, 10080) })} /><small>minutes</small></label>
-            </div>
           </div>
         )}
       </CollapsibleSection>

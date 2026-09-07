@@ -1,0 +1,96 @@
+.personality-status {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.personality-status strong { color: var(--text-primary); }
+.personality-lease { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.personality-end-confirmation { padding: 16px 0; margin-bottom: 20px; border-block: 1px solid var(--border-light); }
+.personality-end-confirmation p { color: var(--text-secondary); font-size: 14px; max-width: 65ch; }
+.personality-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.personality-library, .personality-preview { min-width: 0; }
+.personality-choices { display: grid; gap: 0; }
+.personality-choice {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid transparent;
+  border-bottom-color: var(--border-light);
+  background: transparent;
+  color: var(--text-secondary);
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+  transition: background 150ms ease-out;
+}
+.personality-choice:hover { background: var(--bg-overlay); }
+.personality-choice[aria-pressed="true"] {
+  background: var(--bg-secondary);
+  border-color: var(--primary-color);
+  border-radius: 12px;
+}
+.personality-choice > span:first-child { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.personality-choice strong { font-size: 16px; color: var(--text-primary); }
+.personality-choice small { display: inline-flex; align-items: center; gap: 4px; color: var(--primary-color); font-size: 12px; }
+.personality-preview { position: sticky; top: 100px; padding-block: 12px; }
+.personality-preview h3, .personality-editor h3 { margin: 0 0 10px; font-size: 22px; }
+.personality-preview > p { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+.personality-example { margin-block: 24px; padding-block: 20px; border-block: 1px solid var(--border-light); }
+.personality-example-label { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+.personality-example p { margin-bottom: 20px; color: var(--text-primary); font-size: 16px; line-height: 1.65; overflow-wrap: anywhere; }
+.personality-example p strong { display: block; margin-bottom: 6px; font-size: 13px; color: var(--primary-color); }
+.personality-example small, .personality-note, .personality-simple-fields small, .personality-listing small { display: block; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.personality-note { margin: 12px 0; }
+.personality-intensity { padding: 0; margin: 0 0 20px; border: 0; }
+.personality-intensity-heading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 14px; }
+.personality-intensity-heading label { font-weight: 600; }
+.personality-intensity-heading output { color: var(--text-secondary); }
+.personality-intensity input[type="range"] { width: 100%; min-height: 44px; margin: 0; accent-color: var(--primary-color); cursor: pointer; }
+.personality-intensity-ticks { display: flex; justify-content: space-between; padding-inline: 6px; color: var(--text-secondary); font-size: 12px; }
+.personality-effect-toggle input { accent-color: var(--primary-color); width: 18px; height: 18px; flex-shrink: 0; }
+.personality-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.personality-actions .btn, .personality-create { min-height: 44px; }
+.personality-create { margin-top: 16px; }
+.personality-details { margin-top: 20px; border-top: 1px solid var(--border-light); }
+.personality-details > summary { padding: 14px 0; min-height: 48px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.personality-editor { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-light); }
+.personality-simple-fields, .personality-listing { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.personality-simple-fields label > span, .personality-listing label > span { display: block; font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
+.personality-description { grid-column: 1 / -1; }
+.personality-description textarea { min-height: 100px; }
+.personality-simple-fields small, .personality-listing small { margin-top: 6px; }
+.personality-remove { margin-top: 20px; }
+.personality-effect { border-bottom: 1px solid var(--border-light); padding-block: 14px; }
+.personality-effect-toggle { display: flex; gap: 14px; align-items: center; min-height: 44px; cursor: pointer; }
+.personality-effect-toggle strong { display: block; font-size: 15px; color: var(--text-primary); }
+.personality-effect-toggle small { display: block; margin-top: 4px; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.personality-listing { margin-top: 16px; max-width: 520px; padding-left: 32px; }
+.personality-publishing-heading { margin-top: 28px; }
+.personality-choice:focus-visible, .personality-details > summary:focus-visible, .personality-effect-toggle input:focus-visible, .personality-intensity input:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
+@media (max-width: 900px) {
+  .personality-workspace { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .personality-preview { position: static; }
+  .personality-preview h3 { font-size: 20px; }
+}
+@media (max-width: 540px) {
+  .personality-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .personality-choice { padding: 12px; min-height: 64px; }
+  .personality-choice strong { font-size: 14px; }
+  .personality-choice > span:last-child { display: none; }
+  .personality-choice small { font-size: 11px; }
+  .personality-simple-fields, .personality-listing { grid-template-columns: minmax(0, 1fr); }
+  .personality-listing { padding-left: 0; }
+  .personality-actions .btn { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .personality-choice { transition: none; }
+}
