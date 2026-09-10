@@ -54,6 +54,9 @@ export const LiveActivityTab: React.FC = () => {
     const parsed = stored?.split(',').filter((value): value is Category => FILTERS.some((item) => item.id === value));
     return new Set(parsed?.length ? parsed : FILTERS.map((item) => item.id));
   });
+  const [errorsOnly, setErrorsOnly] = useState(() => (
+    localStorage.getItem('admin-live-activity-errors-only') === 'true'
+  ));
   const [events, setEvents] = useState<LiveEvent[]>([]);
   const [connection, setConnection] = useState<'connecting' | 'live' | 'offline'>('connecting');
   const [paused, setPaused] = useState(false);
@@ -69,6 +72,14 @@ export const LiveActivityTab: React.FC = () => {
   const detailRef = useRef<HTMLElement>(null);
 
   const categoryParam = useMemo(() => [...categories].sort().join(','), [categories]);
+  const visibleEvents = useMemo(
+    () => errorsOnly ? events.filter((event) => event.outcome === 'error') : events,
+    [errorsOnly, events],
+  );
+
+  useEffect(() => {
+    localStorage.setItem('admin-live-activity-errors-only', String(errorsOnly));
+  }, [errorsOnly]);
 
   useEffect(() => {
     localStorage.setItem('admin-live-activity-filters', categoryParam);
@@ -142,8 +153,10 @@ export const LiveActivityTab: React.FC = () => {
   }, [selectedActivityId]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selectedActivityId) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const close = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setSelected(null);
       if (event.key !== 'Tab' || !detailRef.current) return;
@@ -162,9 +175,10 @@ export const LiveActivityTab: React.FC = () => {
     document.addEventListener('keydown', close);
     return () => {
       document.removeEventListener('keydown', close);
+      document.body.style.overflow = previousBodyOverflow;
       previousFocus?.focus();
     };
-  }, [selected]);
+  }, [selectedActivityId]);
 
   useEffect(() => {
     const onFullscreen = () => setFullscreen(document.fullscreenElement === shellRef.current);
@@ -221,7 +235,7 @@ export const LiveActivityTab: React.FC = () => {
         </div>
       </div>
 
-      <div className="live-activity__filters" role="group" aria-label="Activity categories">
+      <div className="live-activity__filters" role="group" aria-label="Activity filters">
         {FILTERS.map(({ id, label, icon: Icon }) => {
           const active = categories.has(id);
           return <button key={id} type="button" className={active ? 'is-active' : ''} aria-pressed={active} onClick={() => {
@@ -232,19 +246,36 @@ export const LiveActivityTab: React.FC = () => {
             });
           }}><span><i /> <Icon /></span>{label}</button>;
         })}
+        <button
+          type="button"
+          className={`is-error-filter${errorsOnly ? ' is-active' : ''}`}
+          aria-pressed={errorsOnly}
+          onClick={() => setErrorsOnly((current) => !current)}
+        >
+          <span><i /> <CircleAlert /></span>
+          Errors only
+        </button>
       </div>
 
       <div className="live-activity__feed" aria-live="polite" aria-busy={connection === 'connecting'}>
         {error ? <div className="live-activity__empty is-error"><CircleAlert /><strong>Activity feed unavailable</strong><span>{error}</span></div>
-          : events.length === 0 ? <div className="live-activity__empty"><Activity /><strong>Listening for activity</strong><span>New commands, AI routes, and website actions will arrive here.</span></div>
-          : <>{events.map((event) => (
-            <button className={`live-event is-${event.outcome}`} type="button" key={event.activity_id} onClick={() => setSelected(event)}>
-              <span className="live-event__pulse" aria-hidden="true" />
-              <span className="live-event__identity"><strong>{locationLabel(event)}</strong><span>{event.user_name || 'Acosmibot system'}</span></span>
-              <span className="live-event__action"><strong>{event.action}</strong><span>{event.outcome === 'running' ? 'In progress' : event.outcome}</span></span>
-              <span className="live-event__time"><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</time><span>{elapsed(event)}</span></span>
-            </button>
-          ))}{nextCursor && events.length < 500 && <button type="button" className="live-activity__older" onClick={() => void loadOlder()} disabled={loadingOlder}>{loadingOlder ? 'Loading history…' : 'Load older activity'}</button>}</>}
+          : <>
+            {visibleEvents.length === 0
+              ? <div className="live-activity__empty">
+                {errorsOnly ? <CircleAlert /> : <Activity />}
+                <strong>{errorsOnly ? 'No errors in this activity' : 'Listening for activity'}</strong>
+                <span>{errorsOnly ? 'No failed events are present in the loaded history.' : 'New commands, AI routes, and website actions will arrive here.'}</span>
+              </div>
+              : visibleEvents.map((event) => (
+                <button className={`live-event is-${event.outcome}`} type="button" key={event.activity_id} onClick={() => setSelected(event)}>
+                  <span className="live-event__pulse" aria-hidden="true" />
+                  <span className="live-event__identity"><strong>{locationLabel(event)}</strong><span>{event.user_name || 'Acosmibot system'}</span></span>
+                  <span className="live-event__action"><strong>{event.action}</strong><span>{event.outcome === 'running' ? 'In progress' : event.outcome}</span></span>
+                  <span className="live-event__time"><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</time><span>{elapsed(event)}</span></span>
+                </button>
+              ))}
+            {nextCursor && events.length < 500 && <button type="button" className="live-activity__older" onClick={() => void loadOlder()} disabled={loadingOlder}>{loadingOlder ? 'Loading history…' : 'Load older activity'}</button>}
+          </>}
       </div>
 
       {selected && <div className="live-detail__backdrop" onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>
