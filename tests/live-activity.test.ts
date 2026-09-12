@@ -24,6 +24,11 @@ test('feed exposes pause, fullscreen, live status, and a detail dialog', () => {
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /role="dialog"/);
   assert.match(source, /Error reason/);
+  assert.match(source, /adminApi\.getAiTrace/);
+  assert.match(source, /\/api\/admin\/logs/);
+  assert.match(source, /Prompts & outputs/);
+  assert.match(source, /Full trace payload/);
+  assert.match(source, /Activity payload/);
 });
 
 test('mobile activity details stay viewport-bound with a reachable close control', () => {
@@ -31,5 +36,5 @@ test('mobile activity details stay viewport-bound with a reachable close control
   assert.match(styles, /height: min\(82dvh, 680px\)/);
   assert.match(styles, /\.live-detail header \{ position: sticky;/);
   assert.match(source, /document\.body\.style\.overflow = 'hidden'/);
-  assert.match(source, /aria-label="Close activity log"/);
+  assert.match(source, /aria-label="Close activity diagnostics"/);
 });

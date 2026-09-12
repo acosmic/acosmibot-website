@@ -225,6 +225,16 @@ export interface AdminAiTraceSpan {
   metadata: Record<string, unknown>;
 }
 
+export interface AdminAiTraceContent {
+  id: number;
+  span_id: string | null;
+  content_type: 'user_prompt' | 'provider_request' | 'provider_response' | 'provider_error' | 'tool_input' | 'tool_output' | 'screened_output' | string;
+  payload: unknown;
+  plaintext_bytes: number;
+  truncated: boolean;
+  created_at: string | null;
+}
+
 export interface AdminAiTraceDetail {
   success: boolean;
   trace: AdminAiTraceSummary & {
@@ -239,6 +249,9 @@ export interface AdminAiTraceDetail {
     feedback_at: string | null;
   };
   spans: AdminAiTraceSpan[];
+  content: AdminAiTraceContent[];
+  content_retention_days: number;
+  content_error: string | null;
 }
 
 export type InterestInterval = 'daily' | 'weekly' | 'monthly';
