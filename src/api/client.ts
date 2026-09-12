@@ -1,11 +1,9 @@
 import { resolveAnalyticsPage, trackEvent } from '@/lib/analytics';
 import { clearExpiredSession } from '@/lib/auth';
-
-const getApiBase = (): string =>
-  (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+import { apiBase } from '@/lib/runtimeConfig';
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = path.startsWith('http') ? path : `${getApiBase()}${path}`;
+  const url = path.startsWith('http') ? path : `${apiBase()}${path}`;
 
   const response = await fetch(url, {
     ...options,

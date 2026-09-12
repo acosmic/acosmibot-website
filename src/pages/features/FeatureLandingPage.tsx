@@ -11,7 +11,8 @@ import { Link } from 'react-router-dom';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { trackEvent } from '@/lib/analytics';
-import { DISCORD_INVITE_URL, FEATURE_LANDINGS, type FeatureLandingTheme } from '@/seo/publicRoutes';
+import { FEATURE_LANDINGS, type FeatureLandingTheme } from '@/seo/publicRoutes';
+import { inviteUrl as runtimeInviteUrl } from '@/lib/runtimeConfig';
 import '@/styles/feature-landing.css';
 
 const THEME_ICONS: Record<FeatureLandingTheme, LucideIcon> = {
@@ -53,8 +54,14 @@ export const FeatureLandingPage: React.FC<FeatureLandingPageProps> = ({ slug }) 
               <div className="feature-hero__actions">
                 <a
                   className="feature-action feature-action--primary"
-                  href={DISCORD_INVITE_URL}
-                  onClick={() => trackEvent('bot_invite_start', { source: `feature_${feature.theme}` })}
+                  href={runtimeInviteUrl() ?? '#'}
+                  onClick={(event) => {
+                    if (!runtimeInviteUrl()) {
+                      event.preventDefault();
+                      return;
+                    }
+                    trackEvent('bot_invite_start', { source: `feature_${feature.theme}` });
+                  }}
                 >
                   Add to Discord <ArrowRight aria-hidden="true" />
                 </a>
@@ -197,8 +204,14 @@ export const FeatureLandingPage: React.FC<FeatureLandingPageProps> = ({ slug }) 
             </div>
             <a
               className="feature-action feature-action--primary"
-              href={DISCORD_INVITE_URL}
-              onClick={() => trackEvent('bot_invite_start', { source: `feature_${feature.theme}_closing` })}
+              href={runtimeInviteUrl() ?? '#'}
+              onClick={(event) => {
+                if (!runtimeInviteUrl()) {
+                  event.preventDefault();
+                  return;
+                }
+                trackEvent('bot_invite_start', { source: `feature_${feature.theme}_closing` });
+              }}
             >
               Add to Discord <Sparkles aria-hidden="true" />
             </a>

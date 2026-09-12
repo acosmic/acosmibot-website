@@ -18,7 +18,7 @@
  * Requires: the cdn.acosmibot.com DNS record set to "Proxied" (orange cloud).
  */
 
-const ORIGIN = 'https://acosmibotcdn.blob.core.windows.net';
+const PRODUCTION_ORIGIN = 'https://acosmibotcdn.blob.core.windows.net';
 
 // Only this container is proxied. Anything else 404s rather than turning the
 // Worker into an open proxy for the whole storage account.
@@ -34,8 +34,17 @@ const PASSTHROUGH_HEADERS = [
   'cache-control',
 ];
 
-export default {
-  async fetch(request) {
+const isTestEnvironment = (env) => ['test', 'staging'].includes(
+  String(env?.ACOSMIBOT_ENVIRONMENT || env?.environment || '').toLowerCase(),
+);
+
+const originFor = (env) => {
+  const configured = String(env?.CDN_BLOB_ORIGIN || env?.cdnBlobOrigin || '').trim().replace(/\/$/, '');
+  if (configured) return configured;
+  return isTestEnvironment(env) ? null : PRODUCTION_ORIGIN;
+};
+
+export async function handleCdnProxyRequest(request, env = {}, fetchOrigin = fetch) {
     const url = new URL(request.url);
 
     if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -46,9 +55,14 @@ export default {
       return new Response('Not found', { status: 404 });
     }
 
+    const origin = originFor(env);
+    if (!origin) {
+      return new Response('CDN origin is not configured for this test environment.', { status: 503 });
+    }
+
     // The query string is deliberately dropped: blob names never need one, and
     // forwarding it would allow cache-busting and SAS-token passthrough.
-    const originResponse = await fetch(ORIGIN + url.pathname, {
+    const originResponse = await fetchOrigin(origin + url.pathname, {
       method: request.method,
       cf: { cacheEverything: true, cacheTtl: 31536000 },
     });
@@ -67,5 +81,10 @@ export default {
       status: originResponse.status,
       headers,
     });
+}
+
+export default {
+  async fetch(request, env) {
+    return handleCdnProxyRequest(request, env, (input, init) => fetch(input, init));
   },
 };

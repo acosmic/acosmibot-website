@@ -42,10 +42,10 @@ import { PublicNav } from '@/components/layout/PublicNav';
 import { startLogin } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
 import { COMPANY_BRAND } from '@/lib/company';
+import { inviteUrl, isTestEnvironment, paymentUrl } from '@/lib/runtimeConfig';
 import { HOME_TAGLINE } from '@/seo/publicRoutes';
 import '@/styles/home.css';
 
-const DISCORD_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 const STRIPE_DONATION_URL = 'https://donate.stripe.com/bJe3co1sfayvcMD16xgnK00';
 const BTC_ADDRESS = '3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS';
 
@@ -615,7 +615,12 @@ export const HomePage: React.FC = () => {
 
   const inviteBot = (source: 'hero' | 'navigation') => {
     trackEvent('bot_invite_start', { source });
-    window.open(DISCORD_INVITE, '_blank', 'noopener,noreferrer');
+    const destination = inviteUrl();
+    if (!destination) {
+      showNotif('Invitations are disabled in the test environment.', 'warning');
+      return;
+    }
+    window.open(destination, '_blank', 'noopener,noreferrer');
   };
 
   const copyBTC = useCallback(async () => {
@@ -758,9 +763,15 @@ export const HomePage: React.FC = () => {
                   <span className="method-name">Stripe</span>
                   <p className="method-description">Choose a one-time amount; no public attribution</p>
                 </div>
-                <a href={STRIPE_DONATION_URL} target="_blank" rel="noopener noreferrer" className="donation-btn">
-                  Donate <ArrowRight aria-hidden="true" />
-                </a>
+                {paymentUrl() ? (
+                  <a href={paymentUrl() ?? STRIPE_DONATION_URL} target="_blank" rel="noopener noreferrer" className="donation-btn">
+                    Donate <ArrowRight aria-hidden="true" />
+                  </a>
+                ) : (
+                  <span className="donation-btn donation-btn--disabled" aria-disabled="true">
+                    Disabled in test <ArrowRight aria-hidden="true" />
+                  </span>
+                )}
               </div>
               <div className="donation-option">
                 <span className="method-icon method-icon--bitcoin"><Bitcoin aria-hidden="true" /></span>
@@ -768,7 +779,7 @@ export const HomePage: React.FC = () => {
                   <span className="method-name">Bitcoin</span>
                   <p className="method-description">Cryptocurrency donation</p>
                 </div>
-                <button className="donation-btn" onClick={() => {
+                <button className="donation-btn" disabled={isTestEnvironment()} onClick={() => {
                   setShowDonationModal(false);
                   setShowBitcoinPopup(true);
                 }}>

@@ -1,7 +1,12 @@
 import { SUPPORT_DISCORD_URL, SUPPORT_EMAIL } from '../lib/company.ts';
 
-export const SITE_ORIGIN = 'https://acosmibot.com';
-export const DISCORD_INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+const buildEnvironment = (globalThis as typeof globalThis & {
+  process?: { env?: Record<string, string | undefined> };
+}).process?.env;
+const configuredOrigin = buildEnvironment?.SITE_ORIGIN ?? buildEnvironment?.VITE_SITE_ORIGIN;
+export const SITE_ORIGIN = (configuredOrigin?.trim() || 'https://acosmibot.com').replace(/\/$/, '');
+export const DISCORD_INVITE_URL = buildEnvironment?.DISCORD_INVITE_URL?.trim()
+  || 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
 export const HOME_TAGLINE = 'A cosmic intelligence at your server’s command.';
 
 export type FeatureLandingTheme = 'intelligence' | 'leveling' | 'economy' | 'games';

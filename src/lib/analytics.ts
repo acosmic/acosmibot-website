@@ -1,4 +1,5 @@
 import { getSeoMeta } from '../seo/publicRoutes.ts';
+import { isTestEnvironment } from './runtimeConfig.ts';
 
 export type AnalyticsConsent = 'granted' | 'denied' | null;
 
@@ -193,6 +194,8 @@ export function initializeAnalytics(): boolean {
   consent = readAnalyticsConsent();
   const measurementId = window.AppConfig?.analyticsMeasurementId;
   if (
+    isTestEnvironment()
+    ||
     consent !== 'granted'
     || !measurementId
     || window.AppConfig?.analyticsManualPageViewsReady !== true

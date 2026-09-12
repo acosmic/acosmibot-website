@@ -48,6 +48,7 @@ import { PremiumGrantsTab } from './PremiumGrantsTab';
 import { SocialStudioTab } from './SocialStudioTab';
 import { LiveActivityTab } from './LiveActivityTab';
 import '@/styles/admin.css';
+import { apiBase as runtimeApiBase } from '@/lib/runtimeConfig';
 
 const ADMIN_TABS = [
   { id: 'live', label: 'Live Activity', group: 'Now', description: 'Watch commands, AI routes, tools, and website actions as they happen.', icon: Activity },
@@ -115,7 +116,7 @@ function useAdminData<T>(url: string) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+    const apiBase = runtimeApiBase();
     setLoading(true);
     setError(null);
     fetch(`${apiBase}${url}`, {
@@ -350,7 +351,7 @@ export const AdminPage: React.FC = () => {
     : { label: 'Owner module', tone: 'neutral' };
 
   useEffect(() => {
-    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+    const apiBase = runtimeApiBase();
     fetch(`${apiBase}/api/admin/check`, { credentials: 'include' })
       .then(r => {
         if (r.status === 401) clearExpiredSession();

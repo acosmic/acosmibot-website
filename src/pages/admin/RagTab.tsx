@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Check, ChevronDown, ChevronRight, RefreshCw, X } from 'lucide-react';
 import { InlineIcon } from '@/components/ui/InlineIcon';
+import { apiBase as runtimeApiBase } from '@/lib/runtimeConfig';
 
 interface RagDocument {
   document_id: string;
@@ -71,7 +72,7 @@ const cardStyle: React.CSSProperties = {
 };
 
 export const RagTab: React.FC = () => {
-  const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+  const apiBase = runtimeApiBase();
 
   const [health, setHealth] = useState<HealthData | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);

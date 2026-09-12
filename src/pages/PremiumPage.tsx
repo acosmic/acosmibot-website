@@ -18,7 +18,7 @@ import { showToast } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
 import { trackEvent } from '@/lib/analytics';
 import { startLogin } from '@/lib/auth';
-import { DISCORD_INVITE_URL } from '@/seo/publicRoutes';
+import { inviteUrl as runtimeInviteUrl } from '@/lib/runtimeConfig';
 import type { Guild } from '@/types/guild';
 import '@/styles/pricing.css';
 
@@ -518,16 +518,23 @@ const TierCard: React.FC<{
     ) : (
       <>
         <a
-          href={DISCORD_INVITE_URL}
+          href={runtimeInviteUrl() ?? '#'}
+          aria-disabled={!runtimeInviteUrl() ? 'true' : undefined}
           target="_blank"
           rel="noopener noreferrer"
           className="pricing-tier__action"
-          onClick={() => trackEvent('bot_invite_start', { source: 'pricing_free' })}
+          onClick={(event) => {
+            if (!runtimeInviteUrl()) {
+              event.preventDefault();
+              return;
+            }
+            trackEvent('bot_invite_start', { source: 'pricing_free' });
+          }}
         >
           Add bot to server
           <Bot aria-hidden="true" />
         </a>
-        <div className="pricing-tier__note">Opens Discord authorization</div>
+        <div className="pricing-tier__note">{runtimeInviteUrl() ? 'Opens Discord authorization' : 'Disabled in test environment'}</div>
       </>
     )}
   </article>

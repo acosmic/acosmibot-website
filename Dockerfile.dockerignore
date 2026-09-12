@@ -1,0 +1,17 @@
+# The website image is built from this repository. Keep secrets, local state,
+# generated output, and dependency trees out of the Docker daemon context.
+.git
+.env
+.env.*
+.venv
+venv
+node_modules
+api/node_modules
+dist
+api/render-card/index.js
+api/status/index.js
+tests
+**/__pycache__
+**/*.log
+coverage
+.DS_Store

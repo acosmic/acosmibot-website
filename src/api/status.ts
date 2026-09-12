@@ -1,4 +1,5 @@
 import type { PublicIncidentRecord } from '@/status/publicIncidents';
+import { statusUrl } from '@/lib/runtimeConfig';
 
 export type ServiceHealth = 'operational' | 'degraded' | 'outage' | 'unknown';
 
@@ -50,7 +51,9 @@ const isPublicStatusResponse = (value: unknown): value is PublicStatusResponse =
 };
 
 export const fetchPublicStatus = async (): Promise<PublicStatusResponse> => {
-  const response = await fetch('/api/status', {
+  // Production keeps the original SWA managed-function boundary (fetch('/api/status')).
+  // Test deployments replace it through AppConfig.statusUrl before this call.
+  const response = await fetch(statusUrl(), {
     headers: { Accept: 'application/json' },
     credentials: 'omit',
   });

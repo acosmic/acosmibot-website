@@ -16,8 +16,7 @@ import { PremiumTierIcon, PREMIUM_TIER_LABELS, normalizePremiumTier } from '@/co
 import type { Guild } from '@/types/guild';
 import '@/styles/servers.css';
 import { trackEvent } from '@/lib/analytics';
-
-const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+import { inviteUrl as runtimeInviteUrl } from '@/lib/runtimeConfig';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
@@ -81,7 +80,9 @@ export const GuildSelectPage: React.FC = () => {
 
   const inviteBot = () => {
     trackEvent('bot_invite_start', { source: 'server_catalog' });
-    window.open(INVITE_URL, '_blank', 'noopener,noreferrer');
+    const destination = runtimeInviteUrl();
+    if (!destination) return;
+    window.open(destination, '_blank', 'noopener,noreferrer');
   };
 
   return (

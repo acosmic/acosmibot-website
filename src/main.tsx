@@ -10,6 +10,7 @@ import { AnalyticsProvider } from './components/analytics/AnalyticsProvider';
 import { SeoHead } from './components/seo/SeoHead';
 import './styles/seo-prerender.css';
 import { installPreloadErrorHandler } from './lib/versionSkew';
+import { EnvironmentBanner } from './components/EnvironmentBanner';
 
 installPreloadErrorHandler();
 
@@ -19,6 +20,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter future={{ v7_startTransition: true }}>
+        <EnvironmentBanner />
         <AuthSessionBootstrap />
         <SeoHead />
         <AnalyticsProvider>

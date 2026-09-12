@@ -20,6 +20,14 @@ const escapeHtml = (value: string) => value
   .replaceAll('"', '&quot;')
   .replaceAll("'", '&#039;');
 
+const buildEnvironment = process.env.ACOSMIBOT_ENVIRONMENT?.trim().toLowerCase();
+const isolatedBuild = buildEnvironment === 'test' || buildEnvironment === 'staging';
+const apiProxyTarget = process.env.API_BASE_URL?.trim()
+  || process.env.VITE_API_BASE_URL?.trim()
+  || (buildEnvironment === 'test' || buildEnvironment === 'staging'
+    ? 'http://127.0.0.1:5000'
+    : 'https://api.acosmibot.com');
+
 const publicNav = `
   <nav aria-label="Primary navigation">
     <a href="/">Acosmibot</a>
@@ -137,8 +145,10 @@ const applyHead = (source: string, pathname: string, indexable = true) => {
   html = replaceMeta(html, 'property="og:title"', socialTitle);
   html = replaceMeta(html, 'property="og:description"', meta.description);
   html = replaceMeta(html, 'property="og:url"', indexable ? canonical : SITE_ORIGIN);
+  html = replaceMeta(html, 'property="og:image"', `${SITE_ORIGIN}/images/acosmibot-og.png?v=2`);
   html = replaceMeta(html, 'name="twitter:title"', socialTitle);
   html = replaceMeta(html, 'name="twitter:description"', meta.description);
+  html = replaceMeta(html, 'name="twitter:image"', `${SITE_ORIGIN}/images/acosmibot-og.png?v=2`);
 
   if (indexable) {
     const structuredData = JSON.stringify(buildStructuredData(meta)).replaceAll('<', '\\u003c');
@@ -169,7 +179,7 @@ const seoStaticPages = (): Plugin => ({
           : docsSlug
             ? renderDocsBody(docsSlug)
             : renderSimpleBody(pathname);
-      const html = injectRoot(applyHead(shell, pathname), body);
+      const html = injectRoot(applyHead(shell, pathname, !isolatedBuild), body);
       const destination = pathname === '/'
         ? path.join(outputDir, 'index.html')
         : path.join(outputDir, pathname.slice(1), 'index.html');
@@ -195,14 +205,16 @@ const seoStaticPages = (): Plugin => ({
       );
     writeFileSync(path.join(outputDir, '404.html'), notFound);
 
+    const sitemapPaths = isolatedBuild ? [] : INDEXABLE_PUBLIC_PATHS;
     const sitemap = [
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-      ...INDEXABLE_PUBLIC_PATHS.map(pathname => `  <url><loc>${SITE_ORIGIN}${pathname}</loc></url>`),
+      ...sitemapPaths.map(pathname => `  <url><loc>${SITE_ORIGIN}${pathname}</loc></url>`),
       '</urlset>',
       '',
     ].join('\n');
     writeFileSync(path.join(outputDir, 'sitemap.xml'), sitemap);
+    if (isolatedBuild) writeFileSync(path.join(outputDir, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 
     // Azure Static Web Apps does not resolve extensionless SPA URLs to nested
     // index.html files consistently. Emit exact public rewrites from the same
@@ -218,6 +230,27 @@ const seoStaticPages = (): Plugin => ({
       .map(pathname => ({ route: pathname, rewrite: `${pathname}/index.html` }));
     staticWebAppConfig.routes = [...redirects, ...publicRewrites, ...appRoutes];
     writeFileSync(configPath, `${JSON.stringify(staticWebAppConfig, null, 2)}\n`);
+
+    if (isolatedBuild) {
+      const runtimeConfig = {
+        environment: buildEnvironment,
+        ...(process.env.API_BASE_URL ? { apiBaseUrl: process.env.API_BASE_URL } : {}),
+        ...(process.env.SITE_ORIGIN ? { siteOrigin: process.env.SITE_ORIGIN } : {}),
+        ...(process.env.ORIGIN_BASE_URL ? { originBaseUrl: process.env.ORIGIN_BASE_URL } : {}),
+        inviteUrl: null,
+        paymentUrl: null,
+        analyticsMeasurementId: null,
+        analyticsManualPageViewsReady: false,
+        ...(process.env.STATUS_URL ? { statusUrl: process.env.STATUS_URL } : {}),
+        ...(process.env.RENDER_CARD_URL ? { renderCardUrl: process.env.RENDER_CARD_URL } : {}),
+        ...(process.env.CDN_BASE_URL ? { cdnBaseUrl: process.env.CDN_BASE_URL } : {}),
+      };
+      const configJsPath = path.join(outputDir, 'scripts/config.js');
+      writeFileSync(
+        configJsPath,
+        `window.AppConfig = Object.assign(${JSON.stringify(runtimeConfig)}, window.__ACOSMIBOT_RUNTIME_CONFIG__ || {});\n`,
+      );
+    }
   },
 });
 
@@ -227,12 +260,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://api.acosmibot.com',
+        target: apiProxyTarget,
         changeOrigin: true,
         secure: true,
       },
       '/auth': {
-        target: 'https://api.acosmibot.com',
+        target: apiProxyTarget,
         changeOrigin: true,
         secure: true,
       },

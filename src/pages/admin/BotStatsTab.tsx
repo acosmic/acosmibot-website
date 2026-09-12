@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AdminDetailDialog } from './AdminDetailDialog';
 import { parseRuntimeLogTimestamp } from '@/utils/runtimeLogTimestamp';
+import { apiBase as runtimeApiBase } from '@/lib/runtimeConfig';
 
 interface PerformanceTotals {
   messages_processed: number;
@@ -212,7 +213,7 @@ export const BotStatsTab: React.FC = () => {
   const [detailLog, setDetailLog] = useState<LogEntry | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+  const apiBase = runtimeApiBase();
   const fetchAll = useCallback(async () => {
     try {
       const params = new URLSearchParams({

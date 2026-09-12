@@ -1,0 +1,36 @@
+.environment-banner {
+  position: fixed;
+  z-index: 2147483000;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 34px;
+  padding: .4rem 1rem;
+  background: #6f1d1b;
+  color: #fff7ed;
+  font: 600 .75rem/1.25 'Poppins', sans-serif;
+  letter-spacing: .04em;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 35%);
+}
+
+.environment-banner svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+.environment-banner span {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+@media (max-width: 600px) {
+  .environment-banner {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: .25rem .45rem;
+    text-align: center;
+  }
+}

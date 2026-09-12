@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth';
 import { trackEvent } from '@/lib/analytics';
+import { apiBase } from '@/lib/runtimeConfig';
 
-/** Base URL for the API, from the injected runtime config (falls back to prod). */
-export const apiBase = (): string =>
-  (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+export { apiBase } from '@/lib/runtimeConfig';
 
 /**
  * Kick off Discord OAuth, remembering the current page so the OAuth callback

@@ -1,5 +1,6 @@
 import { api } from './client';
 import type { EmbedConfig, EmbedButton } from '@/components/ui/DiscordEmbedPreview';
+import { apiBase as runtimeApiBase } from '@/lib/runtimeConfig';
 
 export interface GuildEmbed {
   id: number;
@@ -61,7 +62,7 @@ export const embedsApi = {
 
   // Multipart upload — raw fetch because api.fetch forces a JSON Content-Type.
   uploadImage: async (guildId: string, file: File, imageType: UploadImageType): Promise<string> => {
-    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
+    const apiBase = runtimeApiBase();
     const formData = new FormData();
     formData.append('image', file);
     formData.append('image_type', imageType);

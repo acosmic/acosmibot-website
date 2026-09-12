@@ -37,7 +37,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Activity Streaks:</strong> Consecutive days of server activity for leveling features</li>
         <li><strong>Experience Points (XP):</strong> Calculated based on your server participation</li>
         <li><strong>Level Information:</strong> Your current level in each server and globally</li>
-        <li><strong>Owner Activity Feed:</strong> Command names, AI route and tool labels, completed website actions, outcome, timing, Discord display name, and server name may appear for up to 24 hours in an owner-only operational feed. Command arguments, message content, AI prompts and output, tool payloads, and configuration values are excluded.</li>
+        <li><strong>Owner Activity Feed:</strong> Command names, AI route and tool labels, completed website actions, outcome, timing, Discord display name, and server name may appear for up to 24 hours in an owner-only operational feed. The live stream itself excludes command arguments, message content, AI prompts and output, tool payloads, and configuration values. When an AI event is opened by the service owner, a separately stored encrypted diagnostic attachment may show the exact prompt, relevant conversation context, provider request and response, tool input and output, screened delivery text, or provider error for up to 14 days.</li>
       </ul>
 
       <LegalSubheading>2.3 Economy &amp; Game Data</LegalSubheading>
@@ -53,7 +53,7 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Message Content:</strong> Messages sent to enabled AI chat features are processed by the configured provider, which may be OpenAI or Google Gemini</li>
         <li><strong>Thread IDs:</strong> Conversation thread identifiers for context continuity</li>
         <li><strong>Usage Metrics:</strong> Number of AI messages sent for rate limiting purposes</li>
-        <li><strong>Provider Telemetry:</strong> Provider, model, layer, operation, timing, token categories, and cost-estimate metadata for safety, accounting, support, and margin monitoring; this structured telemetry does not store prompts or generated output</li>
+        <li><strong>Provider Telemetry:</strong> Provider, model, layer, operation, timing, token categories, and cost-estimate metadata for safety, accounting, support, and margin monitoring. The 90-day structured span record remains content-free; exact prompt and output attachments are encrypted separately, available only to the service owner, and erased after at most 14 days.</li>
         <li><strong>AI Image Records:</strong> Image-generation prompts, revised prompts, analysis text, and result URLs may be stored temporarily so the requested feature and support history can be provided; those content fields are automatically erased after 30 days while non-content quota and accounting fields remain</li>
         <li><strong>AI Credits Records:</strong> Wallet, purchase, reservation, ledger, refund/dispute, action, and call correlation identifiers; guild administrators see only guild-funded aggregate information, not personal balances or DM activity</li>
       </ul>
@@ -98,7 +98,7 @@ export const PrivacyPolicyPage: React.FC = () => (
       <p>We do not send authentication credentials, Discord IDs, server IDs, usernames, form contents, configuration values, or user-entered text to Google Analytics. Analytics is disabled unless you choose to allow it.</p>
 
       <LegalSubheading>2.9 Error and Reliability Diagnostics</LegalSubheading>
-      <p>We collect limited technical diagnostics when the bot or API fails. These records may include the service and release, an error category and code, exception type, stack-frame file and function names, operating-system/runtime context, timing, and database-pool health counts. Request bodies, headers, cookies, prompts, generated output, search queries, URLs, client IP addresses, and local variables are excluded. Local error and critical records may include the Discord user, server, channel, or message ID directly related to a failure so an authorized operator can provide support; routine local records use keyed pseudonyms instead. Raw Discord identifiers are never sent to Sentry.</p>
+      <p>We collect limited technical diagnostics when the bot or API fails. Ordinary runtime logs may include the service and release, an error category and code, exception type, stack-frame file and function names, operating-system/runtime context, timing, and database-pool health counts. Request bodies, headers, cookies, prompts, generated output, search queries, URLs, client IP addresses, and local variables remain excluded from those logs. Separately, an AI trace may retain encrypted prompt, response, tool, screened-output, and provider-error content for owner-only diagnosis for up to 14 days. Local error and critical records may include the Discord user, server, channel, or message ID directly related to a failure so an authorized operator can provide support; routine local records use keyed pseudonyms instead. Raw Discord identifiers and AI trace content are never sent to Sentry.</p>
     </LegalSection>
 
     <LegalSection title="3. How We Use Your Data">
@@ -173,9 +173,9 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Server Removal:</strong> When Acosmibot is removed from a server, per-server data is retained for potential re-addition</li>
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
         <li><strong>AI Credit Accounting:</strong> Wallet, purchase, ledger, reservation, refund, and dispute records may be retained for at least seven years for tax, accounting, fraud, and service-liability obligations</li>
-        <li><strong>AI Provider Telemetry:</strong> Structured provider/cost/latency records are retained for up to 90 days for operations and reconciliation; prompts and generated content are not retained in those telemetry records</li>
+        <li><strong>AI Provider Telemetry:</strong> Structured provider/cost/latency records are retained for up to 90 days for operations and reconciliation; their separately encrypted owner-only prompt/output attachments are retained for up to 14 days</li>
         <li><strong>Owner Activity Feed:</strong> Content-safe activity summaries are retained for up to 24 hours</li>
-        <li><strong>Local AI Traces:</strong> Content-free routing, provider, tool, safety, delivery, and settlement spans are retained for up to 90 days</li>
+        <li><strong>Local AI Traces:</strong> Content-free routing, provider, tool, safety, delivery, and settlement spans are retained for up to 90 days. Encrypted prompt, output, tool payload, and provider-error attachments are erased after at most 14 days.</li>
         <li><strong>AI Image Content:</strong> Stored generation prompts, revised prompts, analysis text, and result URLs are erased after 30 days; non-content quota and accounting fields may remain under the applicable operational or billing retention period</li>
         <li><strong>Error Monitoring:</strong> Scrubbed Sentry events are retained for no longer than 90 days and may be retained for a shorter period under the active project settings</li>
         <li><strong>Local Runtime Diagnostics:</strong> Local system journals, including raw Discord identifiers attached only to error and critical records, are capped at 14 days and are accessible only to authorized operators</li>

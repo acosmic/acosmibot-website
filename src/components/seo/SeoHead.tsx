@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { buildStructuredData, getSeoMeta, SITE_ORIGIN } from '@/seo/publicRoutes';
+import { buildStructuredData, getSeoMeta } from '@/seo/publicRoutes';
+import { isTestEnvironment, siteOrigin } from '@/lib/runtimeConfig';
 
 const upsertMeta = (selector: string, attributes: Record<string, string>) => {
   let element = document.head.querySelector<HTMLMetaElement>(selector);
@@ -30,8 +31,13 @@ export const SeoHead = () => {
 
   useEffect(() => {
     const meta = getSeoMeta(pathname);
-    const canonical = meta.indexable ? `${SITE_ORIGIN}${meta.canonicalPath}` : null;
-    const robots = meta.indexable ? 'index, follow, max-image-preview:large' : 'noindex, nofollow';
+    const testEnvironment = isTestEnvironment();
+    const canonical = meta.indexable && !testEnvironment
+      ? `${siteOrigin()}${meta.canonicalPath}`
+      : null;
+    const robots = meta.indexable && !testEnvironment
+      ? 'index, follow, max-image-preview:large'
+      : 'noindex, nofollow';
     const socialTitle = meta.socialTitle ?? meta.title;
 
     document.title = meta.title;
@@ -41,13 +47,13 @@ export const SeoHead = () => {
     upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: 'Acosmibot' });
     upsertMeta('meta[property="og:title"]', { property: 'og:title', content: socialTitle });
     upsertMeta('meta[property="og:description"]', { property: 'og:description', content: meta.description });
-    upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonical ?? SITE_ORIGIN });
+    upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonical ?? siteOrigin() });
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: socialTitle });
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: meta.description });
     setCanonical(canonical);
 
     let script = document.head.querySelector<HTMLScriptElement>('#acosmibot-structured-data');
-    if (!meta.indexable) {
+    if (!meta.indexable || testEnvironment) {
       script?.remove();
       return;
     }

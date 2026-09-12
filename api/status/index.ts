@@ -72,8 +72,8 @@ interface SentrySnapshot {
   available: boolean;
 }
 
-const API_HEALTH_URL = 'https://api.acosmibot.com/health';
-const SENTRY_ORIGIN = 'https://sentry.io';
+const PRODUCTION_API_HEALTH_URL = 'https://api.acosmibot.com/health';
+const PRODUCTION_SENTRY_ORIGIN = 'https://sentry.io';
 const CACHE_TTL_MS = 30_000;
 const MAX_RESPONSE_BYTES = 512 * 1024;
 
@@ -141,12 +141,30 @@ const fetchJson = async (url: string, token: string, timeoutMs = 5_000): Promise
   }
 };
 
+const configuredApiHealthUrl = (): string | null => {
+  const configured = process.env.STATUS_API_HEALTH_URL?.trim() || process.env.API_HEALTH_URL?.trim();
+  if (configured) return configured;
+  const environment = process.env.ACOSMIBOT_ENVIRONMENT?.trim().toLowerCase();
+  // Test and staging relays must never probe production by omission.
+  if (environment === 'test' || environment === 'staging') return null;
+  return PRODUCTION_API_HEALTH_URL;
+};
+
+const configuredSentryOrigin = (): string | null => {
+  const configured = process.env.SENTRY_STATUS_ORIGIN?.trim().replace(/\/$/, '');
+  if (configured) return configured;
+  const environment = process.env.ACOSMIBOT_ENVIRONMENT?.trim().toLowerCase();
+  return environment === 'test' || environment === 'staging' ? null : PRODUCTION_SENTRY_ORIGIN;
+};
+
 const directProbe = async (): Promise<DirectProbe> => {
+  const apiHealthUrl = configuredApiHealthUrl();
+  if (!apiHealthUrl) return { status: 'unknown' };
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5_000);
   const startedAt = Date.now();
   try {
-    const response = await fetch(API_HEALTH_URL, {
+    const response = await fetch(apiHealthUrl, {
       headers: { Accept: 'application/json' },
       redirect: 'error',
       signal: controller.signal,
@@ -252,7 +270,8 @@ const readCronSignal = (monitor: unknown, checkIns: unknown) => {
 
 const getSentrySnapshot = async (): Promise<SentrySnapshot> => {
   const token = process.env.SENTRY_STATUS_TOKEN?.trim();
-  if (!token) {
+  const sentryOrigin = configuredSentryOrigin();
+  if (!token || !sentryOrigin) {
     return {
       apiStatus: 'unknown',
       botStatus: 'unknown',
@@ -276,7 +295,7 @@ const getSentrySnapshot = async (): Promise<SentrySnapshot> => {
   if (!detectorId) {
     try {
       const detectors = await fetchJson(
-        `${SENTRY_ORIGIN}/api/0/organizations/${org}/detectors/?project=${apiProject}`,
+        `${sentryOrigin}/api/0/organizations/${org}/detectors/?project=${apiProject}`,
         token,
       );
       detectorId = getDetectorId(detectors, detectorName);
@@ -286,16 +305,19 @@ const getSentrySnapshot = async (): Promise<SentrySnapshot> => {
   }
 
   const uptimeDetailUrl = detectorId
-    ? `${SENTRY_ORIGIN}/api/0/projects/${org}/${apiProject}/uptime/${encodeURIComponent(detectorId)}/`
+    ? `${sentryOrigin}/api/0/projects/${org}/${apiProject}/uptime/${encodeURIComponent(detectorId)}/`
     : null;
   const summaryUrl = detectorId
-    ? `${SENTRY_ORIGIN}/api/0/organizations/${org}/uptime-summary/?uptimeDetectorId=${encodeURIComponent(detectorId)}&statsPeriod=30d`
+    ? `${sentryOrigin}/api/0/organizations/${org}/uptime-summary/?uptimeDetectorId=${encodeURIComponent(detectorId)}&statsPeriod=30d`
     : null;
   const statsUrl = detectorId
-    ? `${SENTRY_ORIGIN}/api/0/organizations/${org}/uptime-stats/?uptimeDetectorId=${encodeURIComponent(detectorId)}&statsPeriod=30d&interval=1d`
+    ? `${sentryOrigin}/api/0/organizations/${org}/uptime-stats/?uptimeDetectorId=${encodeURIComponent(detectorId)}&statsPeriod=30d&interval=1d`
     : null;
-  const cronUrl = `${SENTRY_ORIGIN}/api/0/organizations/${org}/monitors/${botMonitor}/?environment=production`;
-  const checkInsUrl = `${SENTRY_ORIGIN}/api/0/organizations/${org}/monitors/${botMonitor}/checkins/`;
+  const sentryEnvironment = encodeURIComponent(
+    process.env.SENTRY_STATUS_ENVIRONMENT?.trim() || 'production',
+  );
+  const cronUrl = `${sentryOrigin}/api/0/organizations/${org}/monitors/${botMonitor}/?environment=${sentryEnvironment}`;
+  const checkInsUrl = `${sentryOrigin}/api/0/organizations/${org}/monitors/${botMonitor}/checkins/`;
 
   const settled = await Promise.allSettled([
     uptimeDetailUrl ? fetchJson(uptimeDetailUrl, token) : Promise.resolve(null),
