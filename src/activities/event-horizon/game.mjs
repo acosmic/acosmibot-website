@@ -21,6 +21,7 @@ let rankedConnected = false;
 let discordSdk = null;
 const format = n => Math.floor(n).toLocaleString();
 const boosting = () => keys.size > 0 || pointers.size > 0;
+const holdPrompt = () => matchMedia('(max-width:600px), (pointer:coarse)').matches ? 'Hold anywhere in the flight area to begin your ranked flight.' : 'Hold Boost or Space to begin your ranked flight.';
 function abandonTicket(){
   const old=ticket;ticket=null;
   if(old)void api(`/runs/${encodeURIComponent(old.runId)}/abandon`,{}).catch(()=>{});
@@ -28,7 +29,7 @@ function abandonTicket(){
 
 function setConnectionState(state, detail = '') {
   if (state === 'ready') { $('connection-tag').textContent='VERIFIED DISCORD FLIGHT'; $('connection-note').textContent='Ranked flights are replay-verified for this Discord server.'; $('launch').disabled=false; $('launch').textContent='Launch ranked run ↗'; $('connection-retry').hidden=true; return; }
-  if (state === 'external') { $('connection-tag').textContent='DISCORD ACTIVITY REQUIRED'; $('connection-note').textContent='Launch Event Horizon from Discord to play a ranked flight. Practice is available here without a leaderboard.'; $('launch').disabled=true; $('launch').textContent='Launch from Discord'; $('connection-retry').hidden=true; return; }
+  if (state === 'external') { $('connection-tag').textContent='DISCORD ACTIVITY REQUIRED'; $('connection-note').textContent='Launch Event Horizon from Discord to begin a replay-verified ranked flight.'; $('launch').disabled=true; $('launch').textContent='Launch from Discord'; $('connection-retry').hidden=true; return; }
   if (state === 'error') { $('connection-tag').textContent='DISCORD CONNECTION FAILED'; $('connection-note').textContent=detail || 'Could not verify your Discord session. Retry the connection to rank flights.'; $('launch').disabled=true; $('launch').textContent='Ranked flight unavailable'; $('connection-retry').hidden=false; return; }
   $('connection-tag').textContent='CONNECTING TO DISCORD'; $('connection-note').textContent='Verifying your Discord session and server standings…'; $('launch').disabled=true; $('launch').textContent='Connecting to Discord…';
 }
@@ -109,9 +110,13 @@ function syncHUD() {
   $('zone').textContent=run.radius<.66?'DANGER ORBIT':run.radius<.84?'SCORE ORBIT':'OUTER ORBIT';
   $('heat').value=run.heat; $('heat').textContent=`${Math.round(run.heat)}%`;
   $('heat').setAttribute('aria-label',`Heat ${Math.round(run.heat)} percent`);
-  $('dash').disabled=run.energy<100;
-  $('charge').textContent=run.energy>=100?'READY · SHIFT':`${Math.floor(run.energy)}% · COLLECT SHARDS`;
-  $('charge-fill').style.width=`${run.energy}%`;
+  const dashReady=run.energy>=100;
+  const mobileDash=matchMedia('(max-width:600px), (pointer:coarse)').matches;
+  $('dash').disabled=!dashReady;
+  $('dash').setAttribute('aria-label',dashReady?'Phase dash ready':'Phase dash charging');
+  $('charge').textContent=mobileDash?(dashReady?'100%':`${Math.floor(run.energy)}%`):(dashReady?'READY · SHIFT':`${Math.floor(run.energy)}% · COLLECT SHARDS`);
+  $('charge-fill').style.setProperty('--dash-charge',String(clamp(run.energy,0,100)));
+  $('desktop-charge-fill').style.width=`${clamp(run.energy,0,100)}%`;
   $('boost').classList.toggle('active',boosting());
   $('boost').classList.toggle('heat-warning',run.heat>=65);
   if(run.heat<50)heatWarning=0;
@@ -121,28 +126,25 @@ function syncHUD() {
     heatWarning=1;message('Getting hot — boost outward to cool down',2);tone(320,.15,'triangle',.03,240);
   }
 }
-async function start(practice=false) {
+async function start() {
   if(mode==='preparing')return;
   const generation=++runGeneration;clearInput();
   // Completed submissions keep their receipt; only abandon unfinished flights.
   if(mode==='paused'||mode==='ready'||mode==='playing')abandonTicket();
   mode='preparing';ticket=null;replay=[];pendingSubmission=null;
-  $('launch').disabled=true;$('practice').disabled=true;$('retry').disabled=true;
-  $('launch').textContent=practice?'Preparing practice…':'Preparing ranked flight…';
-  if(!practice){
-    if(!rankedConnected){mode='intro';setConnectionState('error','Reconnect to Discord before starting a ranked flight.');return;}
-    try{await boardReady;ticket=await api('/runs',{});}catch(error){mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
-  }
+  $('launch').disabled=true;$('retry').disabled=true;
+  $('launch').textContent='Preparing ranked flight…';
+  if(!rankedConnected){mode='intro';setConnectionState('error','Reconnect to Discord before starting a ranked flight.');return;}
+  try{await boardReady;ticket=await api('/runs',{});if(!ticket?.runId)throw new Error('Could not secure a verified flight.');}catch(error){mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
   if(generation!==runGeneration)return;
-  $('launch').disabled=false;$('practice').disabled=false;$('retry').disabled=false;
-  run=createRun(ticket?.seed??crypto.getRandomValues(new Uint32Array(1))[0]);
+  $('launch').disabled=false;$('retry').disabled=false;
+  run=createRun(ticket.seed);
   mode='ready'; accumulator=0; last=performance.now(); particles=[]; savedBest=best; shake=0; heatWarning=0;
-  $('run-label').textContent=ticket?'VERIFIED RANKED':'PRACTICE';
+  $('run-label').textContent='VERIFIED RANKED';
   $('resubmit').hidden=true;
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false;
   $('pause').disabled=false; syncHUD();
-  message(ticket?'Hold Boost or Space to begin your ranked flight.':'Practice · hold Boost or Space to begin.',3600);
-  canvas.tabIndex=0; canvas.focus({preventScroll:true});
+  message(holdPrompt(),3600);
   tone(160,.22,'sine',.045,500);
 }
 function armFlight(){
@@ -153,7 +155,7 @@ function armFlight(){
 function showOverlay(title,description,action) {
   clearInput(); $('overlay').hidden=false; $('overlay').classList.add('compact');
   $('screen-title').textContent=title; $('screen-description').textContent=description;
-  $('launch').textContent=action; $('flight-controls').hidden=true;
+  $('launch').textContent=action; $('flight-controls').hidden=true; $('hud').hidden=true;
   $('pause').disabled=true; $('toast').textContent='';
   $('launch').focus({preventScroll:true});
 }
@@ -161,12 +163,12 @@ function pause() {
   if(mode!=='playing'&&mode!=='ready')return;
   mode='paused'; showOverlay('FLIGHT PAUSED','Take a breath. Your orbit is waiting.','Resume flight');
   $('results').hidden=true; $('instructions').hidden=false; $('retry').hidden=false;
-  $('leaderboard').hidden=true;$('practice').hidden=true;$('back-title').hidden=false;
+  $('leaderboard').hidden=true;$('back-title').hidden=false;
 }
 function resume() {
   clearInput(); mode=run.time===0?'ready':'playing'; accumulator=0; last=performance.now();
-  $('overlay').hidden=true; $('flight-controls').hidden=false; $('pause').disabled=false;
-  canvas.focus({preventScroll:true}); message(mode==='ready'?'Hold Boost or Space to begin flight.':'Flight resumed',mode==='ready'?3600:1);
+  $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false; $('pause').disabled=false;
+  message(mode==='ready'?holdPrompt():'Flight resumed',mode==='ready'?3600:1);
 }
 function finish() {
   mode='dead'; const p=point(run.radius); burst(p.x,p.y,'#ffa677',55); shake=reduced?0:12;
@@ -176,10 +178,10 @@ function finish() {
   $('results').hidden=false; $('instructions').hidden=true; $('retry').hidden=true;
   $('final-score').textContent=format(run.score);
   $('run-stats').textContent=`${run.time.toFixed(1)}s survived · ${run.nearMisses} near-misses · ${run.shards} shards`;
-  $('record').textContent=ticket?(Math.floor(run.score)>savedBest?'New personal best pending verification.':'Press R to fly again.'):'Practice result · not submitted.';
-  $('leaderboard').hidden=false;$('practice').hidden=false;$('back-title').hidden=false;
-  $('rank-result').textContent=ticket?'Checking your flight replay…':'Practice result · not submitted to Discord standings.';
-  if(ticket){pendingSubmission={ticket,inputs:replay.slice(),generation:runGeneration};void submitResult(pendingSubmission);}
+  $('record').textContent=Math.floor(run.score)>savedBest?'New personal best pending verification.':'Press R to fly again.';
+  $('leaderboard').hidden=false;$('back-title').hidden=false;
+  $('rank-result').textContent='Checking your flight replay…';
+  pendingSubmission={ticket,inputs:replay.slice(),generation:runGeneration};void submitResult(pendingSubmission);
 }
 async function submitResult(submission){
   $('resubmit').hidden=true;
@@ -201,16 +203,15 @@ async function submitResult(submission){
 $('resubmit').addEventListener('click',()=>{if(pendingSubmission)void submitResult(pendingSubmission);});
 $('launch').addEventListener('click',()=>mode==='paused'?resume():void start());
 $('retry').addEventListener('click',()=>void start());
-$('practice').addEventListener('click',()=>void start(true));
 $('back-title').addEventListener('click',()=>{
   if(mode==='preparing')return;
   ++runGeneration;clearInput();if(mode==='paused')abandonTicket();mode='intro';ticket=null;replay=[];pendingSubmission=null;
   $('overlay').hidden=false;$('overlay').classList.remove('compact');
   $('screen-title').replaceChildren(document.createTextNode('EVENT'),document.createElement('br'),Object.assign(document.createElement('span'),{textContent:'HORIZON'}));
   $('screen-description').textContent='Ride the edge. Get close. Get greedy. Get out.';
-  $('launch').textContent='Launch run ↗';$('hud').hidden=true;$('flight-controls').hidden=true;
+  $('launch').textContent='Launch ranked run ↗';$('hud').hidden=true;$('flight-controls').hidden=true;
   $('results').hidden=true;$('instructions').hidden=false;$('retry').hidden=true;
-  $('practice').hidden=false;$('back-title').hidden=true;$('leaderboard').hidden=false;
+  $('back-title').hidden=true;$('leaderboard').hidden=false;
   $('toast').textContent='';$('launch').focus({preventScroll:true});void refreshBoard();
 });
 $('pause').addEventListener('click',pause);
@@ -221,14 +222,18 @@ updateEffects();
 function dash(){if(mode==='playing'&&run.energy>=100)dashQueued=true;}
 $('dash').addEventListener('pointerdown',e=>{e.preventDefault();dash();});
 $('dash').addEventListener('click',e=>{if(e.detail===0)dash();});
-for(const target of [canvas,$('boost')]) {
-  target.addEventListener('pointerdown',e=>{
-    if(!['ready','playing'].includes(mode)||(e.pointerType==='mouse'&&e.button!==0))return;
-    e.preventDefault();target.setPointerCapture(e.pointerId);pointers.add(e.pointerId);armFlight();
-  });
-  for(const event of ['pointerup','pointercancel','lostpointercapture']) target.addEventListener(event,e=>pointers.delete(e.pointerId));
-  target.addEventListener('contextmenu',e=>e.preventDefault());
-}
+const game=$('game');
+const isFlightControlTarget=target=>target===canvas||target.closest('#boost');
+const blocksFlightHold=target=>target.closest('#overlay, #dash, #pause, a, input, select, textarea, [contenteditable="true"]');
+game.addEventListener('pointerdown',e=>{
+  if(!['ready','playing'].includes(mode)||(e.pointerType==='mouse'&&e.button!==0)||blocksFlightHold(e.target))return;
+  // The root lets touch players hold any unoccupied flight area, while real controls
+  // retain their own behavior. A disabled dash never leaks a boost press underneath.
+  if(!isFlightControlTarget(e.target)&&e.target.closest('button'))return;
+  e.preventDefault(); game.setPointerCapture(e.pointerId); pointers.add(e.pointerId); armFlight();
+});
+for(const event of ['pointerup','pointercancel','lostpointercapture']) game.addEventListener(event,e=>pointers.delete(e.pointerId));
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{
   if(e.code==='Escape'||e.code==='KeyP') {e.preventDefault();if(!e.repeat){if(mode==='playing'||mode==='ready')pause();else if(mode==='paused')resume();}return;}
   if(e.code==='KeyR'&&mode==='dead'&&!e.repeat){e.preventDefault();start();return;}
@@ -398,10 +403,13 @@ function frame(now) {
     accumulator+=dt;
     while(accumulator>=DT&&mode==='playing') {
       const input={boost:boosting(),dash:dashQueued};
-      if(ticket){
-        if(replay.length<ticket.maxTicks)replay.push((input.boost?1:0)|(input.dash?2:0));
-        else{abandonTicket();replay=[];$('run-label').textContent='PRACTICE';message('Ranking limit reached · continuing as practice',4);}
+      if(replay.length>=ticket.maxTicks){
+        abandonTicket(); mode='intro'; clearInput();
+        showOverlay('FLIGHT LIMIT REACHED','This verified flight reached its replay limit and was not submitted. Start a new ranked flight.','Launch ranked run ↗');
+        $('results').hidden=true;$('instructions').hidden=false;$('retry').hidden=true;$('leaderboard').hidden=false;$('back-title').hidden=false;
+        break;
       }
+      replay.push((input.boost?1:0)|(input.dash?2:0));
       step(run,input);dashQueued=false;accumulator-=DT;
       for(const e of run.events){
         if(e.type==='storm-start'){message('90 SECONDS · INCOMING ASTEROID STORM',3.2);tone(260,.3,'triangle',.04,600);}

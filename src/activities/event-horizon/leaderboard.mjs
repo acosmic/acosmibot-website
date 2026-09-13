@@ -1,3 +1,4 @@
+import { avatarSource } from './avatar.mjs';
 const $ = id => document.getElementById(id);
 const number = value => Math.floor(Number(value) || 0).toLocaleString();
 const duration = value => `${Math.floor((Number(value) || 0) / 60)}:${String(Math.floor((Number(value) || 0) % 60)).padStart(2, '0')}`;
@@ -28,16 +29,12 @@ export async function api(path, body) {
   } catch (error) { if (error?.name === 'AbortError') throw new Error('The request timed out. Check your connection and retry.'); throw error; } finally { clearTimeout(timeout); }
 }
 
-function avatarSource(entry) {
-  const raw = entry.avatarUrl || entry.avatar_url;
-  if (!raw) return null;
-  try { const url = new URL(raw); return /(^|\.)discord(?:app)?\.com$/i.test(url.hostname) || /(^|\.)discordapp\.net$/i.test(url.hostname) ? `/discord-cdn${url.pathname}${url.search}` : null; } catch { return raw.startsWith('/discord-cdn/') ? raw : null; }
-}
 function row(entry, selfId) {
   const li = document.createElement('li'); if (entry.playerId === selfId || entry.userId === selfId) li.className = 'is-you';
   const rank = document.createElement('span'); rank.className = 'placing'; rank.textContent = String(entry.rank);
   const avatar = document.createElement('span'); avatar.className = 'pilot-avatar'; avatar.setAttribute('aria-hidden', 'true');
-  const source = avatarSource(entry); if (source) { const image = new Image(); image.src = source; image.alt = ''; image.referrerPolicy = 'no-referrer'; image.addEventListener('error', () => image.remove()); avatar.append(image); } else avatar.textContent = String(entry.name || 'P').slice(0, 1);
+  const initial = String(entry.name || 'P').slice(0, 1);
+  const source = avatarSource(entry); if (source) { const image = new Image(); image.src = source; image.alt = ''; image.referrerPolicy = 'no-referrer'; image.addEventListener('error', () => { avatar.textContent = initial; }); avatar.append(image); } else avatar.textContent = initial;
   const name = document.createElement('span'); name.className = 'pilot-name'; name.textContent = String(entry.name || 'Unknown pilot');
   const result = document.createElement('span'); result.className = 'pilot-result'; const score = document.createElement('strong'); score.textContent = number(entry.score); const time = document.createElement('small'); time.textContent = `${duration(entry.survival)} survived`; result.append(score, time); li.append(rank, avatar, name, result); return li;
 }
