@@ -10,6 +10,19 @@
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()"
   },
   "routes": [
+    {
+      "route": "/activities/event-horizon",
+      "redirect": "/activities/event-horizon/",
+      "statusCode": 302
+    },
+    {
+      "route": "/activities/event-horizon/*",
+      "headers": {
+        "X-Frame-Options": "",
+        "Content-Security-Policy": "frame-ancestors https://discord.com https://ptb.discord.com https://canary.discord.com https://discordapp.com https://1186802023799214223.discordsays.com; base-uri 'self'; object-src 'none'",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
+    },
     { "route": "/premium", "redirect": "/pricing", "statusCode": 301 },
     { "route": "/docs", "redirect": "/docs/introduction", "statusCode": 301 },
     { "route": "/docs/spotify", "redirect": "/docs/music", "statusCode": 301 },
