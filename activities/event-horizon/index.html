@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#05080d" />
+    <title>Event Horizon | Acosmibot</title>
+  </head>
+  <body>
+    <main id="game" aria-label="Event Horizon arcade game">
+      <canvas id="space" aria-label="Flight area. Hold Space, W, Arrow Up, or press and hold here to boost outward. Release to dive inward. Shift dashes."></canvas>
+      <header id="hud" hidden>
+        <div class="run-metrics"><div class="score-block"><span class="eyebrow">SCORE <span id="run-label">RANKED</span></span><strong id="score">0</strong><small id="best">PERSONAL BEST —</small></div><div class="run-clock"><span class="eyebrow">RUN TIME</span><strong id="run-time">0:00</strong></div></div>
+        <div class="telemetry"><strong id="multiplier">1.0×</strong><span id="zone">OUTER ORBIT</span><label>HEAT <meter id="heat" min="0" max="100" value="0">0</meter></label></div><button id="pause" class="icon-button" aria-label="Pause game">Ⅱ</button>
+      </header>
+      <p id="toast" role="status"></p>
+      <div id="flight-controls" hidden><button id="boost" class="boost-button"><strong>HOLD TO BOOST</strong><small>Release to dive inward</small></button><p id="flight-tip">SPACE / W / ↑ · HOLD TO BOOST<br>SHIFT · DASH &nbsp; ESC · PAUSE</p><button id="dash" class="dash-button"><strong>PHASE DASH</strong><small id="charge">READY · SHIFT</small><span id="charge-fill"></span></button></div>
+      <section id="overlay" class="overlay" aria-labelledby="screen-title">
+        <img id="key-art" src="/activities/event-horizon/assets/key-art.png" alt="Acosmibot riding a rocket around a luminous black hole" />
+        <div class="scrim"></div>
+        <div class="screen-content">
+          <p class="eyebrow">ACOSMIBOT <span id="connection-tag" class="tag">CONNECTING TO DISCORD</span></p>
+          <h1 id="screen-title">EVENT<br /><span>HORIZON</span></h1>
+          <p id="screen-description" class="lead">Ride the edge.<br />Get close. Get greedy. Get out.</p>
+          <div id="results" hidden><span class="eyebrow">FLIGHT SCORE</span><strong id="final-score"></strong><p id="run-stats"></p><p id="record"></p><p id="rank-result" role="status"></p><button id="resubmit" hidden>Retry score check</button></div>
+          <div class="actions"><button id="launch" class="primary" disabled>Connecting to Discord… <span>↗</span></button><button id="retry" hidden>New run</button></div>
+          <div class="secondary-actions"><button id="practice">Practice · no ranking</button><button id="back-title" hidden>Title & leaderboard</button><button id="connection-retry" hidden>Retry Discord connection</button></div>
+          <div class="instructions" id="instructions"><p><b>Hold to climb.</b> Space, W, ↑, or hold the flight area.<br /><b>Release to dive.</b> Gravity pulls you toward the black hole.</p><p><b>Shift to phase-dash.</b> Briefly pass through debris and vent heat.<br />On touchscreens: hold with one thumb, tap Dash with the other.</p><p class="rule">Skim the hot inner orbit for up to 5× points. Dodge rocks and plasma, collect cyan shards, and boost out to cool down.</p></div>
+          <div class="settings"><button id="sound" aria-pressed="false">Sound off</button><button id="effects" aria-pressed="false">Reduced effects off</button></div>
+          <p id="connection-note" class="local-note">Ranked flights are verified for this Discord server.</p><p id="load-error" role="alert" hidden></p>
+        </div>
+        <aside id="leaderboard" aria-labelledby="board-title"><p id="board-scope" class="eyebrow">Discord server standings</p><h2 id="board-title">The edge belongs<br />to the bold.</h2><div class="board-heading"><span>TOP PILOTS</span><button id="board-refresh" aria-label="Refresh standings">Refresh</button></div><p id="board-status" role="status">Connecting to verified standings…</p><ol id="standings" aria-label="Top standings"></ol><p id="board-empty">An empty orbit. Be the first to put a score on the board.</p><button id="board-expand" aria-expanded="false" aria-controls="standings" hidden>View Top 10</button><p id="your-standing"></p><p id="nearest-rival"></p></aside>
+      </section>
+    </main>
+    <script type="module" src="/src/activities/event-horizon/game.mjs"></script>
+  </body>
+</html>
