@@ -11,7 +11,7 @@ const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocke
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
 let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = false;
 let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let muted = true, audio, best = 0, savedBest = 0, shake = 0, toastUntil = 0;
+let muted = false, audio, best = 0, savedBest = 0, shake = 0, toastUntil = 0;
 let heatWarning = 0;
 let ticket=null, replay=[], runGeneration=0, pendingSubmission=null;
 let particles = [], stars = [], backdrop;
@@ -149,6 +149,7 @@ async function start() {
 }
 function armFlight(){
   if(mode!=='ready')return;
+  if(!muted && audio?.state==='suspended')void audio.resume().catch(()=>{});
   mode='playing';accumulator=0;last=performance.now();
   message('Release to dive. Boost to climb.',4);
 }
