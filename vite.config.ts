@@ -273,6 +273,12 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        'event-horizon': path.resolve(__dirname, 'activities/event-horizon/index.html'),
+      },
+    },
   },
   resolve: {
     alias: {
