@@ -6,7 +6,7 @@ export function createRun(seed = 1) {
   return { seed: seed >>> 0 || 1, rng: seed >>> 0 || 1, time: 0, tick: 0,
     radius: .8, velocity: 0, heat: 0, energy: 100, phase: 0,
     score: 0, multiplier: 1, combo: 0, comboClock: 0, shards: 0, nearMisses: 0,
-    objects: [], crossers: [], nextCrosser: 90, stormStarted: false,
+    objects: [], crossers: [], nextCrosser: 60, stormStarted: false,
     nextWave: 1.1, wave: 0, alive: true, cause: '', events: [], dashHeld: false };
 }
 function rand(s) { let x = s.rng; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; s.rng = x >>> 0; return s.rng / 4294967296; }
@@ -33,11 +33,11 @@ function die(s, cause) { s.alive = false; s.cause = cause; s.events.push({ type:
 function spawnCrosser(s) {
   const side=rand(s)<.5?-1:1, x=side*1.45, y=-.28-rand(s)*.88;
   const targetY=-(.56+rand(s)*.46), length=Math.hypot(x,targetY-y);
-  const speed=.74+rand(s)*.13+Math.min(.35,(s.time-90)*.002);
+  const speed=.74+rand(s)*.13+Math.min(.35,(s.time-60)*.002);
   s.crossers.push({type:'crosser',x,y,vx:-x/length*speed,vy:(targetY-y)/length*speed,
     targetY,warning:1.15,age:0,size:.038+rand(s)*.012,spin:rand(s)*6.28,
     shape:Math.floor(rand(s)*10000),checked:false,minDistance:10});
-  s.nextCrosser=s.time+Math.max(3.8,6.7-(s.time-90)*.016)+rand(s)*1.6;
+  s.nextCrosser=s.time+Math.max(3.8,6.7-(s.time-60)*.016)+rand(s)*1.6;
   s.events.push({type:'incoming'});
 }
 // Closest approach over one fixed tick prevents fast crossing hazards tunneling.
@@ -71,7 +71,7 @@ export function step(s, input = {}) {
   s.multiplier = 1 + clamp((.94 - s.radius) / .45, 0, 1) * 4;
   s.score += DT * (32 + s.time * .10) * s.multiplier * (1 + s.combo * .08);
   if (s.time >= s.nextWave) spawn(s);
-  if(s.time>=90&&!s.stormStarted){s.stormStarted=true;s.events.push({type:'storm-start'});}
+  if(s.time>=60&&!s.stormStarted){s.stormStarted=true;s.events.push({type:'storm-start'});}
   if(s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
   const angularSpeed = .54 + Math.min(.43, s.time * .0037);
   for (const o of s.objects) {
@@ -83,7 +83,7 @@ export function step(s, input = {}) {
     if (!o.checked && distance < o.size + .028) {
       o.checked = true;
       if (o.type === 'shard') {
-        s.energy = Math.min(100, s.energy + 18); s.shards++;
+        s.energy = Math.min(100, s.energy + 10); s.shards++;
         s.score += 65 * s.multiplier; o.collected = true;
         s.events.push({ type: 'shard', radius: o.radius, angle: o.angle });
       } else if (s.phase <= 0) {

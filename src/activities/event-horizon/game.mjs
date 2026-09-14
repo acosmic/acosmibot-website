@@ -135,7 +135,7 @@ async function start() {
   $('launch').disabled=true;$('retry').disabled=true;
   $('launch').textContent='Preparing ranked flight…';
   if(!rankedConnected){mode='intro';setConnectionState('error','Reconnect to Discord before starting a ranked flight.');return;}
-  try{await boardReady;ticket=await api('/runs',{});if(!ticket?.runId)throw new Error('Could not secure a verified flight.');}catch(error){mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
+  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v2'});if(!ticket?.runId||ticket.version!=='event-horizon-v2')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
   if(generation!==runGeneration)return;
   $('launch').disabled=false;$('retry').disabled=false;
   run=createRun(ticket.seed);
@@ -424,7 +424,7 @@ function frame(now) {
       replay.push((input.boost?1:0)|(input.dash?2:0));
       step(run,input);dashQueued=false;accumulator-=DT;
       for(const e of run.events){
-        if(e.type==='storm-start'){message('90 SECONDS · INCOMING ASTEROID STORM',3.2);tone(260,.3,'triangle',.04,600);}
+        if(e.type==='storm-start'){message('60 SECONDS · INCOMING ASTEROID STORM',3.2);tone(260,.3,'triangle',.04,600);}
         if(e.type==='incoming'&&!run.events.some(event=>event.type==='storm-start')){message('Incoming asteroid — watch the crossing path',1.4);tone(390,.12,'triangle',.025,260);}
         if(e.type==='dash'){message('PHASE SHIFT · DEBRIS SHIELD',.8);tone(170,.25,'triangle',.06,1000);const p=point(run.radius);burst(p.x,p.y,'#b9a6ff',24);}
         if(e.type==='shard'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#7df4ff',7);tone(650+run.shards%4*150,.07,'sine',.02);}
