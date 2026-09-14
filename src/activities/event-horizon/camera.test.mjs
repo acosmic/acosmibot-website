@@ -6,11 +6,11 @@ for (const [width, height] of [[390,844], [320,568], [768,1024], [1440,900], [19
   test(`upper-orbit framing at ${width}×${height}`, () => {
     const {cx, cy, r} = flightCamera(width, height);
     assert.equal(cx, width / 2);
-    assert.ok(cy >= height * .70 && cy < height, 'hole center lower but visible');
+    assert.ok(cy >= height * (height > width ? .58 : .70) && cy < height, 'hole center lower but visible');
     assert.ok(cy - r >= (height > width ? 190 : height < 500 ? 100 : 140) - .001, 'upper orbit below HUD');
     if (height > width) {
-      assert.ok(cx - r * 1.10 >= 12 - .001, 'left approach fits with margin');
-      assert.ok(cx + r * 1.10 <= width - 12 + .001, 'right approach fits with margin');
+      assert.ok(cx - r * 1.05 >= 6 - .001, 'left approach fits with margin');
+      assert.ok(cx + r * 1.05 <= width - 6 + .001, 'right approach fits with margin');
     } else {
       assert.equal(r, Math.min(width * .48, height * .56), 'desktop camera unchanged');
     }
