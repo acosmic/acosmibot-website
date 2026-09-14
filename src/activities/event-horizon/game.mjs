@@ -1,5 +1,5 @@
 import { createRun, step, DT, clamp } from './sim.mjs';
-import { flightCamera } from './camera.mjs';
+import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
 import { drawNoseHeat, visualHeat, rocketTremble } from './heat-fx.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
@@ -317,7 +317,7 @@ function blackHole(t) {
 function object(o) {
   const g=geo();
   const p=o.type==='crosser'?{x:g.cx+o.x*g.r,y:g.cy+o.y*g.r}:point(o.radius,o.angle);
-  const rr=Math.max(o.type==='shard'?4:6,g.r*o.size);
+  const rr=obstacleSize(g.r,o.size);
   if(o.type==='crosser'){
     ctx.save();
     if(o.warning>0){
@@ -357,7 +357,7 @@ function object(o) {
   ctx.restore();
 }
 function ship(t) {
-  const p=point(run.radius), size=clamp(geo().r*.22,48,84);
+  const p=point(run.radius), size=rocketSize(geo().r);
   if(mode==='playing') {
     if(boosting()&&Math.random()<.7){particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
   }
