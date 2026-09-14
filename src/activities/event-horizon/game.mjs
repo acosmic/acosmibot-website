@@ -1,4 +1,5 @@
 import { createRun, step, DT, clamp } from './sim.mjs';
+import { flightCamera } from './camera.mjs';
 import { drawNoseHeat, visualHeat, rocketTremble } from './heat-fx.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
@@ -13,6 +14,7 @@ let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = fals
 let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let muted = false, audio, best = 0, savedBest = 0, shake = 0, toastUntil = 0;
 let heatWarning = 0;
+let comboUntil = 0, comboText = '';
 let ticket=null, replay=[], runGeneration=0, pendingSubmission=null;
 let particles = [], stars = [], backdrop;
 const keys = new Set(), pointers = new Set();
@@ -55,8 +57,7 @@ async function connectDiscord() {
 }
 
 function geo() {
-  const r = Math.min(width * .43, height * .385);
-  return { cx: width * .5, cy: height * .55, r };
+  return flightCamera(width, height);
 }
 function point(radius, angle = 0) {
   const g = geo(); return { x: g.cx + Math.sin(angle) * radius * g.r, y: g.cy - Math.cos(angle) * radius * g.r };
@@ -107,13 +108,12 @@ function syncHUD() {
   $('score').textContent=format(run.score); $('best').textContent=`BEST ${format(best)}`;
   $('run-time').textContent=`${Math.floor(run.time / 60)}:${String(Math.floor(run.time % 60)).padStart(2,'0')}`;
   $('multiplier').textContent=`${run.multiplier.toFixed(1)}×`;
-  $('zone').textContent=run.radius<.66?'DANGER ORBIT':run.radius<.84?'SCORE ORBIT':'OUTER ORBIT';
   $('heat').value=run.heat; $('heat').textContent=`${Math.round(run.heat)}%`;
   $('heat').setAttribute('aria-label',`Heat ${Math.round(run.heat)} percent`);
   const dashReady=run.energy>=100;
   const mobileDash=matchMedia('(max-width:600px), (pointer:coarse)').matches;
   $('dash').disabled=!dashReady;
-  $('dash').setAttribute('aria-label',dashReady?'Phase dash ready':'Phase dash charging');
+  $('dash').setAttribute('aria-label',dashReady?'Phase Shift ready':'Phase Shift charging');
   $('charge').textContent=mobileDash?(dashReady?'100%':`${Math.floor(run.energy)}%`):(dashReady?'READY · SHIFT':`${Math.floor(run.energy)}% · COLLECT SHARDS`);
   $('charge-fill').style.setProperty('--dash-charge',String(clamp(run.energy,0,100)));
   $('desktop-charge-fill').style.width=`${clamp(run.energy,0,100)}%`;
@@ -393,6 +393,17 @@ function render(dt) {
   particles=particles.filter(p=>p.life>0).slice(-240);ctx.globalAlpha=1;
   if(mode==='playing'&&run.heat>65){ctx.strokeStyle=`rgba(255,117,86,${(run.heat-65)/90})`;ctx.lineWidth=6;ctx.strokeRect(3,3,width-6,height-6);}
   ctx.restore();
+  if (mode === 'playing' && visualTime < comboUntil) {
+    const {cx, cy, r} = geo();
+    ctx.save();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#9af3ff';
+    ctx.font = `700 ${clamp(r * .065, 13, 28)}px system-ui`;
+    ctx.fillText('CLOSE CALL', cx, cy - 13, r * .55);
+    ctx.fillStyle = '#f3f7fa';
+    ctx.fillText(comboText, cx, cy + 15, r * .55);
+    ctx.restore();
+  } else if (mode !== 'playing') { comboUntil = 0; }
   if(visualTime>toastUntil)$('toast').textContent='';
 }
 function frame(now) {
@@ -415,9 +426,9 @@ function frame(now) {
       for(const e of run.events){
         if(e.type==='storm-start'){message('90 SECONDS · INCOMING ASTEROID STORM',3.2);tone(260,.3,'triangle',.04,600);}
         if(e.type==='incoming'&&!run.events.some(event=>event.type==='storm-start')){message('Incoming asteroid — watch the crossing path',1.4);tone(390,.12,'triangle',.025,260);}
-        if(e.type==='dash'){message('PHASE DASH · DEBRIS SHIELD',.8);tone(170,.25,'triangle',.06,1000);const p=point(run.radius);burst(p.x,p.y,'#b9a6ff',24);}
+        if(e.type==='dash'){message('PHASE SHIFT · DEBRIS SHIELD',.8);tone(170,.25,'triangle',.06,1000);const p=point(run.radius);burst(p.x,p.y,'#b9a6ff',24);}
         if(e.type==='shard'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#7df4ff',7);tone(650+run.shards%4*150,.07,'sine',.02);}
-        if(e.type==='near'){message(`CLOSE CALL +${e.combo} COMBO`,1.3);tone(800,.1,'triangle',.03,1200);}
+        if(e.type==='near'){comboText=`+${e.combo} COMBO`;comboUntil=visualTime+1.3;tone(800,.1,'triangle',.03,1200);}
         if(e.type==='death')finish();
       }
     }
