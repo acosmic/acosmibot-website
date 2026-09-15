@@ -137,7 +137,7 @@ async function start() {
   $('launch').disabled=true;$('retry').disabled=true;
   $('launch').textContent='Preparing ranked flight…';
   if(!rankedConnected){mode='intro';setConnectionState('error','Reconnect to Discord before starting a ranked flight.');return;}
-  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v4'});if(!ticket?.runId||ticket.version!=='event-horizon-v4')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
+  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v5'});if(!ticket?.runId||ticket.version!=='event-horizon-v5')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
   if(generation!==runGeneration)return;
   $('launch').disabled=false;$('retry').disabled=false;
   run=createRun(ticket.seed);
