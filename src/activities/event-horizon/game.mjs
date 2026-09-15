@@ -137,7 +137,7 @@ async function start() {
   $('launch').disabled=true;$('retry').disabled=true;
   $('launch').textContent='Preparing ranked flight…';
   if(!rankedConnected){mode='intro';setConnectionState('error','Reconnect to Discord before starting a ranked flight.');return;}
-  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v3'});if(!ticket?.runId||ticket.version!=='event-horizon-v3')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
+  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v4'});if(!ticket?.runId||ticket.version!=='event-horizon-v4')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
   if(generation!==runGeneration)return;
   $('launch').disabled=false;$('retry').disabled=false;
   run=createRun(ticket.seed);
@@ -388,18 +388,18 @@ function render(dt) {
   visualTime+=dt;ctx.save();ctx.setTransform(ratio,0,0,ratio,0,0);
   if(shake>0&&!reduced){ctx.translate(Math.sin(visualTime*100)*shake,Math.cos(visualTime*87)*shake);shake=Math.max(0,shake-dt*25);}
   const phaseView=specialState(run);
-  background(visualTime);phaseBackdrop(ctx,width,height,phaseView.kind,dt,reduced);blackHole(visualTime);
+  background(visualTime);phaseBackdrop(ctx,width,height,phaseView.kinds.length?phaseView.kinds:phaseView.kind,dt,reduced);blackHole(visualTime);
   if(mode!=='intro')for(const o of [...run.objects,...run.crossers]){
-    ctx.save();ctx.globalAlpha=o.retiring!==undefined?clamp(o.retiring/.8,0,1):o.type==='convoy'&&o.warning>0?.4:1;object(o);ctx.restore();
+    object(o);
   }
-  if(mode!=='intro')drawSpecial(ctx,geo(),run,phaseView,reduced,phaseView.warning||visualTime>=comboUntil);
+  if(mode!=='intro')drawSpecial(ctx,geo(),run,phaseView,reduced,visualTime>=comboUntil);
   if(mode==='intro'){run.radius=.83+Math.sin(visualTime*.7)*.025;}
   ship(visualTime);
   for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}
   particles=particles.filter(p=>p.life>0).slice(-240);ctx.globalAlpha=1;
   if(mode==='playing'&&run.heat>65){ctx.strokeStyle=`rgba(255,117,86,${(run.heat-65)/90})`;ctx.lineWidth=6;ctx.strokeRect(3,3,width-6,height-6);}
   ctx.restore();
-  if (mode === 'playing' && visualTime < comboUntil && !phaseView.warning) {
+  if (mode === 'playing' && visualTime < comboUntil) {
     const {cx, cy, r} = geo();
     ctx.save();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -430,9 +430,7 @@ function frame(now) {
       replay.push((input.boost?1:0)|(input.dash?2:0));
       step(run,input);dashQueued=false;accumulator-=DT;
       for(const e of run.events){
-        if(e.type==='phase-warning'){ $('phase-status').textContent=`${phaseNames[e.kind]} in five seconds`;tone(240,.2,'triangle',.04,420); }
-        if(e.type==='phase-start'){ $('phase-status').textContent=phaseNames[e.kind];tone(420,.2,'triangle',.04,700); }
-        if(e.type==='phase-end'){ $('phase-status').textContent='Recovery window'; }
+        if(e.type==='phase-start'){ $('phase-status').textContent=run.specials.map(p=>phaseNames[p.kind]).join(' + ');tone(420,.2,'triangle',.04,700); }
         if(e.type==='storm-start'){message('60 SECONDS · INCOMING ASTEROID STORM',3.2);tone(260,.3,'triangle',.04,600);}
         if(e.type==='incoming'&&!run.events.some(event=>event.type==='storm-start')){message('Incoming asteroid — watch the crossing path',1.4);tone(390,.12,'triangle',.025,260);}
         if(e.type==='dash'){message('PHASE SHIFT · DEBRIS SHIELD',.8);tone(170,.25,'triangle',.06,1000);const p=point(run.radius);burst(p.x,p.y,'#b9a6ff',24);}
