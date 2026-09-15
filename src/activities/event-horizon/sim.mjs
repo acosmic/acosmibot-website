@@ -1,5 +1,4 @@
-// Pure, seeded 60 Hz prototype simulation. No DOM, storage, network, or rewards.
-// Floating-point prototype: do not treat this as the future ranked verifier.
+// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v3 verifier.
 export const DT = 1 / 60;
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export function createRun(seed = 1) {
@@ -7,9 +6,54 @@ export function createRun(seed = 1) {
     radius: .8, velocity: 0, heat: 0, energy: 100, phase: 0,
     score: 0, multiplier: 1, combo: 0, comboClock: 0, shards: 0, nearMisses: 0,
     objects: [], crossers: [], nextCrosser: 60, stormStarted: false,
+    special: null, nextSpecial: 105, nextKind: 'convoy', recoveryUntil: 0,
     nextWave: 1.1, wave: 0, alive: true, cause: '', events: [], dashHeld: false };
 }
 function rand(s) { let x = s.rng; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; s.rng = x >>> 0; return s.rng / 4294967296; }
+export function specialState(s) {
+  const p=s.special;
+  if(!p)return {kind:s.time>=60?'asteroids':'orbit', warning:false, gravity:1, beam:null};
+  const age=s.time-p.start;
+  const pulse=age>=2&&age<20&&(age-2)%7<4;
+  return {kind:p.kind, warning:age<0, gravity:p.kind==='tide'&&pulse?1.15:1,
+    beam:p.kind==='pulsar'&&age>=2&&age<7?.50+(age-2)*.08:null};
+}
+function convoy(s,p) {
+  const gaps=[.69,.83,.98], gap=gaps[(p.variant+p.waves)%gaps.length];
+  for(let radius=.51;radius<=1.06;radius+=.055){
+    if(Math.abs(radius-gap)<.14)continue;
+    s.objects.push({type:'convoy',radius,angle:1.05,size:.023,spin:0,shape:p.waves,
+      checked:false,warning:2, speed:.50});
+  }
+  p.gap=gap;p.waves++;
+  s.events.push({type:'convoy-warning',gap});
+}
+function advanceSpecial(s) {
+  if(!s.special&&s.time>=s.nextSpecial-5){
+    const kind=s.nextKind, duration={convoy:18,tide:20,pulsar:7,asteroids:15}[kind];
+    s.special={kind,start:s.nextSpecial,end:s.nextSpecial+duration,started:false,
+      waves:0,variant:Math.floor(rand(s)*3),gap:null,beamChecked:false};
+    // Retire old hazards with a visible fade instead of trapping the next safe corridor.
+    for(const o of [...s.objects,...s.crossers])if(o.type!=='shard')o.retiring=.8;
+    s.events.push({type:'phase-warning',kind});
+  }
+  const p=s.special;
+  if(!p)return;
+  if(s.time>=p.start&&!p.started){p.started=true;s.events.push({type:'phase-start',kind:p.kind});}
+  if(p.started&&p.kind==='convoy'&&p.waves<3&&s.time>=p.start+p.waves*5)convoy(s,p);
+  if(s.time>=p.end){
+    for(const o of [...s.objects,...s.crossers])if(o.type!=='shard')o.retiring=.8;
+    s.special=null;s.recoveryUntil=s.time+10;s.nextWave=s.recoveryUntil;s.nextCrosser=s.recoveryUntil;
+    if(p.start<150){s.nextSpecial=150;s.nextKind='tide';}
+    else if(p.start<195){s.nextSpecial=195;s.nextKind='pulsar';}
+    else {
+      s.nextSpecial=p.start<240?240:s.time+15;
+      const choices=['convoy','tide','pulsar','asteroids'].filter(kind=>kind!==p.kind);
+      s.nextKind=choices[Math.floor(rand(s)*choices.length)];
+    }
+    s.events.push({type:'phase-end',kind:p.kind});
+  }
+}
 function spawn(s) {
   const difficulty = Math.min(1, s.time / 110);
   // Every wave leaves one broad radial corridor. Adjacent waves are separated
@@ -50,6 +94,7 @@ export function step(s, input = {}) {
   s.events = [];
   if (!s.alive) return s;
   s.time += DT; s.tick++;
+  advanceSpecial(s);
   s.phase = Math.max(0, s.phase - DT);
   if (input.dash && !s.dashHeld && s.energy >= 100) {
     s.energy = 0; s.phase = .75; s.velocity = Math.max(s.velocity, .12);
@@ -57,7 +102,8 @@ export function step(s, input = {}) {
   }
   s.dashHeld = !!input.dash;
   s.energy = Math.min(100, s.energy + DT * 5);
-  const gravity = .46 + Math.max(0, .72 - s.radius) * .32;
+  const special=specialState(s);
+  const gravity = (.46 + Math.max(0, .72 - s.radius) * .32) * special.gravity;
   s.velocity += ((input.boost ? .99 : 0) - gravity - s.velocity * 1.55) * DT;
   s.velocity = clamp(s.velocity, -.34, .34);
   const previousRadius=s.radius;
@@ -70,12 +116,22 @@ export function step(s, input = {}) {
   if (s.comboClock <= 0) s.combo = 0;
   s.multiplier = 1 + clamp((.94 - s.radius) / .45, 0, 1) * 4;
   s.score += DT * (32 + s.time * .10) * s.multiplier * (1 + s.combo * .08);
-  if (s.time >= s.nextWave) spawn(s);
+  if (!s.special&&s.time>=s.recoveryUntil&&s.time >= s.nextWave) spawn(s);
   if(s.time>=60&&!s.stormStarted){s.stormStarted=true;s.events.push({type:'storm-start'});}
-  if(s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
+  if((!s.special||(special.kind==='asteroids'&&!special.warning))&&s.time>=s.recoveryUntil&&s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
+  if(special.beam!==null&&!s.special.beamChecked){
+    const priorBeam=special.beam-.08*DT;
+    const before=previousRadius-priorBeam, after=s.radius-special.beam;
+    if(Math.abs(after)<.046||Math.abs(before)<.046||before*after<0){
+      if(s.phase<=0){die(s,'Caught by the pulsar sweep. Follow the warning and climb to the outer corridor.');return s;}
+      s.special.beamChecked=true;
+    }
+  }
   const angularSpeed = .54 + Math.min(.43, s.time * .0037);
   for (const o of s.objects) {
-    o.angle -= angularSpeed * DT;
+    if(o.retiring!==undefined){o.retiring-=DT;continue;}
+    if(o.warning>0){o.warning=Math.max(0,o.warning-DT);continue;}
+    o.angle -= (o.speed??angularSpeed) * DT;
     o.spin += DT * .65;
     const dx = Math.sin(o.angle) * o.radius;
     const dy = Math.cos(o.angle) * o.radius - s.radius;
@@ -87,7 +143,7 @@ export function step(s, input = {}) {
         s.score += 65 * s.multiplier; o.collected = true;
         s.events.push({ type: 'shard', radius: o.radius, angle: o.angle });
       } else if (s.phase <= 0) {
-        die(s, o.type === 'plasma' ? 'Hit by a plasma flare. Change orbit or phase-dash through it.' : 'Hit by orbital debris. Watch the incoming arc and change your altitude.');
+        die(s, o.type === 'plasma' ? 'Hit by a plasma flare. Change orbit or Phase Shift through it.' : 'Hit by orbital debris. Watch the incoming arc and change your altitude.');
         return s;
       } else { s.score += 80; s.events.push({ type: 'phase-through' }); }
     }
@@ -99,8 +155,9 @@ export function step(s, input = {}) {
       }
     }
   }
-  s.objects = s.objects.filter(o => o.angle > -2.7 && !o.collected);
+  s.objects = s.objects.filter(o => o.angle > -2.7 && !o.collected && (o.retiring===undefined||o.retiring>0));
   for(const o of s.crossers){
+    if(o.retiring!==undefined){o.retiring-=DT;continue;}
     o.age+=DT;
     if(o.warning>0){o.warning=Math.max(0,o.warning-DT);continue;}
     const oldX=o.x,oldY=o.y;o.x+=o.vx*DT;o.y+=o.vy*DT;o.spin+=DT*2;
@@ -108,7 +165,7 @@ export function step(s, input = {}) {
     o.minDistance=Math.min(o.minDistance,distance);
     if(!o.checked&&distance<o.size+.028){
       o.checked=true;
-      if(s.phase<=0){die(s,'Hit by an incoming asteroid. Watch the warning line, change altitude, or phase-dash.');return s;}
+      if(s.phase<=0){die(s,'Hit by an incoming asteroid. Watch the warning line, change altitude, or Phase Shift.');return s;}
       s.score+=100;s.events.push({type:'phase-through'});
     }
     if(!o.checked&&Math.sign(o.vx)*o.x>o.size+.13){
@@ -117,6 +174,6 @@ export function step(s, input = {}) {
         s.score+=160*s.multiplier;s.events.push({type:'near',combo:s.combo});}
     }
   }
-  s.crossers=s.crossers.filter(o=>o.age<9&&Math.abs(o.x)<1.8&&Math.abs(o.y)<2);
+  s.crossers=s.crossers.filter(o=>o.age<9&&Math.abs(o.x)<1.8&&Math.abs(o.y)<2&&(o.retiring===undefined||o.retiring>0));
   return s;
 }
