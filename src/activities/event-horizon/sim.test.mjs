@@ -30,7 +30,7 @@ test('unshielded collision ends flight',()=>{
 });
 test('shards increase score and energy once',()=>{
   const s=createRun();s.energy=0;s.objects=[{type:'shard',radius:.8,angle:0,size:.018,spin:0,checked:false}];
-  step(s);assert.equal(s.shards,1);assert.ok(s.score>65);assert.equal(s.energy,10+DT*5);
+  step(s);assert.equal(s.shards,1);assert.ok(s.score>65);assert.equal(s.energy,5+DT*5);
   step(s);assert.equal(s.shards,1);
 });
 test('inner orbit scores higher and heats up',()=>{

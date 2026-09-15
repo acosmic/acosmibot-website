@@ -1,4 +1,4 @@
-// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v4 verifier.
+// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v5 verifier.
 export const DT = 1 / 60;
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export function createRun(seed = 1) {
@@ -141,7 +141,7 @@ export function step(s, input = {}) {
     if (!o.checked && distance < o.size + .028) {
       o.checked = true;
       if (o.type === 'shard') {
-        s.energy = Math.min(100, s.energy + 10); s.shards++;
+        s.energy = Math.min(100, s.energy + 5); s.shards++;
         s.score += 65 * s.multiplier; o.collected = true;
         s.events.push({ type: 'shard', radius: o.radius, angle: o.angle });
       } else if (s.phase <= 0) {
