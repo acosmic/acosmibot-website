@@ -1,4 +1,5 @@
 import { avatarSource } from './avatar.mjs';
+import { flightError } from './errors.mjs';
 const $ = id => document.getElementById(id);
 const number = value => Math.floor(Number(value) || 0).toLocaleString();
 const duration = value => `${Math.floor((Number(value) || 0) / 60)}:${String(Math.floor((Number(value) || 0) % 60)).padStart(2, '0')}`;
@@ -11,12 +12,6 @@ const compactBoard = matchMedia('(max-width:900px)');
 function placeBoard() { if (compactBoard.matches) $('instructions').before($('leaderboard')); else $('overlay').append($('leaderboard')); }
 compactBoard.addEventListener('change', placeBoard); placeBoard();
 
-function messageFor(response) {
-  if (response.status === 401 || response.status === 403) return 'Your Discord session is no longer valid. Reconnect and try again.';
-  if (response.status === 429) return 'The event horizon is busy. Please wait a moment and retry.';
-  return `The verified service could not complete that request (${response.status}).`;
-}
-
 export function setSession(token) { sessionToken = token || null; rankedAvailable = Boolean(sessionToken); }
 export function setRankedAvailable(available) { rankedAvailable = Boolean(available); }
 export async function api(path, body) {
@@ -24,7 +19,7 @@ export async function api(path, body) {
   const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 10_000);
   try {
     const response = await fetch(`/api/event-horizon${path}`, { method: body === undefined ? 'GET' : 'POST', headers: { Authorization: `Bearer ${sessionToken}`, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) }, body: body === undefined ? undefined : JSON.stringify(body), signal: controller.signal });
-    if (!response.ok) throw new Error(messageFor(response));
+    if (!response.ok) throw await flightError(response);
     return response.status === 204 ? null : response.json();
   } catch (error) { if (error?.name === 'AbortError') throw new Error('The request timed out. Check your connection and retry.'); throw error; } finally { clearTimeout(timeout); }
 }
