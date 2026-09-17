@@ -1,7 +1,7 @@
 import { createRun, step, DT, clamp, specialState } from './sim.mjs';
 import { createPhaseBackdrop, drawSpecial, phaseNames } from './phases-fx.mjs';
 import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
-import { drawNoseHeat, visualHeat, rocketTremble } from './heat-fx.mjs';
+import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-fx.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
 import './style.css';
@@ -366,10 +366,11 @@ function ship(t) {
   }
   if(mode==='dead')return;
   ctx.save();ctx.translate(p.x,p.y);
+  drawPhaseReady(ctx,size,run.energy,run.phase,t,reduced);
   if(run.heat>=65){
     ctx.strokeStyle='#ffbc86';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(-7,-size*.65);ctx.lineTo(0,-size*.78);ctx.lineTo(7,-size*.65);ctx.stroke();
-    ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffcca7';ctx.fillText('BOOST TO COOL',0,size*.68);
+    ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffcca7';ctx.fillText('BOOST TO COOL',0,size*.78+10);
   }
   if(run.phase>0){ctx.strokeStyle='#beacff';ctx.lineWidth=2;ctx.shadowColor='#a18aff';ctx.shadowBlur=reduced?0:22;ctx.beginPath();ctx.arc(0,0,size*.48,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
   const tremble=rocketTremble(run.multiplier,run.time,reduced);
