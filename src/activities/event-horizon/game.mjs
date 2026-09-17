@@ -2,6 +2,7 @@ import { createRun, step, DT, clamp, specialState } from './sim.mjs';
 import { createPhaseBackdrop, drawSpecial, phaseNames } from './phases-fx.mjs';
 import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
 import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-fx.mjs';
+import { flightError, needsReconnect } from './errors.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
 import './style.css';
@@ -23,6 +24,7 @@ const keys = new Set(), pointers = new Set();
 const boostKeys = new Set(['Space', 'KeyW', 'ArrowUp']);
 let rankedConnected = false;
 let discordSdk = null;
+let connecting = false;
 const format = n => Math.floor(n).toLocaleString();
 const boosting = () => keys.size > 0 || pointers.size > 0;
 const holdPrompt = () => matchMedia('(max-width:600px), (pointer:coarse)').matches ? 'Hold anywhere in the flight area to begin your ranked flight.' : 'Hold Boost or Space to begin your ranked flight.';
@@ -39,6 +41,9 @@ function setConnectionState(state, detail = '') {
 }
 async function fetchConfig() { const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),8000); try { const response=await fetch('/api/event-horizon/config',{signal:controller.signal}); if(!response.ok)throw new Error(`Configuration request failed (${response.status})`); return await response.json(); } finally { clearTimeout(timeout); } }
 async function connectDiscord() {
+  if(connecting)return;
+  connecting=true;
+  $('connection-retry').disabled=true;
   setConnectionState('loading'); setSession(null); setRankedAvailable(false); rankedConnected=false;
   try {
     const config=await fetchConfig(); if(!config?.enabled)throw new Error('Event Horizon is not available right now. Please try again later.');
@@ -52,10 +57,11 @@ async function connectDiscord() {
     try { response=await fetch('/api/event-horizon/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,instanceId:discordSdk.instanceId}),signal:authController.signal}); }
     catch(error) { if(error?.name==='AbortError')throw new Error('Discord verification took too long. Check your connection and retry.'); throw error; }
     finally { clearTimeout(authTimeout); }
-    if(!response.ok)throw new Error(`Discord verification failed (${response.status}).`);
+    if(!response.ok)throw await flightError(response);
     const auth=await response.json(); if(!auth?.accessToken||!auth?.sessionToken)throw new Error('Discord verification returned an incomplete session.');
-    await discordSdk.commands.authenticate({access_token:auth.accessToken}); setSession(auth.sessionToken); setRankedAvailable(true); rankedConnected=true; setConnectionState('ready'); await refreshBoard();
+    await discordSdk.commands.authenticate({access_token:auth.accessToken}); setSession(auth.sessionToken); setRankedAvailable(true); rankedConnected=true; setConnectionState('ready'); $('load-error').hidden=true; await refreshBoard();
   } catch(error) { const external=window.self===window.top; setConnectionState(external?'external':'error',error instanceof Error?error.message:'Could not connect to Discord.'); }
+  finally { connecting=false;$('connection-retry').disabled=false; }
 }
 
 function geo() {
@@ -137,7 +143,12 @@ async function start() {
   $('launch').disabled=true;$('retry').disabled=true;
   $('launch').textContent='Preparing ranked flight…';
   if(!rankedConnected){mode='intro';setConnectionState('error','Reconnect to Discord before starting a ranked flight.');return;}
-  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v5'});if(!ticket?.runId||ticket.version!=='event-horizon-v5')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';setConnectionState('error',$('load-error').textContent);return;}
+  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v5'});if(!ticket?.runId||ticket.version!=='event-horizon-v5')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){
+    abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';
+    if(needsReconnect(error)){rankedConnected=false;setConnectionState('error',$('load-error').textContent);}
+    else{setConnectionState('ready');$('retry').disabled=false;$('connection-retry').hidden=error.code!=='active_run_limit';}
+    return;
+  }
   if(generation!==runGeneration)return;
   $('launch').disabled=false;$('retry').disabled=false;
   run=createRun(ticket.seed);
