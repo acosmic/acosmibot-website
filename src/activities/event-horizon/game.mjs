@@ -29,6 +29,7 @@ let rankedConnected = false;
 let casualAvailable = false;
 const launchLabel=()=>casualAvailable?'Launch flight ↗':'Launch ranked run ↗';
 let discordSdk = null;
+let discordClientId=null,profileBusy=false;
 let connecting = false;
 let live=null, presence=null, presenceMode='', flightStartedAt=null;
 let watching=false, watchedStatus='connecting', watchedInput=0, lastWatchFrame=0, lastBroadcast=0;
@@ -47,6 +48,7 @@ function renderPilots(){
     liveStatus==='replaced'?'This Activity was opened elsewhere. Reconnect to Discord to watch here.':liveStatus==='unavailable'?'Live watching is unavailable. Ranked flights are still available.':'Connecting to live flights…';
 }
 function beginWatching(runId){
+  if(profileBusy)return;
   if(['playing','ready','paused','preparing'].includes(mode))return;
   clearInput();live?.watch(runId);$('live-status').textContent='Joining the flight…';
 }
@@ -119,7 +121,7 @@ function setConnectionState(state, detail = '') {
   $('connection-note').textContent='Verifying your Discord session and server standings…'; $('launch').disabled=true; $('launch').textContent='Connecting to Discord…';
 }
 async function fetchConfig() { const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),8000); try { const response=await fetch('/api/event-horizon/config',{signal:controller.signal}); if(!response.ok)throw new Error(`Configuration request failed (${response.status})`); return await response.json(); } finally { clearTimeout(timeout); } }
-async function connectDiscord() {
+async function connectDiscord(approvedAuthorization=null) {
   if(connecting)return;
   connecting=true;
   presence=null;presenceMode='';
@@ -130,11 +132,14 @@ async function connectDiscord() {
   try {
     const config=await fetchConfig(); if(!config?.enabled)throw new Error('Event Horizon is not available right now. Please try again later.');
     const clientId=config.clientId || import.meta.env.VITE_DISCORD_CLIENT_ID; if(!clientId)throw new Error('This Activity is missing its public Discord client ID.');
-    discordSdk=new DiscordSDK(clientId);
-    await Promise.race([discordSdk.ready(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Discord did not respond in time. Open Event Horizon from the Discord app and retry.')),12000))]);
+    discordClientId=clientId;
+    if(!approvedAuthorization){
+      discordSdk=new DiscordSDK(clientId);
+      await Promise.race([discordSdk.ready(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Discord did not respond in time. Open Event Horizon from the Discord app and retry.')),12000))]);
+    }
     // Keep launch on the original identity grant. Optional Rich Presence must
     // not escalate permissions and interrupt every Activity launch with consent.
-    const authorization=await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify']});
+    const authorization=approvedAuthorization || await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify']});
     const {code}=authorization;
     const authController=new AbortController();
     const authTimeout=setTimeout(()=>authController.abort(),35_000);
@@ -225,6 +230,7 @@ function syncHUD() {
   }
 }
 async function start() {
+  if(profileBusy)return;
   if(mode==='preparing')return;
   if(watching)stopWatching();
   $('pause').hidden=false;$('watch-controls').hidden=true;
@@ -364,7 +370,26 @@ window.addEventListener('keyup',e=>keys.delete(e.code));
 window.addEventListener('blur',pause);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 window.addEventListener('pagehide',()=>abandonTicket());
-$('connection-retry').addEventListener('click',()=>void connectDiscord());
+$('connection-retry').addEventListener('click',()=>{if(!profileBusy)void connectDiscord();});
+$('profile-share').addEventListener('click',async()=>{
+  if(profileBusy||connecting||mode!=='intro'||presence||(!rankedConnected&&!casualAvailable))return;
+  profileBusy=true;$('launch').disabled=true;$('connection-retry').disabled=true;
+  $('profile-status').textContent='Waiting for Discord permission…';
+  let reconnectStarted=false;
+  try{
+    // Only this deliberate click requests permission to change profile activity.
+    // Ask before replacing the game session so Cancel leaves it playable.
+    const authorization=await discordSdk.commands.authorize({client_id:discordClientId,response_type:'code',state:'',prompt:'none',scope:['identify','rpc.activities.write']});
+    reconnectStarted=true;await connectDiscord(authorization);
+    $('profile-status').textContent=presence?'Profile sharing enabled for this session.':
+      'Profile sharing was not enabled. You can retry from the lobby.';
+  }catch{
+    $('profile-status').textContent='Profile sharing was not enabled. You can keep playing.';
+  }finally{
+    profileBusy=false;
+    if(!reconnectStarted){$('launch').disabled=false;$('connection-retry').disabled=false;}
+  }
+});
 $('install-bot').href=DISCORD_INVITE_URL;
 $('install-bot').addEventListener('click',async event=>{
   if(!discordSdk)return; // Normal browsers follow the real install link directly.
@@ -536,6 +561,9 @@ function render(dt) {
   if(visualTime>toastUntil)$('toast').textContent='';
 }
 function frame(now) {
+  $('profile-setting').hidden=mode!=='intro'||(!rankedConnected&&!casualAvailable);
+  $('profile-share').disabled=profileBusy||connecting||!!presence;
+  $('profile-share').textContent=profileBusy?'Connecting profile…':presence?'Profile sharing enabled':'Show on Discord profile';
   const elapsed=Math.max(0,(now-last)/1000);last=now;
   // A long scheduling stall must not silently kill the player or advance time.
   if(elapsed>.6&&mode==='playing')pause();
