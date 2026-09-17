@@ -1,4 +1,6 @@
 const messages = {
+  bot_not_installed: 'Add Acosmibot to this server to play Event Horizon. Ask someone with Manage Server permission to install it, or play in a server where Acosmibot is already installed.',
+  not_member: 'You must be a member of this server to play Event Horizon.',
   active_run_limit: 'An unfinished flight is blocking this launch. Reconnect to Discord to release your previous flights in this server.',
   session_expired: 'Your flight session expired or was replaced by another Activity. Reconnect to Discord to continue here.',
   rate_limited: 'Too many requests. Please wait a minute before retrying.',

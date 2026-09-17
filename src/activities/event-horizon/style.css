@@ -62,3 +62,28 @@
   .run-clock{flex-direction:column;gap:2px}
   .run-clock strong{font-size:20px}
 }
+/* Live viewing extends the existing flight surface; the orbit remains central. */
+#install-bot{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:8px 14px;border:1px solid #5d7185;border-radius:12px;background:#112234;color:#f4f8fb;text-decoration:none;font-size:13px}
+#install-bot[hidden]{display:none}#install-bot img{object-fit:contain;flex-shrink:0}#install-bot:hover{background:#183148}#install-bot:focus-visible{outline:2px solid #a2f1ff;outline-offset:4px}
+#connection-note{font-size:13px;line-height:1.6;color:#bdcedf;margin:0 0 18px;max-width:48ch}#connection-note:empty{display:none}
+#live-lobby{width:100%;max-width:540px;margin:4px 0 24px;padding:18px 0;border-block:1px solid #334455}
+.live-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.live-heading h2{font-size:20px;margin:0}.live-heading>span{font-size:12px;color:#bdcedf}
+#live-status{font-size:13px;line-height:1.5;color:#bdcedf;margin:10px 0}
+#live-pilots{list-style:none;padding:0;margin:0}
+#live-pilots li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}
+#live-pilots li>span{display:grid;gap:4px;min-width:0}
+#live-pilots strong{font-size:14px;overflow-wrap:anywhere}
+#live-pilots small{font-size:12px;color:#bdcedf}
+#live-pilots button,#watch-controls button{min-height:44px;padding:10px 16px;flex-shrink:0;background:#0e1a2a;color:#e1f7ff;border:1px solid #527487;border-radius:8px}
+.share-flight{display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;min-height:44px;margin-top:10px;color:#e1e8f2}
+.share-flight input{width:20px;height:20px;accent-color:#a2f1ff;flex-shrink:0}
+#watch-controls{position:absolute;z-index:5;bottom:max(24px,env(safe-area-inset-bottom));left:24px;right:24px;display:flex;align-items:center;gap:12px;padding:14px;background:#07101ef2;border:1px solid #334455;border-radius:12px}
+#watch-controls>div{display:grid;gap:5px;flex:1;min-width:0}
+#watch-name{overflow-wrap:anywhere;font-size:15px}#watch-status,#watch-charge{font-size:12px;color:#bdcedf}
+#watch-controls[hidden],#live-lobby[hidden],#viewer-count[hidden]{display:none}
+#viewer-count{position:absolute;left:24px;bottom:115px;color:#bdcedf;font-size:12px;pointer-events:none}
+#live-pilots button:hover,#watch-controls button:hover{background:#183148}
+#live-pilots button:disabled{opacity:.5;cursor:not-allowed}
+#live-lobby button:focus-visible,#watch-controls button:focus-visible,.share-flight input:focus-visible{outline:2px solid #a2f1ff;outline-offset:4px}
+@media(max-width:600px){#watch-controls{left:12px;right:12px;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 28px);flex-wrap:wrap;padding:12px}#watch-controls>div{flex-basis:100%}#watch-controls button{flex:1}#viewer-count{left:16px;bottom:150px}.live-heading{flex-wrap:wrap;gap:4px}}

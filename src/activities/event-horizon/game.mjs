@@ -6,6 +6,9 @@ import { flightError, needsReconnect } from './errors.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
 import './style.css';
+import { LiveClient, snapshotForView } from './live.mjs';
+import { Presence } from './presence.mjs';
+import { DISCORD_INVITE_URL } from '../../seo/publicRoutes';
 
 const $ = id => document.getElementById(id);
 const canvas = $('space');
@@ -23,34 +26,115 @@ let particles = [], stars = [], backdrop;
 const keys = new Set(), pointers = new Set();
 const boostKeys = new Set(['Space', 'KeyW', 'ArrowUp']);
 let rankedConnected = false;
+let casualAvailable = false;
+const launchLabel=()=>casualAvailable?'Launch flight ↗':'Launch ranked run ↗';
 let discordSdk = null;
 let connecting = false;
+let live=null, presence=null, presenceMode='', flightStartedAt=null;
+let watching=false, watchedStatus='connecting', watchedInput=0, lastWatchFrame=0, lastBroadcast=0;
+let liveFlights=[], liveStatus='connecting';
+
+function renderPilots(){
+  const focused=document.activeElement?.dataset?.watchRun;
+  $('live-pilots').replaceChildren(...liveFlights.map(f=>{
+    const row=document.createElement('li'),info=document.createElement('span'),name=document.createElement('strong'),detail=document.createElement('small'),button=document.createElement('button');
+    name.textContent=f.name;detail.textContent=`${Math.floor(f.time)}s · ${Math.floor(f.score).toLocaleString()} points · ${f.status==='playing'?'Flying':f.status==='paused'?'Paused':'Connecting'}`;
+    info.append(name,detail);button.textContent='Watch';button.disabled=['playing','ready','paused','preparing'].includes(mode);
+    button.dataset.watchRun=f.runId;button.setAttribute('aria-label',`Watch ${f.name}`);button.addEventListener('click',()=>beginWatching(f.runId));row.append(info,button);return row;
+  }));
+  if(focused)for(const button of $('live-pilots').querySelectorAll('button'))if(button.dataset.watchRun===focused)button.focus({preventScroll:true});
+  $('live-status').textContent=liveStatus==='connected'?(liveFlights.length?'Live scores are provisional until the flight is verified.':'No one is flying yet. Launch a flight for others to watch.'):
+    liveStatus==='replaced'?'This Activity was opened elsewhere. Reconnect to Discord to watch here.':liveStatus==='unavailable'?'Live watching is unavailable. Ranked flights are still available.':'Connecting to live flights…';
+}
+function beginWatching(runId){
+  if(['playing','ready','paused','preparing'].includes(mode))return;
+  clearInput();live?.watch(runId);$('live-status').textContent='Joining the flight…';
+}
+function stopWatching(){
+  live?.unwatch();watching=false;mode='intro';watchedStatus='connecting';run=createRun(42);
+  $('watch-controls').hidden=true;$('viewer-count').hidden=true;
+  $('best').hidden=false;canvas.setAttribute('aria-label','Flight area. Hold Space, W, Arrow Up, or hold the flight area to boost outward. Release to dive inward. Shift activates Phase Shift.');
+}
+function liveMessage(message){
+  if(message.type==='flights'){liveFlights=message.flights;renderPilots();return;}
+  if(message.type==='viewers'){$('viewer-count').textContent=`${message.count} watching`;$('viewer-count').hidden=!ticket||!$('share-flight').checked;return;}
+  if(message.type==='watching'){
+    watching=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
+    $('watch-name').textContent=`Watching ${message.name}`;$('watch-status').textContent='Joining flight…';
+    $('overlay').hidden=true;$('hud').hidden=false;$('pause').hidden=true;$('flight-controls').hidden=true;$('watch-controls').hidden=false;
+    $('best').hidden=true;canvas.setAttribute('aria-label',`Live view of ${message.name}'s flight. Use Switch pilot or Leave view to return to the lobby.`);
+    $('watch-leave').focus({preventScroll:true});
+    $('viewer-count').hidden=true;return;
+  }
+  if(message.type==='snapshot'&&watching){
+    const state=snapshotForView(message);if(!state)return;
+    run=state;watchedStatus=message.status;watchedInput=message.input;lastWatchFrame=performance.now();accumulator=0;
+    $('watch-status').textContent=watchedStatus==='paused'?'Pilot paused':watchedStatus==='ready'?'Pilot preparing':watchedStatus==='dead'?'Flight ended · checking score…':'Live · score awaiting verification';
+    $('watch-charge').textContent=`Phase Shift ${Math.floor(run.energy)}%`;syncHUD();return;
+  }
+  if(message.type==='status'&&watching){watchedStatus=message.status;$('watch-status').textContent='Pilot reconnecting…';return;}
+  if(message.type==='verified'&&watching){
+    watchedStatus='verified';$('watch-status').textContent=`Verified · ${Math.floor(message.result.score).toLocaleString()} points${message.result.rank?` · server #${message.result.rank}`:''}`;
+    return;
+  }
+  if(message.type==='ended'&&watching){watchedStatus='ended';live.target=null;$('watch-status').textContent=message.reason||'Flight ended';return;}
+  if(message.type==='error'){
+    const text=message.message||'This flight is unavailable. Choose another pilot.';
+    if(['unavailable','full'].includes(message.code)&&watching)$('back-title').click();
+    if(watching)$('watch-status').textContent=text;else $('live-status').textContent=text;
+  }
+}
+function setLiveStatus(status){
+  liveStatus=status;renderPilots();
+  if(watching&&status!=='connected'){watchedStatus='reconnecting';$('watch-status').textContent='Live view reconnecting…';}
+}
+$('watch-leave').addEventListener('click',()=>{$('back-title').click();});
+$('watch-switch').addEventListener('click',()=>{$('back-title').click();$('live-title').scrollIntoView({block:'center'});});
+$('share-flight').addEventListener('change',()=>{
+  if(!$('share-flight').checked){live?.send({type:'hide'});$('viewer-count').hidden=true;}
+  else if(ticket&&['ready','playing','paused'].includes(mode))live?.setRun(ticket.runId);
+});
 const format = n => Math.floor(n).toLocaleString();
 const boosting = () => keys.size > 0 || pointers.size > 0;
-const holdPrompt = () => matchMedia('(max-width:600px), (pointer:coarse)').matches ? 'Hold anywhere in the flight area to begin your ranked flight.' : 'Hold Boost or Space to begin your ranked flight.';
+const holdPrompt = () => matchMedia('(max-width:600px), (pointer:coarse)').matches ? 'Hold anywhere in the flight area to begin your flight.' : 'Hold Boost or Space to begin your flight.';
 function abandonTicket(){
   const old=ticket;ticket=null;
-  if(old)void api(`/runs/${encodeURIComponent(old.runId)}/abandon`,{}).catch(()=>{});
+  if(old?.runId)void api(`/runs/${encodeURIComponent(old.runId)}/abandon`,{}).catch(()=>{});
 }
 
 function setConnectionState(state, detail = '') {
-  if (state === 'ready') { $('connection-tag').textContent='VERIFIED DISCORD FLIGHT'; $('connection-note').textContent='Ranked flights are replay-verified for this Discord server.'; $('launch').disabled=false; $('launch').textContent='Launch ranked run ↗'; $('connection-retry').hidden=true; return; }
-  if (state === 'external') { $('connection-tag').textContent='DISCORD ACTIVITY REQUIRED'; $('connection-note').textContent='Launch Event Horizon from Discord to begin a replay-verified ranked flight.'; $('launch').disabled=true; $('launch').textContent='Launch from Discord'; $('connection-retry').hidden=true; return; }
-  if (state === 'error') { $('connection-tag').textContent='DISCORD CONNECTION FAILED'; $('connection-note').textContent=detail || 'Could not verify your Discord session. Retry the connection to rank flights.'; $('launch').disabled=true; $('launch').textContent='Ranked flight unavailable'; $('connection-retry').hidden=false; return; }
-  $('connection-tag').textContent='CONNECTING TO DISCORD'; $('connection-note').textContent='Verifying your Discord session and server standings…'; $('launch').disabled=true; $('launch').textContent='Connecting to Discord…';
+  $('install-bot').hidden=!['install','casual'].includes(state);
+  $('connection-retry').textContent=['install','casual'].includes(state)?'Check again':'Retry Discord connection';
+  if(state==='casual'){
+    $('connection-note').textContent='Play for fun here. For server leaderboards, record posts, and live spectating, ask an admin to add Acosmibot. After installation, choose Check again.';
+    $('launch').disabled=false;$('launch').textContent=launchLabel();$('connection-retry').hidden=false;$('leaderboard').hidden=true;return;
+  }
+  if(state==='install'){
+    $('connection-note').textContent=detail;$('launch').disabled=true;$('launch').textContent='Add Acosmibot to play';
+    $('connection-retry').hidden=false;$('leaderboard').hidden=true;return;
+  }
+  if (state === 'ready') { $('leaderboard').hidden=false;$('connection-note').textContent=''; $('launch').disabled=false; $('launch').textContent='Launch ranked run ↗'; $('connection-retry').hidden=true; return; }
+  if (state === 'external') { $('connection-note').textContent='Launch Event Horizon from Discord to start a flight.'; $('launch').disabled=true; $('launch').textContent='Launch from Discord'; $('connection-retry').hidden=true; return; }
+  if (state === 'error') { $('connection-note').textContent=detail || 'Could not verify your Discord session. Retry the connection to rank flights.'; $('launch').disabled=true; $('launch').textContent='Ranked flight unavailable'; $('connection-retry').hidden=false; return; }
+  $('connection-note').textContent='Verifying your Discord session and server standings…'; $('launch').disabled=true; $('launch').textContent='Connecting to Discord…';
 }
 async function fetchConfig() { const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),8000); try { const response=await fetch('/api/event-horizon/config',{signal:controller.signal}); if(!response.ok)throw new Error(`Configuration request failed (${response.status})`); return await response.json(); } finally { clearTimeout(timeout); } }
 async function connectDiscord() {
   if(connecting)return;
   connecting=true;
+  live?.stop();live=null;
+  $('live-lobby').hidden=true;
   $('connection-retry').disabled=true;
-  setConnectionState('loading'); setSession(null); setRankedAvailable(false); rankedConnected=false;
+  setConnectionState('loading'); setSession(null); setRankedAvailable(false); rankedConnected=false;casualAvailable=false;
   try {
     const config=await fetchConfig(); if(!config?.enabled)throw new Error('Event Horizon is not available right now. Please try again later.');
     const clientId=config.clientId || import.meta.env.VITE_DISCORD_CLIENT_ID; if(!clientId)throw new Error('This Activity is missing its public Discord client ID.');
     discordSdk=new DiscordSDK(clientId);
     await Promise.race([discordSdk.ready(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Discord did not respond in time. Open Event Horizon from the Discord app and retry.')),12000))]);
-    const {code}=await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify']});
+    let authorization;
+    try{authorization=await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify','rpc.activities.write']});}
+    catch{authorization=await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify']});}
+    const {code}=authorization;
     const authController=new AbortController();
     const authTimeout=setTimeout(()=>authController.abort(),35_000);
     let response;
@@ -58,9 +142,14 @@ async function connectDiscord() {
     catch(error) { if(error?.name==='AbortError')throw new Error('Discord verification took too long. Check your connection and retry.'); throw error; }
     finally { clearTimeout(authTimeout); }
     if(!response.ok)throw await flightError(response);
-    const auth=await response.json(); if(!auth?.accessToken||!auth?.sessionToken)throw new Error('Discord verification returned an incomplete session.');
-    await discordSdk.commands.authenticate({access_token:auth.accessToken}); setSession(auth.sessionToken); setRankedAvailable(true); rankedConnected=true; setConnectionState('ready'); $('load-error').hidden=true; await refreshBoard();
-  } catch(error) { const external=window.self===window.top; setConnectionState(external?'external':'error',error instanceof Error?error.message:'Could not connect to Discord.'); }
+    const auth=await response.json(); if(!auth?.accessToken||(!auth?.sessionToken&&auth.playMode!=='casual'))throw new Error('Discord verification returned an incomplete session.');
+    await discordSdk.commands.authenticate({access_token:auth.accessToken});
+    casualAvailable=auth.playMode==='casual';setSession(auth.sessionToken);setRankedAvailable(!casualAvailable);rankedConnected=!casualAvailable;
+    setConnectionState(casualAvailable?'casual':'ready');$('load-error').hidden=true;if(!casualAvailable)await refreshBoard();
+    presence=new Presence(discordSdk);presenceMode='';
+    $('live-lobby').hidden=!config.watchEnabled||casualAvailable;
+    if(config.watchEnabled&&!casualAvailable){live=new LiveClient({api,onMessage:liveMessage,onStatus:setLiveStatus});live.start();}
+  } catch(error) { const external=window.self===window.top; setConnectionState(error.code==='bot_not_installed'?'install':external?'external':'error',error instanceof Error?error.message:'Could not connect to Discord.'); }
   finally { connecting=false;$('connection-retry').disabled=false; }
 }
 
@@ -136,14 +225,19 @@ function syncHUD() {
 }
 async function start() {
   if(mode==='preparing')return;
+  if(watching)stopWatching();
+  $('pause').hidden=false;$('watch-controls').hidden=true;
   const generation=++runGeneration;clearInput();
   // Completed submissions keep their receipt; only abandon unfinished flights.
   if(mode==='paused'||mode==='ready'||mode==='playing')abandonTicket();
   mode='preparing';ticket=null;replay=[];pendingSubmission=null;
   $('launch').disabled=true;$('retry').disabled=true;
-  $('launch').textContent='Preparing ranked flight…';
-  if(!rankedConnected){mode='intro';setConnectionState('error','Reconnect to Discord before starting a ranked flight.');return;}
-  try{await boardReady;ticket=await api('/runs',{version:'event-horizon-v5'});if(!ticket?.runId||ticket.version!=='event-horizon-v5')throw new Error('The game has updated. Close and reopen the Activity before flying.');}catch(error){
+  $('launch').textContent='Preparing flight…';
+  if(!rankedConnected&&!casualAvailable){mode='intro';setConnectionState('error','Reconnect to Discord before starting a flight.');return;}
+  try{
+    if(casualAvailable)ticket={casual:true,seed:crypto.getRandomValues(new Uint32Array(1))[0]||1,version:'event-horizon-v5',maxTicks:36000};
+    else{await boardReady;ticket=await api('/runs',{version:'event-horizon-v5'});if(!ticket?.runId||ticket.version!=='event-horizon-v5')throw new Error('The game has updated. Close and reopen the Activity before flying.');}
+  }catch(error){
     abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';
     if(needsReconnect(error)){rankedConnected=false;setConnectionState('error',$('load-error').textContent);}
     else{setConnectionState('ready');$('retry').disabled=false;$('connection-retry').hidden=error.code!=='active_run_limit';}
@@ -154,7 +248,7 @@ async function start() {
   run=createRun(ticket.seed);
   $('phase-status').textContent='';
   mode='ready'; accumulator=0; last=performance.now(); particles=[]; savedBest=best; shake=0; heatWarning=0;
-  $('run-label').textContent='VERIFIED RANKED';
+  live?.setRun($('share-flight').checked?ticket.runId:null);renderPilots();flightStartedAt=null;
   $('resubmit').hidden=true;
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false;
   $('pause').disabled=false; syncHUD();
@@ -165,6 +259,7 @@ function armFlight(){
   if(mode!=='ready')return;
   if(!muted && audio?.state==='suspended')void audio.resume().catch(()=>{});
   mode='playing';accumulator=0;last=performance.now();
+  flightStartedAt=Math.floor(Date.now()/1000);
   message('Release to dive. Boost to climb.',4);
 }
 function showOverlay(title,description,action) {
@@ -196,6 +291,11 @@ function finish() {
   $('record').textContent=Math.floor(run.score)>savedBest?'New personal best pending verification.':'Press R to fly again.';
   $('leaderboard').hidden=false;$('back-title').hidden=false;
   $('rank-result').textContent='Checking your flight replay…';
+  if(ticket?.casual){
+    $('leaderboard').hidden=true;$('rank-result').textContent='Played for fun · score saved for this screen only.';
+    $('record').textContent=Math.floor(run.score)>savedBest?'New best this visit.':'';
+    pendingSubmission=null;return;
+  }
   pendingSubmission={ticket,inputs:replay.slice(),generation:runGeneration};void submitResult(pendingSubmission);
 }
 async function submitResult(submission){
@@ -220,14 +320,17 @@ $('launch').addEventListener('click',()=>mode==='paused'?resume():void start());
 $('retry').addEventListener('click',()=>void start());
 $('back-title').addEventListener('click',()=>{
   if(mode==='preparing')return;
+  if(watching)stopWatching();
+  live?.setRun(null);$('pause').hidden=false;$('viewer-count').hidden=true;
   ++runGeneration;clearInput();if(mode==='paused')abandonTicket();mode='intro';ticket=null;replay=[];pendingSubmission=null;
   $('overlay').hidden=false;$('overlay').classList.remove('compact');
   $('screen-title').replaceChildren(document.createTextNode('EVENT'),document.createElement('br'),Object.assign(document.createElement('span'),{textContent:'HORIZON'}));
   $('screen-description').textContent='Ride the edge. Get close. Get greedy. Get out.';
-  $('launch').textContent='Launch ranked run ↗';$('hud').hidden=true;$('flight-controls').hidden=true;
+  $('launch').textContent=launchLabel();$('hud').hidden=true;$('flight-controls').hidden=true;
   $('results').hidden=true;$('instructions').hidden=false;$('retry').hidden=true;
-  $('back-title').hidden=true;$('leaderboard').hidden=false;
+  $('back-title').hidden=true;$('leaderboard').hidden=casualAvailable;
   $('toast').textContent='';$('launch').focus({preventScroll:true});void refreshBoard();
+  renderPilots();
 });
 $('pause').addEventListener('click',pause);
 $('sound').addEventListener('click',()=>{muted=!muted;$('sound').textContent=muted?'Sound off':'Sound on';$('sound').setAttribute('aria-pressed',String(!muted));tone(550,.1);});
@@ -261,6 +364,13 @@ window.addEventListener('blur',pause);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 window.addEventListener('pagehide',()=>abandonTicket());
 $('connection-retry').addEventListener('click',()=>void connectDiscord());
+$('install-bot').href=DISCORD_INVITE_URL;
+$('install-bot').addEventListener('click',async event=>{
+  if(!discordSdk)return; // Normal browsers follow the real install link directly.
+  event.preventDefault();
+  try{await discordSdk.commands.openExternalLink({url:DISCORD_INVITE_URL});}
+  catch{window.open(DISCORD_INVITE_URL,'_blank','noopener,noreferrer');}
+});
 
 function background(t) {
   ctx.drawImage(backdrop,0,0,width,height);
@@ -375,7 +485,7 @@ function ship(t) {
   if(mode==='playing') {
     if(boosting()&&Math.random()<.7){particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
   }
-  if(mode==='dead')return;
+  if(mode==='dead'||(watching&&!run.alive))return;
   ctx.save();ctx.translate(p.x,p.y);
   drawPhaseReady(ctx,size,run.energy,run.phase,t,reduced);
   if(run.heat>=65){
@@ -429,11 +539,22 @@ function frame(now) {
   // A long scheduling stall must not silently kill the player or advance time.
   if(elapsed>.6&&mode==='playing')pause();
   const dt=Math.min(elapsed,.1);
+  const presenceState=casualAvailable&&['playing','ready','dead'].includes(mode)?`casual-${mode}`:mode;
+  if(presence&&presenceMode!==presenceState){presenceMode=presenceState;presence.update(presenceState,flightStartedAt);}
+  if(watching){
+    if(watchedStatus==='playing'&&now-lastWatchFrame<250){
+      accumulator+=dt;
+      while(accumulator>=DT){step(run,{boost:!!(watchedInput&1),dash:false});accumulator-=DT;}
+      syncHUD();
+    }
+    if(now-lastWatchFrame>3000&&['playing','ready','paused'].includes(watchedStatus)){$('watch-status').textContent='Live view delayed · reconnecting…';watchedStatus='reconnecting';}
+  }
   if(mode==='playing') {
     accumulator+=dt;
     while(accumulator>=DT&&mode==='playing') {
       const input={boost:boosting(),dash:dashQueued};
       if(replay.length>=ticket.maxTicks){
+        if(ticket.casual){finish();showOverlay('FLIGHT COMPLETE','Ten-minute flight complete.','Fly again');break;}
         abandonTicket(); mode='intro'; clearInput();
         showOverlay('FLIGHT LIMIT REACHED','This verified flight reached its replay limit and was not submitted. Start a new ranked flight.','Launch ranked run ↗');
         $('results').hidden=true;$('instructions').hidden=false;$('retry').hidden=true;$('leaderboard').hidden=false;$('back-title').hidden=false;
@@ -452,6 +573,9 @@ function frame(now) {
       }
     }
     syncHUD();
+  }
+  if(live&&ticket&&$('share-flight').checked&&['ready','playing','paused','dead'].includes(mode)&&now-lastBroadcast>=100){
+    lastBroadcast=now;live.snapshot(run,mode,boosting()?1:0);
   }
   render(dt);requestAnimationFrame(frame);
 }

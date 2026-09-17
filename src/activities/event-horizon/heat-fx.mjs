@@ -61,7 +61,7 @@ export function drawNoseHeat(ctx, size, heat, time, reduced = false) {
   ctx.restore();
 }
 
-// Broken violet brackets + a diamond mean READY; the existing full circle
+// Broken violet side brackets mean READY; the existing full circle
 // remains reserved for active invulnerability. No extra collision geometry.
 export function drawPhaseReady(ctx, size, energy, phase, time, reduced = false) {
   if (energy < 100 || phase > 0) return;
@@ -69,7 +69,6 @@ export function drawPhaseReady(ctx, size, energy, phase, time, reduced = false) 
   const radius = size * (.59 + pulse * .025);
   ctx.save();
   ctx.strokeStyle = '#bb9aff';
-  ctx.fillStyle = '#e6d8ff';
   ctx.lineWidth = Math.max(1.5, size * .024);
   ctx.globalAlpha = .8 + pulse * .2;
   ctx.shadowColor = '#a879ff';
@@ -77,8 +76,5 @@ export function drawPhaseReady(ctx, size, energy, phase, time, reduced = false) 
   for (const angle of [0, Math.PI]) {
     ctx.beginPath(); ctx.arc(0, 0, radius, angle - .65, angle + .65); ctx.stroke();
   }
-  const y = size * .66, d = Math.max(2.5, size * .045);
-  ctx.beginPath(); ctx.moveTo(0, y - d); ctx.lineTo(d, y);
-  ctx.lineTo(0, y + d); ctx.lineTo(-d, y); ctx.closePath(); ctx.fill();
   ctx.restore();
 }
