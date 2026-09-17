@@ -10,25 +10,29 @@
     <main id="game" aria-label="Event Horizon arcade game">
       <canvas id="space" aria-label="Flight area. Hold Space, W, Arrow Up, or hold the flight area to boost outward. Release to dive inward. Shift activates Phase Shift."></canvas>
       <header id="hud" hidden>
-        <div class="run-metrics"><div class="score-block"><span class="eyebrow">SCORE <span id="run-label">RANKED</span></span><strong id="score">0</strong><small id="best">PERSONAL BEST —</small></div><div class="run-clock"><span class="eyebrow">RUN TIME</span><strong id="run-time">0:00</strong></div></div>
+        <div class="run-metrics"><div class="score-block"><span class="eyebrow">SCORE</span><strong id="score">0</strong><small id="best">PERSONAL BEST —</small></div><div class="run-clock"><span class="eyebrow">RUN TIME</span><strong id="run-time">0:00</strong></div></div>
         <div class="telemetry"><strong id="multiplier">1.0×</strong><span id="zone">Orbit Score</span><label>HEAT <meter id="heat" min="0" max="100" value="0">0</meter></label></div><button id="pause" class="icon-button" aria-label="Pause game">Ⅱ</button>
       </header>
       <p id="toast" role="status"></p>
       <p id="phase-status" class="visually-hidden" role="status"></p>
+      <div id="watch-controls" hidden><div><strong id="watch-name">Watching a flight</strong><span id="watch-status" role="status">Connecting…</span><span id="watch-charge"></span></div><button id="watch-switch">Switch pilot</button><button id="watch-leave">Leave view</button></div>
+      <p id="viewer-count" hidden></p>
       <div id="flight-controls" hidden><button id="boost" class="boost-button"><strong>HOLD TO BOOST</strong><small>Release to dive inward</small></button><p id="flight-tip">SPACE / W / ↑ · HOLD TO BOOST<br>SHIFT · PHASE SHIFT &nbsp; ESC · PAUSE</p><button id="dash" class="dash-button" aria-label="Phase Shift, charging" aria-describedby="charge" disabled><svg class="dash-ring" viewBox="0 0 72 72" aria-hidden="true"><circle class="dash-ring-track" cx="36" cy="36" r="31"></circle><circle id="charge-fill" class="dash-ring-fill" cx="36" cy="36" r="31"></circle></svg><span class="dash-label">PHASE SHIFT</span><small id="charge">CHARGING</small><span id="desktop-charge-fill" aria-hidden="true"></span></button></div>
       <section id="overlay" class="overlay" aria-labelledby="screen-title">
         <img id="key-art" src="/activities/event-horizon/assets/key-art.png" alt="Acosmibot riding a rocket around a luminous black hole" />
         <div class="scrim"></div>
         <div class="screen-content">
-          <p class="eyebrow">ACOSMIBOT <span id="connection-tag" class="tag">CONNECTING TO DISCORD</span></p>
+          <p class="eyebrow">ACOSMIBOT</p>
           <h1 id="screen-title">EVENT<br /><span>HORIZON</span></h1>
           <p id="screen-description" class="lead">Ride the edge.<br />Get close. Get greedy. Get out.</p>
+          <p id="connection-note" class="local-note" role="status"></p>
           <div id="results" hidden><span class="eyebrow">FLIGHT SCORE</span><strong id="final-score"></strong><p id="run-stats"></p><p id="record"></p><p id="rank-result" role="status"></p><button id="resubmit" hidden>Retry score check</button></div>
           <div class="actions"><button id="launch" class="primary" disabled>Connecting to Discord… <span>↗</span></button><button id="retry" hidden>New run</button></div>
-          <div class="secondary-actions"><button id="back-title" hidden>Title & leaderboard</button><button id="connection-retry" hidden>Retry Discord connection</button></div>
-          <div class="instructions" id="instructions"><p><b>Hold to climb.</b> Space, W, ↑, or hold anywhere in the flight area.<br /><b>Release to dive.</b> Gravity pulls you toward the black hole.</p><p><b>Shift to Phase Shift.</b> Briefly pass through debris and vent heat.<br />On touchscreens: hold the flight area with one thumb, then tap Phase Shift with the other when it reaches 100%.</p><p class="rule">Every flight is replay-verified for this Discord server. Skim the hot inner orbit for up to 5× points, dodge rocks and plasma, collect cyan shards, and boost out to cool down.</p></div>
+          <div class="secondary-actions"><button id="back-title" hidden>Back to lobby</button><button id="connection-retry" hidden>Retry Discord connection</button><a id="install-bot" href="https://discord.com/oauth2/authorize?client_id=1186802023799214223&amp;permissions=8&amp;integration_type=0&amp;scope=bot" target="_blank" rel="noopener noreferrer" hidden><img src="/images/acosmibot-logo.png" width="28" height="28" alt="" />Add Acosmibot</a></div>
+          <section id="live-lobby" hidden aria-labelledby="live-title"><div class="live-heading"><h2 id="live-title">Watch a flight</h2><span>In this Activity</span></div><p id="live-status" role="status">Connecting to live flights…</p><ul id="live-pilots"></ul><label class="share-flight"><input id="share-flight" type="checkbox" checked /> Let people in this Activity watch my flights</label></section>
+          <div class="instructions" id="instructions"><p><b>Hold to climb.</b> Space, W, ↑, or hold anywhere in the flight area.<br /><b>Release to dive.</b> Gravity pulls you toward the black hole.</p><p><b>Shift to Phase Shift.</b> Briefly pass through debris and vent heat.<br />On touchscreens: hold the flight area with one thumb, then tap Phase Shift with the other when it reaches 100%.</p><p class="rule">Skim the hot inner orbit for up to 5× points, dodge rocks and plasma, collect cyan shards, and boost out to cool down.</p></div>
           <div class="settings"><button id="sound" aria-pressed="true">Sound on</button><button id="effects" aria-pressed="false">Reduced effects off</button></div>
-          <p id="connection-note" class="local-note">Ranked flights are verified for this Discord server.</p><p id="load-error" role="alert" hidden></p>
+          <p id="load-error" role="alert" hidden></p>
         </div>
         <aside id="leaderboard" aria-labelledby="board-title"><p id="board-scope" class="eyebrow">Discord server standings</p><h2 id="board-title">The edge belongs<br />to the bold.</h2><div class="board-heading"><span>TOP PILOTS</span><button id="board-refresh" aria-label="Refresh standings">Refresh</button></div><p id="board-status" role="status">Connecting to verified standings…</p><ol id="standings" aria-label="Top standings"></ol><p id="board-empty">An empty orbit. Be the first to put a score on the board.</p><button id="board-expand" aria-expanded="false" aria-controls="standings" hidden>View Top 10</button><p id="your-standing"></p><p id="nearest-rival"></p></aside>
       </section>
