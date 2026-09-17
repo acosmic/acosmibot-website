@@ -122,6 +122,7 @@ async function fetchConfig() { const controller=new AbortController(), timeout=s
 async function connectDiscord() {
   if(connecting)return;
   connecting=true;
+  presence=null;presenceMode='';
   live?.stop();live=null;
   $('live-lobby').hidden=true;
   $('connection-retry').disabled=true;
@@ -131,9 +132,9 @@ async function connectDiscord() {
     const clientId=config.clientId || import.meta.env.VITE_DISCORD_CLIENT_ID; if(!clientId)throw new Error('This Activity is missing its public Discord client ID.');
     discordSdk=new DiscordSDK(clientId);
     await Promise.race([discordSdk.ready(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Discord did not respond in time. Open Event Horizon from the Discord app and retry.')),12000))]);
-    let authorization;
-    try{authorization=await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify','rpc.activities.write']});}
-    catch{authorization=await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify']});}
+    // Keep launch on the original identity grant. Optional Rich Presence must
+    // not escalate permissions and interrupt every Activity launch with consent.
+    const authorization=await discordSdk.commands.authorize({client_id:clientId,response_type:'code',state:'',prompt:'none',scope:['identify']});
     const {code}=authorization;
     const authController=new AbortController();
     const authTimeout=setTimeout(()=>authController.abort(),35_000);
@@ -143,10 +144,10 @@ async function connectDiscord() {
     finally { clearTimeout(authTimeout); }
     if(!response.ok)throw await flightError(response);
     const auth=await response.json(); if(!auth?.accessToken||(!auth?.sessionToken&&auth.playMode!=='casual'))throw new Error('Discord verification returned an incomplete session.');
-    await discordSdk.commands.authenticate({access_token:auth.accessToken});
+    const discordAuth=await discordSdk.commands.authenticate({access_token:auth.accessToken});
     casualAvailable=auth.playMode==='casual';setSession(auth.sessionToken);setRankedAvailable(!casualAvailable);rankedConnected=!casualAvailable;
     setConnectionState(casualAvailable?'casual':'ready');$('load-error').hidden=true;if(!casualAvailable)await refreshBoard();
-    presence=new Presence(discordSdk);presenceMode='';
+    if(discordAuth?.scopes?.includes('rpc.activities.write'))presence=new Presence(discordSdk);
     $('live-lobby').hidden=!config.watchEnabled||casualAvailable;
     if(config.watchEnabled&&!casualAvailable){live=new LiveClient({api,onMessage:liveMessage,onStatus:setLiveStatus});live.start();}
   } catch(error) { const external=window.self===window.top; setConnectionState(error.code==='bot_not_installed'?'install':external?'external':'error',error instanceof Error?error.message:'Could not connect to Discord.'); }
