@@ -1,0 +1,16 @@
+[
+  {
+    "scenario": "steady pilot",
+    "postStallFrames": 541,
+    "unchangedMotionFrames": 0,
+    "unchangedPercent": 0,
+    "maxSimulationTimeJumpSeconds": 0.016666666666669272
+  },
+  {
+    "scenario": "one 300ms pilot scheduling stall",
+    "postStallFrames": 541,
+    "unchangedMotionFrames": 0,
+    "unchangedPercent": 0,
+    "maxSimulationTimeJumpSeconds": 0.01676820933639611
+  }
+]

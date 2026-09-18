@@ -2,26 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {holeGeometry,compactParticles,cachedLabel} from './render-cache.mjs';
-function draw(source,r,reduced,time){
+import {compactParticles,cachedLabel} from './render-cache.mjs';
+import {drawBlackHole} from './black-hole.mjs';
+function draw(r,reduced,time){
  const trace=[];let gradients=0;
  const ctx=new Proxy({}, {get(target,key){
  if(key==='measureText')return char=>({width:char.charCodeAt(0)/10});
  if(key==='createRadialGradient')return (...args)=>{const id=gradients++;trace.push([key,...args]);return {id,addColorStop:(...args)=>trace.push(['addColorStop',id,...args])};};
  return (...args)=>trace.push([key,...args]);
  },set(target,key,value){trace.push(['set',key,value?.id===undefined?value:{gradient:value.id}]);return true;}});
- const fn=source.slice(source.indexOf('function blackHole(t)'),source.indexOf('function object(o)'));
- const render=new Function('ctx','geo','reduced','holeGeometry','let titleAdvances=null,holeCache=null;'+fn+';return blackHole;')(ctx,()=>({cx:333,cy:500,r}),reduced,holeGeometry);
+ const cache={};
+ const render=t=>drawBlackHole(ctx,t,{cx:333,cy:500,r},reduced,cache);
  render(time);render(time+.016);return trace;
 }
 
 // Golden canvas command traces from the pre-cache renderer in 9083ac8.
 // Includes cold and warm cache frames, full/reduced effects and multiple sizes.
 test('black-hole canvas commands remain identical to the approved renderer',()=>{
- const source=fs.readFileSync(new URL('./game.mjs',import.meta.url),'utf8');
  const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/hole-draw-traces.json',import.meta.url),'utf8'));
  for(const {r,reduced,t,sha256} of golden){
-  const trace=draw(source,r,reduced,t);
+  const trace=draw(r,reduced,t);
   assert.equal(createHash('sha256').update(JSON.stringify(trace)).digest('hex'),sha256,JSON.stringify({r,reduced,t}));
  }
 });
