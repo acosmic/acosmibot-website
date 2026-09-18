@@ -7,6 +7,7 @@ import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
 import './style.css';
 import { LiveClient, snapshotForView } from './live.mjs';
+import { holeGeometry, compactParticles, cachedLabel } from './render-cache.mjs';
 import { SnapshotPlayback } from './playback.mjs';
 import { renderViewers } from './viewers.mjs';
 import { Presence } from './presence.mjs';
@@ -42,7 +43,10 @@ let live=null, presence=null, presenceMode='', flightStartedAt=null;
 let watching=false, watchedStatus='connecting', watchedInput=0, lastWatchFrame=0, lastBroadcast=0;
 let liveFlights=[], liveStatus='connecting';
 const playback=new SnapshotPlayback();
-let camera, titleAdvances=null;
+let camera, titleAdvances=null, holeCache=null;
+const label=cachedLabel();
+const localNumber=n=>n.toLocaleString();
+const clockLabel=n=>`${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;
 
 function renderPilots(){
   const focused=document.activeElement?.dataset?.watchRun;
@@ -174,7 +178,7 @@ function point(radius, angle = 0) {
 }
 function resize() {
   width = canvas.clientWidth; height = canvas.clientHeight;
-  camera=flightCamera(width,height);titleAdvances=null;
+  camera=flightCamera(width,height);titleAdvances=null;holeCache=null;
   ratio = Math.min(devicePixelRatio || 1, reduced ? 1.25 : 2);
   canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -216,8 +220,8 @@ function burst(x,y,color,count=16) {
 }
 function clearInput() { keys.clear(); pointers.clear(); dashQueued=false; $('boost').classList.remove('active'); }
 function syncHUD() {
-  setText('score',format(run.score)); setText('best',`BEST ${format(best)}`);
-  setText('run-time',`${Math.floor(run.time / 60)}:${String(Math.floor(run.time % 60)).padStart(2,'0')}`);
+  setText('score',label('score',Math.floor(run.score),localNumber)); setText('best',`BEST ${label('best',Math.floor(best),localNumber)}`);
+  setText('run-time',label('time',Math.floor(run.time),clockLabel));
   setText('multiplier',`${run.multiplier.toFixed(1)}×`);
   setProp('heat','value',run.heat);setText('heat',`${Math.round(run.heat)}%`);
   setAttr('heat','aria-label',`Heat ${Math.round(run.heat)} percent`);
@@ -419,31 +423,29 @@ function background(t) {
 }
 function blackHole(t) {
   const {cx,cy,r}=geo();
+  const geometry=holeCache??=holeGeometry(r,reduced);
   ctx.save(); ctx.translate(cx,cy);
   const bloom=ctx.createRadialGradient(0,0,r*.30,0,0,r*.76);
   bloom.addColorStop(0,'#ffa06465');bloom.addColorStop(.35,'#b840352b');bloom.addColorStop(1,'#a9408200');
   ctx.fillStyle=bloom;ctx.beginPath();ctx.arc(0,0,r*.76,0,Math.PI*2);ctx.fill();
   // Accretion streamlines orbit continuously. Bright inner light contrasts with
   // the quiet, readable outer flight lane rather than covering it with particles.
-  for(let i=0;i<(reduced?22:62);i++) {
-    const k=i/(reduced?22:62), rr=r*(.36+k*.11);
-    ctx.strokeStyle=`hsla(${20+k*26},100%,${60+k*28}%,${.16+(1-k)*.55})`;
-    ctx.lineWidth=(i%4===0?2.4:1)*Math.max(.6,r/300);
+  for(const {i,k,rr,ry,color,width:lineWidth} of geometry.streams) {
+    ctx.strokeStyle=color;
+    ctx.lineWidth=lineWidth;
     ctx.beginPath();const a=i*2.39+t*(.08+k*.12);
-    ctx.ellipse(0,0,rr,rr*(.92+Math.sin(i)*.04),-.28,a,a+1.8+(i%3));ctx.stroke();
+    ctx.ellipse(0,0,rr,ry,-.28,a,a+1.8+(i%3));ctx.stroke();
   }
   const hole=ctx.createRadialGradient(-r*.08,-r*.1,0,0,0,r*.35);
   hole.addColorStop(0,'#010208');hole.addColorStop(.9,'#020309');hole.addColorStop(1,'#271621');
   ctx.fillStyle=hole;ctx.beginPath();ctx.arc(0,0,r*.35,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle='#ffe4b6';ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(0,0,r*.354,0,Math.PI*2);ctx.stroke();
   // Tapered photon streams skim the rim; nothing crosses the dark center.
-  for(let i=0;i<(reduced?3:7);i++){
-    const rr=r*(.36+i*.004),span=.42+(i%3)*.18;
+  for(const {i,rr,span,strokes} of geometry.photons){
     const head=i*2.399+(reduced?0:t*(.18+i*.027));
-    for(let j=0;j<12;j++){
-      const strength=(j+1)/12;
-      ctx.strokeStyle=`rgba(255,${185+i*8},${115+i*13},${strength*.75})`;
-      ctx.lineWidth=Math.max(.6,r/300)*(.5+strength*1.3);
+    for(const {j,color,width:lineWidth} of strokes){
+      ctx.strokeStyle=color;
+      ctx.lineWidth=lineWidth;
       ctx.beginPath();ctx.arc(0,0,rr,head-span+j*span/12,head-span+(j+1)*span/12+.002);ctx.stroke();
     }
   }
@@ -551,7 +553,7 @@ function render(dt) {
   if(mode==='intro'){run.radius=.83+Math.sin(visualTime*.7)*.025;}
   ship(visualTime);
   for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}
-  particles=particles.filter(p=>p.life>0).slice(-240);ctx.globalAlpha=1;
+  compactParticles(particles);ctx.globalAlpha=1;
   if(mode==='playing'&&run.heat>65){ctx.strokeStyle=`rgba(255,117,86,${(run.heat-65)/90})`;ctx.lineWidth=6;ctx.strokeRect(3,3,width-6,height-6);}
   ctx.restore();
   if (mode === 'playing' && visualTime < comboUntil) {
