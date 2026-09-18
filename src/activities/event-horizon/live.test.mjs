@@ -59,3 +59,13 @@ test('presence names Event Horizon and separates pilot/watch/lobby modes',()=>{
   assert.equal(activityFor('playing',123).details,'Event Horizon');assert.equal(activityFor('playing',123).timestamps.start,123);
   assert.equal(activityFor('watching',123).state,'Watching a flight');assert.equal(activityFor('paused',123).timestamps,undefined);
 });
+test('presentation IDs track moving hazards without modifying ranked state',async()=>{
+  const f=fixture();try{
+    f.live.start();await settle();const s=f.sockets[0];s.open();s.message({type:'authenticated'});
+    const run=createRun(42);const first={type:'rock',angle:1},second={type:'crosser',x:1};run.objects=[first];run.crossers=[second];
+    const original=structuredClone(run);f.live.snapshot(run,'playing',0);const a=s.sent.at(-1).state;
+    assert.deepEqual(run,original);assert.notEqual(a.objects[0].id,a.crossers[0].id);
+    first.angle=.9;run.objects.unshift({type:'rock',angle:2});f.live.snapshot(run,'playing',0);const b=s.sent.at(-1).state;
+    assert.equal(b.objects[1].id,a.objects[0].id);assert.equal(b.crossers[0].id,a.crossers[0].id);
+  }finally{f.live.stop();}
+});

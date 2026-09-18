@@ -7,10 +7,17 @@ import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
 import './style.css';
 import { LiveClient, snapshotForView } from './live.mjs';
+import { SnapshotPlayback } from './playback.mjs';
+import { renderViewers } from './viewers.mjs';
 import { Presence } from './presence.mjs';
 import { DISCORD_INVITE_URL } from '../../seo/publicRoutes';
 
-const $ = id => document.getElementById(id);
+const elements = new Map();
+const $ = id => { if(!elements.has(id))elements.set(id,document.getElementById(id));return elements.get(id); };
+const mobileControls=matchMedia('(max-width:600px), (pointer:coarse)');
+const setText=(id,value)=>{const node=$(id);if(node.textContent!==value)node.textContent=value;};
+const setProp=(id,key,value)=>{const node=$(id);if(node[key]!==value)node[key]=value;};
+const setAttr=(id,key,value)=>{const node=$(id);if(node.getAttribute(key)!==value)node.setAttribute(key,value);};
 const canvas = $('space');
 const ctx = canvas.getContext('2d');
 const phaseBackdrop = createPhaseBackdrop();
@@ -34,6 +41,8 @@ let connecting = false;
 let live=null, presence=null, presenceMode='', flightStartedAt=null;
 let watching=false, watchedStatus='connecting', watchedInput=0, lastWatchFrame=0, lastBroadcast=0;
 let liveFlights=[], liveStatus='connecting';
+const playback=new SnapshotPlayback();
+let camera, titleAdvances=null;
 
 function renderPilots(){
   const focused=document.activeElement?.dataset?.watchRun;
@@ -53,15 +62,15 @@ function beginWatching(runId){
   clearInput();live?.watch(runId);$('live-status').textContent='Joining the flight…';
 }
 function stopWatching(){
-  live?.unwatch();watching=false;mode='intro';watchedStatus='connecting';run=createRun(42);
+  live?.unwatch();playback.reset();watching=false;mode='intro';watchedStatus='connecting';run=createRun(42);
   $('watch-controls').hidden=true;$('viewer-count').hidden=true;
   $('best').hidden=false;canvas.setAttribute('aria-label','Flight area. Hold Space, W, Arrow Up, or hold the flight area to boost outward. Release to dive inward. Shift activates Phase Shift.');
 }
 function liveMessage(message){
   if(message.type==='flights'){liveFlights=message.flights;renderPilots();return;}
-  if(message.type==='viewers'){$('viewer-count').textContent=`${message.count} watching`;$('viewer-count').hidden=!ticket||!$('share-flight').checked;return;}
+  if(message.type==='viewers'){renderViewers($('viewer-count'),message);$('viewer-count').hidden=!ticket||watching;return;}
   if(message.type==='watching'){
-    watching=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
+    playback.reset();watching=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
     $('watch-name').textContent=`Watching ${message.name}`;$('watch-status').textContent='Joining flight…';
     $('overlay').hidden=true;$('hud').hidden=false;$('pause').hidden=true;$('flight-controls').hidden=true;$('watch-controls').hidden=false;
     $('best').hidden=true;canvas.setAttribute('aria-label',`Live view of ${message.name}'s flight. Use Switch pilot or Leave view to return to the lobby.`);
@@ -70,7 +79,9 @@ function liveMessage(message){
   }
   if(message.type==='snapshot'&&watching){
     const state=snapshotForView(message);if(!state)return;
-    run=state;watchedStatus=message.status;watchedInput=message.input;lastWatchFrame=performance.now();accumulator=0;
+    watchedStatus=message.status;watchedInput=message.input;lastWatchFrame=performance.now();
+    playback.push(state,watchedStatus,watchedInput,lastWatchFrame);
+    run=playback.sample(lastWatchFrame).state;
     $('watch-status').textContent=watchedStatus==='paused'?'Pilot paused':watchedStatus==='ready'?'Pilot preparing':watchedStatus==='dead'?'Flight ended · checking score…':'Live · score awaiting verification';
     $('watch-charge').textContent=`Phase Shift ${Math.floor(run.energy)}%`;syncHUD();return;
   }
@@ -92,13 +103,9 @@ function setLiveStatus(status){
 }
 $('watch-leave').addEventListener('click',()=>{$('back-title').click();});
 $('watch-switch').addEventListener('click',()=>{$('back-title').click();$('live-title').scrollIntoView({block:'center'});});
-$('share-flight').addEventListener('change',()=>{
-  if(!$('share-flight').checked){live?.send({type:'hide'});$('viewer-count').hidden=true;}
-  else if(ticket&&['ready','playing','paused'].includes(mode))live?.setRun(ticket.runId);
-});
 const format = n => Math.floor(n).toLocaleString();
 const boosting = () => keys.size > 0 || pointers.size > 0;
-const holdPrompt = () => matchMedia('(max-width:600px), (pointer:coarse)').matches ? 'Hold anywhere in the flight area to begin your flight.' : 'Hold Boost or Space to begin your flight.';
+const holdPrompt = () => mobileControls.matches ? 'Hold anywhere in the flight area to begin your flight.' : 'Hold Boost or Space to begin your flight.';
 function abandonTicket(){
   const old=ticket;ticket=null;
   if(old?.runId)void api(`/runs/${encodeURIComponent(old.runId)}/abandon`,{}).catch(()=>{});
@@ -160,13 +167,14 @@ async function connectDiscord(approvedAuthorization=null) {
 }
 
 function geo() {
-  return flightCamera(width, height);
+  return camera;
 }
 function point(radius, angle = 0) {
   const g = geo(); return { x: g.cx + Math.sin(angle) * radius * g.r, y: g.cy - Math.cos(angle) * radius * g.r };
 }
 function resize() {
   width = canvas.clientWidth; height = canvas.clientHeight;
+  camera=flightCamera(width,height);titleAdvances=null;
   ratio = Math.min(devicePixelRatio || 1, reduced ? 1.25 : 2);
   canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -208,18 +216,19 @@ function burst(x,y,color,count=16) {
 }
 function clearInput() { keys.clear(); pointers.clear(); dashQueued=false; $('boost').classList.remove('active'); }
 function syncHUD() {
-  $('score').textContent=format(run.score); $('best').textContent=`BEST ${format(best)}`;
-  $('run-time').textContent=`${Math.floor(run.time / 60)}:${String(Math.floor(run.time % 60)).padStart(2,'0')}`;
-  $('multiplier').textContent=`${run.multiplier.toFixed(1)}×`;
-  $('heat').value=run.heat; $('heat').textContent=`${Math.round(run.heat)}%`;
-  $('heat').setAttribute('aria-label',`Heat ${Math.round(run.heat)} percent`);
+  setText('score',format(run.score)); setText('best',`BEST ${format(best)}`);
+  setText('run-time',`${Math.floor(run.time / 60)}:${String(Math.floor(run.time % 60)).padStart(2,'0')}`);
+  setText('multiplier',`${run.multiplier.toFixed(1)}×`);
+  setProp('heat','value',run.heat);setText('heat',`${Math.round(run.heat)}%`);
+  setAttr('heat','aria-label',`Heat ${Math.round(run.heat)} percent`);
   const dashReady=run.energy>=100;
-  const mobileDash=matchMedia('(max-width:600px), (pointer:coarse)').matches;
-  $('dash').disabled=!dashReady;
-  $('dash').setAttribute('aria-label',dashReady?'Phase Shift ready':'Phase Shift charging');
-  $('charge').textContent=mobileDash?(dashReady?'100%':`${Math.floor(run.energy)}%`):(dashReady?'READY · SHIFT':`${Math.floor(run.energy)}% · COLLECT SHARDS`);
-  $('charge-fill').style.setProperty('--dash-charge',String(clamp(run.energy,0,100)));
-  $('desktop-charge-fill').style.width=`${clamp(run.energy,0,100)}%`;
+  const mobileDash=mobileControls.matches;
+  setProp('dash','disabled',!dashReady);
+  setAttr('dash','aria-label',dashReady?'Phase Shift ready':'Phase Shift charging');
+  setText('charge',mobileDash?(dashReady?'100%':`${Math.floor(run.energy)}%`):(dashReady?'READY · SHIFT':`${Math.floor(run.energy)}% · COLLECT SHARDS`));
+  const charge=String(clamp(run.energy,0,100));
+  if($('charge-fill').style.getPropertyValue('--dash-charge')!==charge)$('charge-fill').style.setProperty('--dash-charge',charge);
+  if($('desktop-charge-fill').style.width!==`${charge}%`)$('desktop-charge-fill').style.width=`${charge}%`;
   $('boost').classList.toggle('active',boosting());
   $('boost').classList.toggle('heat-warning',run.heat>=65);
   if(run.heat<50)heatWarning=0;
@@ -255,7 +264,7 @@ async function start() {
   run=createRun(ticket.seed);
   $('phase-status').textContent='';
   mode='ready'; accumulator=0; last=performance.now(); particles=[]; savedBest=best; shake=0; heatWarning=0;
-  live?.setRun($('share-flight').checked?ticket.runId:null);renderPilots();flightStartedAt=null;
+  $('viewer-count').hidden=true;live?.setRun(ticket.runId);renderPilots();flightStartedAt=null;
   $('resubmit').hidden=true;
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false;
   $('pause').disabled=false; syncHUD();
@@ -349,7 +358,7 @@ $('dash').addEventListener('pointerdown',e=>{e.preventDefault();dash();});
 $('dash').addEventListener('click',e=>{if(e.detail===0)dash();});
 const game=$('game');
 const isFlightControlTarget=target=>target===canvas||target.closest('#boost');
-const blocksFlightHold=target=>target.closest('#overlay, #dash, #pause, a, input, select, textarea, [contenteditable="true"]');
+const blocksFlightHold=target=>target.closest('#overlay, #dash, #pause, #viewer-count, a, input, select, textarea, [contenteditable="true"]');
 game.addEventListener('pointerdown',e=>{
   if(!['ready','playing'].includes(mode)||(e.pointerType==='mouse'&&e.button!==0)||blocksFlightHold(e.target))return;
   // The root lets touch players hold any unoccupied flight area, while real controls
@@ -453,7 +462,7 @@ function blackHole(t) {
   // Measure each glyph so the stationary title follows the upper inner rim.
   ctx.save();ctx.textBaseline='middle';
   const title='EVENT HORIZON',titleRadius=r*.30,tracking=Math.max(.6,r*.002);
-  const advances=Array.from(title,char=>ctx.measureText(char).width+tracking);
+  const advances=titleAdvances??=Array.from(title,char=>ctx.measureText(char).width+tracking);
   let angle=-Math.PI/2-advances.reduce((sum,w)=>sum+w,0)/(2*titleRadius);
   Array.from(title).forEach((char,i)=>{
     const half=advances[i]/(2*titleRadius);angle+=half;
@@ -537,9 +546,7 @@ function render(dt) {
   if(shake>0&&!reduced){ctx.translate(Math.sin(visualTime*100)*shake,Math.cos(visualTime*87)*shake);shake=Math.max(0,shake-dt*25);}
   const phaseView=specialState(run);
   background(visualTime);phaseBackdrop(ctx,width,height,phaseView.kinds.length?phaseView.kinds:phaseView.kind,dt,reduced);blackHole(visualTime);
-  if(mode!=='intro')for(const o of [...run.objects,...run.crossers]){
-    object(o);
-  }
+  if(mode!=='intro'){for(const o of run.objects)object(o);for(const o of run.crossers)object(o);}
   if(mode!=='intro')drawSpecial(ctx,geo(),run,phaseView,reduced,visualTime>=comboUntil);
   if(mode==='intro'){run.radius=.83+Math.sin(visualTime*.7)*.025;}
   ship(visualTime);
@@ -558,12 +565,12 @@ function render(dt) {
     ctx.fillText(comboText, cx, cy + 15, r * .55);
     ctx.restore();
   } else if (mode !== 'playing') { comboUntil = 0; }
-  if(visualTime>toastUntil)$('toast').textContent='';
+  if(visualTime>toastUntil)setText('toast','');
 }
 function frame(now) {
-  $('profile-setting').hidden=mode!=='intro'||(!rankedConnected&&!casualAvailable);
-  $('profile-share').disabled=profileBusy||connecting||!!presence;
-  $('profile-share').textContent=profileBusy?'Connecting profile…':presence?'Profile sharing enabled':'Show on Discord profile';
+  setProp('profile-setting','hidden',mode!=='intro'||(!rankedConnected&&!casualAvailable));
+  setProp('profile-share','disabled',profileBusy||connecting||!!presence);
+  setText('profile-share',profileBusy?'Connecting profile…':presence?'Profile sharing enabled':'Show on Discord profile');
   const elapsed=Math.max(0,(now-last)/1000);last=now;
   // A long scheduling stall must not silently kill the player or advance time.
   if(elapsed>.6&&mode==='playing')pause();
@@ -571,11 +578,8 @@ function frame(now) {
   const presenceState=casualAvailable&&['playing','ready','dead'].includes(mode)?`casual-${mode}`:mode;
   if(presence&&presenceMode!==presenceState){presenceMode=presenceState;presence.update(presenceState,flightStartedAt);}
   if(watching){
-    if(watchedStatus==='playing'&&now-lastWatchFrame<250){
-      accumulator+=dt;
-      while(accumulator>=DT){step(run,{boost:!!(watchedInput&1),dash:false});accumulator-=DT;}
-      syncHUD();
-    }
+    const view=playback.sample(now);
+    if(view){run=view.state;watchedInput=view.input;syncHUD();setText('watch-charge',`Phase Shift ${Math.floor(run.energy)}%`);}
     if(now-lastWatchFrame>3000&&['playing','ready','paused'].includes(watchedStatus)){$('watch-status').textContent='Live view delayed · reconnecting…';watchedStatus='reconnecting';}
   }
   if(mode==='playing') {
@@ -603,7 +607,7 @@ function frame(now) {
     }
     syncHUD();
   }
-  if(live&&ticket&&$('share-flight').checked&&['ready','playing','paused','dead'].includes(mode)&&now-lastBroadcast>=100){
+  if(live&&ticket&&['ready','playing','paused','dead'].includes(mode)&&now-lastBroadcast>=100){
     lastBroadcast=now;live.snapshot(run,mode,boosting()?1:0);
   }
   render(dt);requestAnimationFrame(frame);

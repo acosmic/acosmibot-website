@@ -3,6 +3,7 @@ export class LiveClient {
   constructor({api, onMessage, onStatus, socketFactory = url => new WebSocket(url), origin = location.origin}) {
     Object.assign(this, {api,onMessage,onStatus,socketFactory,origin});
     this.enabled=false;this.runId=null;this.socket=null;this.generation=0;this.seq=0;this.target=null;this.retry=0;
+    this.objectIds=new WeakMap();this.nextObjectId=0;
   }
   start() {this.enabled=true;void this.connect();}
   stop() {
@@ -74,13 +75,19 @@ export class LiveClient {
   }
   setRun(runId) {
     if(this.runId===runId)return;
-    this.runId=runId;this.seq=0;if(this.enabled)void this.connect();
+    this.runId=runId;this.seq=0;this.objectIds=new WeakMap();this.nextObjectId=0;if(this.enabled)void this.connect();
   }
   watch(runId) {this.target=runId;return this.send({type:'watch',runId});}
   unwatch() {this.target=null;this.send({type:'unwatch'});}
   snapshot(state,status,input) {
+    if(!this.authenticated||this.socket?.readyState!==1)return;
+    const identify=object=>{
+      if(object.id)return object;
+      if(!this.objectIds.has(object))this.objectIds.set(object,`live-${this.nextObjectId++}`);
+      return {...object,id:this.objectIds.get(object)};
+    };
     // Simulation events are local sounds/effects, not persistent state.
-    this.send({type:'snapshot',seq:this.seq++,state:{...state,events:[]},status,input});
+    this.send({type:'snapshot',seq:this.seq++,state:{...state,objects:state.objects.map(identify),crossers:state.crossers.map(identify),events:[]},status,input});
   }
 }
 
