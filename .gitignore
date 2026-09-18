@@ -5,3 +5,7 @@ dist/
 .claude/
 .agents/
 index.old.html
+
+# Local renderer verification fixture; never a production entry point.
+/src/activities/event-horizon/renderer-lab.generated.mjs
+/activities/event-horizon/renderer-lab.generated.html

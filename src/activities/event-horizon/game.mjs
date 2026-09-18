@@ -8,6 +8,7 @@ import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSess
 import './style.css';
 import { LiveClient, snapshotForView } from './live.mjs';
 import { compactParticles, cachedLabel } from './render-cache.mjs';
+import { drawObjectArt } from './object-art.mjs';
 import { drawBlackHole } from './black-hole.mjs';
 import { SnapshotPlayback } from './playback.mjs';
 import { renderViewers } from './viewers.mjs';
@@ -21,7 +22,10 @@ const setText=(id,value)=>{const node=$(id);if(node.textContent!==value)node.tex
 const setProp=(id,key,value)=>{const node=$(id);if(node[key]!==value)node[key]=value;};
 const setAttr=(id,key,value)=>{const node=$(id);if(node.getAttribute(key)!==value)node.setAttribute(key,value);};
 const canvas = $('space');
-const ctx = canvas.getContext('2d');
+// Build-time rollback keeps Canvas available without a player-facing switch.
+const usePixi=import.meta.env.VITE_EVENT_HORIZON_RENDERER!=='canvas';
+const ctx = (usePixi?document.createElement('canvas'):canvas).getContext('2d');
+let gpu=null,animationFrame=0,disposed=false;
 const phaseBackdrop = createPhaseBackdrop();
 const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocket-grip.png';
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
@@ -181,7 +185,7 @@ function resize() {
   width = canvas.clientWidth; height = canvas.clientHeight;
   camera=flightCamera(width,height);holeCache=null;
   ratio = Math.min(devicePixelRatio || 1, reduced ? 1.25 : 2);
-  canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+  if(!usePixi){canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);}
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   stars = Array.from({ length: reduced ? 90 : 230 }, (_, i) => ({
     x: Math.sin(i * 93.13) * .5 + .5, y: Math.cos(i * 17.47) * .5 + .5,
@@ -195,8 +199,9 @@ function resize() {
     grad.addColorStop(0,color); grad.addColorStop(1,'#05081200');
     b.fillStyle = grad; b.fillRect(0,0,width,height);
   }
+  gpu?.resize({width,height,ratio,camera,reduced,backdrop,stars});
 }
-new ResizeObserver(resize).observe(canvas);
+const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);
 
 function tone(freq = 440, duration = .12, kind = 'sine', gain = .04, end = freq) {
   if (muted) return;
@@ -244,6 +249,7 @@ function syncHUD() {
   }
 }
 async function start() {
+  if(usePixi&&(!gpu||gpu.lost))return;
   if(profileBusy)return;
   if(mode==='preparing')return;
   if(watching)stopWatching();
@@ -277,7 +283,7 @@ async function start() {
   tone(160,.22,'sine',.045,500);
 }
 function armFlight(){
-  if(mode!=='ready')return;
+  if(mode!=='ready'||gpu?.lost)return;
   if(!muted && audio?.state==='suspended')void audio.resume().catch(()=>{});
   mode='playing';accumulator=0;last=performance.now();
   flightStartedAt=Math.floor(Date.now()/1000);
@@ -297,6 +303,7 @@ function pause() {
   $('leaderboard').hidden=true;$('back-title').hidden=false;
 }
 function resume() {
+  if(gpu?.lost)return;
   clearInput(); mode=run.time===0?'ready':'playing'; accumulator=0; last=performance.now();
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false; $('pause').disabled=false;
   message(mode==='ready'?holdPrompt():'Flight resumed',mode==='ready'?3600:1);
@@ -448,23 +455,7 @@ function object(o) {
     ctx.restore();
   }
   ctx.save();ctx.translate(p.x,p.y);ctx.rotate(o.spin);
-  if(o.type==='shard') {
-    ctx.shadowColor='#00d9ff';ctx.shadowBlur=reduced?0:13;
-    ctx.fillStyle='#89f4ff';ctx.strokeStyle='#ddfeff';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(0,-rr*1.5);ctx.lineTo(rr,0);ctx.lineTo(0,rr*1.5);ctx.lineTo(-rr,0);ctx.closePath();ctx.fill();ctx.stroke();
-    ctx.shadowBlur=0;ctx.strokeStyle='#1696c4';ctx.beginPath();ctx.moveTo(0,-rr*1.5);ctx.lineTo(0,rr*1.5);ctx.stroke();
-  } else if(o.type==='plasma') {
-    ctx.shadowColor='#ff6b8c';ctx.shadowBlur=reduced?0:18;
-    ctx.strokeStyle='#ffa2ac';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,rr,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle='#ff537b66';ctx.beginPath();ctx.arc(0,0,rr*.7,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#ffc8ad';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-rr*1.3,0);ctx.lineTo(rr*1.3,0);ctx.moveTo(0,-rr*1.3);ctx.lineTo(0,rr*1.3);ctx.stroke();
-  } else {
-    const grad=ctx.createLinearGradient(-rr,-rr,rr,rr);grad.addColorStop(0,'#b19496');grad.addColorStop(.35,'#665b70');grad.addColorStop(1,'#201b30');
-    ctx.fillStyle=grad;ctx.strokeStyle='#d3b8bb';ctx.lineWidth=1.2;
-    ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=rr*(.84+.16*Math.sin(o.shape+i*7));i?ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r):ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();ctx.stroke();
-    ctx.fillStyle='#211e3777';ctx.beginPath();ctx.arc(rr*.15,-rr*.12,rr*.32,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#f4c49988';ctx.beginPath();ctx.moveTo(-rr*.3,rr*.1);ctx.lineTo(-rr*.1,rr*.4);ctx.lineTo(rr*.3,rr*.5);ctx.stroke();
-  }
+  drawObjectArt(ctx,o,rr,reduced);
   ctx.restore();
 }
 function ship(t) {
@@ -492,6 +483,20 @@ function ship(t) {
   drawNoseHeat(ctx,size,visualHeat(run.heat,run.multiplier),run.time,reduced);
   ctx.restore();
   if(mode==='playing'&&run.time<8){ctx.fillStyle='#d6faff';ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillText('YOU',p.x,p.y-size*.55);}
+}
+function renderPixi(dt){
+  visualTime+=dt;
+  const renderShake=shake;
+  if(shake>0&&!reduced)shake=Math.max(0,shake-dt*25);
+  if(mode==='intro')run.radius=.83+Math.sin(visualTime*.7)*.025;
+  const flying=mode==='playing'||(watching&&watchedStatus==='playing');
+  const boost=watching?!!(watchedInput&1):boosting();
+  if(flying&&boost&&Math.random()<.7){const p=point(run.radius),size=rocketSize(geo().r);particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
+  for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;}
+  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,phase:specialState(run),particles,shake:renderShake,comboUntil,comboText,rocket});
+  compactParticles(particles);
+  if(mode!=='playing')comboUntil=0;
+  if(visualTime>toastUntil)setText('toast','');
 }
 function render(dt) {
   visualTime+=dt;ctx.save();ctx.setTransform(ratio,0,0,ratio,0,0);
@@ -562,9 +567,24 @@ function frame(now) {
   if(live&&ticket&&['ready','playing','paused','dead'].includes(mode)&&now-lastBroadcast>=100){
     lastBroadcast=now;live.snapshot(run,mode,boosting()?1:0);
   }
-  render(dt);requestAnimationFrame(frame);
+  if(usePixi)renderPixi(dt);else render(dt);
+  if(!disposed)animationFrame=requestAnimationFrame(frame);
 }
 rocket.addEventListener('error',()=>{$('load-error').hidden=false;$('load-error').textContent='Character artwork could not load. The flight prototype still works with a simple marker.';});
 window.addEventListener('error',()=>{if(mode==='playing')pause();$('load-error').hidden=false;$('load-error').textContent='The activity encountered an error. Reload the page to try again.';});
 if(import.meta.env.PROD)patchUrlMappings([{prefix:'/api',target:'api.acosmibot.com/api'},{prefix:'/discord-cdn',target:'cdn.discordapp.com'}]);
-resize();requestAnimationFrame(frame);void connectDiscord();
+async function bootRenderer(){
+  try{
+    if(usePixi){
+      const {createFlightRenderer}=await import('./pixi-renderer.mjs');
+      gpu=await createFlightRenderer(canvas,{onLost(){pause();clearInput();message('Graphics interrupted. Waiting to reconnect…',3600);},onRestored(){message('Graphics restored. Resume your flight when ready.',5);}});
+    }
+    if(disposed){gpu?.destroy();return;}
+    resize();animationFrame=requestAnimationFrame(frame);void connectDiscord();
+  }catch(error){
+    $('load-error').hidden=false;$('load-error').textContent='Graphics could not start. Enable hardware acceleration, then reopen the Activity.';
+    $('launch').disabled=true;console.error('Event Horizon renderer initialization failed',error);
+  }
+}
+window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(animationFrame);resizeObserver.disconnect();gpu?.destroy();});
+void bootRenderer();

@@ -1,10 +1,31 @@
-# Event Horizon: playback fix and PixiJS experiment
+# Event Horizon: playback fix and PixiJS renderer
 
 ## Status — 2026-09-18
 
-The spectator clock fix is implemented. PixiJS 8.21.0 is a **developer-only black-hole renderer prototype**, not a full game migration and not enabled in the Activity. Production still draws with Canvas. Simulation, collision, scoring, replay version, and the relay protocol are unchanged.
+PixiJS 8.21.0 is now the default full-scene Activity renderer, following the owner's approval of small WebGL visual differences. Simulation, collision, scoring, replay version, and the relay protocol are unchanged. Canvas remains a build-time rollback: build with `VITE_EVENT_HORIZON_RENDERER=canvas` and redeploy. There is no player renderer toggle.
 
-The official [PixiJS skills](https://github.com/pixijs/pixijs-skills) informed the prototype: retained geometry, reusable sprites, async Application initialization, manual rendering, explicit cleanup, WebGL, and measurement before enablement. The prototype is not an input to Vite's production build and the Activity does not import PixiJS.
+The production renderer uses retained meshes for black-hole arcs and nose heat, pooled sprites for objects and particles, and cached artwork textures. It does not upload a full Canvas frame each tick. The nose heat is anchored to the rocket PNG's actual nose apex and follows the ship's rotation.
+
+Full-game local checks: 66 tests passed; default and Canvas rollback builds passed; desktop and 390 × 844 portrait previews, WebGL context loss/restoration/resume, resize, and a seeded 0–600 second scene sweep passed without captured rendering errors. The sweep peaked at 52 owned textures and ended at 33, with two stage children. Texture storage excludes geometry, MSAA, framebuffers, and browser copies.
+
+Five full-game scenes, 240 measured frames each after warmup, ran near the local display's 120 Hz ceiling. Pixi CPU frame work averaged 0.92–1.37 ms, p95 1.5–1.9 ms, with no intervals above 25 ms. Canvas also approached 120 Hz, with one interval above 25 ms; its CPU cost was lower in some scenes. This does **not** establish a universal FPS increase. Raw full-game results are in `results/full-game-*.json`. Physical phone and authenticated two-player Discord testing remain follow-up checks.
+
+## Full-game verification fixture
+
+```sh
+node tools/event-horizon-pixi/create-game-lab.mjs
+npm run dev -- --host 127.0.0.1
+# /activities/event-horizon/renderer-lab.generated.html?time=210
+# Add &renderer=canvas for comparison, or use ?benchmark
+# /tools/event-horizon-pixi/heat.html — enlarged heat alignment comparison
+# /tools/event-horizon-pixi/mobile.html — portrait fixture
+```
+
+Generated lab files are ignored and excluded from the production build. The fixture uses seeded local simulation and does not authenticate, publish scores, or contact the relay.
+
+## Historical isolated prototype evidence
+
+The sections below record the initial isolated black-hole experiment. Its original decision to retain Canvas was superseded by the owner's explicit Pixi deployment approval and the full-scene integration above.
 
 ## Reproduce
 
@@ -58,4 +79,4 @@ Texture storage excludes retained geometry, MSAA targets, framebuffers, and the 
 
 Side-by-side desktop and portrait previews retain the overall composition. Visible-pixel comparison composites both over the same opaque background at time 120. Mean RGB channel differences were 0.230/255 desktop and 0.209/255 portrait; approximately 0.98% and 0.97% of pixels respectively differed by more than 8 in at least one channel. Thin arc/ember antialiasing differs between Canvas and WebGL. These are **not pixel-identical** results.
 
-**Keep Canvas enabled.** The prototype saves roughly 0.3 ms CPU per frame for one effect in this environment, but does not establish a whole-game FPS gain or visual parity across target devices. The conditional production migration gate is not met. A full migration would still require full-scene integration/benchmarking, antialiasing acceptance, Discord desktop and physical-phone checks, resize, WebGL context loss/recovery, asset lifecycle, and fallback verification. These are requirements for a later migration, not capabilities claimed by this prototype.
+**Original prototype decision: keep Canvas enabled (superseded above).** The prototype saves roughly 0.3 ms CPU per frame for one effect in this environment, but does not establish a whole-game FPS gain or visual parity across target devices. The conditional production migration gate is not met. A full migration would still require full-scene integration/benchmarking, antialiasing acceptance, Discord desktop and physical-phone checks, resize, WebGL context loss/recovery, asset lifecycle, and fallback verification. These are requirements for a later migration, not capabilities claimed by this prototype.

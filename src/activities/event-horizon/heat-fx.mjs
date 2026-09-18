@@ -1,3 +1,4 @@
+import {heatAnchor,HEAT_ANGLE} from './rocket-art.mjs';
 // Draw in the same local, rotated coordinate space as the rocket sprite.
 // Small gradients only: no full-screen filters, particles, or bitmap edits.
 export function visualHeat(heat, multiplier) {
@@ -17,8 +18,9 @@ export function drawNoseHeat(ctx, size, heat, time, reduced = false) {
   const pulse = reduced ? 1 : 1 + Math.sin(time * Math.PI * 2 * .8) * .12 * level;
   const intensity = Math.min(1, level ** .4 * pulse);
   ctx.save();
-  ctx.translate(size * .41, -size * .255);
-  ctx.rotate(-Math.PI * .23);
+  const anchor=heatAnchor(size);
+  ctx.translate(anchor.x,anchor.y);
+  ctx.rotate(HEAT_ANGLE);
   ctx.globalCompositeOperation = 'screen';
   // Local +X points forward: all heat washes rearward over the fuselage.
   const length = size * (.28 + .48 * level) * pulse;
