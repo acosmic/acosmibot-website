@@ -1,0 +1,49 @@
+.ai-comparison { border: 1px solid var(--border-color, #273640); border-radius: 14px; background: var(--bg-secondary, #0d151d); padding: 24px; color: var(--text-primary); }
+.ai-comparison__header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.ai-comparison__label { color: #9F8BFF; display: inline-flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 700; }
+.ai-comparison h3 { font-size: clamp(20px, 2vw, 24px); margin: 8px 0; line-height: 1.3; }
+.ai-comparison h4 { font-size: 18px; margin: 0 0 6px; }
+.ai-comparison p { color: var(--text-secondary); line-height: 1.6; max-width: 75ch; }
+.ai-comparison__header p { margin: 0; }
+.ai-comparison button { min-height: 44px; border: 1px solid var(--border-color, #273640); border-radius: 8px; background: var(--bg-tertiary, #15212b); color: var(--text-primary); cursor: pointer; }
+.ai-comparison button:hover:not(:disabled) { border-color: var(--primary-color); }
+.ai-comparison button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
+.ai-comparison button:disabled { opacity: .55; cursor: wait; }
+.ai-comparison__refresh { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-shrink: 0; font-size: 13px; }
+.ai-comparison__context { display: flex; justify-content: space-between; gap: 16px; padding: 20px 0 12px; color: var(--text-secondary); font-size: 12px; }
+.ai-comparison__scroll { overflow-x: auto; }
+.ai-comparison__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ai-comparison__table caption { text-align: left; color: var(--text-secondary); padding: 12px 0; font-size: 12px; caption-side: top; }
+.ai-comparison__table th, .ai-comparison__table td { padding: 16px 12px; text-align: right; border-bottom: 1px solid var(--border-color, #273640); vertical-align: top; font-variant-numeric: tabular-nums; }
+.ai-comparison__table th:first-child { text-align: left; padding-left: 0; }
+.ai-comparison__table thead th { color: var(--text-secondary); font-weight: 500; font-size: 12px; }
+.ai-comparison__table tbody th { font-weight: 600; min-width: 145px; }
+.ai-comparison__table td { min-width: 80px; }
+.ai-comparison small { display: block; font-weight: 400; color: var(--text-secondary); font-size: 11px; margin-top: 5px; line-height: 1.5; }
+.ai-comparison__cohort { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.ai-comparison__cohort::before { content: ''; width: 7px; height: 7px; background: #67ecff; border-radius: 50%; }
+.ai-comparison__cohort.is-jev::before, .ai-comparison__cohort.is-shadow::before { background: #9F8BFF; }
+.ai-comparison__jev { color: #9F8BFF; }
+.ai-comparison__bar { display: block; height: 4px; min-width: 100px; background: #25343f; margin-top: 10px; }
+.ai-comparison__bar i { display: block; height: 100%; background: #67ecff; }
+.ai-comparison__bar i.is-jev, .ai-comparison__bar i.is-shadow { background: #9F8BFF; }
+.ai-comparison__note { font-size: 12px; margin: 14px 0; }
+.ai-comparison__tabs { display: flex; gap: 8px; margin: 24px 0 12px; flex-wrap: wrap; }
+.ai-comparison__tabs button { padding: 10px 14px; font-size: 13px; }
+.ai-comparison__tabs button[aria-pressed='true'] { background: #253047; border-color: #9F8BFF; color: var(--text-primary); }
+.ai-comparison__empty { display: flex; gap: 20px; align-items: flex-start; padding: 26px 0; border-block: 1px solid var(--border-color, #273640); }
+.ai-comparison__empty > svg { color: #9F8BFF; flex-shrink: 0; }
+.ai-comparison__empty p { margin: 0 0 10px; }
+.ai-comparison__empty span { color: var(--text-secondary); font-size: 12px; }
+.ai-comparison__state { padding: 20px 0; }
+.ai-comparison__runs { display: grid; gap: 8px; }
+.ai-comparison__runs button { display: flex; align-items: center; gap: 12px; padding: 14px; text-align: left; }
+.ai-comparison__runs button > span:first-of-type { flex: 1; }
+.ai-comparison__runs button > span:last-of-type { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) {
+  .ai-comparison { padding: 16px; }
+  .ai-comparison__header { align-items: flex-start; flex-direction: column; gap: 14px; }
+  .ai-comparison__context { flex-direction: column; gap: 6px; }
+  .ai-comparison__tabs button { flex: 1; }
+  .ai-comparison__table { min-width: 650px; }
+}

@@ -176,6 +176,25 @@ export interface AdminAiLabJob {
 
 export type AdminAiTraceStatus = 'in_progress' | 'success' | 'failed' | 'cancelled';
 
+export interface AiComparisonMetrics {
+  count: number; success_count: number; failed_count: number; latency_count: number;
+  mean_ms: number | null; median_ms: number | null; p95_ms: number | null;
+  known_cost_usd: string; mean_cost_usd: string | null; cost_per_1000_usd: string | null;
+  unknown_cost_count: number; priced_count: number; token_count: number; input_tokens: number; output_tokens: number; total_tokens: number;
+}
+export interface AiComparisonReport {
+  success: boolean; days: number; generated_at: string; environment: string; experiment_version: string;
+  truncated: boolean;
+  cohorts: (AiComparisonMetrics & { cohort: string })[];
+  provider_groups: (AiComparisonMetrics & { provider: string; model: string; operation: string; phase: string })[];
+  outcomes: Record<string, number>;
+  recent: { trace_id: string; cohort: string; reason: string; route: string; status: string;
+    duration_ms: number | null; cost_usd: string | null; unknown_cost_count: number; feedback_rating: number | null }[];
+  baseline: { source: string; captured_at: string; window_start: string; window_end: string; method: string;
+    groups: { label: string; model: string; count: number; mean_ms: number; median_ms: number;
+      p95_ms: number; mean_cost_usd: string; cost_per_1000_usd: string; mean_input_tokens: number }[] };
+}
+
 export interface AdminAiTraceSummary {
   trace_id: string;
   entrypoint: string | null;
@@ -587,6 +606,8 @@ export const adminApi = {
       method: 'PATCH',
       body: JSON.stringify({ rating, note }),
     }),
+
+  getAiComparison: (days = 7) => api.fetch<AiComparisonReport>(`/api/admin/ai-traces/comparison?days=${days}`),
 
   getAiTraces: (days = 7, status?: AdminAiTraceStatus) => {
     const params = new URLSearchParams({ days: String(days), limit: '100' });

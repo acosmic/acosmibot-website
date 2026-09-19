@@ -1,3 +1,5 @@
+import { AiComparisonPanel } from './AiComparisonPanel';
+import { isTestEnvironment } from '@/lib/runtimeConfig';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -118,7 +120,7 @@ function SpanRow({
       <div className="ai-span__identity">
         <span className="ai-span__icon"><Icon aria-hidden="true" /></span>
         <div>
-          <strong>{span.name.replaceAll('_', ' ')}</strong>
+          <strong>{span.provider === 'typesafe' ? 'Jev · ' : ''}{span.name.replaceAll('_', ' ')}</strong>
           <span>{span.span_type}{span.provider !== 'internal' ? ` · ${span.provider}` : ''}</span>
         </div>
         <span className="ai-span__duration">{formatDuration(span.duration_ms)}</span>
@@ -156,8 +158,10 @@ export const AiTracesTab: React.FC = () => {
     [tracesQuery.data?.traces],
   );
 
+  useEffect(() => { setSelectedId(null); }, [days, status]);
+
   useEffect(() => {
-    if (!selectedId || !traces.some(trace => trace.trace_id === selectedId)) {
+    if (!selectedId) {
       setSelectedId(traces[0]?.trace_id ?? null);
     }
   }, [selectedId, traces]);
@@ -213,6 +217,8 @@ export const AiTracesTab: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {isTestEnvironment() && <AiComparisonPanel days={days} onSelectTrace={id => { setSelectedId(id); document.querySelector('.ai-trace-detail')?.scrollIntoView({ behavior: 'auto', block: 'start' }); }} />}
 
       <div className="ai-traces__console">
         <section className="ai-trace-index" aria-label="Recent AI traces">
