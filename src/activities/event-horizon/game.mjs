@@ -574,15 +574,19 @@ rocket.addEventListener('error',()=>{$('load-error').hidden=false;$('load-error'
 window.addEventListener('error',()=>{if(mode==='playing')pause();$('load-error').hidden=false;$('load-error').textContent='The activity encountered an error. Reload the page to try again.';});
 if(import.meta.env.PROD)patchUrlMappings([{prefix:'/api',target:'api.acosmibot.com/api'},{prefix:'/discord-cdn',target:'cdn.discordapp.com'}]);
 async function bootRenderer(){
+  let stage='loading';
   try{
     if(usePixi){
       const {createFlightRenderer}=await import('./pixi-renderer.mjs');
+      stage='initializing';
       gpu=await createFlightRenderer(canvas,{onLost(){pause();clearInput();message('Graphics interrupted. Waiting to reconnect…',3600);},onRestored(){message('Graphics restored. Resume your flight when ready.',5);}});
     }
     if(disposed){gpu?.destroy();return;}
+    stage='scene';
     resize();animationFrame=requestAnimationFrame(frame);void connectDiscord();
   }catch(error){
-    $('load-error').hidden=false;$('load-error').textContent='Graphics could not start. Enable hardware acceleration, then reopen the Activity.';
+    const messages={loading:'Game files could not load. Close and reopen the Activity. (EH-LOAD)',initializing:'The game renderer could not initialize. Close and reopen the Activity. (EH-RENDER)',scene:'The game scene could not start. Close and reopen the Activity. (EH-SCENE)'};
+    $('load-error').hidden=false;$('load-error').textContent=messages[stage];
     $('launch').disabled=true;console.error('Event Horizon renderer initialization failed',error);
   }
 }

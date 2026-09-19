@@ -22,6 +22,12 @@ const escapeHtml = (value: string) => value
 
 const buildEnvironment = process.env.ACOSMIBOT_ENVIRONMENT?.trim().toLowerCase();
 const isolatedBuild = buildEnvironment === 'test' || buildEnvironment === 'staging';
+// Container-only revision namespace also invalidates cached failed lazy imports.
+// Production Azure builds do not set this variable and retain Vite defaults.
+const assetRevision = process.env.ACOSMIBOT_ASSET_REVISION;
+if (assetRevision && !/^(?:[a-f0-9]{40}|unknown)$/.test(assetRevision)) {
+  throw new Error('Invalid container asset revision');
+}
 const apiProxyTarget = process.env.API_BASE_URL?.trim()
   || process.env.VITE_API_BASE_URL?.trim()
   || (buildEnvironment === 'test' || buildEnvironment === 'staging'
@@ -274,6 +280,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
+      output: assetRevision ? {
+        entryFileNames: `assets/test-${assetRevision}-[name]-[hash].js`,
+        chunkFileNames: `assets/test-${assetRevision}-[name]-[hash].js`,
+        assetFileNames: `assets/test-${assetRevision}-[name]-[hash][extname]`,
+      } : undefined,
       input: {
         main: path.resolve(__dirname, 'index.html'),
         'event-horizon': path.resolve(__dirname, 'activities/event-horizon/index.html'),
