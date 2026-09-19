@@ -1,3 +1,33 @@
+html[data-test-environment] {
+  scroll-padding-top: var(--environment-banner-height);
+}
+
+html[data-test-environment] #root {
+  padding-top: var(--environment-banner-height);
+}
+
+html[data-test-environment] .dashboard-header-stack {
+  top: var(--environment-banner-height);
+}
+
+html[data-test-environment] .guild-selector-sidebar,
+html[data-test-environment] .navigation-sidebar {
+  top: calc(var(--environment-banner-height) + var(--public-nav-height) + var(--server-context-height));
+}
+
+html[data-test-environment] .public-nav__drawer,
+html[data-test-environment] .public-nav__backdrop,
+html[data-test-environment] .public-nav__account-backdrop {
+  top: calc(var(--environment-banner-height) + var(--public-nav-height));
+}
+
+@media (max-width: 768px) {
+  html[data-test-environment] .public-nav__account-menu {
+    top: calc(var(--environment-banner-height) + var(--public-nav-height) + 8px);
+    max-height: calc(100vh - var(--environment-banner-height) - var(--public-nav-height) - 20px);
+  }
+}
+
 .environment-banner {
   position: fixed;
   z-index: 2147483000;

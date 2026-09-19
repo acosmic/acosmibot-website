@@ -1,5 +1,5 @@
 import type { PublicIncidentRecord } from '@/status/publicIncidents';
-import { statusUrl } from '@/lib/runtimeConfig';
+import { isTestEnvironment, statusUrl } from '@/lib/runtimeConfig';
 
 export type ServiceHealth = 'operational' | 'degraded' | 'outage' | 'unknown';
 
@@ -55,7 +55,9 @@ export const fetchPublicStatus = async (): Promise<PublicStatusResponse> => {
   // Test deployments replace it through AppConfig.statusUrl before this call.
   const response = await fetch(statusUrl(), {
     headers: { Accept: 'application/json' },
-    credentials: 'omit',
+    // The protected test relay needs its same-origin Cloudflare Access cookie.
+    // Production's public relay remains an anonymous request.
+    credentials: isTestEnvironment() ? 'same-origin' : 'omit',
   });
   if (!response.ok) throw new Error('Status telemetry is unavailable');
   const payload: unknown = await response.json();
