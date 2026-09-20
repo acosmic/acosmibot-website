@@ -119,6 +119,7 @@ export interface AdminAiSettings {
   enabled: boolean;
   /** Show the disclaimer + "Used X Tool" subtext under AI replies. */
   response_notice: boolean;
+  response_trace: boolean;
   model: string;
   polymorph_model: string;
   /** Bot-wide fallback timezone (IANA) for the AI clock. */

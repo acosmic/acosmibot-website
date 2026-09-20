@@ -4,7 +4,7 @@ import { adminApi, AdminAiSettings, AdminAiTier, AdminAiTierLimits, type AdminAi
 import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import './AiSettingsTab.css';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'response_notice' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits' | 'provider_layers'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'response_notice' | 'response_trace' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits' | 'provider_layers'>;
 
 const PLAN_LIMITS: Array<{ tier: AdminAiTier; label: string; description: string }> = [
   { tier: 'free', label: 'Free', description: 'Basic AI chat' },
@@ -60,10 +60,11 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, response_notice, model, polymorph_model, timezone, web_search_provider, tier_limits, provider_layers } = query.data.data;
+      const { enabled, response_notice, response_trace, model, polymorph_model, timezone, web_search_provider, tier_limits, provider_layers } = query.data.data;
       setForm({
         enabled,
         response_notice: response_notice ?? true,
+        response_trace: response_trace ?? false,
         model,
         polymorph_model,
         timezone: timezone || 'UTC',
@@ -152,6 +153,24 @@ export const AiSettingsTab: React.FC = () => {
           <p className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
             The small grey line under every AI reply — “AI responses may not be accurate · Used
             Web Search Tool”. Turn off to hide it everywhere.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={form.response_trace}
+              onChange={(e) => setForm({ ...form, response_trace: e.target.checked })}
+              aria-describedby="ai-execution-path-help"
+              style={{ width: 18, height: 18, accentColor: 'var(--primary-color)' }}
+            />
+            <span style={{ fontWeight: 600 }}>Show AI execution path</span>
+          </label>
+          <p id="ai-execution-path-help" className="text-muted small mb-0 mt-1" style={{ marginLeft: 30 }}>
+            Adds the routing, tool results, and response model to each chat reply after it finishes.
+            Shows when Jev abstains and an LLM takes over. Works independently of the disclaimer.
+            Everyone who can see the reply can see its path.
           </p>
         </div>
 
