@@ -1,3 +1,4 @@
+import { debrisOpacity } from './tide-fx.mjs';
 import {createHeatMesh} from './pixi-heat.mjs';
 import { Application, CanvasSource, Container, Graphics, ImageSource, Sprite, Texture } from 'pixi.js';
 import { createHoleScene } from './pixi-hole.mjs';
@@ -94,7 +95,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     const crossing=o.type==='crosser',rr=obstacleSize(g.r,o.size);
     const x=crossing?g.cx+o.x*g.r:g.cx+Math.sin(o.angle)*o.radius*g.r;
     const y=crossing?g.cy+o.y*g.r:g.cy-Math.cos(o.angle)*o.radius*g.r;
-    node.visible=true;node.position.set(x,y);art.visible=!(crossing&&o.warning>0);trail.visible=crossing&&o.warning<=0;warningLine.visible=caption.visible=crossing&&o.warning>0;
+    node.visible=true;node.alpha=debrisOpacity(o);node.position.set(x,y);art.visible=!(crossing&&o.warning>0);trail.visible=crossing&&o.warning<=0;warningLine.visible=caption.visible=crossing&&o.warning>0;
     if(warningLine.visible){
       const ex=clamp(x,18,width-18)-x,ey=clamp(y,110,height-105)-y,tx=g.cx-x,ty=g.cy+o.targetY*g.r-y;
       const dx=tx-ex,dy=ty-ey,length=Math.hypot(dx,dy);warningLine.clear();
@@ -113,7 +114,6 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   function drawPhase(run,state,show){
     const {camera:g,reduced}=config;phaseGraphics.clear();phaseGraphics.position.set(g.cx,g.cy);phaseLabels.position.set(g.cx,g.cy);phaseLabels.visible=show&&!!run.specials.length;
     if(!run.specials.length)return;
-    if(state.kinds.includes('tide')){const fraction=reduced?.5:(run.time*.35)%1;phaseGraphics.arc(0,0,g.r*(.95-fraction*.28),-Math.PI*.9,-Math.PI*.1).stroke({color:state.gravity>1?0x87bbb9:0x426f76,width:2});}
     if(state.beam!==null){phaseGraphics.beginPath().circle(0,0,state.beam*g.r).stroke({color:0xffe2a3,width:g.r*.036});phaseGraphics.beginPath().arc(0,0,g.r*.98,-Math.PI*.85,-Math.PI*.15).stroke({color:0xcab987,alpha:.4,width:1});}
     if(show){const stacked=state.kinds.length>1,parts=stacked?state.kinds.map(k=>phaseNames[k]):phaseNames[state.kind].split(' ');
       const font=`750 ${Math.max(12,Math.min(stacked?18:24,g.r*.064))}px system-ui`;
@@ -129,7 +129,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     for(let i=0;i<stars.length;i++){const star=stars[i],s=starSprites[i],drift=reduced?0:t*star.layer*1.6;s.position.set((star.x*width-drift%width+width)%width,star.y*height);s.alpha=.35+Math.sin(t*.7+star.phase)*.18+star.layer*.11;}
     const kinds=phase.kinds.length?phase.kinds:[phase.kind],target=kinds.map(k=>palettes[k]??palettes.orbit),blend=reduced?1:1-Math.exp(-dt*.9);
     for(let i=0;i<3;i++)tint[i]+=(target.reduce((s,c)=>s+c[i],0)/target.length-tint[i])*blend;
-    scene.wash.tint=(Math.round(tint[0])<<16)|(Math.round(tint[1])<<8)|Math.round(tint[2]);hole.render(t);
+    scene.wash.tint=(Math.round(tint[0])<<16)|(Math.round(tint[1])<<8)|Math.round(tint[2]);hole.render(t,run);
     let index=0;if(mode!=='intro'){for(const o of run.objects)drawObject(o,index++);for(const o of run.crossers)drawObject(o,index++);}
     for(let i=index;i<objectPool.length;i++)objectPool[i].node.visible=false;
     drawPhase(run,phase,mode!=='intro'&&t>=comboUntil);phaseGraphics.visible=mode!=='intro';

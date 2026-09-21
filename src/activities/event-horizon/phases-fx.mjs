@@ -14,11 +14,6 @@ export function createPhaseBackdrop(){
 export function drawSpecial(ctx,g,run,state,reduced,showLabel=true){
   if(!run.specials.length)return;
   ctx.save();ctx.translate(g.cx,g.cy);
-  if(state.kinds.includes('tide')){
-    ctx.strokeStyle=state.gravity>1?'#87bbb9':'#426f76';ctx.lineWidth=2;
-    const fraction=reduced?.5:((run.time*.35)%1);
-    ctx.beginPath();ctx.arc(0,0,g.r*(.95-fraction*.28),-Math.PI*.9,-Math.PI*.1);ctx.stroke();
-  }
   if(state.beam!==null){
     const radius=state.beam;
     ctx.strokeStyle='#ffe2a3';

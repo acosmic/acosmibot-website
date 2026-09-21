@@ -1,9 +1,10 @@
+import { tideDust, TIDE_DUST_COUNT } from './tide-fx.mjs';
 import { holeGeometry } from './render-cache.mjs';
 const allLayers={};
 
 // Cache belongs to one camera/resolution. The optional layer mask is for the
 // renderer experiment; the game draws every layer in the original order.
-export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers){
+export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers,tide=0,tideTime=t){
   const geometry=cache.geometry??=holeGeometry(r,reduced);
   ctx.save(); ctx.translate(cx,cy);
   if(layers.bloom!==false){
@@ -15,9 +16,9 @@ export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers)
   // the quiet, readable outer flight lane rather than covering it with particles.
   if(layers.streams!==false)for(const {i,k,rr,ry,color,width:lineWidth} of geometry.streams) {
     ctx.strokeStyle=color;
-    ctx.lineWidth=lineWidth;
+    ctx.lineWidth=lineWidth*(1+tide*.35);
     ctx.beginPath();const a=i*2.39+t*(.08+k*.12);
-    ctx.ellipse(0,0,rr,ry,-.28,a,a+1.8+(i%3));ctx.stroke();
+    ctx.ellipse(0,0,rr*(1-tide*.008),ry*(1-tide*.008),-.28,a,a+1.8+(i%3));ctx.stroke();
   }
   if(layers.core!==false){
     const hole=ctx.createRadialGradient(-r*.08,-r*.1,0,0,0,r*.35);
@@ -30,7 +31,7 @@ export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers)
     const head=i*2.399+(reduced?0:t*(.18+i*.027));
     for(const {j,color,width:lineWidth} of strokes){
       ctx.strokeStyle=color;
-      ctx.lineWidth=lineWidth;
+      ctx.lineWidth=lineWidth*(1+tide*.35);
       ctx.beginPath();ctx.arc(0,0,rr,head-span+j*span/12,head-span+(j+1)*span/12+.002);ctx.stroke();
     }
   }
@@ -38,6 +39,18 @@ export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers)
     const a=i*2.399+t*(.06+i%4*.025),rr=r*(.37+(i%13)*.006);
     ctx.fillStyle=i%3?'#ffc68999':'#fff1cacc';
     ctx.fillRect(Math.cos(a)*rr,Math.sin(a)*rr,.8+i%2,.8+i%2);
+  }
+  if(tide>0){
+    ctx.strokeStyle=`rgba(255,220,170,${tide*.45})`;ctx.lineWidth=2+tide;
+    ctx.beginPath();ctx.arc(0,0,r*.354,0,Math.PI*2);ctx.stroke();
+    if(!reduced){
+      const mote={};ctx.fillStyle='#ffd5a2';
+      for(let i=0;i<TIDE_DUST_COUNT;i++){
+        tideDust(i,tideTime,mote);ctx.save();ctx.globalAlpha=mote.alpha*tide;
+        ctx.translate(mote.x*r,mote.y*r);ctx.rotate(mote.angle);
+        ctx.fillRect(-mote.length*r/2,0,mote.length*r,Math.max(.7,r*.0012));ctx.restore();
+      }
+    }
   }
   if(layers.lane!==false){
     // The risk region is visibly separated from both the hole and safe orbit.

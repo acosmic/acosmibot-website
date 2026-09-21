@@ -1,4 +1,4 @@
-// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v5 verifier.
+// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v6 verifier.
 export const DT = 1 / 60;
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export function createRun(seed = 1) {
@@ -135,6 +135,15 @@ export function step(s, input = {}) {
   for (const o of s.objects) {
     o.angle -= (o.speed??angularSpeed) * DT;
     o.spin += DT * .65;
+    // Small approach drift preserves readable lanes. Captured debris continues
+    // spiraling into the hole after passing; shards keep their original paths.
+    if(o.type!=='shard'){
+      if(special.gravity>1)o.tideCaptured=true;
+      if(o.tideCaptured){
+        const passed=clamp((-o.angle-.2)/.7,0,1);
+        o.radius-=DT*((special.gravity>1?.012:0)+passed*.14);
+      }
+    }
     const dx = Math.sin(o.angle) * o.radius;
     const dy = Math.cos(o.angle) * o.radius - s.radius;
     const distance = Math.hypot(dx, dy);
@@ -157,10 +166,17 @@ export function step(s, input = {}) {
       }
     }
   }
-  s.objects = s.objects.filter(o => o.angle > -2.7 && !o.collected);
+  s.objects = s.objects.filter(o => o.angle > (o.tideCaptured?-5.8:-2.7) && o.radius>.35 && !o.collected);
   for(const o of s.crossers){
     o.age+=DT;
     if(o.warning>0){o.warning=Math.max(0,o.warning-DT);continue;}
+    // Centerward acceleration, never aimed at the pilot. The warning interval
+    // remains stationary and the existing swept collision check still applies.
+    if(special.gravity>1){
+      const distance=Math.max(.35,Math.hypot(o.x,o.y));
+      o.vx-=o.x/distance*.025*DT;o.vy-=o.y/distance*.025*DT;
+      o.tideCaptured=true;
+    }
     const oldX=o.x,oldY=o.y;o.x+=o.vx*DT;o.y+=o.vy*DT;o.spin+=DT*2;
     const distance=segmentDistance(oldX,oldY+previousRadius,o.x,o.y+s.radius);
     o.minDistance=Math.min(o.minDistance,distance);
@@ -175,6 +191,6 @@ export function step(s, input = {}) {
         s.score+=160*s.multiplier;s.events.push({type:'near',combo:s.combo});}
     }
   }
-  s.crossers=s.crossers.filter(o=>o.age<9&&Math.abs(o.x)<1.8&&Math.abs(o.y)<2);
+  s.crossers=s.crossers.filter(o=>o.age<9&&Math.abs(o.x)<1.8&&Math.abs(o.y)<2&&(!o.tideCaptured||Math.hypot(o.x,o.y)>.35));
   return s;
 }

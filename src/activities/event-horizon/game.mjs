@@ -9,6 +9,7 @@ import './style.css';
 import { LiveClient, snapshotForView } from './live.mjs';
 import { compactParticles, cachedLabel } from './render-cache.mjs';
 import { drawObjectArt } from './object-art.mjs';
+import { tideStrength, debrisOpacity } from './tide-fx.mjs';
 import { drawBlackHole } from './black-hole.mjs';
 import { SnapshotPlayback } from './playback.mjs';
 import { renderViewers } from './viewers.mjs';
@@ -268,8 +269,8 @@ async function start() {
   $('launch').textContent='Preparing flight…';
   if(!rankedConnected&&!casualAvailable){mode='intro';setConnectionState('error','Reconnect to Discord before starting a flight.');return;}
   try{
-    if(casualAvailable)ticket={casual:true,seed:crypto.getRandomValues(new Uint32Array(1))[0]||1,version:'event-horizon-v5',maxTicks:36000};
-    else{await boardReady;ticket=await api('/runs',{version:'event-horizon-v5'});if(!ticket?.runId||ticket.version!=='event-horizon-v5')throw new Error('The game has updated. Close and reopen the Activity before flying.');}
+    if(casualAvailable)ticket={casual:true,seed:crypto.getRandomValues(new Uint32Array(1))[0]||1,version:'event-horizon-v6',maxTicks:36000};
+    else{await boardReady;ticket=await api('/runs',{version:'event-horizon-v6'});if(!ticket?.runId||ticket.version!=='event-horizon-v6')throw new Error('The game has updated. Close and reopen the Activity before flying.');}
   }catch(error){
     abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';
     if(needsReconnect(error)){rankedConnected=false;setConnectionState('error',$('load-error').textContent);}
@@ -436,14 +437,14 @@ function background(t) {
   ctx.globalAlpha=1;
 }
 function blackHole(t) {
-  drawBlackHole(ctx,t,geo(),reduced,holeCache??={});
+  drawBlackHole(ctx,t,geo(),reduced,holeCache??={},undefined,tideStrength(run,reduced),run.time);
 }
 function object(o) {
   const g=geo();
   const p=o.type==='crosser'?{x:g.cx+o.x*g.r,y:g.cy+o.y*g.r}:point(o.radius,o.angle);
   const rr=obstacleSize(g.r,o.size);
   if(o.type==='crosser'){
-    ctx.save();
+    ctx.save();ctx.globalAlpha=debrisOpacity(o);
     if(o.warning>0){
       const entry={x:clamp(p.x,18,width-18),y:clamp(p.y,110,height-105)};
       const target={x:g.cx,y:g.cy+o.targetY*g.r};
@@ -460,7 +461,7 @@ function object(o) {
     ctx.strokeStyle=fire;ctx.lineWidth=rr*1.2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(p.x,p.y);ctx.stroke();
     ctx.restore();
   }
-  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(o.spin);
+  ctx.save();ctx.globalAlpha=debrisOpacity(o);ctx.translate(p.x,p.y);ctx.rotate(o.spin);
   drawObjectArt(ctx,o,rr,reduced);
   ctx.restore();
 }
