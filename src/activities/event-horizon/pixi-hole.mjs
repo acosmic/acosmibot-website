@@ -1,6 +1,7 @@
 // Retained black-hole GPU geometry. Static artwork is uploaded only on resize.
-import { Application, Container, CanvasSource, Color, Geometry, Mesh, Shader, Sprite, Texture } from 'pixi.js';
+import { Application, Container, CanvasSource, Color, Geometry, Graphics, Mesh, Shader, Sprite, Texture } from 'pixi.js';
 import { drawBlackHole } from './black-hole.mjs';
+import { tideStrength, tideDust, TIDE_DUST_COUNT } from './tide-fx.mjs';
 import { holeGeometry } from './render-cache.mjs';
 
 const vertex = `
@@ -13,17 +14,19 @@ uniform mat3 uWorldTransformMatrix;
 uniform mat3 uTransformMatrix;
 uniform vec2 uCenter;
 uniform float uTime;
+uniform float uTide;
 varying vec4 vColor;
 void main(){
   float angle=aEllipse.z+uTime*aEllipse.w;
   vec2 p=vec2(cos(angle),sin(angle))*aEllipse.xy;
   vec2 normal=normalize(vec2(cos(angle)/aEllipse.x,sin(angle)/aEllipse.y));
-  p+=normal*aPosition.y*aStroke.x;
+  p*=1.-uTide*.008;
+  p+=normal*aPosition.y*aStroke.x*(1.+uTide*.35);
   float c=cos(aStroke.y),s=sin(aStroke.y);
   p=mat2(c,s,-s,c)*p+uCenter;
   vec3 projected=uProjectionMatrix*uWorldTransformMatrix*uTransformMatrix*vec3(p,1.);
   gl_Position=vec4(projected.xy,0.,1.);
-  vColor=vec4(aColor.rgb*aColor.a,aColor.a);
+  vColor=vec4(min(vec3(1.),aColor.rgb*(1.+uTide*.45))*aColor.a,aColor.a);
 }`;
 const fragment = `varying vec4 vColor; void main(){gl_FragColor=vColor;}`;
 
@@ -52,13 +55,15 @@ function arcMesh(arcs, camera, width, height, ratio) {
   const shader=Shader.from({gl:{vertex,fragment},resources:{scene:{
     uCenter:{value:new Float32Array([camera.cx,camera.cy]),type:'vec2<f32>'},
     uTime:{value:0,type:'f32'},
+    uTide:{value:0,type:'f32'},
   }}});
   return {mesh:new Mesh({geometry,shader}),shader,geometry};
 }
 
 export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
   const stage=new Container();stage.eventMode='none';
-  const textures=[],meshes=[],embers=[];
+  const textures=[],meshes=[],embers=[],dust=[];
+  const mote={};
   let textureBytes=0;
   function staticLayer(name,extent){
     const {cx,cy,r}=camera;
@@ -86,9 +91,29 @@ export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
     const sprite=new Sprite(Texture.WHITE);sprite.tint=i%3?0xffc689:0xfff1ca;sprite.alpha=i%3?.6:.8;
     sprite.width=sprite.height=.8+i%2;stage.addChild(sprite);embers.push(sprite);
   }
+  if(!reduced)for(let i=0;i<TIDE_DUST_COUNT;i++){
+    const sprite=new Sprite(Texture.WHITE);sprite.anchor.set(.5);sprite.tint=0xffd5a2;
+    sprite.height=Math.max(.7,camera.r*.0012);stage.addChild(sprite);dust.push(sprite);
+  }
+  const tideRim=new Graphics().circle(0,0,camera.r*.354)
+    .stroke({color:0xffc285,width:7,alpha:.16})
+    .circle(0,0,camera.r*.354).stroke({color:0xffdcaa,width:2.5,alpha:.8});
+  tideRim.position.set(camera.cx,camera.cy);stage.addChild(tideRim);
   staticLayer('lane',1.07);
-  const render=time=>{
-    for(const {shader} of meshes)shader.resources.scene.uniforms.uTime=time;
+  const render=(time,run)=>{
+    const strength=tideStrength(run,reduced);
+    tideRim.alpha=strength;tideRim.visible=strength>0;
+    for(const {shader} of meshes){
+      shader.resources.scene.uniforms.uTime=time;
+      shader.resources.scene.uniforms.uTide=strength;
+    }
+    for(let i=0;i<dust.length;i++){
+      const sprite=dust[i];sprite.visible=strength>0;
+      if(!sprite.visible)continue;
+      tideDust(i,run.time,mote);
+      sprite.position.set(camera.cx+mote.x*camera.r,camera.cy+mote.y*camera.r);
+      sprite.width=mote.length*camera.r;sprite.rotation=mote.angle;sprite.alpha=mote.alpha*strength;
+    }
     for(let i=0;i<embers.length;i++){
       const angle=i*2.399+time*(.06+i%4*.025),r=camera.r*(.37+i%13*.006);
       embers[i].position.set(camera.cx+Math.cos(angle)*r,camera.cy+Math.sin(angle)*r);
