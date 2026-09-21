@@ -88,16 +88,19 @@ test('ten-minute director is deterministic and caps stacking at two distinct eff
   assert.deepEqual(a,b);
 });
 
-for(const seed of [1,42,987])test('Weave and Tide fully clear before the next introductory phase '+seed,()=>{
- const s=createRun(seed);let clearChecks=0;
+for(const seed of [1,42,987])test('introductory phase handoffs fade briefly without overlap '+seed,()=>{
+ const s=createRun(seed);let handoffs=0,old=[];
  for(let i=0;i<60*196;i++){
-  immortalTick(s);
-  if((s.time>=141&&s.time<150-1e-8)||(s.time>=186&&s.time<195-1e-8)){
+  old=[...s.objects,...s.crossers];immortalTick(s);
+  const remaining=s.nextSpecial-s.time;
+  if((s.nextSpecial===150||s.nextSpecial===195)&&remaining<.5-1e-8){
    assert.ok(!s.events.some(e=>e.type==='incoming'));
+   assert.ok([...s.objects,...s.crossers].every(o=>o.checked&&o.phaseFade>=0&&o.phaseFade<=1));
   }
-  for(const boundary of [150,195])if(Math.abs(s.time-(boundary-DT))<1e-7){
-   assert.equal(s.objects.length,0);assert.equal(s.crossers.length,0);clearChecks++;
+  if(s.events.some(e=>e.type==='phase-start'&&['tide','pulsar'].includes(e.kind))){
+   assert.ok([...s.objects,...s.crossers].every(o=>!old.includes(o)&&o.phaseFade===undefined));
+   assert.ok(s.objects.length>0);handoffs++;
   }
  }
- assert.equal(clearChecks,2);
+ assert.equal(handoffs,2);
 });
