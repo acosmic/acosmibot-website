@@ -132,7 +132,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     scene.wash.tint=(Math.round(tint[0])<<16)|(Math.round(tint[1])<<8)|Math.round(tint[2]);hole.render(t,run);
     let index=0;if(mode!=='intro'){for(const o of run.objects)drawObject(o,index++);for(const o of run.crossers)drawObject(o,index++);}
     for(let i=index;i<objectPool.length;i++)objectPool[i].node.visible=false;
-    drawPhase(run,phase,mode!=='intro'&&t>=comboUntil);phaseGraphics.visible=mode!=='intro';
+    drawPhase(run,phase,mode!=='intro');phaseGraphics.visible=mode!=='intro';
     const x=g.cx,y=g.cy-run.radius*g.r,size=rocketSize(g.r);
     ship.visible=!(mode==='dead'||(watching&&!run.alive));ship.position.set(x,y);
     const pulse=reduced?0:(1+Math.sin(t*Math.PI*1.2))/2;
@@ -150,7 +150,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     for(let i=particles.length;i<particlePool.length;i++)particlePool[i].visible=false;
     border.visible=flying&&run.heat>65;border.alpha=(run.heat-65)/90;
     combo.visible=mode==='playing'&&t<comboUntil;
-    if(combo.visible){const font=`700 ${clamp(g.r*.065,13,28)}px system-ui`;text(combo.children[0],'CLOSE CALL',font,'#9af3ff',g.cx,g.cy-13,g.r*.55);text(combo.children[1],comboText,font,'#f3f7fa',g.cx,g.cy+15,g.r*.55);}
+    if(combo.visible){const size=Math.min(28,g.r*.045),y=g.cy-g.r*.20,font=`700 ${size}px system-ui`;text(combo.children[0],'CLOSE CALL',font,'#9af3ff',g.cx,y-size*.55,g.r*.48);text(combo.children[1],comboText,font,'#f3f7fa',g.cx,y+size*.55,g.r*.48);}
     app.render();
     // Drop artwork after it leaves the scene; no unbounded per-run texture cache.
     for(const [key,entry] of objectTextures)if(entry.used!==frame){objectTextures.delete(key);retire(entry.texture);}
