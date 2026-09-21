@@ -1,10 +1,10 @@
 import { avatarSource } from './avatar.mjs';
 
-export function renderViewers(container, message) {
+export function renderViewers(container, message, labelText='Watching your flight') {
   const label=document.createElement('span');label.className='viewer-label';
   label.textContent=`${message.count} watching`;
   const roster=document.createElement('ul');roster.className='viewer-roster';
-  roster.setAttribute('aria-label','Watching your flight');roster.tabIndex=0;
+  roster.setAttribute('aria-label',labelText);roster.tabIndex=0;
   for(const viewer of (message.viewers||[]).slice(0,20)){
     const item=document.createElement('li'),name=document.createElement('span');
     const fallback=document.createElement('span');fallback.className='viewer-avatar';

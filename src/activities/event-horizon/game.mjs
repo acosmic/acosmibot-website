@@ -72,19 +72,25 @@ function beginWatching(runId){
 }
 function stopWatching(){
   live?.unwatch();playback.reset();watching=false;mode='intro';watchedStatus='connecting';run=createRun(42);
-  $('watch-controls').hidden=true;$('viewer-count').hidden=true;
+  $('watch-controls').hidden=true;$('viewer-count').hidden=true;$('watch-viewers').hidden=true;
   $('best').hidden=false;canvas.setAttribute('aria-label','Flight area. Hold Space, W, Arrow Up, or hold the flight area to boost outward. Release to dive inward. Shift activates Phase Shift.');
 }
 function liveMessage(message){
   if(message.type==='flights'){liveFlights=message.flights;renderPilots();return;}
-  if(message.type==='viewers'){renderViewers($('viewer-count'),message);$('viewer-count').hidden=!ticket||watching;return;}
+  if(message.type==='viewers'){
+    const target=watching?live?.target:ticket?.runId;
+    if(!target||(message.runId&&message.runId!==target))return;
+    const container=$(watching?'watch-viewers':'viewer-count');
+    renderViewers(container,message,watching?'Watching this flight':'Watching your flight');
+    container.hidden=false;return;
+  }
   if(message.type==='watching'){
     playback.reset();watching=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
     $('watch-name').textContent=`Watching ${message.name}`;$('watch-status').textContent='Joining flight…';
     $('overlay').hidden=true;$('hud').hidden=false;$('pause').hidden=true;$('flight-controls').hidden=true;$('watch-controls').hidden=false;
     $('best').hidden=true;canvas.setAttribute('aria-label',`Live view of ${message.name}'s flight. Use Switch pilot or Leave view to return to the lobby.`);
     $('watch-leave').focus({preventScroll:true});
-    $('viewer-count').hidden=true;return;
+    $('viewer-count').hidden=true;$('watch-viewers').hidden=true;return;
   }
   if(message.type==='snapshot'&&watching){
     const state=snapshotForView(message);if(!state)return;
@@ -99,7 +105,7 @@ function liveMessage(message){
     watchedStatus='verified';$('watch-status').textContent=`Verified · ${Math.floor(message.result.score).toLocaleString()} points${message.result.rank?` · server #${message.result.rank}`:''}`;
     return;
   }
-  if(message.type==='ended'&&watching){watchedStatus='ended';live.target=null;$('watch-status').textContent=message.reason||'Flight ended';return;}
+  if(message.type==='ended'&&watching){watchedStatus='ended';live.target=null;$('watch-viewers').hidden=true;$('watch-status').textContent=message.reason||'Flight ended';return;}
   if(message.type==='error'){
     const text=message.message||'This flight is unavailable. Choose another pilot.';
     if(['unavailable','full'].includes(message.code)&&watching)$('back-title').click();
@@ -108,7 +114,7 @@ function liveMessage(message){
 }
 function setLiveStatus(status){
   liveStatus=status;renderPilots();
-  if(watching&&status!=='connected'){watchedStatus='reconnecting';$('watch-status').textContent='Live view reconnecting…';}
+  if(watching&&status!=='connected'){watchedStatus='reconnecting';$('watch-viewers').hidden=true;$('watch-status').textContent='Live view reconnecting…';}
 }
 $('watch-leave').addEventListener('click',()=>{$('back-title').click();});
 $('watch-switch').addEventListener('click',()=>{$('back-title').click();$('live-title').scrollIntoView({block:'center'});});
