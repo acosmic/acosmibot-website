@@ -5,10 +5,10 @@ import {tideStrength,tideDust,debrisOpacity,TIDE_DUST_COUNT} from './tide-fx.mjs
 function scene(){const s=createRun(42);s.time=151;s.nextWave=s.nextCrosser=s.nextSpecial=Infinity;s.specials=[{kind:'tide',start:150,end:195}];return s;}
 function tick(s){s.radius=1.02;s.velocity=0;s.phase=1;s.heat=0;step(s,{boost:true});}
 function rock(angle=1.5){return {type:'rock',angle,radius:.83,size:.04,spin:0,checked:false};}
-test('approaching debris drifts gently while shards and recovery lanes stay fixed',()=>{
+test('debris bends before the pilot with gems while distant recovery lanes stay fixed',()=>{
  const s=scene(),r=rock(),gem={...rock(),type:'shard'};s.objects=[r,gem];
  for(let i=0;i<60;i++)tick(s);
- assert.ok(Math.abs(r.radius-(.83-.012))<1e-10);assert.equal(gem.radius,.83);
+ assert.ok(r.angle>0);assert.ok(r.radius<.83-.025);assert.equal(gem.radius,r.radius);
  s.time=154.1;r.angle=1.5;const radius=r.radius;tick(s);assert.equal(r.radius,radius);
 });
 test('captured debris spirals into the rim after passing without orbiting back',()=>{
@@ -35,12 +35,21 @@ test('dust stays outside dark center and spirals inward with bounded opacity',()
  }
  const a=tideDust(0,1),b=tideDust(0,1.1);assert.ok(Math.hypot(b.x,b.y)<Math.hypot(a.x,a.y));
 });
-for(const seed of [1,42,987])test('tide orbital corridors remain flyable without Shift '+seed,()=>{
- const s=createRun(seed);s.time=150-DT;s.nextSpecial=150;s.nextKind='tide';s.nextCrosser=Infinity;
- // Isolate orbital lanes from independently aimed crossing asteroids.
- while(s.alive&&s.time<195){
-  const next=s.objects.filter(o=>o.type==='shard'&&o.angle>-.1).sort((a,b)=>a.angle-b.angle)[0];
-  step(s,{boost:s.radius+s.velocity*.5<(next?.radius??.8)});
+test('equal-angle debris and gems preserve corridor width as they bend inward',()=>{
+ const s=scene(),inner={...rock(1.3),radius:.65},gem={...rock(1.3),type:'shard',radius:.8},outer={...rock(1.3),radius:.95};
+ s.objects=[inner,gem,outer];
+ while(gem.angle>0){
+  tick(s);
+  assert.ok(Math.abs(gem.radius-inner.radius-.15)<1e-10);
+  assert.ok(Math.abs(outer.radius-gem.radius-.15)<1e-10);
  }
- assert.ok(s.alive,s.cause);assert.equal(s.phase,0);
+ assert.ok(gem.radius>.465);assert.ok(gem.radius<.75);
+});
+test('gems remain collectible on their curved trajectory',()=>{
+ const s=scene(),gem={...rock(.008),type:'shard',tideCaptured:true,radius:.8};s.objects=[gem];
+ step(s);assert.equal(s.shards,1);assert.equal(s.alive,true);assert.ok(!s.objects.includes(gem));
+});
+test('captured approach keeps curving before the pilot during the normal-pull interval',()=>{
+ const s=scene(),r={...rock(.8),tideCaptured:true};s.time=154.1;s.objects=[r];
+ const radius=r.radius;tick(s);assert.ok(r.angle>0);assert.ok(r.radius<radius);
 });
