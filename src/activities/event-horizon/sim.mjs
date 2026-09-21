@@ -135,14 +135,14 @@ export function step(s, input = {}) {
   for (const o of s.objects) {
     o.angle -= (o.speed??angularSpeed) * DT;
     o.spin += DT * .65;
-    // Small approach drift preserves readable lanes. Captured debris continues
-    // spiraling into the hole after passing; shards keep their original paths.
-    if(o.type!=='shard'){
-      if(special.gravity>1)o.tideCaptured=true;
-      if(o.tideCaptured){
-        const passed=clamp((-o.angle-.2)/.7,0,1);
-        o.radius-=DT*((special.gravity>1?.012:0)+passed*.14);
-      }
+    // Captured debris starts its visible inward arc before reaching the pilot.
+    // The bend ramps smoothly across the approach and persists through recovery.
+    // Gems share the curve, giving players a moving reward path to follow.
+    if(special.gravity>1)o.tideCaptured=true;
+    if(o.tideCaptured){
+      const approach=clamp((1.3-o.angle)/1.1,0,1);
+      const passed=clamp((-o.angle-.2)/.7,0,1);
+      o.radius-=DT*((special.gravity>1?.012:0)+approach*.06+passed*.08);
     }
     const dx = Math.sin(o.angle) * o.radius;
     const dy = Math.cos(o.angle) * o.radius - s.radius;
