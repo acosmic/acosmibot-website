@@ -20,12 +20,12 @@ test('phases begin at onset with no warning or recovery events',()=>{
   assert.deepEqual(starts.slice(0,3),[['convoy',105],['tide',150],['pulsar',195]]);
   assert.deepEqual(starts.slice(3).map(p=>p[1]),[240,240]);
 });
-test('baseline waves and crossing asteroids continue through every transition',()=>{
+test('baseline waves continue outside the two introductory clearing windows',()=>{
   const s=createRun(42);let lastWave=0,lastCrosser=60,maxWave=0,maxCrosser=0;
   for(let i=0;i<60*600;i++){
     const oldWave=s.wave;immortalTick(s);
-    if(s.wave!==oldWave){if(s.time>105)maxWave=Math.max(maxWave,s.time-lastWave);lastWave=s.time;}
-    if(s.events.some(e=>e.type==='incoming')){maxCrosser=Math.max(maxCrosser,s.time-lastCrosser);lastCrosser=s.time;}
+    if(s.wave!==oldWave){if(s.time>105&&!(s.time>=150&&s.time<151)&&!(s.time>=195&&s.time<196))maxWave=Math.max(maxWave,s.time-lastWave);lastWave=s.time;}
+    if(s.events.some(e=>e.type==='incoming')){if(!(s.time>=150&&s.time<151)&&!(s.time>=195&&s.time<196))maxCrosser=Math.max(maxCrosser,s.time-lastCrosser);lastCrosser=s.time;}
     assert.ok(s.objects.every(o=>o.retiring===undefined&&o.warning===undefined));
   }
   assert.ok(maxWave<1.6,'wave drought '+maxWave);
@@ -86,4 +86,18 @@ test('ten-minute director is deterministic and caps stacking at two distinct eff
     if(s.time>240)assert.equal(s.specials.length,2);
   }
   assert.deepEqual(a,b);
+});
+
+for(const seed of [1,42,987])test('Weave and Tide fully clear before the next introductory phase '+seed,()=>{
+ const s=createRun(seed);let clearChecks=0;
+ for(let i=0;i<60*196;i++){
+  immortalTick(s);
+  if((s.time>=141&&s.time<150-1e-8)||(s.time>=186&&s.time<195-1e-8)){
+   assert.ok(!s.events.some(e=>e.type==='incoming'));
+  }
+  for(const boundary of [150,195])if(Math.abs(s.time-(boundary-DT))<1e-7){
+   assert.equal(s.objects.length,0);assert.equal(s.crossers.length,0);clearChecks++;
+  }
+ }
+ assert.equal(clearChecks,2);
 });

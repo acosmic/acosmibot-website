@@ -5,11 +5,11 @@ import {tideStrength,tideDust,debrisOpacity,TIDE_DUST_COUNT} from './tide-fx.mjs
 function scene(){const s=createRun(42);s.time=151;s.nextWave=s.nextCrosser=s.nextSpecial=Infinity;s.specials=[{kind:'tide',start:150,end:195}];return s;}
 function tick(s){s.radius=1.02;s.velocity=0;s.phase=1;s.heat=0;step(s,{boost:true});}
 function rock(angle=1.5){return {type:'rock',angle,radius:.83,size:.04,spin:0,checked:false};}
-test('debris bends before the pilot with gems while distant recovery lanes stay fixed',()=>{
+test('debris bends before the pilot with gems through recovery',()=>{
  const s=scene(),r=rock(),gem={...rock(),type:'shard'};s.objects=[r,gem];
  for(let i=0;i<60;i++)tick(s);
  assert.ok(r.angle>0);assert.ok(r.radius<.83-.025);assert.equal(gem.radius,r.radius);
- s.time=154.1;r.angle=1.5;const radius=r.radius;tick(s);assert.equal(r.radius,radius);
+ s.time=154.1;r.angle=1.5;const radius=r.radius;tick(s);assert.ok(r.radius<radius);
 });
 test('captured debris spirals into the rim after passing without orbiting back',()=>{
  const s=scene(),r={...rock(-.21),radius:1.01};s.objects=[r];tick(s);
@@ -52,4 +52,12 @@ test('gems remain collectible on their curved trajectory',()=>{
 test('captured approach keeps curving before the pilot during the normal-pull interval',()=>{
  const s=scene(),r={...rock(.8),tideCaptured:true};s.time=154.1;s.objects=[r];
  const radius=r.radius;tick(s);assert.ok(r.angle>0);assert.ok(r.radius<radius);
+});
+
+for(const time of [151,154.1])test('new debris and gems curve on their first spawn tick '+time,()=>{
+ const s=scene();s.time=time;s.nextWave=0;tick(s);
+ const gem=s.objects.find(o=>o.type==='shard');
+ assert.ok(gem);assert.ok(s.objects.every(o=>o.tideCaptured));
+ const before=s.objects.map(o=>o.radius);tick(s);
+ s.objects.forEach((o,i)=>assert.ok(o.radius<before[i]));
 });

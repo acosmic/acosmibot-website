@@ -120,9 +120,13 @@ export function step(s, input = {}) {
   if (s.comboClock <= 0) s.combo = 0;
   s.multiplier = 1 + clamp((.94 - s.radius) / .45, 0, 1) * 4;
   s.score += DT * (32 + s.time * .10) * s.multiplier * (1 + s.combo * .08);
-  if (s.time >= s.nextWave) spawn(s);
+  // Finish the introductory Weave and Tide hazards before the next phase.
+  // Nine seconds covers the longest orbit and the crossing-asteroid lifetime.
+  // Later, explicitly stacked phases retain their continuous spawning.
+  const clearing=(s.nextSpecial===150||s.nextSpecial===195)&&s.time+1e-8>=s.nextSpecial-9;
+  if (!clearing && s.time >= s.nextWave) spawn(s);
   if(s.time>=60&&!s.stormStarted){s.stormStarted=true;s.events.push({type:'storm-start'});}
-  if(s.time>=60&&s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
+  if(!clearing&&s.time>=60&&s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
   if(special.beam!==null&&special.pulsar.beamChecked!==special.cycle){
     const priorBeam=special.beam-.08*DT;
     const before=previousRadius-priorBeam, after=s.radius-special.beam;
@@ -135,14 +139,14 @@ export function step(s, input = {}) {
   for (const o of s.objects) {
     o.angle -= (o.speed??angularSpeed) * DT;
     o.spin += DT * .65;
-    // Captured debris starts its visible inward arc before reaching the pilot.
+    // Tide-born objects arc inward immediately, including between pull pulses.
     // The bend ramps smoothly across the approach and persists through recovery.
     // Gems share the curve, giving players a moving reward path to follow.
-    if(special.gravity>1)o.tideCaptured=true;
+    if(special.kinds.includes('tide'))o.tideCaptured=true;
     if(o.tideCaptured){
-      const approach=clamp((1.3-o.angle)/1.1,0,1);
+      const approach=clamp((2.5-o.angle)/2.3,0,1);
       const passed=clamp((-o.angle-.2)/.7,0,1);
-      o.radius-=DT*((special.gravity>1?.012:0)+approach*.06+passed*.08);
+      o.radius-=DT*((special.gravity>1?.012:0)+.04+approach*.02+passed*.08);
     }
     const dx = Math.sin(o.angle) * o.radius;
     const dy = Math.cos(o.angle) * o.radius - s.radius;
