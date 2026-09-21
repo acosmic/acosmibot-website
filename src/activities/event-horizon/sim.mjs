@@ -1,4 +1,4 @@
-// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v6 verifier.
+// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v7 verifier.
 export const DT = 1 / 60;
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export function createRun(seed = 1) {
@@ -143,15 +143,7 @@ export function step(s, input = {}) {
   for (const o of s.objects) {
     o.angle -= (o.speed??angularSpeed) * DT;
     o.spin += DT * .65;
-    // Objects arc inward immediately during the stronger pull only.
-    // Normal pull preserves their current radius while orbital motion continues.
-    // Gems share the curve, giving players a moving reward path to follow.
-    if(special.gravity>1){
-      o.tideCaptured=true;
-      const approach=clamp((2.5-o.angle)/2.3,0,1);
-      const passed=clamp((-o.angle-.2)/.7,0,1);
-      o.radius-=DT*(.052+approach*.02+passed*.08);
-    }
+    // Orbital debris and gems keep their original radius during every phase.
     const dx = Math.sin(o.angle) * o.radius;
     const dy = Math.cos(o.angle) * o.radius - s.radius;
     const distance = Math.hypot(dx, dy);
@@ -174,7 +166,7 @@ export function step(s, input = {}) {
       }
     }
   }
-  s.objects = s.objects.filter(o => o.angle > (o.tideCaptured?-5.8:-2.7) && o.radius>.35 && !o.collected);
+  s.objects = s.objects.filter(o => o.angle > -2.7 && !o.collected);
   for(const o of s.crossers){
     o.age+=DT;
     if(o.warning>0){o.warning=Math.max(0,o.warning-DT);continue;}
