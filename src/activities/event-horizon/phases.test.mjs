@@ -105,7 +105,7 @@ for(const seed of [1,42,987])test('Tide to Pulsar fades briefly without overlap 
  assert.equal(handoffs,1);
 });
 
-test('Weave obstacles survive the Tide handoff and immediately feel its pull',()=>{
+test('Weave obstacles survive the Tide handoff on their original orbits',()=>{
  const s=createRun(42);let verified=false;
  for(let i=0;i<60*151;i++){
   const old=s.objects.filter(o=>o.stair&&o.angle>0).map(o=>({o,radius:o.radius}));
@@ -114,7 +114,7 @@ test('Weave obstacles survive the Tide handoff and immediately feel its pull',()
    assert.ok(old.length>0);
    for(const {o,radius} of old){
     assert.ok(s.objects.includes(o));assert.equal(o.phaseFade,undefined);
-    assert.equal(o.tideCaptured,true);assert.ok(o.radius<radius);
+    assert.equal(o.tideCaptured,undefined);assert.equal(o.radius,radius);
    }
    verified=true;
   }
