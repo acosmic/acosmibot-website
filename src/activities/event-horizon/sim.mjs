@@ -143,14 +143,14 @@ export function step(s, input = {}) {
   for (const o of s.objects) {
     o.angle -= (o.speed??angularSpeed) * DT;
     o.spin += DT * .65;
-    // Tide-born objects arc inward immediately, including between pull pulses.
-    // The bend ramps smoothly across the approach and persists through recovery.
+    // Objects arc inward immediately during the stronger pull only.
+    // Normal pull preserves their current radius while orbital motion continues.
     // Gems share the curve, giving players a moving reward path to follow.
-    if(special.kinds.includes('tide'))o.tideCaptured=true;
-    if(o.tideCaptured){
+    if(special.gravity>1){
+      o.tideCaptured=true;
       const approach=clamp((2.5-o.angle)/2.3,0,1);
       const passed=clamp((-o.angle-.2)/.7,0,1);
-      o.radius-=DT*((special.gravity>1?.012:0)+.04+approach*.02+passed*.08);
+      o.radius-=DT*(.052+approach*.02+passed*.08);
     }
     const dx = Math.sin(o.angle) * o.radius;
     const dy = Math.cos(o.angle) * o.radius - s.radius;
