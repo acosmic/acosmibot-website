@@ -1,4 +1,4 @@
-// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v7 verifier.
+// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v8 verifier.
 export const DT = 1 / 60;
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export function createRun(seed = 1) {
@@ -28,8 +28,7 @@ function advanceSpecial(s) {
   s.specials=s.specials.filter(p=>s.time+1e-8<p.end);
   if(s.time+1e-8<s.nextSpecial)return;
   if(s.nextSpecial<240){
-    // Weave carries naturally into Tide; only Tide → Pulsar clears hazards.
-    if(s.nextSpecial===195){s.objects=[];s.crossers=[];s.nextWave=s.time;}
+    // Existing hazards keep their trajectories and lifetime across every phase.
     beginSpecial(s,s.nextKind,45);
     s.nextKind=s.nextKind==='convoy'?'tide':'pulsar';s.nextSpecial+=45;
   }else{
@@ -122,15 +121,9 @@ export function step(s, input = {}) {
   if (s.comboClock <= 0) s.combo = 0;
   s.multiplier = 1 + clamp((.94 - s.radius) / .45, 0, 1) * 4;
   s.score += DT * (32 + s.time * .10) * s.multiplier * (1 + s.combo * .08);
-  // Only Tide → Pulsar uses a half-second visual handoff.
-  // Fading hazards are harmless; the next phase starts at its original time.
-  const clearing=s.nextSpecial===195&&s.time+1e-8>=s.nextSpecial-.5;
-  if(clearing)for(const o of [...s.objects,...s.crossers]){
-    o.phaseFade=clamp((s.nextSpecial-s.time)/.5,0,1);o.checked=true;
-  }
-  if (!clearing && s.time >= s.nextWave) spawn(s);
+  if (s.time >= s.nextWave) spawn(s);
   if(s.time>=60&&!s.stormStarted){s.stormStarted=true;s.events.push({type:'storm-start'});}
-  if(!clearing&&s.time>=60&&s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
+  if(s.time>=60&&s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
   if(special.beam!==null&&special.pulsar.beamChecked!==special.cycle){
     const priorBeam=special.beam-.08*DT;
     const before=previousRadius-priorBeam, after=s.radius-special.beam;

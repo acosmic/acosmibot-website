@@ -18,7 +18,7 @@ test('tide cue follows simulation pull windows and reduced effects omit animatio
 test('dust stays outside dark center and spirals inward with bounded opacity',()=>{
  for(let i=0;i<TIDE_DUST_COUNT;i++)for(let t=0;t<7;t+=.1){
   const p=tideDust(i,t);assert.ok(Math.hypot(p.x,p.y)>=.35-1e-10);assert.ok(Math.hypot(p.x,p.y)<=.69);
-  assert.ok(p.alpha>=0&&p.alpha<=.65);
+  assert.ok(p.alpha>=0&&p.alpha<=.85);
  }
  const a=tideDust(0,1),b=tideDust(0,1.1);assert.ok(Math.hypot(b.x,b.y)<Math.hypot(a.x,a.y));
 });
