@@ -511,7 +511,7 @@ function render(dt) {
   const phaseView=specialState(run);
   background(visualTime);phaseBackdrop(ctx,width,height,phaseView.kinds.length?phaseView.kinds:phaseView.kind,dt,reduced);blackHole(visualTime);
   if(mode!=='intro'){for(const o of run.objects)object(o);for(const o of run.crossers)object(o);}
-  if(mode!=='intro')drawSpecial(ctx,geo(),run,phaseView,reduced,visualTime>=comboUntil);
+  if(mode!=='intro')drawSpecial(ctx,geo(),run,phaseView,reduced,true);
   if(mode==='intro'){run.radius=.83+Math.sin(visualTime*.7)*.025;}
   ship(visualTime);
   for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}
@@ -523,10 +523,11 @@ function render(dt) {
     ctx.save();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#9af3ff';
-    ctx.font = `700 ${clamp(r * .065, 13, 28)}px system-ui`;
-    ctx.fillText('CLOSE CALL', cx, cy - 13, r * .55);
+    const size=Math.min(28,r*.045),y=cy-r*.20;
+    ctx.font = `700 ${size}px system-ui`;
+    ctx.fillText('CLOSE CALL', cx, y-size*.55, r*.48);
     ctx.fillStyle = '#f3f7fa';
-    ctx.fillText(comboText, cx, cy + 15, r * .55);
+    ctx.fillText(comboText, cx, y+size*.55, r*.48);
     ctx.restore();
   } else if (mode !== 'playing') { comboUntil = 0; }
   if(visualTime>toastUntil)setText('toast','');
