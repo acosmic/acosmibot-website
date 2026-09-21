@@ -28,8 +28,8 @@ function advanceSpecial(s) {
   s.specials=s.specials.filter(p=>s.time+1e-8<p.end);
   if(s.time+1e-8<s.nextSpecial)return;
   if(s.nextSpecial<240){
-    // The outgoing hazards finish their short fade before the new phase spawns.
-    if(s.nextSpecial===150||s.nextSpecial===195){s.objects=[];s.crossers=[];s.nextWave=s.time;}
+    // Weave carries naturally into Tide; only Tide → Pulsar clears hazards.
+    if(s.nextSpecial===195){s.objects=[];s.crossers=[];s.nextWave=s.time;}
     beginSpecial(s,s.nextKind,45);
     s.nextKind=s.nextKind==='convoy'?'tide':'pulsar';s.nextSpecial+=45;
   }else{
@@ -122,9 +122,9 @@ export function step(s, input = {}) {
   if (s.comboClock <= 0) s.combo = 0;
   s.multiplier = 1 + clamp((.94 - s.radius) / .45, 0, 1) * 4;
   s.score += DT * (32 + s.time * .10) * s.multiplier * (1 + s.combo * .08);
-  // A half-second visual handoff replaces the long empty clearing interval.
+  // Only Tide → Pulsar uses a half-second visual handoff.
   // Fading hazards are harmless; the next phase starts at its original time.
-  const clearing=(s.nextSpecial===150||s.nextSpecial===195)&&s.time+1e-8>=s.nextSpecial-.5;
+  const clearing=s.nextSpecial===195&&s.time+1e-8>=s.nextSpecial-.5;
   if(clearing)for(const o of [...s.objects,...s.crossers]){
     o.phaseFade=clamp((s.nextSpecial-s.time)/.5,0,1);o.checked=true;
   }
