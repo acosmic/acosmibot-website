@@ -41,14 +41,14 @@ export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers,
     ctx.fillRect(Math.cos(a)*rr,Math.sin(a)*rr,.8+i%2,.8+i%2);
   }
   if(tide>0){
-    ctx.strokeStyle=`rgba(255,220,170,${tide*.45})`;ctx.lineWidth=2+tide;
+    ctx.strokeStyle=`rgba(255,220,170,${tide*.8})`;ctx.lineWidth=3+tide;
     ctx.beginPath();ctx.arc(0,0,r*.354,0,Math.PI*2);ctx.stroke();
     if(!reduced){
       const mote={};ctx.fillStyle='#ffd5a2';
       for(let i=0;i<TIDE_DUST_COUNT;i++){
         tideDust(i,tideTime,mote);ctx.save();ctx.globalAlpha=mote.alpha*tide;
         ctx.translate(mote.x*r,mote.y*r);ctx.rotate(mote.angle);
-        ctx.fillRect(-mote.length*r/2,0,mote.length*r,Math.max(.7,r*.0012));ctx.restore();
+        ctx.fillRect(-mote.length*r/2,0,mote.length*r,Math.max(1,r*.0018));ctx.restore();
       }
     }
   }

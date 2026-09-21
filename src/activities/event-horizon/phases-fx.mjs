@@ -29,8 +29,8 @@ export function drawSpecial(ctx,g,run,state,reduced,showLabel=true){
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#eee7da';
     ctx.font=`750 ${Math.max(12,Math.min(stacked?18:24,g.r*.064))}px system-ui`;
     ctx.fillText(parts[0],0,-18,g.r*.72);ctx.fillText(parts.slice(1).join(' '),0,2,g.r*.72);
-    const cue=state.beam!==null?'CLIMB OUTWARD':state.gravity>1?'PULL +15%':stacked?'DOUBLE PRESSURE':state.kind==='convoy'?'RIDE THE STAIRCASE':'NORMAL PULL';
-    ctx.font=`600 ${Math.max(9,Math.min(13,g.r*.042))}px system-ui`;ctx.fillStyle='#b9cbd5';ctx.fillText(cue,0,25,g.r*.62);
+    const cue=state.beam!==null?'CLIMB OUTWARD':state.gravity>1?'STRONG PULL +15%':stacked?'DOUBLE PRESSURE':state.kind==='convoy'?'RIDE THE STAIRCASE':'NORMAL PULL';
+    ctx.font=`${state.gravity>1?750:600} ${Math.max(11,Math.min(18,g.r*.052))}px system-ui`;ctx.fillStyle=state.gravity>1?'#ffd099':'#b9cbd5';ctx.fillText(cue,0,30,g.r*.72);
   }
   ctx.restore();
 }

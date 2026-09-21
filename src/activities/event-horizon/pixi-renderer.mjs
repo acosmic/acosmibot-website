@@ -118,8 +118,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     if(show){const stacked=state.kinds.length>1,parts=stacked?state.kinds.map(k=>phaseNames[k]):phaseNames[state.kind].split(' ');
       const font=`750 ${Math.max(12,Math.min(stacked?18:24,g.r*.064))}px system-ui`;
       text(phaseLabels.children[0],parts[0],font,'#eee7da',0,-18,g.r*.72);text(phaseLabels.children[1],parts.slice(1).join(' '),font,'#eee7da',0,2,g.r*.72);
-      const cue=state.beam!==null?'CLIMB OUTWARD':state.gravity>1?'PULL +15%':stacked?'DOUBLE PRESSURE':state.kind==='convoy'?'RIDE THE STAIRCASE':'NORMAL PULL';
-      text(phaseLabels.children[2],cue,`600 ${Math.max(9,Math.min(13,g.r*.042))}px system-ui`,'#b9cbd5',0,25,g.r*.62);
+      const cue=state.beam!==null?'CLIMB OUTWARD':state.gravity>1?'STRONG PULL +15%':stacked?'DOUBLE PRESSURE':state.kind==='convoy'?'RIDE THE STAIRCASE':'NORMAL PULL';
+      text(phaseLabels.children[2],cue,`${state.gravity>1?750:600} ${Math.max(11,Math.min(18,g.r*.052))}px system-ui`,state.gravity>1?'#ffd099':'#b9cbd5',0,30,g.r*.72);
     }
   }
   function render({run,mode,watching,boost,flying,t,dt,phase,particles,shake,comboUntil,comboText,rocket}){

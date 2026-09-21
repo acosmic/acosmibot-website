@@ -20,12 +20,12 @@ test('phases begin at onset with no warning or recovery events',()=>{
   assert.deepEqual(starts.slice(0,3),[['convoy',105],['tide',150],['pulsar',195]]);
   assert.deepEqual(starts.slice(3).map(p=>p[1]),[240,240]);
 });
-test('baseline waves continue outside the two introductory clearing windows',()=>{
+test('baseline waves continue through phase transitions',()=>{
   const s=createRun(42);let lastWave=0,lastCrosser=60,maxWave=0,maxCrosser=0;
   for(let i=0;i<60*600;i++){
     const oldWave=s.wave;immortalTick(s);
-    if(s.wave!==oldWave){if(s.time>105&&!(s.time>=150&&s.time<151)&&!(s.time>=195&&s.time<196))maxWave=Math.max(maxWave,s.time-lastWave);lastWave=s.time;}
-    if(s.events.some(e=>e.type==='incoming')){if(!(s.time>=150&&s.time<151)&&!(s.time>=195&&s.time<196))maxCrosser=Math.max(maxCrosser,s.time-lastCrosser);lastCrosser=s.time;}
+    if(s.wave!==oldWave){if(s.time>105)maxWave=Math.max(maxWave,s.time-lastWave);lastWave=s.time;}
+    if(s.events.some(e=>e.type==='incoming')){maxCrosser=Math.max(maxCrosser,s.time-lastCrosser);lastCrosser=s.time;}
     assert.ok(s.objects.every(o=>o.retiring===undefined&&o.warning===undefined));
   }
   assert.ok(maxWave<1.6,'wave drought '+maxWave);
@@ -88,21 +88,30 @@ test('ten-minute director is deterministic and caps stacking at two distinct eff
   assert.deepEqual(a,b);
 });
 
-for(const seed of [1,42,987])test('Tide to Pulsar fades briefly without overlap '+seed,()=>{
- const s=createRun(seed);let handoffs=0,old=[];
+for(const seed of [1,42,987])test('Tide to Pulsar preserves existing debris without fading or restarting waves '+seed,()=>{
+ const s=createRun(seed);let handoffs=0;
  for(let i=0;i<60*196;i++){
-  old=[...s.objects,...s.crossers];immortalTick(s);
-  const remaining=s.nextSpecial-s.time;
-  if(s.nextSpecial===195&&remaining<.5-1e-8){
-   assert.ok(!s.events.some(e=>e.type==='incoming'));
-   assert.ok([...s.objects,...s.crossers].every(o=>o.checked&&o.phaseFade>=0&&o.phaseFade<=1));
-  }
+  const old=s.objects.filter(o=>!o.collected&&o.angle>0.1);
+  const nextWave=s.nextWave;immortalTick(s);
+  assert.ok([...s.objects,...s.crossers].every(o=>o.phaseFade===undefined));
   if(s.events.some(e=>e.type==='phase-start'&&e.kind==='pulsar')){
-   assert.ok([...s.objects,...s.crossers].every(o=>!old.includes(o)&&o.phaseFade===undefined));
-   assert.ok(s.objects.length>0);handoffs++;
+   assert.ok(old.length>0);
+   assert.ok(old.every(o=>s.objects.includes(o)));
+   if(nextWave>s.time)assert.equal(s.nextWave,nextWave);
+   assert.deepEqual(specialState(s).kinds,['pulsar']);
+   assert.equal(specialState(s).gravity,1);handoffs++;
   }
  }
  assert.equal(handoffs,1);
+});
+test('Pulsar onset keeps rocks, plasma, gems and crossing asteroid trajectories',()=>{
+ const s=scene('pulsar',195);
+ const objects=['rock','plasma','shard'].map(type=>({type,radius:.9,angle:1,size:.03,spin:0,checked:false}));
+ const crosser={type:'crosser',x:1.2,y:-.8,vx:-.8,vy:.1,size:.04,age:0,spin:0,warning:0,minDistance:10,tideCaptured:true};
+ s.objects=objects;s.crossers=[crosser];step(s);
+ for(const o of objects){assert.ok(s.objects.includes(o));assert.equal(o.radius,.9);assert.ok(o.angle<1);assert.equal(o.checked,false);}
+ assert.ok(s.crossers.includes(crosser));assert.equal(crosser.vx,-.8);assert.equal(crosser.vy,.1);
+ assert.ok(crosser.x<1.2);assert.ok(crosser.y>-.8);
 });
 
 test('Weave obstacles survive the Tide handoff on their original orbits',()=>{

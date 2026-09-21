@@ -16,8 +16,8 @@ export function tideDust(i,time,out={}){
   const radius=.35+(1-life)*(.24+(i%5)*.024);
   out.x=Math.cos(angle)*radius;out.y=Math.sin(angle)*radius;
   out.angle=angle-Math.PI*.65;
-  out.alpha=Math.sin(life*Math.PI)*.65;
-  out.length=.006+(i%3)*.002;
+  out.alpha=Math.sin(life*Math.PI)*.85;
+  out.length=.012+(i%3)*.003;
   return out;
 }
 export function debrisOpacity(o){

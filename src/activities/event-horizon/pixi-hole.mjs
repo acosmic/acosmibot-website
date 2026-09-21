@@ -93,11 +93,11 @@ export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
   }
   if(!reduced)for(let i=0;i<TIDE_DUST_COUNT;i++){
     const sprite=new Sprite(Texture.WHITE);sprite.anchor.set(.5);sprite.tint=0xffd5a2;
-    sprite.height=Math.max(.7,camera.r*.0012);stage.addChild(sprite);dust.push(sprite);
+    sprite.height=Math.max(1,camera.r*.0018);stage.addChild(sprite);dust.push(sprite);
   }
   const tideRim=new Graphics().circle(0,0,camera.r*.354)
-    .stroke({color:0xffc285,width:7,alpha:.16})
-    .circle(0,0,camera.r*.354).stroke({color:0xffdcaa,width:2.5,alpha:.8});
+    .stroke({color:0xffc285,width:10,alpha:.3})
+    .circle(0,0,camera.r*.354).stroke({color:0xffdcaa,width:3,alpha:.95});
   tideRim.position.set(camera.cx,camera.cy);stage.addChild(tideRim);
   staticLayer('lane',1.07);
   const render=(time,run)=>{
