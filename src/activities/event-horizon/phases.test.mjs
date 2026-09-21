@@ -88,19 +88,36 @@ test('ten-minute director is deterministic and caps stacking at two distinct eff
   assert.deepEqual(a,b);
 });
 
-for(const seed of [1,42,987])test('introductory phase handoffs fade briefly without overlap '+seed,()=>{
+for(const seed of [1,42,987])test('Tide to Pulsar fades briefly without overlap '+seed,()=>{
  const s=createRun(seed);let handoffs=0,old=[];
  for(let i=0;i<60*196;i++){
   old=[...s.objects,...s.crossers];immortalTick(s);
   const remaining=s.nextSpecial-s.time;
-  if((s.nextSpecial===150||s.nextSpecial===195)&&remaining<.5-1e-8){
+  if(s.nextSpecial===195&&remaining<.5-1e-8){
    assert.ok(!s.events.some(e=>e.type==='incoming'));
    assert.ok([...s.objects,...s.crossers].every(o=>o.checked&&o.phaseFade>=0&&o.phaseFade<=1));
   }
-  if(s.events.some(e=>e.type==='phase-start'&&['tide','pulsar'].includes(e.kind))){
+  if(s.events.some(e=>e.type==='phase-start'&&e.kind==='pulsar')){
    assert.ok([...s.objects,...s.crossers].every(o=>!old.includes(o)&&o.phaseFade===undefined));
    assert.ok(s.objects.length>0);handoffs++;
   }
  }
- assert.equal(handoffs,2);
+ assert.equal(handoffs,1);
+});
+
+test('Weave obstacles survive the Tide handoff and immediately feel its pull',()=>{
+ const s=createRun(42);let verified=false;
+ for(let i=0;i<60*151;i++){
+  const old=s.objects.filter(o=>o.stair&&o.angle>0).map(o=>({o,radius:o.radius}));
+  immortalTick(s);
+  if(s.events.some(e=>e.type==='phase-start'&&e.kind==='tide')){
+   assert.ok(old.length>0);
+   for(const {o,radius} of old){
+    assert.ok(s.objects.includes(o));assert.equal(o.phaseFade,undefined);
+    assert.equal(o.tideCaptured,true);assert.ok(o.radius<radius);
+   }
+   verified=true;
+  }
+ }
+ assert.ok(verified);
 });
