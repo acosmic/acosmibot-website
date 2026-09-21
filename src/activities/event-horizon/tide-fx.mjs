@@ -21,7 +21,8 @@ export function tideDust(i,time,out={}){
   return out;
 }
 export function debrisOpacity(o){
-  if(!o.tideCaptured)return 1;
+  const fade=o.phaseFade??1;
+  if(!o.tideCaptured)return fade;
   const radius=o.type==='crosser'?Math.hypot(o.x,o.y):o.radius;
-  return clamp((radius-.35)/.07,0,1);
+  return fade*clamp((radius-.35)/.07,0,1);
 }

@@ -61,3 +61,8 @@ for(const time of [151,154.1])test('new debris and gems curve on their first spa
  const before=s.objects.map(o=>o.radius);tick(s);
  s.objects.forEach((o,i)=>assert.ok(o.radius<before[i]));
 });
+
+test('handoff opacity fades both ordinary and captured hazards',()=>{
+ assert.equal(debrisOpacity({phaseFade:.5}),.5);
+ assert.ok(Math.abs(debrisOpacity({tideCaptured:true,radius:.385,phaseFade:.5})-.25)<1e-10);
+});

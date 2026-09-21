@@ -3,7 +3,7 @@
 const mix=(a,b,t)=>a+(b-a)*t;
 const clamp=(n,low,high)=>Math.max(low,Math.min(high,n));
 const rootFields=['time','radius','velocity','heat','score','multiplier'];
-const objectFields=['radius','angle','spin','x','y','age','warning'];
+const objectFields=['radius','angle','spin','x','y','age','warning','phaseFade'];
 function blendObjects(a,b,t){
   const next=new Map(b.filter(o=>o.id).map(o=>[o.id,o]));
   return a.map(o=>{
