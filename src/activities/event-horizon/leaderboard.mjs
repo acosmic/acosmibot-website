@@ -49,3 +49,5 @@ export async function refreshBoard() {
 $('board-refresh').addEventListener('click', () => void refreshBoard());
 $('board-expand').addEventListener('click', () => { const expanded = $('leaderboard').classList.toggle('expanded'); $('board-expand').textContent = expanded ? 'Show Top 3' : 'View Top 10'; $('board-expand').setAttribute('aria-expanded', String(expanded)); });
 export const boardReady = Promise.resolve();
+// The pilot's verified server best; local session bests must never claim to beat it.
+export const verifiedBest = () => Number(board?.self?.score) || 0;

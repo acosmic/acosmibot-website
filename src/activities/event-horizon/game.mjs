@@ -4,7 +4,7 @@ import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
 import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-fx.mjs';
 import { flightError, needsReconnect } from './errors.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
-import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession } from './leaderboard.mjs';
+import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession, verifiedBest } from './leaderboard.mjs';
 import './style.css';
 import { LiveClient, snapshotForView } from './live.mjs';
 import { compactParticles, cachedLabel } from './render-cache.mjs';
@@ -314,7 +314,7 @@ async function start() {
   $('launch').disabled=false;$('retry').disabled=false;
   run=createRun(ticket.seed);
   $('phase-status').textContent='';
-  mode='ready'; accumulator=0; last=performance.now(); particles=[]; savedBest=best; shake=0; heatWarning=0; shownScore=0; hudTier='cool'; $('multiplier').dataset.tier='cool';
+  mode='ready'; accumulator=0; last=performance.now(); particles=[]; best=Math.max(best,ticket.casual?0:verifiedBest()); savedBest=best; shake=0; heatWarning=0; shownScore=0; hudTier='cool'; $('multiplier').dataset.tier='cool';
   $('viewer-count').hidden=true;live?.setRun(ticket.runId);renderPilots();flightStartedAt=null;
   $('resubmit').hidden=true;
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false;
@@ -389,6 +389,11 @@ async function submitResult(submission){
     // A completed request must never overwrite the next run's results.
     if(submission.generation!==runGeneration)return;
     renderBoard(result.leaderboard);pendingSubmission=null;
+    // The server's verdict is authoritative for the personal-best badge.
+    if(typeof result.personalBest==='boolean'){
+      $('best-badge').hidden=!result.personalBest;$('results').classList.toggle('new-best',result.personalBest);
+      if(!result.personalBest)$('record').textContent='Press R to fly again.';
+    }
     if(result.rankChange>0&&!reduced){const you=$('standings').querySelector('li.is-you');if(you){you.style.setProperty('--climb',String(Math.min(result.rankChange,6)));you.classList.add('climbed');}}
     const movement=result.previousRank==null?'First placement':result.rankChange>0?`Up ${result.rankChange} place${result.rankChange===1?'':'s'}`:result.rankChange<0?`Down ${-result.rankChange} place${result.rankChange===-1?'':'s'}`:'Rank unchanged';
     finalTarget=result.score;if(!revealPending&&finalAnim%2===0)$('final-score').textContent=format(result.score);
