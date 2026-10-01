@@ -16,6 +16,9 @@ const TAU=Math.PI*2;
 export const FONT='"Chakra Petch", system-ui, sans-serif';
 // Rocket-local nozzle and exhaust direction, matching the rocket artwork.
 const NOZZLE_X=-.185,NOZZLE_Y=.32,FLAME_ANGLE=2.547;
+// Soft gradients are baked near display density: an upscaled low-res bake magnifies
+// the browser's gradient dithering into a visible grid on high-DPI screens.
+const NEBULA_RES=1.5;
 const TRAIL_SECONDS=.5,GHOST_SECONDS=.32,DIVE_SECONDS=1.1;
 
 // Raster artwork is baked once and moved as retained GPU sprites. Animated
@@ -92,13 +95,13 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     // Background (lensed): base gradient, two drifting painted nebulae, galaxies, stars, comet.
     background=sprite(makeTexture(backdrop),bg);background.width=width;background.height=height;
     const nw=width*1.25,nh=height*1.25;
-    nebulaFar=sprite(bake(nw,nh,c=>{drawNebula(c,nw,nh,11,0,1);const rand=seeded(5);for(let i=0;i<3;i++){c.save();c.translate(rand()*nw,rand()*nh);drawGalaxy(c,40+rand()*50,i+3);c.restore();}},.5).texture,bg);
-    nebulaNear=sprite(bake(nw,nh,c=>drawNebula(c,nw,nh,29,1,.6),.5).texture,bg);nebulaNear.blendMode='add';nebulaNear.alpha=.5;
+    nebulaFar=sprite(bake(nw,nh,c=>{drawNebula(c,nw,nh,11,0,1);const rand=seeded(5);for(let i=0;i<3;i++){c.save();c.translate(rand()*nw,rand()*nh);drawGalaxy(c,40+rand()*50,i+3);c.restore();}},NEBULA_RES).texture,bg);
+    nebulaNear=sprite(bake(nw,nh,c=>drawNebula(c,nw,nh,29,1,.6),NEBULA_RES).texture,bg);nebulaNear.blendMode='add';nebulaNear.alpha=.5;
     for(const n of [nebulaFar,nebulaNear])n.anchor.set(.5);
     starSprites=stars.map((star,i)=>{const s=sprite(tex.star,bg);s.anchor.set(.5);s.blendMode='add';
       const bright=!reduced&&i%17===0;s.tint=star.layer===3?0xc9b6ff:i%5===0?0xffe6c8:0xcfeeff;s.width=s.height=star.size*(bright?9:4.2);s.bright=bright;return s;});
     comet=sprite(tex.spark,bg);comet.anchor.set(1,.5);comet.blendMode='add';comet.visible=false;comet.tint=0xd8f4ff;
-    const wash=bake(width,height,c=>{const g=c.createRadialGradient(width*.6,height*.5,0,width*.6,height*.5,Math.max(width,height)*.8);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#ffffff00');c.fillStyle=g;c.fillRect(0,0,width,height);},.5);
+    const wash=bake(width,height,c=>{const g=c.createRadialGradient(width*.6,height*.5,0,width*.6,height*.5,Math.max(width,height)*.8);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#ffffff00');c.fillStyle=g;c.fillRect(0,0,width,height);},NEBULA_RES);
     scene.wash=sprite(wash.texture,bg);scene.wash.width=width;scene.wash.height=height;scene.wash.alpha=.22;
     // World: god rays, bloomed hole, objects, trail, ship, particles.
     godRays=new Container();world.addChild(godRays);
@@ -318,7 +321,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
       lens.update({cx:g.cx+offset.x*.25,cy:g.cy+offset.y*.25,einstein:g.r*.4,tide:reduced?0:tideStrength(run,reduced),time:t,ring:.3});
       const waves=(juice?.waves??[]).map(w=>{const age=t-w.t0;return {x:w.x,y:w.y,radius:age*720,strength:reduced?0:w.strength*(1-age/1.4)};});
       post.update({width,height,cx:g.cx+offset.x,cy:g.cy+offset.y,r:g.r*scale,time:t,chroma:reduced||!juice?0:juice.chroma,grain:reduced?0:.032,vignette:.9,
-        heat:flying&&run.heat>65?clamp((run.heat-65)/35,0,1)*.55:0,haze:effective==='high'&&!reduced?.9:0,waves});
+        heat:flying&&run.heat>65?clamp((run.heat-65)/35,0,1)*.55:0,haze:0,waves});
     }
     app.render();
     // Drop artwork after it leaves the scene; no unbounded per-run texture cache.
