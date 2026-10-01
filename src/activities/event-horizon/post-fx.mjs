@@ -164,7 +164,10 @@ export function createPostFilter() {
 // Bloom must run at full resolution: a lowered filter resolution would also
 // blur every gameplay sprite it composites. Cost is controlled by quality instead.
 export function createBloomFilter() {
-  return new AdvancedBloomFilter({ threshold: .52, bloomScale: .85, brightness: 1, blur: 7, quality: 3 });
+  const bloom = new AdvancedBloomFilter({ threshold: .55, bloomScale: .8, brightness: 1, blur: 7, quality: 3 });
+  // Hole-only container: give the blur room to spread past its bounds.
+  bloom.padding = 48;
+  return bloom;
 }
 
 export { DOPPLER_ANGLE };

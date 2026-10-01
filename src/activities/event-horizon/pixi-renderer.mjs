@@ -28,7 +28,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   app.stage.eventMode='none';app.stage.interactiveChildren=false;
   const lens=createLensFilter(),post=createPostFilter(),bloom=createBloomFilter();
   let quality=createQuality('high'),tier='high';
-  let config,scene,hole,bg,bloomWrap,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
+  let config,scene,hole,holeGlow,bg,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
   let phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
   let tex={},rocketTexture=null;
   let textures=[],objectTextures=new Map(),labels=new Map(),sourceImages=new WeakMap();
@@ -55,7 +55,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   function text(node,value,font,color,x,y,maxWidth){node.texture=label(value,font,color,maxWidth);node.anchor.set(.5);node.position.set(x,y);node.visible=!!value;}
   function clearScene(){
     heat?.destroy();heat=null;flame?.destroy();flame=null;
-    if(scene){hole?.destroy();scene.filters=null;bg.filters=null;bloomWrap.filters=null;scene.destroy({children:true});scene=null;}
+    if(scene){hole?.destroy();scene.filters=null;bg.filters=null;holeGlow.filters=null;scene.destroy({children:true});scene=null;}
     for(const texture of textures)texture.destroy(true);
     textures=[];labels.clear();objectTextures.clear();sourceImages=new WeakMap();objectPool=[];particlePool=[];rocketTexture=null;
     trailPoints=[];ghostData=[];
@@ -67,7 +67,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     const effective=TIERS[Math.min(TIERS.indexOf(tier),TIERS.indexOf(max))];
     scene.filters=effective==='low'?null:[post.filter];
     bg.filters=effective==='low'?null:[lens.filter];
-    bloomWrap.filters=effective==='high'?[bloom]:null;
+    // Bloom is reserved for the black hole; gameplay sprites stay crisp.
+    holeGlow.filters=effective==='high'?[bloom]:null;
     if(hole.disk)hole.disk.mesh.visible=effective!=='low';
     scene.tier=effective;
   }
@@ -78,8 +79,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     const screenArea=new Rectangle(0,0,width,height);
     scene=new Container();app.stage.addChild(scene);scene.filterArea=screenArea;
     bg=new Container();scene.addChild(bg);bg.filterArea=screenArea;
-    bloomWrap=new Container();scene.addChild(bloomWrap);bloomWrap.filterArea=screenArea;
-    world=new Container();bloomWrap.addChild(world);
+    world=new Container();scene.addChild(world);
     ui=new Container();scene.addChild(ui);
     overlay=new Container();scene.addChild(overlay);
     tex.glow=bake(64,64,c=>drawGlow(c,64),1).texture;
@@ -100,11 +100,12 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     comet=sprite(tex.spark,bg);comet.anchor.set(1,.5);comet.blendMode='add';comet.visible=false;comet.tint=0xd8f4ff;
     const wash=bake(width,height,c=>{const g=c.createRadialGradient(width*.6,height*.5,0,width*.6,height*.5,Math.max(width,height)*.8);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#ffffff00');c.fillStyle=g;c.fillRect(0,0,width,height);},.5);
     scene.wash=sprite(wash.texture,bg);scene.wash.width=width;scene.wash.height=height;scene.wash.alpha=.22;
-    // World (bloomed): god rays, hole, objects, trail, ship, particles.
+    // World: god rays, bloomed hole, objects, trail, ship, particles.
     godRays=new Container();world.addChild(godRays);
     for(let i=0;i<3;i++){const s=sprite(tex.cone,godRays);s.anchor.set(0,.5);s.blendMode='add';s.tint=0xfff0c8;}
     godRays.position.set(camera.cx,camera.cy);godRays.visible=false;
-    hole=createHoleScene({width,height,ratio,camera,reduced});world.addChild(hole.stage);
+    holeGlow=new Container();world.addChild(holeGlow);
+    hole=createHoleScene({width,height,ratio,camera,reduced});holeGlow.addChild(hole.stage);
     beamGlow=sprite(tex.ring,world);beamGlow.anchor.set(.5);beamGlow.blendMode='add';beamGlow.tint=0xffd98f;beamGlow.position.set(camera.cx,camera.cy);beamGlow.visible=false;
     scene.objects=new Container();world.addChild(scene.objects);
     phaseGraphics=new Graphics();world.addChild(phaseGraphics);
@@ -173,9 +174,9 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     art.texture=objectTexture(`${o.type}:${o.size}:${o.shape}`,pad,c=>drawObjectArt(c,o,rr,config.reduced));art.rotation=o.spin;
     const rock=o.type!=='shard'&&o.type!=='plasma';
     rim.visible=rock;aura.visible=!rock;
-    if(rock){rim.texture=objectTexture(`rim:${rr}`,Math.ceil(rr*2.6+8),c=>drawRim(c,rr));rim.rotation=Math.atan2(g.cy-y,g.cx-x);rim.alpha=.9;}
-    else if(o.type==='shard'){aura.texture=tex.star;aura.tint=0xa6f7ff;const s=rr*5*(reduced?1:.8+.35*Math.sin(t*6+o.shape*10));aura.width=aura.height=s;aura.rotation=reduced?0:t*.8;aura.alpha=.8;}
-    else{aura.texture=tex.glow;aura.tint=0xff4f7d;const s=rr*3.4*(reduced?1:1+.14*Math.sin(t*5+o.shape));aura.width=aura.height=s;aura.alpha=.6;}
+    if(rock){rim.texture=objectTexture(`rim:${rr}`,Math.ceil(rr*2.6+8),c=>drawRim(c,rr));rim.rotation=Math.atan2(g.cy-y,g.cx-x);rim.alpha=.55;}
+    else if(o.type==='shard'){aura.texture=tex.star;aura.tint=0xa6f7ff;const s=rr*3.2*(reduced?1:.85+.25*Math.sin(t*6+o.shape*10));aura.width=aura.height=s;aura.rotation=reduced?0:t*.8;aura.alpha=.35;}
+    else{aura.texture=tex.glow;aura.tint=0xff4f7d;const s=rr*2.6*(reduced?1:1+.1*Math.sin(t*5+o.shape));aura.width=aura.height=s;aura.alpha=.28;}
     if(streak.visible){
       const length=reduced?rr*3:rr*7,key=`trail:${rr}:${length}`;let entry=objectTextures.get(key);
       if(!entry){const pad=rr*1.2+4,image=bake(length+pad,pad,c=>{const gr=c.createLinearGradient(pad/2,0,length+pad/2,0);gr.addColorStop(0,'#ff724400');gr.addColorStop(.7,'#ff9a5a99');gr.addColorStop(1,'#ffe0b8ee');c.strokeStyle=gr;c.lineWidth=rr*1.2;c.lineCap='round';c.beginPath();c.moveTo(pad/2,pad/2);c.lineTo(length+pad/2,pad/2);c.stroke();});entry={texture:image.texture,used:frame,pad,length};objectTextures.set(key,entry);}
@@ -190,7 +191,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     beamGlow.visible=show&&state.beam!==null;
     if(!run.specials.length)return;
     if(state.beam!==null){
-      const d=state.beam*g.r*2*1.13;beamGlow.width=beamGlow.height=d;beamGlow.alpha=reduced?.45:.55+.15*Math.sin(t*9);
+      const d=state.beam*g.r*2*1.13;beamGlow.width=beamGlow.height=d;beamGlow.alpha=reduced?.3:.32+.08*Math.sin(t*9);
       phaseGraphics.beginPath().circle(0,0,state.beam*g.r).stroke({color:0xffe2a3,width:g.r*.036});phaseGraphics.beginPath().arc(0,0,g.r*.98,-Math.PI*.85,-Math.PI*.15).stroke({color:0xcab987,alpha:.4,width:1});
     }
     if(show){const stacked=state.kinds.length>1,parts=stacked?state.kinds.map(k=>phaseNames[k]):phaseNames[state.kind].split(' ');
@@ -246,7 +247,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
       if(kind==='spark'){s.texture=tex.spark;s.blendMode='add';s.rotation=Math.atan2(p.vy,p.vx);const speed=Math.hypot(p.vx,p.vy);s.width=Math.max(p.size*2.5,speed*.07);s.height=p.size*1.3;s.alpha=life;}
       else if(kind==='ring'){s.texture=tex.ring;s.blendMode='add';s.rotation=0;const d=p.size*easeOutCubic(1-life);s.width=s.height=d;s.alpha=life*.9;}
       else if(kind==='smoke'){s.texture=tex.glow;s.blendMode='normal';s.rotation=0;s.width=s.height=p.size*(1+(1-life)*1.5);s.alpha=life*.35;}
-      else{s.texture=tex.glow;s.blendMode='add';s.rotation=0;s.width=s.height=p.size*3;s.alpha=life;}
+      else{s.texture=tex.glow;s.blendMode='add';s.rotation=0;s.width=s.height=p.size*2.2;s.alpha=life*.8;}
     }
     for(let i=particles.length;i<particlePool.length;i++)particlePool[i].visible=false;
   }
@@ -294,7 +295,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     flame.mesh.visible=flameOn&&!spaghetti;
     flame.mesh.scale.set(size*(.2+.48*boostLevel)*flicker,size*(.2+.12*boostLevel));
     flame.update(reduced?0:t,.55+.45*boostLevel,run.phase>0?[.7,.55,1]:[.35,.95,1]);
-    engineGlow.visible=flame.mesh.visible;engineGlow.width=engineGlow.height=size*(.45+.55*boostLevel)*flicker;engineGlow.alpha=.25+.5*boostLevel;
+    engineGlow.visible=flame.mesh.visible;engineGlow.width=engineGlow.height=size*(.45+.55*boostLevel)*flicker;engineGlow.alpha=.1+.28*boostLevel;
     rocketFallback.visible=!(rocket.complete&&rocket.naturalWidth);
     if(rocket.complete&&rocket.naturalWidth){let texture=sourceImages.get(rocket);if(!texture){texture=new Texture({source:new ImageSource({resource:rocket})});textures.push(texture);sourceImages.set(rocket,texture);}rocketTexture=texture;rocketSprite.texture=texture;rocketSprite.width=rocketSprite.height=size;}
     heat.update(size,visualHeat(run.heat,run.multiplier),run.time,reduced);

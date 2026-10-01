@@ -199,3 +199,22 @@ button:active:not(:disabled){transform:scale(.97)}
 #hud,#flight-controls,#watch-controls{z-index:5}
 #phase-banner::before,#phase-banner::after{height:6vh}
 @media (max-width:600px),(pointer:coarse){#toast{top:31%;font-size:13px;letter-spacing:.04em}}
+/* Restrained glow: depth comes from shadows; light is reserved for the black hole. */
+h1{text-shadow:0 4px 18px #000c}
+h1 span{filter:none}
+#score{text-shadow:0 2px 6px #000}
+#multiplier[data-tier=cool]{text-shadow:0 2px 6px #000}
+#multiplier[data-tier=warm]{text-shadow:0 0 6px #ffb25c40,0 2px 6px #000}
+#multiplier[data-tier=hot]{text-shadow:0 0 8px #ff7a3c55,0 2px 6px #000}
+#multiplier[data-tier=blaze]{text-shadow:0 0 10px #ff4b2b77,0 2px 6px #000}
+.heat-fill,.heat-gauge.hot .heat-fill{filter:none}
+#toast{text-shadow:0 2px 8px #000}
+.primary,.primary:hover:not(:disabled){box-shadow:0 0 0 1px #d8fbff,0 8px 20px #02050b88}
+#boost.active{box-shadow:inset 0 0 12px #4fe4ff33}
+#dash.ready{box-shadow:0 0 0 1px #c3a6ff;animation:none}
+#desktop-charge-fill{box-shadow:none}
+#final-score,#results.new-best #final-score{filter:drop-shadow(0 3px 8px #000a)}
+#best-badge{box-shadow:0 4px 12px #0008}
+#best-badge.show{animation:badge-in .7s cubic-bezier(.2,1.6,.4,1) both}
+#standings li:first-child .placing{text-shadow:none}
+.banner-title{text-shadow:0 0 14px color-mix(in srgb,var(--accent) 45%,transparent),0 4px 18px #000}

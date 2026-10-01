@@ -9,7 +9,7 @@ export function drawObjectArt(ctx,o,rr,reduced){
 }
 function drawShard(ctx,rr,reduced){
   ctx.save();
-  ctx.shadowColor='#00d9ff';ctx.shadowBlur=reduced?0:rr*1.6;
+  ctx.shadowColor='#00d9ff';ctx.shadowBlur=reduced?0:rr*.6;
   const top=[0,-rr*1.5],right=[rr,0],bottom=[0,rr*1.5],left=[-rr,0],mid=[rr*.12,-rr*.15];
   const facets=[[top,right,mid,'#d9fdff'],[right,bottom,mid,'#3fc7ea'],[bottom,left,mid,'#1b8fc0'],[left,top,mid,'#9cf3ff']];
   for(const [a,b,c,color] of facets){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.lineTo(...c);ctx.closePath();ctx.fill();}
@@ -22,10 +22,10 @@ function drawPlasma(ctx,rr,reduced,shape=0){
   const rand=seeded(Math.floor(Math.abs(shape)*1000)+17);
   ctx.save();
   const halo=ctx.createRadialGradient(0,0,0,0,0,rr*1.35);
-  halo.addColorStop(0,'rgba(255,240,235,.95)');halo.addColorStop(.28,'rgba(255,120,150,.8)');
-  halo.addColorStop(.62,'rgba(255,60,110,.28)');halo.addColorStop(1,'rgba(255,40,90,0)');
+  halo.addColorStop(0,'rgba(255,240,235,.9)');halo.addColorStop(.28,'rgba(255,120,150,.6)');
+  halo.addColorStop(.62,'rgba(255,60,110,.14)');halo.addColorStop(1,'rgba(255,40,90,0)');
   ctx.fillStyle=halo;ctx.beginPath();ctx.arc(0,0,rr*1.35,0,TAU);ctx.fill();
-  ctx.shadowColor='#ff6b8c';ctx.shadowBlur=reduced?0:rr*.9;
+  ctx.shadowColor='#ff6b8c';ctx.shadowBlur=reduced?0:rr*.35;
   ctx.strokeStyle='#ffc1c9';ctx.lineWidth=Math.max(1.5,rr*.16);ctx.beginPath();ctx.arc(0,0,rr*.92,0,TAU);ctx.stroke();
   ctx.shadowBlur=0;ctx.strokeStyle='#fff3f0';ctx.lineWidth=Math.max(1,rr*.06);
   for(let arc=0;arc<5;arc++){
