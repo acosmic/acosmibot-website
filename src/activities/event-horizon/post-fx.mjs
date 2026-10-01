@@ -106,19 +106,27 @@ void main(){
   color*=mix(1.,.35+.65*vignette,uVignette);
   float rim=smoothstep(.45,.95,edge);
   color+=vec3(1.,.32,.12)*rim*uHeat*(.75+.25*sin(uTime*6.));
-  color+=(hash(floor(pos)+fract(uTime*7.)*91.)-.5)*uGrain;
+  color+=(hash(gl_FragCoord.xy+fract(uTime*7.)*91.)-.5)*uGrain;
   finalColor=vec4(max(color,0.),1.);
 }`;
 
+// Pixi filters default to resolution 1 with antialiasing off. On a 2x/3x display
+// that renders the whole scene at 1x and upscales it, so every pass must inherit
+// the render target's density and antialiasing.
+function sharp(filter) {
+  filter.resolution = 'inherit';
+  filter.antialias = 'inherit';
+  return filter;
+}
 function uniforms(spec) {
   return Object.fromEntries(Object.entries(spec).map(([name, [type, value]]) => [name, { type, value }]));
 }
 
 export function createLensFilter() {
-  const filter = Filter.from({ gl: { vertex, fragment: lensFragment }, resources: { lens: uniforms({
+  const filter = sharp(Filter.from({ gl: { vertex, fragment: lensFragment }, resources: { lens: uniforms({
     uCenter: ['vec2<f32>', new Float32Array(2)], uEinstein: ['f32', 100], uTide: ['f32', 0],
     uTime: ['f32', 0], uRing: ['f32', .35],
-  }) } });
+  }) } }));
   const u = filter.resources.lens.uniforms;
   return { filter, update({ cx, cy, einstein, tide, time, ring }) {
     u.uCenter[0] = cx; u.uCenter[1] = cy; u.uEinstein = einstein; u.uTide = tide; u.uTime = time; u.uRing = ring;
@@ -135,13 +143,13 @@ export const GRADES = {
 };
 
 export function createPostFilter() {
-  const filter = Filter.from({ gl: { vertex, fragment: postFragment }, resources: { post: uniforms({
+  const filter = sharp(Filter.from({ gl: { vertex, fragment: postFragment }, resources: { post: uniforms({
     uScreen: ['vec2<f32>', new Float32Array([1, 1])], uCenter: ['vec2<f32>', new Float32Array(2)],
     uRadius: ['f32', 1], uTime: ['f32', 0], uChroma: ['f32', 0], uGrain: ['f32', .035], uVignette: ['f32', .9],
     uHeat: ['f32', 0], uHaze: ['f32', 0], uGain: ['vec3<f32>', new Float32Array([1, 1, 1])],
     uLift: ['vec3<f32>', new Float32Array(3)], uSaturation: ['f32', 1],
     uWave0: ['vec4<f32>', new Float32Array(4)], uWave1: ['vec4<f32>', new Float32Array(4)],
-  }) } });
+  }) } }));
   const u = filter.resources.post.uniforms;
   const grade = { gain: [1, 1, 1], lift: [0, 0, 0], saturation: 1 };
   return { filter, grade, update(s) {
@@ -162,12 +170,12 @@ export function createPostFilter() {
 }
 
 // Bloom must run at full resolution: a lowered filter resolution would also
-// blur every gameplay sprite it composites. Cost is controlled by quality instead.
+// blur everything it composites. Cost is controlled by quality instead.
 export function createBloomFilter() {
   const bloom = new AdvancedBloomFilter({ threshold: .55, bloomScale: .8, brightness: 1, blur: 7, quality: 3 });
   // Hole-only container: give the blur room to spread past its bounds.
   bloom.padding = 48;
-  return bloom;
+  return sharp(bloom);
 }
 
 export { DOPPLER_ANGLE };
