@@ -3,6 +3,8 @@ import { Application, Container, CanvasSource, Color, Geometry, Graphics, Mesh, 
 import { drawBlackHole } from './black-hole.mjs';
 import { tideStrength, tideDust, TIDE_DUST_COUNT } from './tide-fx.mjs';
 import { holeGeometry } from './render-cache.mjs';
+import { DOPPLER_ANGLE } from './juice.mjs';
+import { createDiskMesh } from './pixi-shaders.mjs';
 
 const vertex = `
 attribute vec2 aPosition;
@@ -26,7 +28,11 @@ void main(){
   p=mat2(c,s,-s,c)*p+uCenter;
   vec3 projected=uProjectionMatrix*uWorldTransformMatrix*uTransformMatrix*vec3(p,1.);
   gl_Position=vec4(projected.xy,0.,1.);
-  vColor=vec4(min(vec3(1.),aColor.rgb*(1.+uTide*.45))*aColor.a,aColor.a);
+  // Doppler beaming: the approaching side of the disk burns brighter and whiter.
+  float beam=1.+.55*cos(angle+aStroke.y-${DOPPLER_ANGLE.toFixed(6)});
+  vec3 rgb=min(vec3(1.),aColor.rgb*(1.+uTide*.45)*(.75+.25*beam)+vec3(.12,.14,.18)*max(beam-1.,0.));
+  float alpha=clamp(aColor.a*beam,0.,1.);
+  vColor=vec4(rgb*alpha,alpha);
 }`;
 const fragment = `varying vec4 vColor; void main(){gl_FragColor=vColor;}`;
 
@@ -83,6 +89,8 @@ export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
   function arcs(data){const item=arcMesh(data,camera,width,height,ratio);meshes.push(item);stage.addChild(item.mesh);}
   const geometry=holeGeometry(camera.r,reduced);
   staticLayer('bloom',.77);
+  const disk=reduced?null:createDiskMesh(camera);
+  if(disk)stage.addChild(disk.mesh);
   arcs(geometry.streams.map(({i,k,rr,ry,color,width})=>({rx:rr,ry,angle:i*2.39,span:1.8+i%3,speed:.08+k*.12,rotation:-.28,color,width})));
   staticLayer('core',.36);
   arcs(geometry.photons.flatMap(({i,rr,span,strokes})=>strokes.map(({j,color,width})=>({rx:rr,ry:rr,
@@ -103,6 +111,7 @@ export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
   const render=(time,run)=>{
     const strength=tideStrength(run,reduced);
     tideRim.alpha=strength;tideRim.visible=strength>0;
+    disk?.update(time,strength);
     for(const {shader} of meshes){
       shader.resources.scene.uniforms.uTime=time;
       shader.resources.scene.uniforms.uTide=strength;
@@ -121,7 +130,8 @@ export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
 
   };
   render(0);
-  return {stage,render,textureBytes,destroy(){
+  return {stage,render,textureBytes,disk,destroy(){
+    disk?.destroy();
     stage.destroy({children:true});
     for(const {geometry,shader} of meshes){geometry.destroy();shader.destroy();}
     for(const texture of textures)texture.destroy(true);

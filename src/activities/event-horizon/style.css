@@ -98,3 +98,104 @@
 .viewer-name{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .viewer-roster:focus-visible{outline:2px solid #a2f1ff;outline-offset:3px}
+/* ---- Premium presentation layer: display type, HUD glass, motion. Layout-neutral. ---- */
+:root{--display:"Chakra Petch",system-ui,-apple-system,"Segoe UI",sans-serif;--cyan:#7ff1ff;--violet:#b48cff;--heat:#ff8a4c}
+h1,.eyebrow,#score,#run-time,#multiplier,#zone,#final-score,#toast,.primary,#board-title,.live-heading h2,#dash .dash-label,#best-badge,#phase-banner,.heat-gauge>span,#boost strong{font-family:var(--display)}
+h1{font-weight:700;letter-spacing:.01em;text-transform:uppercase;text-shadow:0 0 28px #5fd8ff40,0 4px 24px #000}
+h1 span{background:linear-gradient(100deg,#9cf3ff 10%,#e7fbff 45%,#b48cff 90%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px #6fe0ff55)}
+.eyebrow{font-weight:700;letter-spacing:.18em}
+#score,#run-time,#final-score{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+#score{text-shadow:0 0 18px #6fe6ff55,0 2px 6px #000}
+/* HUD glass panels */
+.score-block,.telemetry{position:relative;padding:8px 12px;border-radius:14px;background:linear-gradient(160deg,#0b1a2cb8,#06101c66);border:1px solid #7ff1ff1f;box-shadow:inset 0 1px 0 #ffffff12,0 8px 24px #02050b66;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.run-metrics{gap:8px}
+.run-clock{padding:0 12px}
+/* Multiplier tiers: colour and glow climb with risk; a pop marks each step up. */
+#multiplier{font-weight:700;transition:color .25s,text-shadow .25s}
+#multiplier[data-tier=cool]{color:#a2f1ff;text-shadow:0 0 10px #5fe8ff55}
+#multiplier[data-tier=warm]{color:#ffd08a;text-shadow:0 0 12px #ffb25c77}
+#multiplier[data-tier=hot]{color:#ff9a5c;text-shadow:0 0 16px #ff7a3c99}
+#multiplier[data-tier=blaze]{color:#ff6a45;text-shadow:0 0 22px #ff4b2bcc,0 0 6px #ffd1a6}
+#multiplier.pulse{animation:tier-pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes tier-pop{0%{transform:scale(1)}35%{transform:scale(1.35)}100%{transform:scale(1)}}
+/* Curved heat gauge (the native meter stays for assistive technology). */
+.heat-gauge{position:relative}
+.heat-gauge meter{position:absolute;width:1px!important;height:1px;opacity:0;pointer-events:none}
+.heat-arc{width:100%;height:22px;overflow:visible}
+.heat-arc path{fill:none;stroke-width:5;stroke-linecap:round}
+.heat-track{stroke:#24344acc}
+.heat-fill{stroke:url(#heat-gradient);stroke-dasharray:100 100;stroke-dashoffset:calc(100 - var(--heat,0));transition:stroke-dashoffset .12s linear;filter:drop-shadow(0 0 4px #ff8a4c88)}
+.heat-gauge.hot .heat-fill{filter:drop-shadow(0 0 7px #ff6a3ccc)}
+.heat-gauge.critical .heat-arc{animation:crackle .18s steps(2) infinite}
+.heat-gauge.critical>span{color:#ffb08a}
+@keyframes crackle{0%{transform:translate(0,0)}50%{transform:translate(.6px,-.5px)}100%{transform:translate(-.5px,.4px)}}
+/* Flight controls */
+#flight-controls button{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:transform .08s,background .15s,box-shadow .2s}
+#boost.active{box-shadow:0 0 24px #4fe4ff66,inset 0 0 18px #4fe4ff33;transform:scale(.985)}
+#dash.ready{box-shadow:0 0 0 1px #c3a6ff,0 0 22px #a98bff99;animation:dash-ready 1.6s ease-in-out infinite}
+@keyframes dash-ready{50%{box-shadow:0 0 0 1px #d9c6ff,0 0 34px #b48cffcc}}
+#dash.charge-pulse{animation:charge-pulse .35s ease-out}
+@keyframes charge-pulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.08);filter:brightness(1.6)}100%{transform:scale(1);filter:brightness(1)}}
+#desktop-charge-fill{background:linear-gradient(90deg,#5aeaff,#b48cff);box-shadow:0 0 10px #8fe9ff;transition:width .15s}
+#toast{font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 16px #4fe4ff88,0 2px 8px #000}
+/* Cinematic phase banner with letterbox bars */
+#phase-banner{position:absolute;inset:0;z-index:4;display:grid;place-content:center;justify-items:center;gap:6px;pointer-events:none;text-align:center;padding:0 16px;--accent:#ffe2a3}
+#phase-banner[data-kind=asteroids]{--accent:#ffb27a}#phase-banner[data-kind=convoy]{--accent:#c6b2ff}#phase-banner[data-kind=tide]{--accent:#7ff1e0}#phase-banner[data-kind=pulsar]{--accent:#ffe2a3}
+#phase-banner::before,#phase-banner::after{content:"";position:absolute;left:0;right:0;height:9vh;background:#000c;transform:scaleY(0)}
+#phase-banner::before{top:0;transform-origin:top}#phase-banner::after{bottom:0;transform-origin:bottom}
+.banner-kicker{font-size:12px;letter-spacing:.4em;color:var(--accent);opacity:0}
+.banner-title{font-size:clamp(28px,6vw,64px);font-weight:700;letter-spacing:.08em;line-height:1;color:#fff;text-shadow:0 0 28px var(--accent),0 4px 18px #000;opacity:0}
+.banner-cue{font-size:clamp(12px,1.6vw,16px);letter-spacing:.14em;text-transform:uppercase;color:#d8e6f0;opacity:0}
+.banner-title::after{content:"";display:block;height:2px;margin:10px auto 0;width:0;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+#phase-banner.show::before,#phase-banner.show::after{animation:letterbox 2.6s cubic-bezier(.2,.8,.2,1) both}
+#phase-banner.show .banner-kicker{animation:banner-in 2.6s .05s both}
+#phase-banner.show .banner-title{animation:banner-title 2.6s .1s both}
+#phase-banner.show .banner-title::after{animation:banner-rule 2.6s .15s both}
+#phase-banner.show .banner-cue{animation:banner-in 2.6s .25s both}
+@keyframes letterbox{0%{transform:scaleY(0)}12%,82%{transform:scaleY(1)}100%{transform:scaleY(0)}}
+@keyframes banner-in{0%{opacity:0;transform:translateY(8px)}14%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
+@keyframes banner-title{0%{opacity:0;letter-spacing:.6em;filter:blur(8px)}16%,80%{opacity:1;letter-spacing:.08em;filter:none}100%{opacity:0;letter-spacing:.14em;filter:blur(4px)}}
+@keyframes banner-rule{0%{width:0}22%,80%{width:70%}100%{width:0;opacity:0}}
+/* Lobby: the live black hole replaces the static key art once the renderer runs. */
+.overlay{transition:background-color .9s}
+.overlay #key-art{transition:opacity 1.8s ease}
+.overlay.live:not(.compact){background:#05080d38}
+.overlay.live #key-art{opacity:0}
+.overlay.live .scrim{background:linear-gradient(90deg,#05080de6 0%,#05080dc0 34%,#05080d33 66%,#05080d00),linear-gradient(0deg,#05080dcc,transparent 45%)}
+.overlay:not([hidden]){animation:overlay-in .5s ease both}
+.overlay:not([hidden]) .screen-content>*{animation:rise-in .55s cubic-bezier(.2,.8,.2,1) both}
+.screen-content>*:nth-child(2){animation-delay:.04s}.screen-content>*:nth-child(3){animation-delay:.08s}.screen-content>*:nth-child(4){animation-delay:.12s}.screen-content>*:nth-child(5){animation-delay:.16s}.screen-content>*:nth-child(6){animation-delay:.2s}.screen-content>*:nth-child(n+7){animation-delay:.24s}
+#leaderboard{animation:rise-in .6s .18s cubic-bezier(.2,.8,.2,1) both;background:linear-gradient(160deg,#0a1626ee,#060d18e6);border:1px solid #7ff1ff1a;box-shadow:0 18px 50px #02050bb0,inset 0 1px 0 #ffffff10}
+@keyframes overlay-in{from{opacity:0}to{opacity:1}}
+@keyframes rise-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* Buttons */
+button{transition:background .15s,transform .08s,box-shadow .2s,border-color .2s}
+button:active:not(:disabled){transform:scale(.97)}
+.primary{position:relative;overflow:hidden;font-weight:700;letter-spacing:.04em;background:linear-gradient(120deg,#8fefff,#c8f8ff 45%,#a8e9ff);box-shadow:0 0 0 1px #d8fbff,0 10px 30px #4fd8ff44}
+.primary:hover:not(:disabled){background:linear-gradient(120deg,#a9f4ff,#e4fcff 45%,#bdf0ff);box-shadow:0 0 0 1px #fff,0 12px 36px #4fd8ff77}
+.primary::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,#ffffffb0,transparent);transform:skewX(-20deg);animation:shine 3.2s 1.2s ease-in-out infinite}
+.primary:disabled::after{animation:none;display:none}
+@keyframes shine{0%,70%{left:-60%}100%{left:130%}}
+/* Results: count-up score, new best fanfare, rank climb */
+#final-score{background:linear-gradient(180deg,#fff,#a8eeff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px #5fd8ff55)}
+#results.new-best #final-score{background:linear-gradient(180deg,#fff6e0,#ffc46b);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 24px #ffb24a88)}
+#best-badge{display:inline-block;margin-bottom:10px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.16em;color:#1a0f02;background:linear-gradient(90deg,#ffd08a,#fff1c9,#ffb25c);box-shadow:0 0 24px #ffb24a99}
+#best-badge.show{animation:badge-in .7s cubic-bezier(.2,1.6,.4,1) both,badge-glow 1.8s .7s ease-in-out infinite}
+@keyframes badge-in{0%{opacity:0;transform:scale(.4) rotate(-6deg)}100%{opacity:1;transform:none}}
+@keyframes badge-glow{50%{box-shadow:0 0 40px #ffc46bdd}}
+#standings li{transition:background .3s}
+#standings li.climbed{animation:climb .9s cubic-bezier(.2,.9,.25,1) both;position:relative;z-index:1}
+@keyframes climb{0%{transform:translateY(calc(var(--climb,1) * 100%));background:#1f5b75;box-shadow:0 0 0 1px #7ff1ff}70%{background:#1f5b75;box-shadow:0 0 18px #4fe4ff88}100%{transform:none}}
+#standings li:first-child .placing{text-shadow:0 0 10px #ffc46b88}
+@media(max-width:600px){.score-block,.telemetry{padding:6px 9px;border-radius:12px}.run-clock{padding:0 9px}.banner-kicker{font-size:10px}}
+/* Reduced effects and reduced motion: keep every state, drop the motion. */
+#game.reduced-fx *,#game.reduced-fx *::before,#game.reduced-fx *::after{animation:none!important;transition:none!important}
+#game.reduced-fx #phase-banner .banner-kicker,#game.reduced-fx #phase-banner .banner-title,#game.reduced-fx #phase-banner .banner-cue{opacity:1}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media (prefers-reduced-motion:reduce){#phase-banner .banner-kicker,#phase-banner .banner-title,#phase-banner .banner-cue{animation:none!important;opacity:1}#phase-banner::before,#phase-banner::after{animation:none!important}}
+.score-block{justify-self:start;width:max-content;max-width:100%}
+.heat-fill{opacity:calc(var(--heat,0) * 1)}
+#best-badge{display:table}
+#hud,#flight-controls,#watch-controls{z-index:5}
+#phase-banner::before,#phase-banner::after{height:6vh}
+@media (max-width:600px),(pointer:coarse){#toast{top:31%;font-size:13px;letter-spacing:.04em}}
