@@ -15,6 +15,10 @@ import { SnapshotPlayback } from './playback.mjs';
 import { renderViewers } from './viewers.mjs';
 import { Presence } from './presence.mjs';
 import { DISCORD_INVITE_URL } from '../../seo/publicRoutes';
+import { createJuice, addTrauma, punch, shockwave, updateJuice, rollToward, haptic, heatTier, easeOutCubic } from './juice.mjs';
+import { createAudio } from './audio.mjs';
+import chakra600 from '@fontsource/chakra-petch/files/chakra-petch-latin-600-normal.woff2';
+import chakra700 from '@fontsource/chakra-petch/files/chakra-petch-latin-700-normal.woff2';
 
 const elements = new Map();
 const $ = id => { if(!elements.has(id))elements.set(id,document.getElementById(id));return elements.get(id); };
@@ -32,7 +36,12 @@ const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocke
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
 let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = false;
 let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let muted = false, audio, best = 0, savedBest = 0, shake = 0, toastUntil = 0;
+let muted = false, best = 0, savedBest = 0, shake = 0, toastUntil = 0;
+// Presentation-only feel and sound. Neither ever feeds back into the simulation.
+const juice=createJuice(), sound=createAudio();
+let death=null, revealPending=false, revealAt=0, frameMs=16.7, shownScore=0, hudTier='cool', collectors=[], watchAlive=true;
+let finalTarget=0, finalAnim=0, bannerTimer=0;
+const particleCap=()=>reduced?240:600;
 let heatWarning = 0;
 let comboUntil = 0, comboText = '';
 let ticket=null, replay=[], runGeneration=0, pendingSubmission=null;
@@ -86,7 +95,7 @@ function liveMessage(message){
     container.hidden=false;return;
   }
   if(message.type==='watching'){
-    playback.reset();watching=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
+    playback.reset();watching=true;watchAlive=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
     $('watch-name').textContent=`Watching ${message.name}`;$('watch-status').textContent='Joining flight…';
     $('overlay').hidden=true;$('hud').hidden=false;$('pause').hidden=true;$('flight-controls').hidden=true;$('watch-controls').hidden=false;
     $('best').hidden=true;canvas.setAttribute('aria-label',`Live view of ${message.name}'s flight. Use Switch pilot or Leave view to return to the lobby.`);
@@ -210,30 +219,51 @@ function resize() {
 }
 const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);
 
-function tone(freq = 440, duration = .12, kind = 'sine', gain = .04, end = freq) {
-  if (muted) return;
-  try {
-    audio ??= new (window.AudioContext || window.webkitAudioContext)();
-    if (audio.state === 'suspended') void audio.resume();
-    const o = audio.createOscillator(), g = audio.createGain();
-    o.type = kind; o.frequency.setValueAtTime(freq, audio.currentTime);
-    o.frequency.exponentialRampToValueAtTime(Math.max(20,end),audio.currentTime+duration);
-    g.gain.setValueAtTime(gain,audio.currentTime); g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
-    o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime+duration);
-  } catch { /* Audio must never block flight. */ }
-}
 function message(text, seconds = 1.6) { $('toast').textContent = text; toastUntil = visualTime + seconds; }
-function burst(x,y,color,count=16) {
+// Visual-only randomness (Math.random) is fine here: particles never reach the sim.
+function burst(x,y,color,count=16,{speed=150,sparks=.6,ring=0,smoke=0}={}) {
   if (reduced) count = Math.min(count, 6);
   for(let i=0;i<count;i++) {
-    const a=Math.random()*Math.PI*2, speed=30+Math.random()*150;
-    particles.push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:.4+Math.random()*.5,max:1,color,size:1+Math.random()*3});
+    const a=Math.random()*Math.PI*2, v=30+Math.random()*speed, spark=Math.random()<sparks;
+    particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.35+Math.random()*.55,max:.9,color,
+      size:spark?1.2+Math.random()*1.8:1+Math.random()*3,kind:spark?'spark':'glow',drag:spark?2.4:1.2});
   }
-  particles = particles.slice(-240);
+  if(!reduced&&ring)particles.push({x,y,vx:0,vy:0,life:.5,max:.5,color,size:ring,kind:'ring'});
+  if(!reduced)for(let i=0;i<smoke;i++){const a=Math.random()*Math.PI*2,v=10+Math.random()*40;
+    particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.9+Math.random()*.8,max:1.7,color:'#46304a',size:14+Math.random()*22,kind:'smoke',drag:1.5});}
+  compactParticles(particles,particleCap());
+}
+// Shard pickups fly to the Phase Shift meter, which pulses when they land.
+function collectToHud(x,y){
+  if(reduced||$('flight-controls').hidden)return;
+  const target=$('dash').getBoundingClientRect(),origin=canvas.getBoundingClientRect();
+  if(!target.width)return;
+  collectors.push({x0:x,y0:y,x1:target.left+target.width/2-origin.left,y1:target.top+target.height/2-origin.top,t0:visualTime});
+}
+function retrigger(id,className){const node=$(id);node.classList.remove(className);void node.offsetWidth;node.classList.add(className);}
+function showBanner(kicker,title,cue,kind){
+  const node=$('phase-banner');
+  node.querySelector('.banner-kicker').textContent=kicker;node.querySelector('.banner-title').textContent=title;node.querySelector('.banner-cue').textContent=cue;
+  node.dataset.kind=kind;node.hidden=false;retrigger('phase-banner','show');
+  clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>{node.hidden=true;node.classList.remove('show');},2700);
+}
+function hideBanner(){clearTimeout(bannerTimer);$('phase-banner').hidden=true;$('phase-banner').classList.remove('show');}
+function phaseCue(state){return state.beam!==null?'Climb outward ahead of the ring':state.gravity>1?'Strong pull · +15% gravity':state.kinds.length>1?'Double pressure':state.kind==='convoy'?'Ride the staircase':state.kind==='tide'?'The hole surges · hold altitude':'Stay sharp';}
+function countUpFinal(value){
+  finalTarget=value;const started=performance.now(),token=++finalAnim,duration=reduced?0:900;
+  const tick=now=>{if(token!==finalAnim)return;const p=duration?Math.min(1,(now-started)/duration):1;
+    $('final-score').textContent=format(finalTarget*easeOutCubic(p));if(p<1)requestAnimationFrame(tick);else{$('final-score').textContent=format(finalTarget);finalAnim++;}};
+  requestAnimationFrame(tick);
 }
 function clearInput() { keys.clear(); pointers.clear(); dashQueued=false; $('boost').classList.remove('active'); }
 function syncHUD() {
-  setText('score',label('score',Math.floor(run.score),localNumber)); setText('best',`BEST ${label('best',Math.floor(best),localNumber)}`);
+  shownScore=watching?run.score:rollToward(shownScore,run.score,frameMs/1000);
+  setText('score',label('score',Math.floor(shownScore),localNumber)); setText('best',`BEST ${label('best',Math.floor(best),localNumber)}`);
+  const tier=heatTier(run.multiplier);
+  if(tier!==hudTier){const rising=['cool','warm','hot','blaze'].indexOf(tier)>['cool','warm','hot','blaze'].indexOf(hudTier);hudTier=tier;setAttr('multiplier','data-tier',tier);if(rising&&!reduced)retrigger('multiplier','pulse');}
+  const heatValue=String(Math.round(clamp(run.heat,0,100)));
+  if($('heat-gauge').style.getPropertyValue('--heat')!==heatValue)$('heat-gauge').style.setProperty('--heat',heatValue);
+  $('heat-gauge').classList.toggle('hot',run.heat>=65);$('heat-gauge').classList.toggle('critical',run.heat>=80);
   setText('run-time',label('time',Math.floor(run.time),clockLabel));
   setText('multiplier',`${run.multiplier.toFixed(1)}×`);
   setProp('heat','value',run.heat);setText('heat',`${Math.round(run.heat)}%`);
@@ -248,11 +278,12 @@ function syncHUD() {
   if($('desktop-charge-fill').style.width!==`${charge}%`)$('desktop-charge-fill').style.width=`${charge}%`;
   $('boost').classList.toggle('active',boosting());
   $('boost').classList.toggle('heat-warning',run.heat>=65);
+  $('dash').classList.toggle('ready',dashReady);
   if(run.heat<50)heatWarning=0;
   if(mode==='playing'&&run.heat>=80&&heatWarning<2){
-    heatWarning=2;message('HEAT CRITICAL — BOOST OUT TO COOL',2.5);tone(240,.2,'triangle',.045,170);
+    heatWarning=2;message('HEAT CRITICAL — BOOST OUT TO COOL',2.5);sound.play('warning',{critical:true});haptic([30,40,30],!reduced);
   }else if(mode==='playing'&&run.heat>=65&&heatWarning<1){
-    heatWarning=1;message('Getting hot — boost outward to cool down',2);tone(320,.15,'triangle',.03,240);
+    heatWarning=1;message('Getting hot — boost outward to cool down',2);sound.play('warning');
   }
 }
 async function start() {
@@ -260,6 +291,8 @@ async function start() {
   if(profileBusy)return;
   if(mode==='preparing')return;
   if(watching)stopWatching();
+  sound.unlock();
+  revealPending=false;death=null;collectors=[];hideBanner();
   $('pause').hidden=false;$('watch-controls').hidden=true;
   const generation=++runGeneration;clearInput();
   // Completed submissions keep their receipt; only abandon unfinished flights.
@@ -281,17 +314,17 @@ async function start() {
   $('launch').disabled=false;$('retry').disabled=false;
   run=createRun(ticket.seed);
   $('phase-status').textContent='';
-  mode='ready'; accumulator=0; last=performance.now(); particles=[]; savedBest=best; shake=0; heatWarning=0;
+  mode='ready'; accumulator=0; last=performance.now(); particles=[]; savedBest=best; shake=0; heatWarning=0; shownScore=0; hudTier='cool'; $('multiplier').dataset.tier='cool';
   $('viewer-count').hidden=true;live?.setRun(ticket.runId);renderPilots();flightStartedAt=null;
   $('resubmit').hidden=true;
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false;
   $('pause').disabled=false; syncHUD();
   message(holdPrompt(),3600);
-  tone(160,.22,'sine',.045,500);
+  sound.play('launch');
 }
 function armFlight(){
   if(mode!=='ready'||gpu?.lost)return;
-  if(!muted && audio?.state==='suspended')void audio.resume().catch(()=>{});
+  sound.unlock();
   mode='playing';accumulator=0;last=performance.now();
   flightStartedAt=Math.floor(Date.now()/1000);
   message('Release to dive. Boost to climb.',4);
@@ -300,7 +333,7 @@ function showOverlay(title,description,action) {
   clearInput(); $('overlay').hidden=false; $('overlay').classList.add('compact');
   $('screen-title').textContent=title; $('screen-description').textContent=description;
   $('launch').textContent=action; $('flight-controls').hidden=true; $('hud').hidden=true;
-  $('pause').disabled=true; $('toast').textContent='';
+  $('pause').disabled=true; $('toast').textContent=''; hideBanner();
   $('launch').focus({preventScroll:true});
 }
 function pause() {
@@ -315,23 +348,39 @@ function resume() {
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false; $('pause').disabled=false;
   message(mode==='ready'?holdPrompt():'Flight resumed',mode==='ready'?3600:1);
 }
-function finish() {
-  mode='dead'; const p=point(run.radius); burst(p.x,p.y,'#ffa677',55); shake=reduced?0:12;
-  tone(180,.5,'sawtooth',.055,30);
+// The death sequence plays for about a second before results; submission starts at once.
+function finish(immediate=false) {
+  mode='dead'; const p=point(run.radius); shake=reduced?0:12;
+  const fell=/event horizon/i.test(run.cause);
+  death={t0:visualTime,x:p.x,y:p.y,fell};
+  burst(p.x,p.y,'#ffa677',fell?30:70,{speed:fell?120:260,sparks:.7,ring:fell?0:170,smoke:fell?0:8});
+  if(!fell)burst(p.x,p.y,'#fff1d6',24,{speed:360,sparks:1});
+  addTrauma(juice,fell?.5:.9);punch(juice,{flash:fell?.22:.55,color:fell?[1,.55,.3]:[1,.85,.7],chroma:1.2,zoom:.05});
+  shockwave(juice,p.x,p.y,1.2,visualTime);juice.slowUntil=reduced?0:visualTime+.9;
+  haptic([60,40,90],!reduced);sound.play('death');
   best=Math.max(best,Math.floor(run.score));
-  showOverlay('ORBIT LOST',run.cause,'Fly again');
-  $('results').hidden=false; $('instructions').hidden=true; $('retry').hidden=true;
-  $('final-score').textContent=format(run.score);
+  clearInput();$('flight-controls').hidden=true;$('pause').disabled=true;
+  $('final-score').textContent='0';finalTarget=run.score;
   $('run-stats').textContent=`${run.time.toFixed(1)}s survived · ${run.nearMisses} near-misses · ${run.shards} shards`;
   $('record').textContent=Math.floor(run.score)>savedBest?'New personal best pending verification.':'Press R to fly again.';
-  $('leaderboard').hidden=false;$('back-title').hidden=false;
   $('rank-result').textContent='Checking your flight replay…';
   if(ticket?.casual){
-    $('leaderboard').hidden=true;$('rank-result').textContent='Played for fun · score saved for this screen only.';
+    $('rank-result').textContent='Played for fun · score saved for this screen only.';
     $('record').textContent=Math.floor(run.score)>savedBest?'New best this visit.':'';
-    pendingSubmission=null;return;
-  }
-  pendingSubmission={ticket,inputs:replay.slice(),generation:runGeneration};void submitResult(pendingSubmission);
+    pendingSubmission=null;
+  } else { pendingSubmission={ticket,inputs:replay.slice(),generation:runGeneration};void submitResult(pendingSubmission); }
+  revealPending=true;revealAt=performance.now()+(reduced?200:1150);
+  if(immediate)revealResults();
+}
+function revealResults(){
+  revealPending=false;
+  showOverlay('ORBIT LOST',run.cause,'Fly again');
+  $('results').hidden=false; $('instructions').hidden=true; $('retry').hidden=true;
+  $('leaderboard').hidden=!!ticket?.casual;$('back-title').hidden=false;
+  countUpFinal(finalTarget);
+  const newBest=Math.floor(run.score)>savedBest&&run.score>0;
+  $('best-badge').hidden=!newBest;$('results').classList.toggle('new-best',newBest);
+  if(newBest){sound.play('best');if(!reduced)retrigger('best-badge','show');}
 }
 async function submitResult(submission){
   $('resubmit').hidden=true;
@@ -340,8 +389,9 @@ async function submitResult(submission){
     // A completed request must never overwrite the next run's results.
     if(submission.generation!==runGeneration)return;
     renderBoard(result.leaderboard);pendingSubmission=null;
+    if(result.rankChange>0&&!reduced){const you=$('standings').querySelector('li.is-you');if(you){you.style.setProperty('--climb',String(Math.min(result.rankChange,6)));you.classList.add('climbed');}}
     const movement=result.previousRank==null?'First placement':result.rankChange>0?`Up ${result.rankChange} place${result.rankChange===1?'':'s'}`:result.rankChange<0?`Down ${-result.rankChange} place${result.rankChange===-1?'':'s'}`:'Rank unchanged';
-    $('final-score').textContent=format(result.score);
+    finalTarget=result.score;if(!revealPending&&finalAnim%2===0)$('final-score').textContent=format(result.score);
     $('run-stats').textContent=`${result.survival.toFixed(1)}s survived · ${result.nearMisses} near-misses · ${result.shards} shards`;
     $('rank-result').textContent=`Replay verified · server #${result.rank} · ${movement}. ${result.personalBest?'New server personal best!':''}`;
   }catch(error){
@@ -356,6 +406,7 @@ $('retry').addEventListener('click',()=>void start());
 $('back-title').addEventListener('click',()=>{
   if(mode==='preparing')return;
   if(watching)stopWatching();
+  revealPending=false;death=null;
   live?.setRun(null);$('pause').hidden=false;$('viewer-count').hidden=true;
   ++runGeneration;clearInput();if(mode==='paused')abandonTicket();mode='intro';ticket=null;replay=[];pendingSubmission=null;
   $('overlay').hidden=false;$('overlay').classList.remove('compact');
@@ -368,8 +419,8 @@ $('back-title').addEventListener('click',()=>{
   renderPilots();
 });
 $('pause').addEventListener('click',pause);
-$('sound').addEventListener('click',()=>{muted=!muted;$('sound').textContent=muted?'Sound off':'Sound on';$('sound').setAttribute('aria-pressed',String(!muted));tone(550,.1);});
-function updateEffects(){ $('effects').textContent=`Reduced effects ${reduced?'on':'off'}`; $('effects').setAttribute('aria-pressed',String(reduced)); resize(); }
+$('sound').addEventListener('click',()=>{muted=!muted;sound.setMuted(muted);$('sound').textContent=muted?'Sound off':'Sound on';$('sound').setAttribute('aria-pressed',String(!muted));if(!muted){sound.unlock();sound.play('click');}});
+function updateEffects(){ $('effects').textContent=`Reduced effects ${reduced?'on':'off'}`; $('effects').setAttribute('aria-pressed',String(reduced)); $('game').classList.toggle('reduced-fx',reduced); resize(); }
 $('effects').addEventListener('click',()=>{reduced=!reduced;updateEffects();});
 updateEffects();
 function dash(){if(mode==='playing'&&run.energy>=100)dashQueued=true;}
@@ -491,22 +542,29 @@ function ship(t) {
   ctx.restore();
   if(mode==='playing'&&run.time<8){ctx.fillStyle='#d6faff';ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillText('YOU',p.x,p.y-size*.55);}
 }
-function renderPixi(dt){
-  visualTime+=dt;
-  const renderShake=shake;
+function renderPixi(rawDt){
+  // Hitstop nearly freezes the picture; death plays in slow motion. Sim time is separate.
+  const dt=rawDt*(juice.hitstop>0?.08:juice.timeScale);
+  visualTime+=dt;updateJuice(juice,rawDt,visualTime);
   if(shake>0&&!reduced)shake=Math.max(0,shake-dt*25);
   if(mode==='intro')run.radius=.83+Math.sin(visualTime*.7)*.025;
   const flying=mode==='playing'||(watching&&watchedStatus==='playing');
   const boost=watching?!!(watchedInput&1):boosting();
-  if(flying&&boost&&Math.random()<.7){const p=point(run.radius),size=rocketSize(geo().r);particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
-  for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;}
-  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,phase:specialState(run),particles,shake:renderShake,comboUntil,comboText,rocket});
-  compactParticles(particles);
+  if(flying&&boost&&!reduced&&Math.random()<.45){const p=point(run.radius),size=rocketSize(geo().r);particles.push({x:p.x-size*.3,y:p.y+size*.14,vx:-110-Math.random()*90,vy:30+Math.random()*40,life:.3,max:.3,color:'#7ff1ff',size:1+Math.random()*1.4,kind:'spark',drag:1});}
+  for(const p of particles){p.life-=dt;if(p.drag){const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;}p.x+=p.vx*dt;p.y+=p.vy*dt;}
+  collectors=collectors.filter(c=>{
+    const k=(visualTime-c.t0)/.55;
+    if(k>=1){retrigger('dash','charge-pulse');return false;}
+    const e=k*k,mx=(c.x0+c.x1)/2,my=Math.min(c.y0,c.y1)-60,x=(1-e)*(1-e)*c.x0+2*(1-e)*e*mx+e*e*c.x1,y=(1-e)*(1-e)*c.y0+2*(1-e)*e*my+e*e*c.y1;
+    particles.push({x,y,vx:0,vy:0,life:.22,max:.22,color:'#9ff6ff',size:2.2+k*1.5,kind:'glow'});return true;
+  });
+  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,rocket,juice,death});
+  compactParticles(particles,particleCap());
   if(mode!=='playing')comboUntil=0;
   if(visualTime>toastUntil)setText('toast','');
 }
 function render(dt) {
-  visualTime+=dt;ctx.save();ctx.setTransform(ratio,0,0,ratio,0,0);
+  visualTime+=dt;updateJuice(juice,dt,visualTime);ctx.save();ctx.setTransform(ratio,0,0,ratio,0,0);
   if(shake>0&&!reduced){ctx.translate(Math.sin(visualTime*100)*shake,Math.cos(visualTime*87)*shake);shake=Math.max(0,shake-dt*25);}
   const phaseView=specialState(run);
   background(visualTime);phaseBackdrop(ctx,width,height,phaseView.kinds.length?phaseView.kinds:phaseView.kind,dt,reduced);blackHole(visualTime);
@@ -515,7 +573,7 @@ function render(dt) {
   if(mode==='intro'){run.radius=.83+Math.sin(visualTime*.7)*.025;}
   ship(visualTime);
   for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}
-  compactParticles(particles);ctx.globalAlpha=1;
+  compactParticles(particles,particleCap());ctx.globalAlpha=1;
   if(mode==='playing'&&run.heat>65){ctx.strokeStyle=`rgba(255,117,86,${(run.heat-65)/90})`;ctx.lineWidth=6;ctx.strokeRect(3,3,width-6,height-6);}
   ctx.restore();
   if (mode === 'playing' && visualTime < comboUntil) {
@@ -536,7 +594,7 @@ function frame(now) {
   setProp('profile-setting','hidden',mode!=='intro'||(!rankedConnected&&!casualAvailable));
   setProp('profile-share','disabled',profileBusy||connecting||!!presence);
   setText('profile-share',profileBusy?'Connecting profile…':presence?'Profile sharing enabled':'Show on Discord profile');
-  const elapsed=Math.max(0,(now-last)/1000);last=now;
+  const elapsed=Math.max(0,(now-last)/1000);last=now;frameMs=elapsed*1000;
   // A long scheduling stall must not silently kill the player or advance time.
   if(elapsed>.6&&mode==='playing')pause();
   const dt=Math.min(elapsed,.1);
@@ -545,14 +603,18 @@ function frame(now) {
   if(watching){
     const view=playback.sample(now);
     if(view){run=view.state;watchedInput=view.input;syncHUD();setText('watch-charge',`Phase Shift ${Math.floor(run.energy)}%`);}
+    if(watchAlive&&!run.alive){const p=point(run.radius);burst(p.x,p.y,'#ffa677',40,{speed:220,ring:150,smoke:5});shockwave(juice,p.x,p.y,1,visualTime);addTrauma(juice,.5);}
+    watchAlive=run.alive;
     if(now-lastWatchFrame>3000&&['playing','ready','paused'].includes(watchedStatus)){$('watch-status').textContent='Live view delayed · reconnecting…';watchedStatus='reconnecting';}
   }
+  if(revealPending&&mode==='dead'&&now>=revealAt)revealResults();
   if(mode==='playing') {
-    accumulator+=dt;
+    // During hitstop the simulation simply waits; recorded inputs stay per-tick.
+    if(juice.hitstop<=0)accumulator+=dt;
     while(accumulator>=DT&&mode==='playing') {
       const input={boost:boosting(),dash:dashQueued};
       if(replay.length>=ticket.maxTicks){
-        if(ticket.casual){finish();showOverlay('FLIGHT COMPLETE','Ten-minute flight complete.','Fly again');break;}
+        if(ticket.casual){finish(true);showOverlay('FLIGHT COMPLETE','Ten-minute flight complete.','Fly again');break;}
         abandonTicket(); mode='intro'; clearInput();
         showOverlay('FLIGHT LIMIT REACHED','This verified flight reached its replay limit and was not submitted. Start a new ranked flight.','Launch ranked run ↗');
         $('results').hidden=true;$('instructions').hidden=false;$('retry').hidden=true;$('leaderboard').hidden=false;$('back-title').hidden=false;
@@ -561,12 +623,24 @@ function frame(now) {
       replay.push((input.boost?1:0)|(input.dash?2:0));
       step(run,input);dashQueued=false;accumulator-=DT;
       for(const e of run.events){
-        if(e.type==='phase-start'){ $('phase-status').textContent=run.specials.map(p=>phaseNames[p.kind]).join(' + ');tone(420,.2,'triangle',.04,700); }
-        if(e.type==='storm-start'){message('60 SECONDS · INCOMING ASTEROID STORM',3.2);tone(260,.3,'triangle',.04,600);}
-        if(e.type==='incoming'&&!run.events.some(event=>event.type==='storm-start')){message('Incoming asteroid — watch the crossing path',1.4);tone(390,.12,'triangle',.025,260);}
-        if(e.type==='dash'){message('PHASE SHIFT · DEBRIS SHIELD',.8);tone(170,.25,'triangle',.06,1000);const p=point(run.radius);burst(p.x,p.y,'#b9a6ff',24);}
-        if(e.type==='shard'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#7df4ff',7);tone(650+run.shards%4*150,.07,'sine',.02);}
-        if(e.type==='near'){comboText=`+${e.combo} COMBO`;comboUntil=visualTime+1.3;tone(800,.1,'triangle',.03,1200);}
+        if(e.type==='phase-start'){
+          const names=run.specials.map(p=>phaseNames[p.kind]);$('phase-status').textContent=names.join(' + ');
+          showBanner(run.specials.length>1?'PHASES STACKING':'NEW PHASE',names.join(' + '),phaseCue(specialState(run)),run.specials.at(-1)?.kind??'orbit');
+          sound.play('phase');addTrauma(juice,.15);
+        }
+        if(e.type==='storm-start'){showBanner('60 SECONDS','ASTEROID STORM','Incoming crossings · watch the warning lines','asteroids');sound.play('storm');addTrauma(juice,.2);}
+        if(e.type==='incoming'&&!run.events.some(event=>event.type==='storm-start')){message('Incoming asteroid — watch the crossing path',1.4);sound.play('incoming');}
+        if(e.type==='dash'){
+          message('PHASE SHIFT · DEBRIS SHIELD',.8);sound.play('dash');const p=point(run.radius);
+          burst(p.x,p.y,'#b9a6ff',30,{speed:220,ring:140});shockwave(juice,p.x,p.y,.8,visualTime);
+          punch(juice,{flash:.3,color:[.66,.55,1],chroma:.9,speedLines:1,zoom:.03});addTrauma(juice,.2);haptic(25,!reduced);
+        }
+        if(e.type==='shard'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#7df4ff',12,{speed:120,sparks:.8,ring:46});collectToHud(p.x,p.y);sound.play('shard',{index:run.shards});}
+        if(e.type==='near'){
+          comboText=`+${e.combo} COMBO`;comboUntil=visualTime+1.3;sound.play('near',{combo:e.combo});
+          const p=point(run.radius);burst(p.x,p.y,'#9af3ff',10,{speed:180,sparks:1});
+          punch(juice,{zoom:.022+Math.min(e.combo,8)*.003,chroma:.5,hitstop:reduced?0:.045,speedLines:.7});addTrauma(juice,.12);haptic(12,!reduced);
+        }
         if(e.type==='death')finish();
       }
     }
@@ -575,15 +649,26 @@ function frame(now) {
   if(live&&ticket&&['ready','playing','paused','dead'].includes(mode)&&now-lastBroadcast>=100){
     lastBroadcast=now;live.snapshot(run,mode,boosting()?1:0);
   }
+  sound.update({music:watching||['preparing','ready','playing','dead'].includes(mode),active:mode==='playing'||(watching&&watchedStatus==='playing'),
+    intensity:clamp((run.multiplier-1)/4,0,1),heat:clamp(run.heat/100,0,1),depth:clamp((.95-run.radius)/.45,0,1),boost:mode==='playing'&&boosting()});
   if(usePixi)renderPixi(dt);else render(dt);
   if(!disposed)animationFrame=requestAnimationFrame(frame);
 }
 rocket.addEventListener('error',()=>{$('load-error').hidden=false;$('load-error').textContent='Character artwork could not load. The flight prototype still works with a simple marker.';});
 window.addEventListener('error',()=>{if(mode==='playing')pause();$('load-error').hidden=false;$('load-error').textContent='The activity encountered an error. Reload the page to try again.';});
 if(import.meta.env.PROD)patchUrlMappings([{prefix:'/api',target:'api.acosmibot.com/api'},{prefix:'/discord-cdn',target:'cdn.discordapp.com'}]);
+// Fonts are inlined as data URLs: no remote font fetch and no extra Activity asset path.
+async function loadFonts(){
+  try{
+    const faces=[[chakra600,'600'],[chakra700,'700']].map(([source,weight])=>new FontFace('Chakra Petch',`url(${source}) format("woff2")`,{weight,style:'normal',display:'swap'}));
+    for(const face of faces)document.fonts.add(face);
+    await Promise.race([Promise.all(faces.map(face=>face.load())),new Promise(resolve=>setTimeout(resolve,1500))]);
+  }catch{ /* system fonts remain a complete fallback */ }
+}
 async function bootRenderer(){
   let stage='loading';
   try{
+    await loadFonts();
     if(usePixi){
       const {createFlightRenderer}=await import('./pixi-renderer.mjs');
       stage='initializing';
@@ -592,11 +677,14 @@ async function bootRenderer(){
     if(disposed){gpu?.destroy();return;}
     stage='scene';
     resize();animationFrame=requestAnimationFrame(frame);void connectDiscord();
+    if(usePixi)setTimeout(()=>$('overlay').classList.add('live'),900);
   }catch(error){
     const messages={loading:'Game files could not load. Close and reopen the Activity. (EH-LOAD)',initializing:'The game renderer could not initialize. Close and reopen the Activity. (EH-RENDER)',scene:'The game scene could not start. Close and reopen the Activity. (EH-SCENE)'};
     $('load-error').hidden=false;$('load-error').textContent=messages[stage];
     $('launch').disabled=true;console.error('Event Horizon renderer initialization failed',error);
   }
 }
+// Local visual QA only; stripped from production builds.
+if(import.meta.env.DEV)window.__eventHorizonDev={fly(){casualAvailable=true;setConnectionState('casual');void start();},banner(){showBanner('NEW PHASE','GRAVITY TIDE','The hole surges · hold altitude','tide');},state:()=>({mode,score:run.score,heat:run.heat,frameMs,stats:gpu?.stats()})};
 window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(animationFrame);resizeObserver.disconnect();gpu?.destroy();});
 void bootRenderer();

@@ -279,6 +279,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    // Event Horizon's display font is inlined: the Activity gateway serves only JS/CSS/images.
+    assetsInlineLimit: (filePath: string) => (filePath.includes('@fontsource/chakra-petch') ? true : undefined),
     rollupOptions: {
       output: assetRevision ? {
         entryFileNames: `assets/test-${assetRevision}-[name]-[hash].js`,
