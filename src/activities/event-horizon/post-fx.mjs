@@ -110,12 +110,12 @@ void main(){
   finalColor=vec4(max(color,0.),1.);
 }`;
 
-// Pixi filters default to resolution 1 with antialiasing off. On a 2x/3x display
-// that renders the whole scene at 1x and upscales it, so every pass must inherit
-// the render target's density and antialiasing.
+// Pixi filters default to resolution 1. On a 2x/3x display that renders the whole
+// scene at 1x and upscales it, so every pass inherits the target's density.
+// Antialiasing stays off: multisampled filter targets cost 4x memory and rendered
+// black on iOS Discord. Shader meshes are drawn smoothly without it.
 function sharp(filter) {
   filter.resolution = 'inherit';
-  filter.antialias = 'inherit';
   return filter;
 }
 function uniforms(spec) {

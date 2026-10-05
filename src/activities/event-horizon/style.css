@@ -218,3 +218,15 @@ h1 span{filter:none}
 #best-badge.show{animation:badge-in .7s cubic-bezier(.2,1.6,.4,1) both}
 #standings li:first-child .placing{text-shadow:none}
 .banner-title{text-shadow:0 0 14px color-mix(in srgb,var(--accent) 45%,transparent),0 4px 18px #000}
+/* Master volume: a 44px touch row beside the sound toggle (lobby and pause). */
+.volume{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 12px;border:1px solid #5d7185;border-radius:12px;background:#0e1a2acc;font-size:11px;color:#d5e2ec;pointer-events:auto}
+.volume input{-webkit-appearance:none;appearance:none;width:120px;height:28px;background:transparent;cursor:pointer;touch-action:pan-x}
+.volume input::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:linear-gradient(90deg,#7ff1ff var(--fill,80%),#2a3b52 var(--fill,80%))}
+.volume input::-moz-range-track{height:5px;border-radius:3px;background:#2a3b52}
+.volume input::-moz-range-progress{height:5px;border-radius:3px;background:#7ff1ff}
+.volume input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6.5px;border-radius:50%;background:#e8fbff;border:2px solid #7ff1ff;box-shadow:0 2px 6px #000a}
+.volume input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#e8fbff;border:2px solid #7ff1ff}
+.volume input:focus-visible{outline:2px solid #a2f1ff;outline-offset:4px}
+.volume output{min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums;color:#a2f1ff}
+#game .volume input{user-select:auto;-webkit-user-select:auto}
+@media(max-width:600px){.volume input{width:96px}}
