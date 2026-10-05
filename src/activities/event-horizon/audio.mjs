@@ -4,7 +4,7 @@ const NOTES = [220, 261.63, 329.63, 392, 493.88, 523.25, 659.25];
 const ARP = [0, 2, 4, 2, 5, 4, 2, 1, 0, 2, 4, 6, 5, 4, 2, 4];
 
 export function createAudio() {
-  let ctx = null, master, musicBus, sfxBus, noise, music = null, boost = null, timer = 0, muted = false;
+  let ctx = null, master, musicBus, sfxBus, noise, music = null, boost = null, timer = 0, muted = false, volume = .8;
   let step = 0, nextNote = 0, state = { intensity: 0, heat: 0, depth: 0, boost: false, active: false };
 
   function ensure() {
@@ -15,7 +15,7 @@ export function createAudio() {
         ctx = new Context();
         const limiter = ctx.createDynamicsCompressor();
         limiter.threshold.value = -14; limiter.ratio.value = 6; limiter.attack.value = .004; limiter.release.value = .2;
-        master = ctx.createGain(); master.gain.value = .9; master.connect(limiter); limiter.connect(ctx.destination);
+        master = ctx.createGain(); master.gain.value = volume; master.connect(limiter); limiter.connect(ctx.destination);
         musicBus = ctx.createGain(); musicBus.gain.value = .55; musicBus.connect(master);
         sfxBus = ctx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
         noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
@@ -121,6 +121,11 @@ export function createAudio() {
   return {
     unlock() { ensure(); },
     get muted() { return muted; },
+    // Master volume 0..1; a short glide avoids zipper noise while dragging.
+    setVolume(value) {
+      volume = Math.max(0, Math.min(1, value));
+      if (master) glide(master.gain, volume, .04);
+    },
     setMuted(value) {
       muted = value;
       if (muted) { stopMusic(); if (boost) glide(boost.g.gain, 0, .05); }

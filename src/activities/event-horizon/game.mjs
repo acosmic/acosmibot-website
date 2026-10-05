@@ -424,6 +424,16 @@ $('back-title').addEventListener('click',()=>{
   renderPilots();
 });
 $('pause').addEventListener('click',pause);
+// Master volume is remembered per device; storage can be unavailable in webviews.
+function readVolume(){try{const v=Number(localStorage.getItem('eh-volume'));return Number.isFinite(v)&&localStorage.getItem('eh-volume')!==null?Math.max(0,Math.min(100,v)):80;}catch{return 80;}}
+function applyVolume(value,save=false){
+  setProp('volume','value',String(value));setText('volume-value',`${value}%`);setAttr('volume','aria-valuetext',`${value}%`);
+  $('volume').style.setProperty('--fill',`${value}%`);sound.setVolume(value/100);
+  if(save){try{localStorage.setItem('eh-volume',String(value));}catch{/* per-session only */}}
+}
+applyVolume(readVolume());
+$('volume').addEventListener('input',()=>applyVolume(Number($('volume').value),true));
+$('volume').addEventListener('change',()=>{if(!muted){sound.unlock();sound.play('click');}});
 $('sound').addEventListener('click',()=>{muted=!muted;sound.setMuted(muted);$('sound').textContent=muted?'Sound off':'Sound on';$('sound').setAttribute('aria-pressed',String(!muted));if(!muted){sound.unlock();sound.play('click');}});
 function updateEffects(){ $('effects').textContent=`Reduced effects ${reduced?'on':'off'}`; $('effects').setAttribute('aria-pressed',String(reduced)); $('game').classList.toggle('reduced-fx',reduced); resize(); }
 $('effects').addEventListener('click',()=>{reduced=!reduced;updateEffects();});

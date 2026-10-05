@@ -30,7 +30,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     autoDensity:false,background:0x050812,resolution:1});
   app.stage.eventMode='none';app.stage.interactiveChildren=false;
   const lens=createLensFilter(),post=createPostFilter(),bloom=createBloomFilter();
-  let quality=createQuality('high'),tier='high';
+  let quality=createQuality('high'),tier='high',probeFrames=0,blackFrames=0;
   let config,scene,hole,holeGlow,bg,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
   let phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
   let tex={},rocketTexture=null;
@@ -64,6 +64,20 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     trailPoints=[];ghostData=[];
   }
   // Quality tiers: high = bloom + post + lensing + disk; medium = no bloom; low = none.
+  // Startup watchdog: the scene always clears to a non-black navy, so a pure black
+  // frame means a GPU pass failed (seen on iOS webviews). Drop to the no-filter
+  // tier instead of showing an empty screen. Reads stop after ~2 seconds.
+  function probeBlackFrame(){
+    if(probeFrames>=120||scene?.tier==='low')return;
+    probeFrames++;
+    try{
+      const gl=app.renderer.gl,px=new Uint8Array(4),w=gl.drawingBufferWidth,h=gl.drawingBufferHeight;
+      let lit=false;
+      for(const [fx,fy] of [[.1,.1],[.5,.15],[.9,.5],[.2,.85],[.5,.95]]){gl.readPixels(Math.floor(w*fx),Math.floor(h*fy),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);if(px[0]|px[1]|px[2]){lit=true;break;}}
+      blackFrames=lit?0:blackFrames+1;
+      if(blackFrames>=20){tier='low';quality.tier='low';applyTier();console.warn('Event Horizon: black frames detected, effects disabled');}
+    }catch{probeFrames=120;}
+  }
   function applyTier(){
     if(!scene)return;
     const max=config.reduced?'medium':'high';
@@ -324,6 +338,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
         heat:flying&&run.heat>65?clamp((run.heat-65)/35,0,1)*.55:0,haze:0,waves});
     }
     app.render();
+    probeBlackFrame();
     // Drop artwork after it leaves the scene; no unbounded per-run texture cache.
     for(const [key,entry] of objectTextures)if(entry.used!==frame){objectTextures.delete(key);retire(entry.texture);}
     for(const [key,entry] of labels)if(frame-entry.used>600){labels.delete(key);retire(entry.texture);}
