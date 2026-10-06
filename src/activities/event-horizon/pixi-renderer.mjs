@@ -66,7 +66,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   // Quality tiers: high = bloom + post + lensing + disk; medium = no bloom; low = none.
   // Startup watchdog: the scene always clears to a non-black navy, so a pure black
   // frame means a GPU pass failed (seen on iOS webviews). Drop to the no-filter
-  // tier instead of showing an empty screen. Reads stop after ~2 seconds.
+  // tier instead of showing an empty screen. Reads stop after ~2 seconds and
+  // restart after resize/context recovery.
   function probeBlackFrame(){
     if(probeFrames>=120||scene?.tier==='low')return;
     probeFrames++;
@@ -90,7 +91,9 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     scene.tier=effective;
   }
   function resize(next){
-    if(destroyed)return;config=next;clearScene();
+    if(destroyed||next.width<1||next.height<1)return;
+    config=next;if(lost)return;
+    probeFrames=0;blackFrames=0;clearScene();
     const {width,height,ratio,camera,reduced,backdrop,stars}=config;
     app.renderer.resize(width,height,ratio);
     const screenArea=new Rectangle(0,0,width,height);
