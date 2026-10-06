@@ -198,7 +198,11 @@ function point(radius, angle = 0) {
   const g = geo(); return { x: g.cx + Math.sin(angle) * radius * g.r, y: g.cy - Math.cos(angle) * radius * g.r };
 }
 function resize() {
-  width = canvas.clientWidth; height = canvas.clientHeight;
+  const nextWidth=canvas.clientWidth,nextHeight=canvas.clientHeight;
+  // Discord may collapse the iframe while the Activity is minimized. Keep the
+  // last valid scene instead of allocating zero-sized filtered render targets.
+  if(disposed||document.hidden||nextWidth<1||nextHeight<1)return;
+  width = nextWidth; height = nextHeight;
   camera=flightCamera(width,height);holeCache=null;
   ratio = Math.min(devicePixelRatio || 1, reduced ? 1.25 : 2);
   if(!usePixi){canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);}
@@ -462,8 +466,9 @@ window.addEventListener('keydown',e=>{
 });
 window.addEventListener('keyup',e=>keys.delete(e.code));
 window.addEventListener('blur',pause);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
-window.addEventListener('pagehide',()=>abandonTicket());
+document.addEventListener('visibilitychange',()=>{if(document.hidden){pause();clearInput();}else{last=performance.now();resize();}});
+window.addEventListener('pagehide',event=>{if(event.persisted){pause();clearInput();}else abandonTicket();});
+window.addEventListener('pageshow',event=>{if(event.persisted){last=performance.now();resize();}});
 $('connection-retry').addEventListener('click',()=>{if(!profileBusy)void connectDiscord();});
 $('profile-share').addEventListener('click',async()=>{
   if(profileBusy||connecting||mode!=='intro'||presence||(!rankedConnected&&!casualAvailable))return;
@@ -606,6 +611,10 @@ function render(dt) {
   if(visualTime>toastUntil)setText('toast','');
 }
 function frame(now) {
+  if(disposed)return;
+  // Schedule first so a transient render error cannot permanently stop drawing.
+  animationFrame=requestAnimationFrame(frame);
+  if(document.hidden||canvas.clientWidth<1||canvas.clientHeight<1){pause();clearInput();last=now;return;}
   setProp('profile-setting','hidden',mode!=='intro'||(!rankedConnected&&!casualAvailable));
   setProp('profile-share','disabled',profileBusy||connecting||!!presence);
   setText('profile-share',profileBusy?'Connecting profile…':presence?'Profile sharing enabled':'Show on Discord profile');
@@ -666,7 +675,6 @@ function frame(now) {
   sound.update({music:watching||['preparing','ready','playing','dead'].includes(mode),active:mode==='playing'||(watching&&watchedStatus==='playing'),
     intensity:clamp((run.multiplier-1)/4,0,1),boost:mode==='playing'&&boosting()});
   if(usePixi)renderPixi(dt);else render(dt);
-  if(!disposed)animationFrame=requestAnimationFrame(frame);
 }
 rocket.addEventListener('error',()=>{$('load-error').hidden=false;$('load-error').textContent='Character artwork could not load. The flight prototype still works with a simple marker.';});
 window.addEventListener('error',()=>{if(mode==='playing')pause();$('load-error').hidden=false;$('load-error').textContent='The activity encountered an error. Reload the page to try again.';});
@@ -700,5 +708,5 @@ async function bootRenderer(){
 }
 // Local visual QA only; stripped from production builds.
 if(import.meta.env.DEV)window.__eventHorizonDev={fly(){casualAvailable=true;setConnectionState('casual');void start();},banner(){showBanner('NEW PHASE','GRAVITY TIDE','The hole surges · hold altitude','tide');},state:()=>({mode,score:run.score,heat:run.heat,frameMs,stats:gpu?.stats()})};
-window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(animationFrame);resizeObserver.disconnect();gpu?.destroy();});
+window.addEventListener('pagehide',event=>{if(event.persisted)return;disposed=true;cancelAnimationFrame(animationFrame);resizeObserver.disconnect();gpu?.destroy();});
 void bootRenderer();
