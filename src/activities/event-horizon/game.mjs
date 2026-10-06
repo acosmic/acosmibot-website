@@ -558,8 +558,8 @@ function ship(t) {
   if(mode==='playing'&&run.time<8){ctx.fillStyle='#d6faff';ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillText('YOU',p.x,p.y-size*.55);}
 }
 function renderPixi(rawDt){
-  // Hitstop nearly freezes the picture; death plays in slow motion. Sim time is separate.
-  const dt=rawDt*(juice.hitstop>0?.08:juice.timeScale);
+  // Death plays in slow motion. Sim time is separate.
+  const dt=rawDt*juice.timeScale;
   visualTime+=dt;updateJuice(juice,rawDt,visualTime);
   if(shake>0&&!reduced)shake=Math.max(0,shake-dt*25);
   if(mode==='intro')run.radius=.83+Math.sin(visualTime*.7)*.025;
@@ -624,8 +624,7 @@ function frame(now) {
   }
   if(revealPending&&mode==='dead'&&now>=revealAt)revealResults();
   if(mode==='playing') {
-    // During hitstop the simulation simply waits; recorded inputs stay per-tick.
-    if(juice.hitstop<=0)accumulator+=dt;
+    accumulator+=dt;
     while(accumulator>=DT&&mode==='playing') {
       const input={boost:boosting(),dash:dashQueued};
       if(replay.length>=ticket.maxTicks){
@@ -654,7 +653,7 @@ function frame(now) {
         if(e.type==='near'){
           comboText=`+${e.combo} COMBO`;comboUntil=visualTime+1.3;sound.play('near',{combo:e.combo});
           const p=point(run.radius);burst(p.x,p.y,'#9af3ff',10,{speed:180,sparks:1});
-          punch(juice,{zoom:.022+Math.min(e.combo,8)*.003,chroma:.5,hitstop:reduced?0:.045,speedLines:.7});addTrauma(juice,.12);haptic(12,!reduced);
+          punch(juice,{chroma:.5,speedLines:.7});haptic(12,!reduced);
         }
         if(e.type==='death')finish();
       }
@@ -665,7 +664,7 @@ function frame(now) {
     lastBroadcast=now;live.snapshot(run,mode,boosting()?1:0);
   }
   sound.update({music:watching||['preparing','ready','playing','dead'].includes(mode),active:mode==='playing'||(watching&&watchedStatus==='playing'),
-    intensity:clamp((run.multiplier-1)/4,0,1),heat:clamp(run.heat/100,0,1),depth:clamp((.95-run.radius)/.45,0,1),boost:mode==='playing'&&boosting()});
+    intensity:clamp((run.multiplier-1)/4,0,1),boost:mode==='playing'&&boosting()});
   if(usePixi)renderPixi(dt);else render(dt);
   if(!disposed)animationFrame=requestAnimationFrame(frame);
 }

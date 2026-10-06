@@ -5,7 +5,7 @@ const ARP = [0, 2, 4, 2, 5, 4, 2, 1, 0, 2, 4, 6, 5, 4, 2, 4];
 
 export function createAudio() {
   let ctx = null, master, musicBus, sfxBus, noise, music = null, boost = null, timer = 0, muted = false, volume = .8;
-  let step = 0, nextNote = 0, state = { intensity: 0, heat: 0, depth: 0, boost: false, active: false };
+  let step = 0, nextNote = 0, state = { intensity: 0, boost: false, active: false };
 
   function ensure() {
     if (muted) return null;
@@ -50,22 +50,17 @@ export function createAudio() {
 
   function startMusic() {
     if (music || !ensure()) return;
-    const drone = ctx.createGain(), pad = ctx.createGain(), arp = ctx.createGain(), hats = ctx.createGain();
-    for (const g of [drone, pad, arp, hats]) { g.gain.value = 0; g.connect(musicBus); }
-    const droneFilter = ctx.createBiquadFilter(); droneFilter.type = 'lowpass'; droneFilter.frequency.value = 180; droneFilter.Q.value = 4; droneFilter.connect(drone);
+    const pulse = ctx.createGain(), pad = ctx.createGain(), arp = ctx.createGain(), hats = ctx.createGain();
+    for (const g of [pulse, pad, arp, hats]) { g.gain.value = 0; g.connect(musicBus); }
+    // Keep the short rhythmic pulse without a continuous proximity drone.
+    pulse.gain.value = .16;
     const oscillators = [];
-    for (const [freq, type, detune] of [[55, 'sawtooth', -7], [55, 'sawtooth', 8], [27.5, 'sine', 0], [82.4, 'triangle', 3]]) {
-      const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq; o.detune.value = detune; o.connect(droneFilter); o.start(); oscillators.push(o);
-    }
-    const lfo = ctx.createOscillator(), lfoGain = ctx.createGain(); lfo.frequency.value = .07; lfoGain.gain.value = 60;
-    lfo.connect(lfoGain); lfoGain.connect(droneFilter.frequency); lfo.start(); oscillators.push(lfo);
     const padFilter = ctx.createBiquadFilter(); padFilter.type = 'lowpass'; padFilter.frequency.value = 900; padFilter.connect(pad);
     for (const freq of [110, 164.81, 220, 261.63, 329.63]) for (const detune of [-6, 6]) {
       const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = freq; o.detune.value = detune; o.connect(padFilter); o.start(); oscillators.push(o);
     }
     const arpFilter = ctx.createBiquadFilter(); arpFilter.type = 'lowpass'; arpFilter.frequency.value = 2400; arpFilter.Q.value = 3; arpFilter.connect(arp);
-    music = { drone, pad, arp, hats, droneFilter, padFilter, arpFilter, oscillators };
-    glide(drone.gain, .22, 1.2);
+    music = { pulse, pad, arp, hats, padFilter, arpFilter, oscillators };
     step = 0; nextNote = now() + .1;
     timer = setInterval(schedule, 50);
   }
@@ -83,14 +78,14 @@ export function createAudio() {
         voice({ type: 'square', freq: note, duration: sixteenth * 1.6, gain: .05, bus: music.arpFilter, when });
       }
       if (state.active && state.intensity > .55 && step % 2 === 0) hiss({ duration: .05, gain: step % 4 === 2 ? .05 : .025, type: 'highpass', freq: 7000, bus: music.hats, when });
-      if (state.active && step % 16 === 0) voice({ type: 'sine', freq: 70, end: 38, duration: .35, gain: .16 * Math.min(1, state.intensity * 1.6), bus: music.drone, when });
+      if (state.active && step % 16 === 0) voice({ type: 'sine', freq: 70, end: 38, duration: .35, gain: .16 * Math.min(1, state.intensity * 1.6), bus: music.pulse, when });
       nextNote += sixteenth; step++;
     }
   }
   function stopMusic() {
     if (!music) return;
     const m = music; music = null; clearInterval(timer);
-    for (const g of [m.drone, m.pad, m.arp, m.hats]) glide(g.gain, 0, .3);
+    for (const g of [m.pulse, m.pad, m.arp, m.hats]) glide(g.gain, 0, .3);
     setTimeout(() => { for (const o of m.oscillators) { try { o.stop(); } catch { /* already stopped */ } } }, 1500);
   }
   function boostLoop(on) {
@@ -139,8 +134,6 @@ export function createAudio() {
       if (music && !next.music) stopMusic();
       if (music) {
         const i = next.intensity;
-        glide(music.drone.gain, next.active ? .16 + next.depth * .18 : .12, .4);
-        glide(music.droneFilter.frequency, 140 + next.depth * 700 + next.heat * 500, .3);
         glide(music.pad.gain, next.active ? .03 + i * .05 : .045, .8);
         glide(music.padFilter.frequency, 500 + i * 2200, .6);
         glide(music.arp.gain, next.active && i > .2 ? .35 + i * .4 : 0, .3);

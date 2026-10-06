@@ -20,12 +20,12 @@ test('reduced effects never shake', () => {
   assert.deepEqual(shakeOffset(j, 2, true), { x: 0, y: 0, rotation: 0 });
 });
 
-test('punch keeps the strongest impulse and hitstop expires', () => {
+test('punch keeps the strongest impulse and decays', () => {
   const j = createJuice();
-  punch(j, { zoom: .03, hitstop: .05 }); punch(j, { zoom: .01, hitstop: .02 });
-  assert.equal(j.zoom, .03); assert.equal(j.hitstop, .05);
+  punch(j, { zoom: .03 }); punch(j, { zoom: .01 });
+  assert.equal(j.zoom, .03);
   updateJuice(j, .06, 0);
-  assert.equal(j.hitstop, 0);
+  assert.ok(j.zoom > 0 && j.zoom < .03);
 });
 
 test('only the two newest shockwaves are kept and old waves expire', () => {
