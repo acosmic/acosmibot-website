@@ -3,7 +3,7 @@
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
 export function createJuice(){
-  return {trauma:0,zoom:0,flash:0,flashColor:[1,1,1],chroma:0,hitstop:0,
+  return {trauma:0,zoom:0,flash:0,flashColor:[1,1,1],chroma:0,
     kickX:0,kickY:0,waves:[],speedLines:0,timeScale:1,slowUntil:0};
 }
 
@@ -13,9 +13,9 @@ export function addTrauma(j,amount,dirX=0,dirY=0){
   const length=Math.hypot(dirX,dirY);
   if(length>0){j.kickX+=dirX/length*amount*14;j.kickY+=dirY/length*amount*14;}
 }
-export function punch(j,{zoom=0,flash=0,color=null,chroma=0,hitstop=0,speedLines=0}={}){
+export function punch(j,{zoom=0,flash=0,color=null,chroma=0,speedLines=0}={}){
   j.zoom=Math.max(j.zoom,zoom);j.chroma=Math.max(j.chroma,chroma);
-  j.hitstop=Math.max(j.hitstop,hitstop);j.speedLines=Math.max(j.speedLines,speedLines);
+  j.speedLines=Math.max(j.speedLines,speedLines);
   if(flash>j.flash){j.flash=flash;if(color)j.flashColor=color;}
 }
 // Two shockwave slots are rendered by the post-process pass; the oldest is replaced.
@@ -29,7 +29,6 @@ export function updateJuice(j,dt,t){
   j.zoom*=Math.exp(-dt*9);j.chroma*=Math.exp(-dt*6);
   j.flash*=Math.exp(-dt*7);j.speedLines*=Math.exp(-dt*5);
   j.kickX*=Math.exp(-dt*12);j.kickY*=Math.exp(-dt*12);
-  j.hitstop=Math.max(0,j.hitstop-dt);
   j.timeScale=t<j.slowUntil?.3:Math.min(1,j.timeScale+dt*2.5);
   j.waves=j.waves.filter(w=>t-w.t0<1.4);
 }
