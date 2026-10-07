@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Bot, CircleAlert, Clock3, Cpu, Expand, FileJson2, Globe2, Pause, Play, RefreshCw, ScrollText, TerminalSquare, X } from 'lucide-react';
 import { adminApi, type AdminAiTraceDetail, type AdminAiTraceSpan } from '@/api/admin';
+import { getLiveActivityPrompt } from '@/utils/liveActivityPrompt';
 
 type Category = 'command' | 'ai' | 'website';
 type Outcome = 'running' | 'success' | 'error' | 'blocked' | 'cancelled';
@@ -119,6 +120,7 @@ export const LiveActivityTab: React.FC = () => {
   const [buffered, setBuffered] = useState<LiveEvent[]>([]);
   const [selected, setSelected] = useState<LiveEvent | null>(null);
   const [traceDetail, setTraceDetail] = useState<AdminAiTraceDetail | null>(null);
+  const userPrompt = useMemo(() => getLiveActivityPrompt(traceDetail?.content || []), [traceDetail]);
   const [runtimeLogs, setRuntimeLogs] = useState<RuntimeLogEntry[]>([]);
   const [diagnosticsLoading, setDiagnosticsLoading] = useState(false);
   const [traceError, setTraceError] = useState<string | null>(null);
@@ -218,6 +220,7 @@ export const LiveActivityTab: React.FC = () => {
         credentials: 'include', signal: controller.signal,
       });
       const detailBody = detailResponse.ok ? await detailResponse.json() : null;
+      if (controller.signal.aborted) return;
       const event = (detailBody?.event || selectedRef.current) as LiveEvent;
       if (!event) return;
       if (detailBody?.event) {
@@ -248,6 +251,7 @@ export const LiveActivityTab: React.FC = () => {
       });
 
       const [traceResult, logsResult] = await Promise.allSettled([tracePromise, logsPromise]);
+      if (controller.signal.aborted) return;
       if (traceResult.status === 'fulfilled') setTraceDetail(traceResult.value);
       else setTraceError(traceResult.reason instanceof Error ? traceResult.reason.message : 'Trace detail unavailable');
       if (logsResult.status === 'fulfilled') {
@@ -262,6 +266,7 @@ export const LiveActivityTab: React.FC = () => {
 
     void loadDiagnostics()
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!(reason instanceof DOMException && reason.name === 'AbortError')) {
           setLogsError(reason instanceof Error ? reason.message : 'Diagnostics unavailable');
         }
@@ -421,6 +426,21 @@ export const LiveActivityTab: React.FC = () => {
           </dl>
 
           {diagnosticsLoading && <div className="live-detail__loading" role="status"><Activity /> Loading trace and runtime records…</div>}
+
+          {selected.category === 'ai' && <section className="live-diagnostics live-user-message" aria-labelledby="live-user-message-title">
+            <h4 id="live-user-message-title">User message</h4>
+            {userPrompt ? <>
+              <p className="live-user-message__text">{userPrompt.text}</p>
+              <p className="live-user-message__note">
+                {userPrompt.source === 'original' ? 'Original captured message' : 'User message sent to the model; may include added context'}
+                {userPrompt.truncated ? ' · Stored attachment was truncated' : ''}
+              </p>
+            </> : <p className="live-user-message__note" role={diagnosticsLoading ? 'status' : undefined}>
+              {diagnosticsLoading ? 'Loading user message…' : traceError || traceDetail?.content_error
+                ? 'Could not load the user message. Refresh diagnostics to retry.'
+                : 'No user message is available in the saved trace. It may not have been captured or its retention window may have expired.'}
+            </p>}
+          </section>}
 
           <section className="live-diagnostics">
             <div className="live-diagnostics__heading">

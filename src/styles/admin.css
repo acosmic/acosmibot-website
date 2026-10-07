@@ -2684,3 +2684,8 @@
 @media (prefers-reduced-motion: reduce) {
   .live-event, .live-detail, .live-event.is-running .live-event__pulse { animation: none; }
 }
+
+/* Readable owner-only prompt, ahead of raw trace diagnostics. */
+.live-user-message h4 { margin: 0 0 12px; color: #f4fbff; font-size: 16px; }
+.live-user-message__text { margin: 0; padding: 16px; border-radius: 8px; background: #08111a; color: #f4fbff; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.live-user-message__note { margin: 8px 0 0; color: #a9bac7; font-size: 13px; line-height: 1.6; }
