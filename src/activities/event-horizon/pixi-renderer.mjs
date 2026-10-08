@@ -1,3 +1,5 @@
+import {darkn1deView,darkShapes,bossCaption} from './darkn1de-fx.mjs';
+import {isInverted,resonanceReady} from './sim.mjs';
 import { debrisOpacity, tideStrength } from './tide-fx.mjs';
 import {createHeatMesh} from './pixi-heat.mjs';
 import { Application, CanvasSource, Container, Graphics, ImageSource, Rectangle, Sprite, Texture } from 'pixi.js';
@@ -32,7 +34,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   const lens=createLensFilter(),post=createPostFilter(),bloom=createBloomFilter();
   let quality=createQuality('high'),tier='high',probeFrames=0,blackFrames=0;
   let config,scene,hole,holeGlow,bg,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
-  let phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
+  let darkSprite,darkGraphics,darkLabels,phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
   let tex={},rocketTexture=null;
   let textures=[],objectTextures=new Map(),labels=new Map(),sourceImages=new WeakMap();
   let tint=[...palettes.orbit],frame=0,lost=false,destroyed=false;
@@ -127,6 +129,9 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     holeGlow=new Container();world.addChild(holeGlow);
     hole=createHoleScene({width,height,ratio,camera,reduced});holeGlow.addChild(hole.stage);
     beamGlow=sprite(tex.ring,world);beamGlow.anchor.set(.5);beamGlow.blendMode='add';beamGlow.tint=0xffd98f;beamGlow.position.set(camera.cx,camera.cy);beamGlow.visible=false;
+    darkSprite=sprite(Texture.EMPTY,world);darkSprite.anchor.set(.5);darkSprite.visible=false;
+    darkGraphics=new Graphics();world.addChild(darkGraphics);
+    darkLabels=new Container();ui.addChild(darkLabels);for(let i=0;i<2;i++)sprite(Texture.EMPTY,darkLabels);
     scene.objects=new Container();world.addChild(scene.objects);
     phaseGraphics=new Graphics();world.addChild(phaseGraphics);
     trail=new Graphics();trail.blendMode='add';world.addChild(trail);
@@ -192,10 +197,10 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     }
     const pad=Math.ceil(rr*3+60);
     art.texture=objectTexture(`${o.type}:${o.size}:${o.shape}`,pad,c=>drawObjectArt(c,o,rr,config.reduced));art.rotation=o.spin;
-    const rock=o.type!=='shard'&&o.type!=='plasma';
+    const rock=o.type!=='shard'&&o.type!=='resonance'&&o.type!=='plasma';
     rim.visible=rock;aura.visible=!rock;
     if(rock){rim.texture=objectTexture(`rim:${rr}`,Math.ceil(rr*2.6+8),c=>drawRim(c,rr));rim.rotation=Math.atan2(g.cy-y,g.cx-x);rim.alpha=.55;}
-    else if(o.type==='shard'){aura.texture=tex.star;aura.tint=0xa6f7ff;const s=rr*3.2*(reduced?1:.85+.25*Math.sin(t*6+o.shape*10));aura.width=aura.height=s;aura.rotation=reduced?0:t*.8;aura.alpha=.35;}
+    else if(o.type==='shard'||o.type==='resonance'){aura.texture=tex.star;aura.tint=0xa6f7ff;const s=rr*3.2*(reduced?1:.85+.25*Math.sin(t*6+o.shape*10));aura.width=aura.height=s;aura.rotation=reduced?0:t*.8;aura.alpha=.35;}
     else{aura.texture=tex.glow;aura.tint=0xff4f7d;const s=rr*2.6*(reduced?1:1+.1*Math.sin(t*5+o.shape));aura.width=aura.height=s;aura.alpha=.28;}
     if(streak.visible){
       const length=reduced?rr*3:rr*7,key=`trail:${rr}:${length}`;let entry=objectTextures.get(key);
@@ -271,7 +276,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     }
     for(let i=particles.length;i<particlePool.length;i++)particlePool[i].visible=false;
   }
-  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,rocket,juice,death}){
+  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,rocket,darkImages,juice,death}){
     if(lost||destroyed||!scene)return;frame++;
     const {camera:g,width,height,reduced}=config;
     const nextTier=sampleQuality(quality,frameMs);if(nextTier!==tier){tier=nextTier;applyTier();}
@@ -288,6 +293,21 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     const pivotX=dive>.01||mode==='intro'?g.cx:x,pivotY=dive>.01||mode==='intro'?g.cy:y;
     for(const layer of [world,ui]){layer.pivot.set(pivotX,pivotY);layer.position.set(pivotX+offset.x,pivotY+offset.y);layer.scale.set(scale);layer.rotation=offset.rotation;}
     hole.render(t,run);
+    const dark=darkn1deView(run,reduced),image=darkImages?.[dark.asset];
+    darkSprite.visible=mode!=='intro'&&dark.alpha>0&&!!image?.naturalWidth;
+    if(darkSprite.visible){
+      let texture=sourceImages.get(image);if(!texture){texture=new Texture({source:new ImageSource({resource:image})});textures.push(texture);sourceImages.set(image,texture);}
+      darkSprite.texture=texture;darkSprite.height=g.r*.65*dark.scale;darkSprite.width=darkSprite.height*image.naturalWidth/image.naturalHeight;
+      darkSprite.position.set(g.cx,g.cy+g.r*(dark.y-.035));darkSprite.alpha=dark.alpha;darkSprite.rotation=dark.rotation;
+    }
+    darkGraphics.clear();darkGraphics.position.set(g.cx,g.cy);darkGraphics.visible=darkLabels.visible=mode!=='intro';
+    for(const shape of darkShapes(run,dark)){
+      darkGraphics.beginPath();
+      if(shape.circle!==undefined)darkGraphics.circle(0,0,shape.circle*g.r);
+      else for(let i=0;i<shape.points.length;i+=2){if(i)darkGraphics.lineTo(shape.points[i]*g.r,shape.points[i+1]*g.r);else darkGraphics.moveTo(shape.points[i]*g.r,shape.points[i+1]*g.r);}
+      darkGraphics.stroke({color:shape.color,alpha:shape.alpha,width:Math.max(.7,shape.width*g.r)});
+    }
+    bossCaption(run).forEach((line,i)=>text(darkLabels.children[i],line,`700 ${Math.max(10,g.r*.034)}px ${FONT}`,i?'#8afff5':'#dceff5',g.cx,g.cy+g.r*(.32+i*.05),g.r*.85));
     let index=0;if(mode!=='intro'){for(const o of run.objects)drawObject(o,index++,t);for(const o of run.crossers)drawObject(o,index++,t);}
     for(let i=index;i<objectPool.length;i++)objectPool[i].node.visible=false;
     drawPhase(run,phase,mode!=='intro',t);phaseGraphics.visible=mode!=='intro';
@@ -303,9 +323,9 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     ship.position.set(x,y);
     ship.rotation=0;ship.scale.set(1);ship.alpha=1;
     const pulse=reduced?0:(1+Math.sin(t*Math.PI*1.2))/2;
-    ready.visible=!spaghetti&&run.energy>=100&&run.phase<=0;ready.scale.set(reduced?1:(.59+pulse*.025)/.615);ready.alpha=.8+pulse*.2;
+    ready.visible=!spaghetti&&(run.energy>=100||resonanceReady(run))&&run.phase<=0;ready.scale.set(reduced?1:(.59+pulse*.025)/.615);ready.alpha=.8+pulse*.2;
     warning.visible=!spaghetti&&run.heat>=65;shield.visible=!spaghetti&&run.phase>0;
-    text(warning.children[1],'BOOST TO COOL',`700 10px ${FONT}`,'#ffcca7',0,size*.78+7);
+    text(warning.children[1],isInverted(run)?'RELEASE TO COOL':'BOOST TO COOL',`700 10px ${FONT}`,'#ffcca7',0,size*.78+7);
     text(you,'YOU',`700 11px ${FONT}`,'#d6faff',0,0);
     const tremble=rocketTremble(run.multiplier,run.time,reduced);shipTurn.position.set(tremble.x,tremble.y);shipTurn.rotation=Math.PI*.23-run.velocity*.6+tremble.angle;
     if(spaghetti){const e=easeInCubic(deathProgress);ship.rotation=Math.PI/2;shipTurn.rotation+=e*6;ship.scale.set(1+e*2.6,1-e*.8);ship.alpha=1-e;}
