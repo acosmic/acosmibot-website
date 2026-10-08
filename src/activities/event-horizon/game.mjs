@@ -1,4 +1,4 @@
-import {drawDarkn1de} from './darkn1de-fx.mjs';
+import {drawDarkn1de,createDarkCues,POSE_NAMES} from './darkn1de-fx.mjs';
 import { createRun, step, DT, clamp, specialState, thrustActive, isInverted, resonanceReady } from './sim.mjs';
 import { createPhaseBackdrop, drawSpecial, phaseNames } from './phases-fx.mjs';
 import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
@@ -33,7 +33,10 @@ const usePixi=import.meta.env.VITE_EVENT_HORIZON_RENDERER!=='canvas';
 const ctx = (usePixi?document.createElement('canvas'):canvas).getContext('2d');
 let gpu=null,animationFrame=0,disposed=false;
 const phaseBackdrop = createPhaseBackdrop();
-const darkImages=Object.fromEntries(['arrival','inversion','apparition'].map(name=>{const image=new Image();image.src=`/activities/event-horizon/assets/darkn1de-${name}.png`;return [name,image];}));
+const darkImages=Object.fromEntries(POSE_NAMES.map(name=>{const image=new Image();image.src=`/activities/event-horizon/assets/darkn1de-${name}.webp`;return [name,image];}));
+const darkCues=createDarkCues();
+const DARK_SOUNDS={omen:'omen',lead:'darkLead',arrival:'darkArrival',ignite:'darkIgnite',breach:'darkBreach',defeat:'darkDefeat','claw-warn':'clawWarn','claw-fire':'clawFire','spear-warn':'spearWarn','spear-fire':'spearFire'};
+const DARK_HAPTICS={arrival:[90,50,140],ignite:[40,30,80],defeat:[60,40,60,40,160]};
 const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocket-grip.png';
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
 let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = false;
@@ -635,6 +638,8 @@ function frame(now) {
     if(now-lastWatchFrame>3000&&['playing','ready','paused'].includes(watchedStatus)){$('watch-status').textContent='Live view delayed · reconnecting…';watchedStatus='reconnecting';}
   }
   if(revealPending&&mode==='dead'&&now>=revealAt)revealResults();
+  // Darkn1de's sound follows the run itself, so spectators hear what the pilot hears.
+  if(mode!=='intro'){const played=new Set();for(const [cue,index] of darkCues(run)){if(played.has(cue))continue;played.add(cue);sound.play(DARK_SOUNDS[cue],{index});if(DARK_HAPTICS[cue]&&!watching)haptic(DARK_HAPTICS[cue],!reduced);}}
   if(mode==='playing') {
     accumulator+=dt;
     while(accumulator>=DT&&mode==='playing') {
@@ -658,7 +663,7 @@ function frame(now) {
         if(e.type==='incoming'&&!run.events.some(event=>event.type==='storm-start')){message('Incoming asteroid — watch the crossing path',1.4);sound.play('incoming');}
         if(e.type==='dark-arrival'){$('phase-status').textContent='Darkn1de · controls inverted';}
         if(e.type==='breach-start'){$('phase-status').textContent='Breachstorm · collect 10 Resonance Shards';message('Controls restored · collect 10 Resonance Shards',3);}
-        if(e.type==='resonance'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#8afff5',20,{speed:150,ring:70});sound.play('shard',{index:run.resonance});if(resonanceReady(run))message('RESONANCE PULSE READY · PHASE SHIFT',3);}
+        if(e.type==='resonance'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#8afff5',20,{speed:150,ring:70});sound.play('shard',{index:run.resonance});sound.play('darkHit');haptic(18,!reduced);if(resonanceReady(run))message('RESONANCE PULSE READY · PHASE SHIFT',3);}
         if(e.type==='resonance-pulse'){
           $('phase-status').textContent='Darkn1de disrupted';message('RESONANCE PULSE · BREACH SEALED',2.5);sound.play('dash');
           const p=point(run.radius);burst(p.x,p.y,'#8afff5',55,{speed:270,ring:280});shockwave(juice,p.x,p.y,1.4,visualTime);

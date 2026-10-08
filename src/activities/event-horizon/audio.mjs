@@ -111,6 +111,18 @@ export function createAudio() {
     death() { hiss({ duration: 1.4, gain: .22, type: 'lowpass', freq: 3000, end: 80, q: .7 }); voice({ type: 'sine', freq: 120, end: 28, duration: 1.2, gain: .2 }); voice({ type: 'sawtooth', freq: 300, end: 40, duration: .7, gain: .05, filter: { type: 'lowpass', freq: 1200 } }); },
     best() { [0, 2, 4, 5].forEach((n, i) => voice({ type: 'triangle', freq: NOTES[n] * 2, duration: .5, gain: .05, when: i * .09 })); voice({ type: 'sine', freq: NOTES[4] * 4, duration: 1, gain: .03, when: .36 }); },
     click() { voice({ type: 'sine', freq: 550, duration: .08, gain: .03 }); },
+    // Darkn1de. One-shots only: no sustained drone under the flight.
+    omen({ index = 0 } = {}) { voice({ type: 'sine', freq: 55, end: 49, duration: 2.2, gain: .07, attack: .6 }); hiss({ duration: 1.8, gain: .022, freq: 700, end: 300, q: 6 }); if (index >= 2) voice({ type: 'triangle', freq: 311, end: 293, duration: 1.6, gain: .012, attack: .5 }); },
+    darkLead() { voice({ type: 'sawtooth', freq: 36, end: 74, duration: 1.5, gain: .1, attack: 1.25, filter: { type: 'lowpass', freq: 320 } }); voice({ type: 'sine', freq: 880, end: 932, duration: 1.5, gain: .012, attack: 1.3 }); },
+    darkArrival() { voice({ type: 'sine', freq: 92, end: 24, duration: 1.6, gain: .3 }); for (const freq of [110, 116.5]) voice({ type: 'sawtooth', freq, end: freq / 2, duration: 1.2, gain: .08, filter: { type: 'lowpass', freq: 700 } }); hiss({ duration: 1.3, gain: .22, type: 'lowpass', freq: 4000, end: 120, q: .7 }); },
+    darkIgnite() { voice({ type: 'sawtooth', freq: 55, end: 220, duration: .5, gain: .08, filter: { type: 'lowpass', freq: 1800 } }); for (const freq of [233.08, 277.18, 329.63]) voice({ type: 'triangle', freq, end: freq * .97, duration: 1.5, gain: .035 }); hiss({ duration: .25, gain: .06, type: 'highpass', freq: 6000 }); },
+    darkBreach() { voice({ type: 'square', freq: 185, end: 92, duration: .5, gain: .045, filter: { type: 'lowpass', freq: 1500 } }); hiss({ duration: .5, gain: .07, freq: 1800, end: 500, q: 1.5 }); },
+    clawWarn() { hiss({ duration: .5, gain: .03, freq: 2500, end: 5200, q: 4 }); },
+    clawFire() { hiss({ duration: .35, gain: .1, freq: 5000, end: 700, q: 2 }); voice({ type: 'sawtooth', freq: 420, end: 90, duration: .3, gain: .04, filter: { type: 'lowpass', freq: 2000 } }); },
+    spearWarn() { voice({ type: 'sine', freq: 220, end: 880, duration: 1.2, gain: .03, attack: 1 }); },
+    spearFire() { voice({ type: 'sawtooth', freq: 900, end: 80, duration: .35, gain: .06, filter: { type: 'lowpass', freq: 3000 } }); hiss({ duration: .3, gain: .08, freq: 3500, end: 900, q: 1.5 }); },
+    darkHit() { voice({ type: 'sawtooth', freq: 140, end: 60, duration: .35, gain: .06, filter: { type: 'lowpass', freq: 900 } }); hiss({ duration: .2, gain: .05, freq: 4200, end: 1800, q: 2 }); },
+    darkDefeat() { voice({ type: 'sine', freq: 60, end: 25, duration: 1.8, gain: .28 }); voice({ type: 'sine', freq: 1760, end: 880, duration: .6, gain: .04 }); hiss({ duration: .8, gain: .12, type: 'highpass', freq: 3000 }); voice({ type: 'sawtooth', freq: 600, end: 40, duration: 2, gain: .06, when: .9, filter: { type: 'lowpass', freq: 1600 } }); },
   };
 
   return {

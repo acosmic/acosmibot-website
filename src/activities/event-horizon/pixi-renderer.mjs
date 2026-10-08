@@ -1,4 +1,5 @@
-import {darkn1deView,darkShapes,bossCaption} from './darkn1de-fx.mjs';
+import {darkn1deView,createDarkMemory,trackDark} from './darkn1de-fx.mjs';
+import {createDarkScene} from './pixi-darkn1de.mjs';
 import {isInverted,resonanceReady} from './sim.mjs';
 import { debrisOpacity, tideStrength } from './tide-fx.mjs';
 import {createHeatMesh} from './pixi-heat.mjs';
@@ -12,7 +13,7 @@ import { createBloomFilter, createLensFilter, createPostFilter } from './post-fx
 import { createFlameMesh } from './pixi-shaders.mjs';
 import { drawChevron, drawCone, drawGalaxy, drawGlow, drawNebula, drawReticle, drawRim, drawRing, drawSpark, drawSpeedLines, drawStar, seeded } from './vfx-art.mjs';
 import { createQuality, easeInCubic, easeOutCubic, popScale, sampleQuality, shakeOffset, TIERS } from './juice.mjs';
-const palettes={orbit:[9,25,48],asteroids:[85,40,20],convoy:[49,40,74],tide:[12,65,65],pulsar:[30,24,61]};
+const palettes={inversion:[70,10,22],breachstorm:[62,8,30],orbit:[9,25,48],asteroids:[85,40,20],convoy:[49,40,74],tide:[12,65,65],pulsar:[30,24,61]};
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const TAU=Math.PI*2;
 export const FONT='"Chakra Petch", system-ui, sans-serif';
@@ -34,10 +35,11 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   const lens=createLensFilter(),post=createPostFilter(),bloom=createBloomFilter();
   let quality=createQuality('high'),tier='high',probeFrames=0,blackFrames=0;
   let config,scene,hole,holeGlow,bg,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
-  let darkSprite,darkGraphics,darkLabels,phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
+  let dark,darkBack,darkFront,darkUi,darkView=null,phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
   let tex={},rocketTexture=null;
   let textures=[],objectTextures=new Map(),labels=new Map(),sourceImages=new WeakMap();
   let tint=[...palettes.orbit],frame=0,lost=false,destroyed=false;
+  const darkMemory=createDarkMemory();
   let trailPoints=[],ghostData=[],lastGhost=0,boostLevel=0,prevMode='intro',diveStart=-10,nextComet=12,cometStart=-10,cometPath=null;
   const makeTexture=(buffer,resolution=1)=>{
     const texture=new Texture({source:new CanvasSource({resource:buffer,resolution})});textures.push(texture);return texture;
@@ -59,7 +61,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   }
   function text(node,value,font,color,x,y,maxWidth){node.texture=label(value,font,color,maxWidth);node.anchor.set(.5);node.position.set(x,y);node.visible=!!value;}
   function clearScene(){
-    heat?.destroy();heat=null;flame?.destroy();flame=null;
+    heat?.destroy();heat=null;flame?.destroy();flame=null;dark?.destroy();dark=null;
     if(scene){hole?.destroy();scene.filters=null;bg.filters=null;holeGlow.filters=null;scene.destroy({children:true});scene=null;}
     for(const texture of textures)texture.destroy(true);
     textures=[];labels.clear();objectTextures.clear();sourceImages=new WeakMap();objectPool=[];particlePool=[];rocketTexture=null;
@@ -129,10 +131,10 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     holeGlow=new Container();world.addChild(holeGlow);
     hole=createHoleScene({width,height,ratio,camera,reduced});holeGlow.addChild(hole.stage);
     beamGlow=sprite(tex.ring,world);beamGlow.anchor.set(.5);beamGlow.blendMode='add';beamGlow.tint=0xffd98f;beamGlow.position.set(camera.cx,camera.cy);beamGlow.visible=false;
-    darkSprite=sprite(Texture.EMPTY,world);darkSprite.anchor.set(.5);darkSprite.visible=false;
-    darkGraphics=new Graphics();world.addChild(darkGraphics);
-    darkLabels=new Container();ui.addChild(darkLabels);for(let i=0;i<2;i++)sprite(Texture.EMPTY,darkLabels);
+    // Darkn1de sits behind the debris so hazards always read; his attacks draw above it.
+    darkBack=new Container();world.addChild(darkBack);
     scene.objects=new Container();world.addChild(scene.objects);
+    darkFront=new Container();world.addChild(darkFront);
     phaseGraphics=new Graphics();world.addChild(phaseGraphics);
     trail=new Graphics();trail.blendMode='add';world.addChild(trail);
     ghosts=new Container();world.addChild(ghosts);
@@ -156,6 +158,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     for(let i=0;i<24;i++){const s=sprite(tex.spark,storm);s.anchor.set(.5);s.blendMode='add';s.tint=0xffb27a;}
     // UI (unbloomed, follows world shake): persistent phase label, combo, YOU marker.
     phaseLabels=new Container();ui.addChild(phaseLabels);for(let i=0;i<3;i++)sprite(Texture.EMPTY,phaseLabels);
+    darkUi=new Container();ui.addChild(darkUi);
+    dark=createDarkScene({back:darkBack,front:darkFront,ui:darkUi,tex,bake,text,font:FONT,track:texture=>textures.push(texture)});
     you=sprite(Texture.EMPTY,ui);text(you,'YOU',`700 11px ${FONT}`,'#d6faff',0,0);
     combo=new Container();ui.addChild(combo);for(let i=0;i<2;i++){const s=sprite(Texture.EMPTY,combo);s.anchor.set(.5);}
     // Overlay (screen space): speed lines, flash, low-tier heat border.
@@ -209,7 +213,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     }
   }
   function drawPhase(run,state,show,t){
-    const {camera:g,reduced}=config;phaseGraphics.clear();phaseGraphics.position.set(g.cx,g.cy);phaseLabels.position.set(g.cx,g.cy);phaseLabels.visible=show&&!!run.specials.length;
+    const {camera:g,reduced}=config;phaseGraphics.clear();phaseGraphics.position.set(g.cx,g.cy);phaseLabels.position.set(g.cx,g.cy);phaseLabels.visible=show&&!!run.specials.length&&!darkView?.captionGlitch;phaseLabels.alpha=darkView?.sight>=0?1-.7*darkView.opacity:darkView?.defeating?.25:1;
     const pulsar=show&&!reduced&&state.kinds?.includes('pulsar');
     godRays.visible=pulsar;
     if(pulsar)godRays.children.forEach((s,i)=>{s.rotation=t*.18+i*TAU/3;s.width=g.r*1.7;s.height=g.r*.5;s.alpha=.10+.04*Math.sin(t*2+i);});
@@ -226,14 +230,14 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
       text(phaseLabels.children[2],cue,`${state.gravity>1?700:600} ${Math.max(11,Math.min(18,g.r*.052))}px ${FONT}`,state.gravity>1?'#ffd099':'#b9cbd5',0,30,g.r*.72);
     }
   }
-  function drawBackground(t,dt,offset,reduced,kinds){
+  function drawBackground(t,dt,offset,reduced,kinds,starDim=0){
     const {width,height,stars}=config;
     bg.position.set(offset.x*.25,offset.y*.25);
     const drift=reduced?0:t;
     nebulaFar.position.set(width/2+Math.sin(drift*.011)*width*.08,height/2+Math.cos(drift*.008)*height*.06);
     nebulaNear.position.set(width/2+Math.sin(drift*.019+1)*width*.11,height/2+Math.cos(drift*.015+2)*height*.08);
     for(let i=0;i<stars.length;i++){const star=stars[i],s=starSprites[i],d=reduced?0:t*star.layer*1.6;s.position.set((star.x*width-d%width+width)%width,star.y*height);
-      s.alpha=Math.min(1,.35+Math.sin(t*.7+star.phase)*.18+star.layer*.11+(s.bright?.2:0));if(s.bright&&!reduced)s.rotation=Math.sin(t*.3+i)*.3;}
+      s.alpha=Math.min(1,.35+Math.sin(t*.7+star.phase)*.18+star.layer*.11+(s.bright?.2:0))*(1-starDim);if(s.bright&&!reduced)s.rotation=Math.sin(t*.3+i)*.3;}
     if(!reduced&&t>nextComet&&!cometPath){const rand=Math.random;cometStart=t;cometPath={x0:width*(.4+rand()*.7),y0:-40,x1:-width*.2,y1:height*(.3+rand()*.5)};nextComet=t+18+rand()*20;}
     if(cometPath){const p=(t-cometStart)/2.6;if(p>=1){cometPath=null;comet.visible=false;}else{
       const e=easeOutCubic(p)*.3+p*.7,x=cometPath.x0+(cometPath.x1-cometPath.x0)*e,y=cometPath.y0+(cometPath.y1-cometPath.y0)*e;
@@ -283,31 +287,23 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     if(mode==='ready'&&(prevMode==='intro'||prevMode==='dead'))diveStart=t;
     prevMode=mode;
     const offset=juice?shakeOffset(juice,t,reduced):{x:0,y:0,rotation:0};
+    // Darkn1de's staging is derived from the run alone, so it adds to juice rather than using it.
+    const showDark=mode!=='intro';
+    darkView=darkn1deView(run,reduced,trackDark(darkMemory,run));
+    const darkFx=showDark?darkView.fx:null;
+    if(darkFx?.shake){const s=darkFx.shake*g.r*.03;offset.x+=s*Math.sin(t*61)*Math.cos(t*23);offset.y+=s*Math.sin(t*53+1.7)*Math.cos(t*29);offset.rotation+=darkFx.shake*.012*Math.sin(t*47);}
     const kinds=phase.kinds.length?phase.kinds:[phase.kind];
-    drawBackground(t,dt,offset,reduced,kinds);
+    drawBackground(t,dt,offset,reduced,kinds,showDark?darkView.starDim:0);
     const x=g.cx,size=rocketSize(g.r);let y=g.cy-run.radius*g.r;
     // Camera: lobby wide shot, dive into orbit on launch, punch toward the ship.
     const dive=reduced?0:1-easeOutCubic((t-diveStart)/DIVE_SECONDS);
     const intro=mode==='intro'&&!reduced?.92+.012*Math.sin(t*.25):1;
-    const scale=(mode==='intro'?intro:1-.08*dive)+(juice&&!reduced?juice.zoom:0);
+    const scale=(mode==='intro'?intro:1-.08*dive)+(juice&&!reduced?juice.zoom:0)+(darkFx?.zoom??0);
     const pivotX=dive>.01||mode==='intro'?g.cx:x,pivotY=dive>.01||mode==='intro'?g.cy:y;
     for(const layer of [world,ui]){layer.pivot.set(pivotX,pivotY);layer.position.set(pivotX+offset.x,pivotY+offset.y);layer.scale.set(scale);layer.rotation=offset.rotation;}
-    hole.render(t,run);
-    const dark=darkn1deView(run,reduced),image=darkImages?.[dark.asset];
-    darkSprite.visible=mode!=='intro'&&dark.alpha>0&&!!image?.naturalWidth;
-    if(darkSprite.visible){
-      let texture=sourceImages.get(image);if(!texture){texture=new Texture({source:new ImageSource({resource:image})});textures.push(texture);sourceImages.set(image,texture);}
-      darkSprite.texture=texture;darkSprite.height=g.r*.65*dark.scale;darkSprite.width=darkSprite.height*image.naturalWidth/image.naturalHeight;
-      darkSprite.position.set(g.cx,g.cy+g.r*(dark.y-.035));darkSprite.alpha=dark.alpha;darkSprite.rotation=dark.rotation;
-    }
-    darkGraphics.clear();darkGraphics.position.set(g.cx,g.cy);darkGraphics.visible=darkLabels.visible=mode!=='intro';
-    for(const shape of darkShapes(run,dark)){
-      darkGraphics.beginPath();
-      if(shape.circle!==undefined)darkGraphics.circle(0,0,shape.circle*g.r);
-      else for(let i=0;i<shape.points.length;i+=2){if(i)darkGraphics.lineTo(shape.points[i]*g.r,shape.points[i+1]*g.r);else darkGraphics.moveTo(shape.points[i]*g.r,shape.points[i+1]*g.r);}
-      darkGraphics.stroke({color:shape.color,alpha:shape.alpha,width:Math.max(.7,shape.width*g.r)});
-    }
-    bossCaption(run).forEach((line,i)=>text(darkLabels.children[i],line,`700 ${Math.max(10,g.r*.034)}px ${FONT}`,i?'#8afff5':'#dceff5',g.cx,g.cy+g.r*(.32+i*.05),g.r*.85));
+    hole.render(t-(showDark?darkView.holeTime:0),run);holeGlow.alpha=1-(showDark?darkView.holeDim:0);
+    dark.ensure(darkImages);
+    dark.update({view:darkView,run,g,t,reduced,tier:scene.tier,show:showDark,shipX:x,shipY:y,labelGlitch:showDark&&darkView.captionGlitch});
     let index=0;if(mode!=='intro'){for(const o of run.objects)drawObject(o,index++,t);for(const o of run.crossers)drawObject(o,index++,t);}
     for(let i=index;i<objectPool.length;i++)objectPool[i].node.visible=false;
     drawPhase(run,phase,mode!=='intro',t);phaseGraphics.visible=mode!=='intro';
@@ -348,8 +344,9 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     border.visible=effective==='low'&&flying&&run.heat>65;border.alpha=(run.heat-65)/90;
     speedLines.visible=!reduced&&!!juice&&juice.speedLines>.02;
     if(speedLines.visible){speedLines.alpha=juice.speedLines*.6;speedLines.scale.set(1+(1-juice.speedLines)*.08);}
-    flash.visible=!!juice&&juice.flash>.01;
-    if(flash.visible){flash.alpha=juice.flash*.5;flash.tint=((juice.flashColor[0]*255)<<16)|((juice.flashColor[1]*255)<<8)|(juice.flashColor[2]*255);}
+    const darkFlash=darkFx?.flash??0,juiceFlash=juice?juice.flash*.5:0,flashColor=darkFlash>juiceFlash?darkFx.flashColor:juice?.flashColor;
+    flash.visible=Math.max(darkFlash,juiceFlash)>.005;
+    if(flash.visible){flash.alpha=Math.max(darkFlash,juiceFlash);flash.tint=((flashColor[0]*255)<<16)|((flashColor[1]*255)<<8)|(flashColor[2]*255);}
     combo.visible=mode==='playing'&&t<comboUntil;
     if(combo.visible){const fontSize=Math.min(28,g.r*.045),cy=g.cy-g.r*.20,font=`700 ${fontSize}px ${FONT}`,age=t-(comboUntil-1.3);
       text(combo.children[0],'CLOSE CALL',font,'#9af3ff',g.cx,cy-fontSize*.55,g.r*.48);text(combo.children[1],comboText,font,'#f3f7fa',g.cx,cy+fontSize*.55,g.r*.48);
@@ -357,7 +354,9 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     if(effective!=='low'){
       lens.update({cx:g.cx+offset.x*.25,cy:g.cy+offset.y*.25,einstein:g.r*.4,tide:reduced?0:tideStrength(run,reduced),time:t,ring:.3});
       const waves=(juice?.waves??[]).map(w=>{const age=t-w.t0;return {x:w.x,y:w.y,radius:age*720,strength:reduced?0:w.strength*(1-age/1.4)};});
-      post.update({width,height,cx:g.cx+offset.x,cy:g.cy+offset.y,r:g.r*scale,time:t,chroma:reduced||!juice?0:juice.chroma,grain:reduced?0:.032,vignette:.9,
+      // His shockwaves radiate from the hole and take priority over the two juice slots.
+      if(darkFx?.waves.length)waves.unshift(...darkFx.waves.slice(-2).map(w=>({x:g.cx,y:g.cy,radius:w.age*720,strength:w.strength})));
+      post.update({width,height,cx:g.cx+offset.x,cy:g.cy+offset.y,r:g.r*scale,time:t,chroma:reduced?0:Math.max(juice?.chroma??0,darkFx?.chroma??0),grain:reduced?0:.032,vignette:.9,saturation:darkFx?.saturation??1,gain:darkFx?.gain,
         heat:flying&&run.heat>65?clamp((run.heat-65)/35,0,1)*.55:0,haze:0,waves});
     }
     app.render();

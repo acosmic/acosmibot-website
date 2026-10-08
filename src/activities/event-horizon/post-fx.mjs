@@ -140,6 +140,8 @@ export const GRADES = {
   convoy: { gain: [1.02, .95, 1.1], lift: [.02, .006, .03], saturation: 1.05 },
   tide: { gain: [.92, 1.06, 1.06], lift: [0, .02, .02], saturation: 1.1 },
   pulsar: { gain: [.96, .96, 1.12], lift: [.01, .008, .035], saturation: .95 },
+  inversion: { gain: [1.2, .84, .86], lift: [.04, 0, .008], saturation: .82 },
+  breachstorm: { gain: [1.16, .88, .94], lift: [.035, 0, .016], saturation: 1 },
 };
 
 export function createPostFilter() {
@@ -155,8 +157,8 @@ export function createPostFilter() {
   return { filter, grade, update(s) {
     u.uScreen[0] = s.width; u.uScreen[1] = s.height; u.uCenter[0] = s.cx; u.uCenter[1] = s.cy;
     u.uRadius = s.r; u.uTime = s.time; u.uChroma = s.chroma; u.uGrain = s.grain; u.uVignette = s.vignette;
-    u.uHeat = s.heat; u.uHaze = s.haze; u.uSaturation = grade.saturation;
-    for (let i = 0; i < 3; i++) { u.uGain[i] = grade.gain[i]; u.uLift[i] = grade.lift[i]; }
+    u.uHeat = s.heat; u.uHaze = s.haze; u.uSaturation = grade.saturation * (s.saturation ?? 1);
+    for (let i = 0; i < 3; i++) { u.uGain[i] = grade.gain[i] * (s.gain?.[i] ?? 1); u.uLift[i] = grade.lift[i]; }
     for (const [slot, w] of [[u.uWave0, s.waves[0]], [u.uWave1, s.waves[1]]]) {
       if (w) { slot[0] = w.x; slot[1] = w.y; slot[2] = w.radius; slot[3] = w.strength; } else slot[3] = 0;
     }

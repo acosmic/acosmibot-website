@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRun,step,DT,thrustActive,resonanceReady} from './sim.mjs';
-import {darkn1deView,SIGHTINGS} from './darkn1de-fx.mjs';
+import {darkn1deView,SIGHTINGS,SIGHT_SECONDS,ARRIVAL,BREACH,holeTimeOffset,createDarkCues,createDarkMemory,trackDark} from './darkn1de-fx.mjs';
 import {readFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -14,7 +14,7 @@ test('sightings are short, silent, cosmetic and never consume RNG',()=>{
   assert.deepEqual(SIGHTINGS,[30,82,127,172,217]);
   for(const [i,t] of SIGHTINGS.entries()){
     assert.equal(darkn1deView({...s,time:t+.2}).sight,i);
-    assert.equal(darkn1deView({...s,time:t+1.2}).sight,-1);
+    assert.equal(darkn1deView({...s,time:t+SIGHT_SECONDS[i]+.01}).sight,-1);
   }
   assert.deepEqual(s,copy);
 });
@@ -99,4 +99,47 @@ for(const radius of [.55,.65,.85,1.04])test('boss corridors can collect ten shar
   step(s,{boost:s.radius+s.velocity*.5<(next?.radius??.8),dash:s.resonance>=10});
  }
  assert.ok(s.alive,s.cause);assert.equal(s.darkStage,3);assert.equal(s.resonance,10);
+});
+
+test('staging is a pure function of the run and never mutates it',()=>{
+  for(const [stage,time,extra] of [[0,239.5,{}],[1,240.4,{}],[1,241.6,{}],[1,260,{}],[2,290,{attacks:[{id:'c',type:'claw',radius:.6,angle:1.8,age:.5,warning:.4}],resonance:4}],[3,301,{darkDefeatedAt:300}]]){
+    const s={...createRun(3),darkStage:stage,time,...extra},copy=structuredClone(s);
+    assert.deepEqual(darkn1deView(s),darkn1deView(s));assert.deepEqual(s,copy);
+  }
+  const view=at=>darkn1deView({...createRun(3),darkStage:1,time:ARRIVAL+at});
+  // He arrives as a silhouette and is fully lit, in the puppeteer pose, once the emergence ends.
+  assert.equal(view(.6).layers[0].pose,'emerge');assert.equal(view(.6).layers[0].silhouette,1);
+  assert.deepEqual(view(5).layers.map(l=>[l.pose,l.silhouette,l.alpha]),[['inversion',0,1]]);assert.equal(view(5).tether,1);
+  assert.equal(darkn1deView({...createRun(3),darkStage:3,darkDefeatedAt:300,time:310}).layers.length,0);
+});
+test('reduced motion removes shake, glitch, chroma, and the disk reversal',()=>{
+  for(const time of [239.6,240.1,241.4,243]){
+    const v=darkn1deView({...createRun(3),darkStage:time<ARRIVAL?0:1,time},true);
+    assert.equal(v.fx.shake,0);assert.equal(v.fx.chroma,0);assert.equal(v.fx.waves.length,0);assert.equal(v.holeTime,0);
+    assert.ok(v.layers.every(l=>l.glitch===0&&l.sway===0));assert.ok(v.fx.flash<=.2);
+  }
+});
+test('the disk stalls, reverses during inversion, and resumes without a jump',()=>{
+  assert.equal(holeTimeOffset(200),0);
+  let previous=0;
+  for(let t=230;t<300;t+=.05){const o=holeTimeOffset(t);assert.ok(o>=previous&&o-previous<=.1001);previous=o;}
+  // Net disk speed is 1 - d(offset)/dt: -1 mid-inversion, +1 again after Breachstorm begins.
+  assert.ok(Math.abs(holeTimeOffset(261)-holeTimeOffset(260)-2)<1e-9);
+  assert.equal(holeTimeOffset(BREACH+1),holeTimeOffset(BREACH+50));
+});
+test('sound cues fire once per beat and stay silent across seeks',()=>{
+  const cues=createDarkCues(),s={...createRun(3),time:29.99};
+  assert.deepEqual(cues(s),[]);s.time=30.01;assert.deepEqual(cues(s),[['omen',0]]);s.time=30.03;assert.deepEqual(cues(s),[]);
+  s.time=239.99;assert.deepEqual(cues(s),[]);
+  s.time=240.01;s.darkStage=1;assert.deepEqual(cues(s),[['arrival']]);
+  s.time=285.4;s.darkStage=2;cues(s);
+  s.time=285.42;s.attacks=[{id:'a',type:'spear',warning:1}];assert.deepEqual(cues(s),[['spear-warn']]);
+  s.time=285.44;s.attacks[0].warning=0;assert.deepEqual(cues(s),[['spear-fire']]);
+  s.time=285.46;assert.deepEqual(cues(s),[]);
+});
+test('a collected shard staggers him briefly',()=>{
+  const m=createDarkMemory(),s={...createRun(3),darkStage:2,time:290,resonance:2,attacks:[]};
+  assert.equal(darkn1deView(s,false,trackDark(m,s)).layers[0].pose,'arrival');
+  s.time=290.02;s.resonance=3;assert.equal(darkn1deView(s,false,trackDark(m,s)).layers[0].pose,'recoil');
+  s.time=291;assert.equal(darkn1deView(s,false,trackDark(m,s)).layers[0].pose,'arrival');
 });
