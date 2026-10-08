@@ -1093,7 +1093,12 @@ a.rank-row:hover .rank-row__action {
 
   .leaderboard-tabs {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+  }
+
+  .leaderboard-tab {
+    padding-inline: 8px;
   }
 
   .leaderboard-server-picker {
