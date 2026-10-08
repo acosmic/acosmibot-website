@@ -61,6 +61,7 @@ export class SnapshotPlayback {
     if(a.state.phase>0&&b.state.phase>0)state.phase=mix(a.state.phase,b.state.phase,t);
     if(Math.abs(b.state.energy-a.state.energy)<10)state.energy=mix(a.state.energy,b.state.energy,t);
     state.objects=blendObjects(a.state.objects,b.state.objects,t);
+    if(a.state.attacks&&b.state.attacks)state.attacks=blendObjects(a.state.attacks,b.state.attacks,t);
     state.crossers=blendObjects(a.state.crossers,b.state.crossers,t);
     return {state,input:a.input,time};
   }

@@ -1,4 +1,5 @@
-import { createRun, step, DT, clamp, specialState } from './sim.mjs';
+import {drawDarkn1de} from './darkn1de-fx.mjs';
+import { createRun, step, DT, clamp, specialState, thrustActive, isInverted, resonanceReady } from './sim.mjs';
 import { createPhaseBackdrop, drawSpecial, phaseNames } from './phases-fx.mjs';
 import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
 import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-fx.mjs';
@@ -32,6 +33,7 @@ const usePixi=import.meta.env.VITE_EVENT_HORIZON_RENDERER!=='canvas';
 const ctx = (usePixi?document.createElement('canvas'):canvas).getContext('2d');
 let gpu=null,animationFrame=0,disposed=false;
 const phaseBackdrop = createPhaseBackdrop();
+const darkImages=Object.fromEntries(['arrival','inversion','apparition'].map(name=>{const image=new Image();image.src=`/activities/event-horizon/assets/darkn1de-${name}.png`;return [name,image];}));
 const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocket-grip.png';
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
 let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = false;
@@ -272,12 +274,12 @@ function syncHUD() {
   setText('multiplier',`${run.multiplier.toFixed(1)}×`);
   setProp('heat','value',run.heat);setText('heat',`${Math.round(run.heat)}%`);
   setAttr('heat','aria-label',`Heat ${Math.round(run.heat)} percent`);
-  const dashReady=run.energy>=100;
+  const pulseReady=resonanceReady(run),dashReady=run.energy>=100||pulseReady;
   const mobileDash=mobileControls.matches;
   setProp('dash','disabled',!dashReady);
-  setAttr('dash','aria-label',dashReady?'Phase Shift ready':'Phase Shift charging');
-  setText('charge',mobileDash?(dashReady?'100%':`${Math.floor(run.energy)}%`):(dashReady?'READY · SHIFT':`${Math.floor(run.energy)}% · COLLECT SHARDS`));
-  const charge=String(clamp(run.energy,0,100));
+  setAttr('dash','aria-label',pulseReady?'Resonance Pulse ready':dashReady?'Phase Shift ready':'Phase Shift charging');
+  setText('charge',pulseReady?'PULSE · SHIFT':mobileDash?(dashReady?'100%':`${Math.floor(run.energy)}%`):(dashReady?'READY · SHIFT':`${Math.floor(run.energy)}% · COLLECT SHARDS`));
+  const charge=String(pulseReady?100:clamp(run.energy,0,100));
   if($('charge-fill').style.getPropertyValue('--dash-charge')!==charge)$('charge-fill').style.setProperty('--dash-charge',charge);
   if($('desktop-charge-fill').style.width!==`${charge}%`)$('desktop-charge-fill').style.width=`${charge}%`;
   $('boost').classList.toggle('active',boosting());
@@ -285,9 +287,9 @@ function syncHUD() {
   $('dash').classList.toggle('ready',dashReady);
   if(run.heat<50)heatWarning=0;
   if(mode==='playing'&&run.heat>=80&&heatWarning<2){
-    heatWarning=2;message('HEAT CRITICAL — BOOST OUT TO COOL',2.5);sound.play('warning',{critical:true});haptic([30,40,30],!reduced);
+    heatWarning=2;message(isInverted(run)?'HEAT CRITICAL — RELEASE TO COOL':'HEAT CRITICAL — BOOST OUT TO COOL',2.5);sound.play('warning',{critical:true});haptic([30,40,30],!reduced);
   }else if(mode==='playing'&&run.heat>=65&&heatWarning<1){
-    heatWarning=1;message('Getting hot — boost outward to cool down',2);sound.play('warning');
+    heatWarning=1;message(isInverted(run)?'Release boost to climb and cool down':'Getting hot — boost outward to cool down',2);sound.play('warning');
   }
 }
 async function start() {
@@ -306,8 +308,8 @@ async function start() {
   $('launch').textContent='Preparing flight…';
   if(!rankedConnected&&!casualAvailable){mode='intro';setConnectionState('error','Reconnect to Discord before starting a flight.');return;}
   try{
-    if(casualAvailable)ticket={casual:true,seed:crypto.getRandomValues(new Uint32Array(1))[0]||1,version:'event-horizon-v8',maxTicks:36000};
-    else{await boardReady;ticket=await api('/runs',{version:'event-horizon-v8'});if(!ticket?.runId||ticket.version!=='event-horizon-v8')throw new Error('The game has updated. Close and reopen the Activity before flying.');}
+    if(casualAvailable)ticket={casual:true,seed:crypto.getRandomValues(new Uint32Array(1))[0]||1,version:'event-horizon-v9',maxTicks:36000};
+    else{await boardReady;ticket=await api('/runs',{version:'event-horizon-v9'});if(!ticket?.runId||ticket.version!=='event-horizon-v9')throw new Error('The game has updated. Close and reopen the Activity before flying.');}
   }catch(error){
     abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';
     if(needsReconnect(error)){rankedConnected=false;setConnectionState('error',$('load-error').textContent);}
@@ -442,7 +444,7 @@ $('sound').addEventListener('click',()=>{muted=!muted;sound.setMuted(muted);$('s
 function updateEffects(){ $('effects').textContent=`Reduced effects ${reduced?'on':'off'}`; $('effects').setAttribute('aria-pressed',String(reduced)); $('game').classList.toggle('reduced-fx',reduced); resize(); }
 $('effects').addEventListener('click',()=>{reduced=!reduced;updateEffects();});
 updateEffects();
-function dash(){if(mode==='playing'&&run.energy>=100)dashQueued=true;}
+function dash(){if(mode==='playing'&&(run.energy>=100||resonanceReady(run)))dashQueued=true;}
 $('dash').addEventListener('pointerdown',e=>{e.preventDefault();dash();});
 $('dash').addEventListener('click',e=>{if(e.detail===0)dash();});
 const game=$('game');
@@ -539,21 +541,21 @@ function object(o) {
 function ship(t) {
   const p=point(run.radius), size=rocketSize(geo().r);
   if(mode==='playing') {
-    if(boosting()&&Math.random()<.7){particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
+    if(thrustActive(run,watching?!!(watchedInput&1):boosting())&&Math.random()<.7){particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
   }
   if(mode==='dead'||(watching&&!run.alive))return;
   ctx.save();ctx.translate(p.x,p.y);
-  drawPhaseReady(ctx,size,run.energy,run.phase,t,reduced);
+  drawPhaseReady(ctx,size,resonanceReady(run)?100:run.energy,run.phase,t,reduced);
   if(run.heat>=65){
     ctx.strokeStyle='#ffbc86';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(-7,-size*.65);ctx.lineTo(0,-size*.78);ctx.lineTo(7,-size*.65);ctx.stroke();
-    ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffcca7';ctx.fillText('BOOST TO COOL',0,size*.78+10);
+    ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffcca7';ctx.fillText(isInverted(run)?'RELEASE TO COOL':'BOOST TO COOL',0,size*.78+10);
   }
   if(run.phase>0){ctx.strokeStyle='#beacff';ctx.lineWidth=2;ctx.shadowColor='#a18aff';ctx.shadowBlur=reduced?0:22;ctx.beginPath();ctx.arc(0,0,size*.48,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
   const tremble=rocketTremble(run.multiplier,run.time,reduced);
   ctx.translate(tremble.x,tremble.y);
   ctx.rotate(Math.PI*.23-run.velocity*.6+tremble.angle);
-  if(boosting()&&mode==='playing'){
+  if(thrustActive(run,watching?!!(watchedInput&1):boosting())&&mode==='playing'){
     ctx.fillStyle='#a0faff';ctx.beginPath();ctx.moveTo(-size*.24,size*.28);ctx.lineTo(-size*(.60+Math.sin(t*60)*.05),size*.60);ctx.lineTo(-size*.13,size*.36);ctx.closePath();ctx.fill();
   }
   if(rocket.complete&&rocket.naturalWidth)ctx.drawImage(rocket,-size/2,-size/2,size,size);
@@ -569,7 +571,7 @@ function renderPixi(rawDt){
   if(shake>0&&!reduced)shake=Math.max(0,shake-dt*25);
   if(mode==='intro')run.radius=.83+Math.sin(visualTime*.7)*.025;
   const flying=mode==='playing'||(watching&&watchedStatus==='playing');
-  const boost=watching?!!(watchedInput&1):boosting();
+  const boost=thrustActive(run,watching?!!(watchedInput&1):boosting());
   if(flying&&boost&&!reduced&&Math.random()<.45){const p=point(run.radius),size=rocketSize(geo().r);particles.push({x:p.x-size*.3,y:p.y+size*.14,vx:-110-Math.random()*90,vy:30+Math.random()*40,life:.3,max:.3,color:'#7ff1ff',size:1+Math.random()*1.4,kind:'spark',drag:1});}
   for(const p of particles){p.life-=dt;if(p.drag){const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;}p.x+=p.vx*dt;p.y+=p.vy*dt;}
   collectors=collectors.filter(c=>{
@@ -578,7 +580,7 @@ function renderPixi(rawDt){
     const e=k*k,mx=(c.x0+c.x1)/2,my=Math.min(c.y0,c.y1)-60,x=(1-e)*(1-e)*c.x0+2*(1-e)*e*mx+e*e*c.x1,y=(1-e)*(1-e)*c.y0+2*(1-e)*e*my+e*e*c.y1;
     particles.push({x,y,vx:0,vy:0,life:.22,max:.22,color:'#9ff6ff',size:2.2+k*1.5,kind:'glow'});return true;
   });
-  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,rocket,juice,death});
+  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,rocket,darkImages,juice,death});
   compactParticles(particles,particleCap());
   if(mode!=='playing')comboUntil=0;
   if(visualTime>toastUntil)setText('toast','');
@@ -589,6 +591,7 @@ function render(dt) {
   const phaseView=specialState(run);
   background(visualTime);phaseBackdrop(ctx,width,height,phaseView.kinds.length?phaseView.kinds:phaseView.kind,dt,reduced);blackHole(visualTime);
   if(mode!=='intro'){for(const o of run.objects)object(o);for(const o of run.crossers)object(o);}
+  if(mode!=='intro')drawDarkn1de(ctx,geo(),run,darkImages,reduced);
   if(mode!=='intro')drawSpecial(ctx,geo(),run,phaseView,reduced,true);
   if(mode==='intro'){run.radius=.83+Math.sin(visualTime*.7)*.025;}
   ship(visualTime);
@@ -626,7 +629,7 @@ function frame(now) {
   if(presence&&presenceMode!==presenceState){presenceMode=presenceState;presence.update(presenceState,flightStartedAt);}
   if(watching){
     const view=playback.sample(now);
-    if(view){run=view.state;watchedInput=view.input;syncHUD();setText('watch-charge',`Phase Shift ${Math.floor(run.energy)}%`);}
+    if(view){run=view.state;watchedInput=view.input;syncHUD();setText('watch-charge',resonanceReady(run)?'Resonance Pulse ready':`Phase Shift ${Math.floor(run.energy)}%`);}
     if(watchAlive&&!run.alive){const p=point(run.radius);burst(p.x,p.y,'#ffa677',40,{speed:220,ring:150,smoke:5});shockwave(juice,p.x,p.y,1,visualTime);addTrauma(juice,.5);}
     watchAlive=run.alive;
     if(now-lastWatchFrame>3000&&['playing','ready','paused'].includes(watchedStatus)){$('watch-status').textContent='Live view delayed · reconnecting…';watchedStatus='reconnecting';}
@@ -653,7 +656,15 @@ function frame(now) {
         }
         if(e.type==='storm-start'){showBanner('60 SECONDS','ASTEROID STORM','Incoming crossings · watch the warning lines','asteroids');sound.play('storm');addTrauma(juice,.2);}
         if(e.type==='incoming'&&!run.events.some(event=>event.type==='storm-start')){message('Incoming asteroid — watch the crossing path',1.4);sound.play('incoming');}
-        if(e.type==='dash'){
+        if(e.type==='dark-arrival'){$('phase-status').textContent='Darkn1de · controls inverted';}
+        if(e.type==='breach-start'){$('phase-status').textContent='Breachstorm · collect 10 Resonance Shards';message('Controls restored · collect 10 Resonance Shards',3);}
+        if(e.type==='resonance'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#8afff5',20,{speed:150,ring:70});sound.play('shard',{index:run.resonance});if(resonanceReady(run))message('RESONANCE PULSE READY · PHASE SHIFT',3);}
+        if(e.type==='resonance-pulse'){
+          $('phase-status').textContent='Darkn1de disrupted';message('RESONANCE PULSE · BREACH SEALED',2.5);sound.play('dash');
+          const p=point(run.radius);burst(p.x,p.y,'#8afff5',55,{speed:270,ring:280});shockwave(juice,p.x,p.y,1.4,visualTime);
+          punch(juice,{flash:.25,color:[.4,1,.95],chroma:.6,speedLines:1,zoom:.035});addTrauma(juice,.25);
+        }
+        if(e.type==='dash'&&!run.events.some(event=>event.type==='resonance-pulse')){
           message('PHASE SHIFT · DEBRIS SHIELD',.8);sound.play('dash');const p=point(run.radius);
           burst(p.x,p.y,'#b9a6ff',30,{speed:220,ring:140});shockwave(juice,p.x,p.y,.8,visualTime);
           punch(juice,{flash:.3,color:[.66,.55,1],chroma:.9,speedLines:1,zoom:.03});addTrauma(juice,.2);haptic(25,!reduced);
@@ -673,7 +684,7 @@ function frame(now) {
     lastBroadcast=now;live.snapshot(run,mode,boosting()?1:0);
   }
   sound.update({music:watching||['preparing','ready','playing','dead'].includes(mode),active:mode==='playing'||(watching&&watchedStatus==='playing'),
-    intensity:clamp((run.multiplier-1)/4,0,1),boost:mode==='playing'&&boosting()});
+    intensity:clamp((run.multiplier-1)/4,0,1),boost:mode==='playing'&&thrustActive(run,boosting())});
   if(usePixi)renderPixi(dt);else render(dt);
 }
 rocket.addEventListener('error',()=>{$('load-error').hidden=false;$('load-error').textContent='Character artwork could not load. The flight prototype still works with a simple marker.';});

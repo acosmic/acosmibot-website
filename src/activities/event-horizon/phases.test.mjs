@@ -15,10 +15,10 @@ test('phases begin at onset with no warning or recovery events',()=>{
     assert.ok(s.events.every(e=>!['phase-warning','phase-end'].includes(e.type)));
     starts.push(...s.events.filter(e=>e.type==='phase-start').map(e=>[e.kind,Math.round(s.time)]));
     if(s.time>=105&&s.time<240)assert.equal(s.specials.length,1);
-    if(s.time>=240)assert.equal(s.specials.length,2);
+    if(s.tick>=14400){assert.equal(s.specials.length,0);assert.equal(s.darkStage,1);}
   }
   assert.deepEqual(starts.slice(0,3),[['convoy',105],['tide',150],['pulsar',195]]);
-  assert.deepEqual(starts.slice(3).map(p=>p[1]),[240,240]);
+  assert.deepEqual(starts.slice(3),[]);
 });
 test('baseline waves continue through phase transitions',()=>{
   const s=createRun(42);let lastWave=0,lastCrosser=60,maxWave=0,maxCrosser=0;
@@ -83,7 +83,7 @@ test('ten-minute director is deterministic and caps stacking at two distinct eff
     assert.ok(s.objects.length<100);assert.ok(s.crossers.length<=2);
     assert.equal(new Set(s.specials.map(p=>p.kind)).size,s.specials.length);
     assert.ok(s.specials.length<=2);
-    if(s.time>240)assert.equal(s.specials.length,2);
+    if(s.tick>=14400)assert.equal(s.specials.length,0);
   }
   assert.deepEqual(a,b);
 });

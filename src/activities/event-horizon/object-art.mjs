@@ -3,7 +3,11 @@ import { seeded } from './vfx-art.mjs';
 // Silhouettes stay within the collision radius `rr`; detail is seeded by shape.
 const TAU = Math.PI * 2;
 export function drawObjectArt(ctx,o,rr,reduced){
-  if(o.type==='shard') drawShard(ctx,rr,reduced);
+  if(o.type==='resonance'){
+    ctx.save();ctx.strokeStyle='#8afff5';ctx.lineWidth=Math.max(1,rr*.12);ctx.shadowColor='#62fff0';ctx.shadowBlur=reduced?0:rr*.5;
+    ctx.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3;const x=Math.cos(a)*rr,y=Math.sin(a)*rr;if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);}ctx.closePath();ctx.fillStyle='#123b4b';ctx.fill();ctx.stroke();
+    ctx.scale(.5,.5);drawShard(ctx,rr,reduced);ctx.restore();
+  }else if(o.type==='shard') drawShard(ctx,rr,reduced);
   else if(o.type==='plasma') drawPlasma(ctx,rr,reduced,o.shape);
   else drawRock(ctx,rr,o.shape);
 }
