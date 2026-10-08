@@ -1,7 +1,7 @@
 /*
  * THESIS: Leaderboards are a community signal array, not a generic sports table or a dashboard of vanity metrics.
  * OWN-WORLD: Observatory Void, opaque blue-black instruments, cyan selection, and distinct gold/silver/copper rank signals.
- * STORY: See the leaders, choose XP or net worth, scan the field, then open an eligible member profile or server board.
+ * STORY: See the leaders, choose XP, net worth, or Event Horizon, scan the field, then open an eligible member profile or server board.
  * FIRST VIEWPORT: A compact title and controls resolve immediately into three live rank beacons on a connected ascent path.
  * FORM: Candidate seven, Signal Array; an asymmetric top-three path above a dense field ledger. Seed dc2b1151, degraded offline.
  */
@@ -25,6 +25,8 @@ import {
   type GlobalMetric,
   type GlobalEntry,
   type GuildEntry,
+  type GuildEventHorizonEntry,
+  type GuildMetric,
 } from '@/api/leaderboard';
 import { profileApi } from '@/api/profile';
 import { PublicNav } from '@/components/layout/PublicNav';
@@ -41,6 +43,20 @@ const fmt = (n: number | null | undefined): string =>
 // Masking: reveal the first 2 chars of the display name, hide the rest with
 // bullets; fully mask the @account name. Bullet counts are fixed so we don't
 // leak the real length.
+// Event Horizon rows: score as the headline, survival time underneath.
+const flightValue = (score: number | null | undefined): string => `${fmt(score)} pts`;
+const flightSub = (survival: number | null | undefined): string => {
+  const seconds = Math.floor(survival ?? 0);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')} survived`;
+};
+const FLIGHT_EMPTY = 'Rankings will appear after the first ranked /event-horizon flight.';
+
+const GLOBAL_FIELD_LABELS: Record<GlobalMetric, string> = {
+  xp: 'Global XP field',
+  economy: 'Net worth field',
+  'event-horizon': 'Event Horizon field',
+};
+
 const maskName = (s: string): string => (s.length <= 2 ? s : `${s.slice(0, 2)}•••••`);
 const MASKED_HANDLE = '•••••';
 
@@ -101,10 +117,12 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
     name: entry.global_name || entry.discord_username || `User ${entry.user_id}`,
     username: entry.discord_username,
     userId: entry.user_id,
-    value: metric === 'economy'
-      ? `${fmt(economyValue(entry))} Acosmicoins`
-      : `${fmt(entry.global_exp)} XP`,
-    sub: `Lvl ${fmt(entry.global_level)}`,
+    value: metric === 'event-horizon'
+      ? flightValue(entry.score)
+      : metric === 'economy'
+        ? `${fmt(economyValue(entry))} Acosmicoins`
+        : `${fmt(entry.global_exp)} XP`,
+    sub: metric === 'event-horizon' ? flightSub(entry.survival) : `Lvl ${fmt(entry.global_level)}`,
     isMe: !!meId && meId === entry.user_id,
     masked: entry.masked ?? !isAuthed,
   }));
@@ -134,8 +152,9 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
         isFetching={isFetching}
         isError={isError}
         emptyTitle="No entries yet"
+        emptySubtitle={metric === 'event-horizon' ? FLIGHT_EMPTY : undefined}
         errorTitle="Couldn’t load the leaderboard"
-        fieldLabel={metric === 'economy' ? 'Net worth field' : 'Global XP field'}
+        fieldLabel={GLOBAL_FIELD_LABELS[metric]}
       />
 
       {entries.length >= limit && (
@@ -151,10 +170,41 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
   isAuthed,
   meId,
 }) => {
+  const [metric, setMetric] = useState<GuildMetric>('level');
   const [limit, setLimit] = useState(PAGE);
   const { data, isLoading, isFetching, isError, error } = useQuery({
-    queryKey: ['leaderboard', 'guild', guildId, limit],
-    queryFn: () => leaderboardApi.getGuild(guildId, 0, limit),
+    queryKey: ['leaderboard', 'guild', guildId, metric, limit],
+    queryFn: async (): Promise<{ guildName: string | null; entries: RankEntryView[] }> => {
+      const identity = (entry: GuildEntry | GuildEventHorizonEntry) => ({
+        rank: entry.rank,
+        avatarUrl: entry.avatar_url,
+        name: entry.display_name || entry.discord_username || `User ${entry.user_id}`,
+        username: entry.discord_username,
+        userId: entry.user_id,
+        isMe: !!meId && meId === entry.user_id,
+        masked: false,
+      });
+      if (metric === 'event-horizon') {
+        const board = await leaderboardApi.getGuildEventHorizon(guildId, 0, limit);
+        return {
+          guildName: board.guild.name,
+          entries: board.entries.map((entry) => ({
+            ...identity(entry),
+            value: flightValue(entry.score),
+            sub: flightSub(entry.survival),
+          })),
+        };
+      }
+      const board = await leaderboardApi.getGuild(guildId, 0, limit);
+      return {
+        guildName: board.guild.name,
+        entries: board.entries.map((entry) => ({
+          ...identity(entry),
+          value: `Lvl ${fmt(entry.level)}`,
+          sub: `${fmt(entry.exp)} XP`,
+        })),
+      };
+    },
     enabled: isAuthed,
     placeholderData: keepPreviousData,
   });
@@ -182,26 +232,35 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
   const is403 = (error as Error)?.message?.includes('403')
     || (error as Error)?.message?.toLowerCase().includes('member');
 
-  const entries: RankEntryView[] = (data?.entries ?? []).map((entry) => ({
-    rank: entry.rank,
-    avatarUrl: entry.avatar_url,
-    name: entry.display_name || entry.discord_username || `User ${entry.user_id}`,
-    username: entry.discord_username,
-    userId: entry.user_id,
-    value: `Lvl ${fmt((entry as GuildEntry).level)}`,
-    sub: `${fmt((entry as GuildEntry).exp)} XP`,
-    isMe: !!meId && meId === entry.user_id,
-    masked: false,
-  }));
+  const entries = data?.entries ?? [];
 
   return (
     <>
       <BackLink />
       <LeaderboardHeader
         scope="Server standings"
-        title={data?.guild.name || 'Server Leaderboard'}
-        subtitle="Top members by level in this server."
+        title={data?.guildName || 'Server Leaderboard'}
+        subtitle={metric === 'event-horizon'
+          ? 'Best Event Horizon flights in this server.'
+          : 'Top members by level in this server.'}
       />
+
+      <div className="leaderboard-controls">
+        <div className="leaderboard-tabs" role="group" aria-label="Server ranking metric">
+          {(['level', 'event-horizon'] as const).map((option) => (
+            <Tab
+              key={option}
+              active={metric === option}
+              onClick={() => {
+                setMetric(option);
+                setLimit(PAGE);
+              }}
+            >
+              {option === 'level' ? 'Level' : 'Event Horizon'}
+            </Tab>
+          ))}
+        </div>
+      </div>
 
       <RankBoard
         entries={entries}
@@ -209,9 +268,10 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
         isFetching={isFetching}
         isError={isError}
         emptyTitle="No entries yet"
+        emptySubtitle={metric === 'event-horizon' ? FLIGHT_EMPTY : undefined}
         errorTitle={is403 ? 'You’re not a member of this server' : 'Couldn’t load this leaderboard'}
         errorIcon={is403 ? <Ban size={34} /> : undefined}
-        fieldLabel="Server level field"
+        fieldLabel={metric === 'event-horizon' ? 'Server Event Horizon field' : 'Server level field'}
       />
 
       {!isError && entries.length >= limit && (
@@ -233,6 +293,9 @@ const BoardControls: React.FC<{
       </Tab>
       <Tab active={metric === 'economy'} onClick={() => onMetricChange('economy')}>
         Net Worth
+      </Tab>
+      <Tab active={metric === 'event-horizon'} onClick={() => onMetricChange('event-horizon')}>
+        Event Horizon
       </Tab>
     </div>
     {isAuthed && <ServerSelector />}
@@ -278,6 +341,7 @@ const RankBoard: React.FC<{
   isFetching: boolean;
   isError: boolean;
   emptyTitle: string;
+  emptySubtitle?: string;
   errorTitle: string;
   errorIcon?: React.ReactNode;
   fieldLabel: string;
@@ -287,6 +351,7 @@ const RankBoard: React.FC<{
   isFetching,
   isError,
   emptyTitle,
+  emptySubtitle,
   errorTitle,
   errorIcon,
   fieldLabel,
@@ -317,7 +382,7 @@ const RankBoard: React.FC<{
       <BoardState
         icon={<Trophy size={34} />}
         title={emptyTitle}
-        subtitle="Rankings will appear after members begin earning progress."
+        subtitle={emptySubtitle ?? 'Rankings will appear after members begin earning progress.'}
         tone="empty"
       />
     );
