@@ -19,6 +19,13 @@ test('dash consumes charge, cools, and cannot autorepeat while held',()=>{
   assert.ok(s.phase>0);assert.ok(s.energy<1);assert.ok(s.heat<36);
   s.energy=100;step(s,{dash:true});assert.equal(s.energy,100);
 });
+test('Phase Shift never changes pilot motion',()=>{
+  for(const boost of [false,true])for(const velocity of [-.2,0,.2]){
+    const a=createRun(),b=createRun();a.velocity=b.velocity=velocity;
+    step(a,{boost,dash:true});step(b,{boost});
+    assert.ok(a.phase>0);assert.equal(a.velocity,b.velocity);assert.equal(a.radius,b.radius);
+  }
+});
 test('shield protects from debris but not the event horizon',()=>{
   const s=createRun();s.objects=[{type:'rock',radius:.8,angle:0,size:.04,spin:0,checked:false}];
   step(s,{dash:true});assert.ok(s.alive);

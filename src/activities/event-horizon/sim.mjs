@@ -1,4 +1,4 @@
-// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v9 verifier.
+// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v10 verifier.
 export const DT = 1 / 60;
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export function createRun(seed = 1) {
@@ -118,7 +118,7 @@ export function step(s, input = {}) {
       s.nextSpecial=s.time+2; // Let the defeat resolve before mixed hazards begin.
       s.events.push({type:'resonance-pulse'});
     }
-    s.energy = 0; s.phase = s.events.some(e=>e.type==='resonance-pulse')?2.5:.75; s.velocity = Math.max(s.velocity, .12);
+    s.energy = 0; s.phase = s.events.some(e=>e.type==='resonance-pulse')?2.5:.75;
     s.heat = Math.max(0, s.heat - 35); s.events.push({ type: 'dash' });
   }
   s.dashHeld = !!input.dash;

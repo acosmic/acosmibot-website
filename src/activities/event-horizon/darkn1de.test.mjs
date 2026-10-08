@@ -5,8 +5,8 @@ import {darkn1deView,SIGHTINGS,SIGHT_SECONDS,ARRIVAL,BREACH,holeTimeOffset,creat
 import {readFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-const verifier=new URL('../../../../acosmibot-api/api/game_engines/event_horizon_v9.mjs',import.meta.url);
-test('browser and v9 verifier are byte-identical',{skip:!existsSync(verifier)&&'API sibling checkout not present'},async()=>assert.equal(await readFile(new URL('./sim.mjs',import.meta.url),'utf8'),await readFile(verifier,'utf8')));
+const verifier=new URL('../../../../acosmibot-api/api/game_engines/event_horizon_v10.mjs',import.meta.url);
+test('browser and v10 verifier are byte-identical',{skip:!existsSync(verifier)&&'API sibling checkout not present'},async()=>assert.equal(await readFile(new URL('./sim.mjs',import.meta.url),'utf8'),await readFile(verifier,'utf8')));
 function at(seconds){const s=createRun(42);s.time=seconds-DT;s.tick=Math.round(seconds*60)-1;s.nextWave=s.nextCrosser=1e6;s.stormStarted=true;return s;}
 function safeTick(s,input={}){s.phase=1;s.heat=0;step(s,input);}
 test('sightings are short, silent, cosmetic and never consume RNG',()=>{
