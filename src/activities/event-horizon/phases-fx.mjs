@@ -1,5 +1,5 @@
 const colors={orbit:[9,25,48],asteroids:[85,40,20],convoy:[49,40,74],tide:[12,65,65],pulsar:[30,24,61]};
-export const phaseNames={convoy:'DEBRIS WEAVE',tide:'GRAVITY TIDE',pulsar:'PULSAR SWEEP',asteroids:'ASTEROID STORM'};
+export const phaseNames={convoy:'DEBRIS FIELD',tide:'GRAVITY TIDE',pulsar:'PULSAR SWEEP',asteroids:'ASTEROID STORM'};
 export function createPhaseBackdrop(){
   let tint=[...colors.orbit];
   return (ctx,width,height,kind,dt,reduced)=>{
