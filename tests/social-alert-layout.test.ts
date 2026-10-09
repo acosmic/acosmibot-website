@@ -60,7 +60,7 @@ test('streaming hydrates provider avatars and reuses successful validation respo
 test('legacy streaming records normalize to enabled and verified without losing saved settings', () => {
   assert.match(streamingApi, /enabled: streamer\.enabled !== false/);
   assert.match(streamingApi, /isValid: streamer\.isValid !== false && Boolean\(username\)/);
-  assert.match(streamingApi, /mention_role_ids: Array\.isArray/);
+  assert.match(streamingApi, /normalizeStreamingMentions\(streamer, guildId\)/);
 
   const normalizeStart = streamingApi.indexOf('const normalizeStreamers');
   const normalizeEnd = streamingApi.indexOf('export const streamingApi');

@@ -664,6 +664,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
                 </div>
 
                 <RoleMultiSelect
+                  excludeEveryone
                   guildId={guildId}
                   value={selectedStreamer.mention_role_ids}
                   onChange={(mention_role_ids) => updateStreamer(selectedStreamerIndex, { mention_role_ids })}
