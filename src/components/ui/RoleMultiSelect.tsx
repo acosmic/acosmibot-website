@@ -9,6 +9,8 @@ interface RoleMultiSelectProps {
   /** Hint shown while no roles are selected */
   placeholder?: string;
   disabled?: boolean;
+  /** Streaming has a separate @everyone checkbox. */
+  excludeEveryone?: boolean;
 }
 
 export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
@@ -18,8 +20,10 @@ export const RoleMultiSelect: React.FC<RoleMultiSelectProps> = ({
   label,
   placeholder = 'No roles selected — choose from the list below',
   disabled = false,
+  excludeEveryone = false,
 }) => {
-  const { data: roles, isLoading } = useGuildRoles(guildId);
+  const { data: allRoles, isLoading } = useGuildRoles(guildId);
+  const roles = allRoles?.filter(role => !excludeEveryone || role.id !== guildId);
 
   const toggleRole = (roleId: string) => {
     if (disabled) return;
