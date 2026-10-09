@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Event Horizon · Reactions preview</title>
+<style>
+html,body{margin:0;height:100%;background:#05080d}body{display:flex;flex-direction:column}#preview-panel{flex:none;position:relative;z-index:100;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:6px 10px;background:#0b1626;border-bottom:1px solid #3d566b;font:12px system-ui;color:#cfe3f0}#game{flex:1;min-height:0!important;height:auto!important}
+#preview-panel button{font:inherit;min-height:30px;padding:4px 10px;background:#132435;color:#e8f1f6;border:1px solid #314b5e;border-radius:6px;cursor:pointer}
+#preview-panel button[aria-pressed="true"]{background:#1d4a5e;border-color:#7ff1ff}
+#preview-panel span{opacity:.75}
+</style>
+<div id="preview-panel" aria-label="Preview controls"><span>LOCAL PREVIEW · nothing is sent</span>
+<button id="p-spectator" aria-pressed="true">Spectator view</button><button id="p-pilot" aria-pressed="false">Pilot view</button>
+<button id="p-crowd" aria-pressed="false">Crowd spam</button>
+<span>Finish:</span><button id="p-first">#1</button><button id="p-podium">#3</button><button id="p-top">#7</button><button id="p-lost">Orbit lost</button><button id="p-fly">Back to flight</button></div>
+<main id="game" aria-label="Event Horizon reactions preview"></main>
+<script type="module" src="./event-horizon-reactions.mjs"></script></html>

@@ -236,6 +236,13 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      // Local stand-in for the Activity's /discord-cdn URL mapping (avatars, emoji).
+      '/discord-cdn': {
+        target: 'https://cdn.discordapp.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path: string) => path.replace(/^\/discord-cdn/, ''),
+      },
     },
   },
   build: {

@@ -110,6 +110,7 @@ export function createAudio() {
     warning({ critical = false } = {}) { voice({ type: 'triangle', freq: critical ? 240 : 320, end: critical ? 170 : 240, duration: .2, gain: .045 }); },
     death() { hiss({ duration: 1.4, gain: .22, type: 'lowpass', freq: 3000, end: 80, q: .7 }); voice({ type: 'sine', freq: 120, end: 28, duration: 1.2, gain: .2 }); voice({ type: 'sawtooth', freq: 300, end: 40, duration: .7, gain: .05, filter: { type: 'lowpass', freq: 1200 } }); },
     best() { [0, 2, 4, 5].forEach((n, i) => voice({ type: 'triangle', freq: NOTES[n] * 2, duration: .5, gain: .05, when: i * .09 })); voice({ type: 'sine', freq: NOTES[4] * 4, duration: 1, gain: .03, when: .36 }); },
+    champion() { [0, 2, 4, 0, 2, 4, 5].forEach((n, i) => voice({ type: 'triangle', freq: NOTES[n] * (i < 3 ? 2 : 4), duration: .55, gain: .055, when: i * .1 })); [0, 2, 4].forEach(n => voice({ type: 'sine', freq: NOTES[n] * 4, duration: 1.6, gain: .03, when: .75 })); },
     click() { voice({ type: 'sine', freq: 550, duration: .08, gain: .03 }); },
     // Darkn1de. One-shots only: no sustained drone under the flight.
     omen({ index = 0 } = {}) { voice({ type: 'sine', freq: 55, end: 49, duration: 2.2, gain: .07, attack: .6 }); hiss({ duration: 1.8, gain: .022, freq: 700, end: 300, q: 6 }); if (index >= 2) voice({ type: 'triangle', freq: 311, end: 293, duration: 1.6, gain: .012, attack: .5 }); },

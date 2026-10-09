@@ -181,6 +181,36 @@ button:active:not(:disabled){transform:scale(.97)}
 #results.new-best #final-score{background:linear-gradient(180deg,#fff6e0,#ffc46b);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 24px #ffb24a88)}
 #best-badge{display:inline-block;margin-bottom:10px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.16em;color:#1a0f02;background:linear-gradient(90deg,#ffd08a,#fff1c9,#ffb25c);box-shadow:0 0 24px #ffb24a99}
 #best-badge.show{animation:badge-in .7s cubic-bezier(.2,1.6,.4,1) both,badge-glow 1.8s .7s ease-in-out infinite}
+#overlay.placed #screen-title{background:linear-gradient(100deg,#9cf3ff 10%,#e7fbff 45%,#b48cff 90%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 18px #6fe0ff66)}
+#overlay.champion #screen-title{background-image:linear-gradient(100deg,#ffb25c 0%,#fff1c9 30%,#ffd08a 50%,#fff6e0 70%,#ffb25c 100%);background-size:220% 100%;filter:drop-shadow(0 0 30px #ffb24aaa);animation:champion-sheen 2.6s linear infinite}
+#overlay.placed #screen-title.placed-in{animation:placed-in .6s cubic-bezier(.2,1.5,.4,1) both}
+#overlay.champion #screen-title.placed-in{animation:placed-in .8s cubic-bezier(.2,1.7,.4,1) both,champion-sheen 2.6s .8s linear infinite}
+#overlay.champion #screen-description{color:#ffe2b0}
+#reaction-layer{position:absolute;inset:0;z-index:4;overflow:hidden;pointer-events:none}
+.reaction{position:absolute;left:calc(2% + var(--x,50%)*.12);bottom:110px;font-size:var(--size,36px);line-height:1;will-change:transform,opacity;animation:reaction-rise var(--time,3.4s) cubic-bezier(.3,.6,.4,1) both;filter:drop-shadow(0 3px 8px #000a)}
+.reaction img{display:block;width:var(--size,36px);height:var(--size,36px);object-fit:contain}
+@keyframes reaction-rise{0%{opacity:0;transform:translate(0,20px) scale(.4)}12%{opacity:1;transform:translate(0,-6vh) scale(1.15) rotate(var(--spin,0deg))}55%{opacity:1;transform:translate(var(--drift,0px),-48vh) scale(1) rotate(calc(var(--spin,0deg)*-1))}100%{opacity:0;transform:translate(calc(var(--drift,0px)*-.4),-92vh) scale(.9) rotate(var(--spin,0deg))}}
+#game.reduced-fx .reaction{animation:reaction-fade 1.8s linear both;bottom:calc(120px + var(--x,50%)*.5)}
+@keyframes reaction-fade{0%,70%{opacity:1}100%{opacity:0}}
+#watch-controls>#reaction-bar{display:flex;align-items:center;gap:6px;flex:none}#reaction-bar[hidden],#emoji-picker[hidden]{display:none}
+#reaction-quick{display:flex;gap:6px}#watch-controls #reaction-bar button{flex:none}
+.emoji-button{display:grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;font-size:24px;line-height:1;background:#0e1a2a;border:1px solid #3d566b;border-radius:8px;color:inherit;cursor:pointer;touch-action:manipulation}
+#watch-controls .emoji-button{min-height:44px;padding:0}
+.emoji-button img{width:28px;height:28px;object-fit:contain;pointer-events:none}
+.emoji-button:hover{background:#183148}.emoji-button:active{transform:scale(.9)}
+.emoji-button:focus-visible,#emoji-open:focus-visible,#emoji-search:focus-visible{outline:2px solid #a2f1ff;outline-offset:2px}
+#emoji-open{white-space:nowrap}
+#emoji-picker{position:absolute;z-index:6;right:24px;bottom:calc(max(24px,env(safe-area-inset-bottom)) + 86px);width:min(340px,calc(100% - 48px));max-height:min(380px,60%);display:flex;flex-direction:column;gap:8px;padding:12px;background:#07101efa;border:1px solid #334455;border-radius:12px;box-shadow:0 12px 40px #000c}
+#emoji-search{min-height:40px;padding:8px 12px;font:inherit;font-size:16px;color:#f4f8fb;background:#0e1a2a;border:1px solid #527487;border-radius:8px}
+#emoji-status{margin:0;font-size:12px;color:#bdcedf}#emoji-status:empty{display:none}
+#emoji-grid{overflow-y:auto;overscroll-behavior:contain;min-height:0}
+#emoji-grid h3{margin:8px 0 6px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9fb6c9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#emoji-grid p{margin:12px 0;font-size:13px;color:#bdcedf}
+.emoji-group{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px}
+.emoji-group .emoji-button{width:100%;background:transparent;border-color:transparent}.emoji-group .emoji-button:hover{background:#183148}
+@media(max-width:600px){#watch-controls{flex-wrap:wrap}#reaction-bar{order:3;width:100%;justify-content:flex-end}#emoji-picker{right:14px;width:calc(100% - 28px);bottom:calc(max(24px,env(safe-area-inset-bottom)) + 150px)}}
+@keyframes placed-in{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:none}}
+@keyframes champion-sheen{to{background-position:-220% 0}}
 @keyframes badge-in{0%{opacity:0;transform:scale(.4) rotate(-6deg)}100%{opacity:1;transform:none}}
 @keyframes badge-glow{50%{box-shadow:0 0 40px #ffc46bdd}}
 #standings li{transition:background .3s}

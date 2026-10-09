@@ -69,3 +69,15 @@ test('presentation IDs track moving hazards without modifying ranked state',asyn
     assert.equal(b.objects[1].id,a.objects[0].id);assert.equal(b.crossers[0].id,a.crossers[0].id);
   }finally{f.live.stop();}
 });
+test('reactions are sent only to a relay that advertises them and only while watching',async()=>{
+  for(const [features,expected] of [[undefined,false],[['reactions'],true]]){
+    const socket=new Socket('wss://example.test/event-horizon-live');
+    const client=new LiveClient({api:async()=>({ticket:'ticket',path:'/event-horizon-live',protocol:1}),onMessage(){},onStatus(){},socketFactory:()=>socket,origin:'https://example.test'});
+    client.start();await settle();socket.open();socket.message({type:'authenticated',expiresAt:1,...(features?{features}:{})});
+    assert.equal(client.react('🔥'),false);
+    client.watch('flight');
+    assert.equal(client.react({id:'10',animated:false}),expected);
+    assert.equal(socket.sent.some(m=>m.type==='react'),expected);
+    client.stop();
+  }
+});
