@@ -5,7 +5,9 @@ import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
 import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-fx.mjs';
 import { flightError, needsReconnect } from './errors.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
-import { api, refreshBoard, renderBoard, boardReady, setRankedAvailable, setSession, verifiedBest } from './leaderboard.mjs';
+import { api, refreshBoard, renderBoard, boardReady, currentBoard, setRankedAvailable, setSession, verifiedBest } from './leaderboard.mjs';
+import { createReactionUI } from './reaction-ui.mjs';
+import { predictPlacement, verifiedPlacement, placementCopy } from './placement.mjs';
 import './style.css';
 import { LiveClient, snapshotForView } from './live.mjs';
 import { compactParticles, cachedLabel } from './render-cache.mjs';
@@ -54,6 +56,7 @@ let particles = [], stars = [], backdrop;
 const keys = new Set(), pointers = new Set();
 const boostKeys = new Set(['Space', 'KeyW', 'ArrowUp']);
 let rankedConnected = false;
+let placement = null;
 let casualAvailable = false;
 const launchLabel=()=>casualAvailable?'Launch flight ↗':'Launch ranked run ↗';
 let discordSdk = null;
@@ -87,11 +90,12 @@ function beginWatching(runId){
 }
 function stopWatching(){
   live?.unwatch();playback.reset();watching=false;mode='intro';watchedStatus='connecting';run=createRun(42);
-  $('watch-controls').hidden=true;$('viewer-count').hidden=true;$('watch-viewers').hidden=true;
+  $('watch-controls').hidden=true;$('viewer-count').hidden=true;$('watch-viewers').hidden=true;syncReactionBar();
   $('best').hidden=false;canvas.setAttribute('aria-label','Flight area. Hold Space, W, Arrow Up, or hold the flight area to boost outward. Release to dive inward. Shift activates Phase Shift.');
 }
 function liveMessage(message){
   if(message.type==='flights'){liveFlights=message.flights;renderPilots();return;}
+  if(message.type==='reaction'){if(watching||ticket?.runId)reactions.show(message);return;}
   if(message.type==='viewers'){
     const target=watching?live?.target:ticket?.runId;
     if(!target||(message.runId&&message.runId!==target))return;
@@ -105,7 +109,7 @@ function liveMessage(message){
     $('overlay').hidden=true;$('hud').hidden=false;$('pause').hidden=true;$('flight-controls').hidden=true;$('watch-controls').hidden=false;
     $('best').hidden=true;canvas.setAttribute('aria-label',`Live view of ${message.name}'s flight. Use Switch pilot or Leave view to return to the lobby.`);
     $('watch-leave').focus({preventScroll:true});
-    $('viewer-count').hidden=true;$('watch-viewers').hidden=true;return;
+    $('viewer-count').hidden=true;$('watch-viewers').hidden=true;syncReactionBar();void reactions.refresh();return;
   }
   if(message.type==='snapshot'&&watching){
     const state=snapshotForView(message);if(!state)return;
@@ -127,8 +131,14 @@ function liveMessage(message){
     if(watching)$('watch-status').textContent=text;else $('live-status').textContent=text;
   }
 }
+// ---- Spectator emoji reactions (presentation only) ----
+const reactions=createReactionUI({$,storage:(()=>{try{return localStorage;}catch{return null;}})(),fetchCatalog:()=>api('/emojis'),send:emoji=>Boolean(live?.react(emoji))});
+function syncReactionBar(){
+  reactions.setAvailable(watching&&Boolean(live?.supports('reactions')));
+  if(!watching&&!ticket?.runId)reactions.clear();
+}
 function setLiveStatus(status){
-  liveStatus=status;renderPilots();
+  liveStatus=status;renderPilots();syncReactionBar();
   if(watching&&status!=='connected'){watchedStatus='reconnecting';$('watch-viewers').hidden=true;$('watch-status').textContent='Live view reconnecting…';}
 }
 $('watch-leave').addEventListener('click',()=>{$('back-title').click();});
@@ -302,7 +312,7 @@ async function start() {
   if(watching)stopWatching();
   sound.unlock();
   revealPending=false;death=null;collectors=[];hideBanner();
-  $('pause').hidden=false;$('watch-controls').hidden=true;
+  $('pause').hidden=false;$('watch-controls').hidden=true;syncReactionBar();
   const generation=++runGeneration;clearInput();
   // Completed submissions keep their receipt; only abandon unfinished flights.
   if(mode==='paused'||mode==='ready'||mode==='playing')abandonTicket();
@@ -339,7 +349,7 @@ function armFlight(){
   message('Release to dive. Boost to climb.',4);
 }
 function showOverlay(title,description,action) {
-  clearInput(); $('overlay').hidden=false; $('overlay').classList.add('compact');
+  clearInput(); $('overlay').hidden=false; $('overlay').classList.add('compact'); $('overlay').classList.remove('placed','champion');
   $('screen-title').textContent=title; $('screen-description').textContent=description;
   $('launch').textContent=action; $('flight-controls').hidden=true; $('hud').hidden=true;
   $('pause').disabled=true; $('toast').textContent=''; hideBanner();
@@ -373,6 +383,7 @@ function finish(immediate=false) {
   $('run-stats').textContent=`${run.time.toFixed(1)}s survived · ${run.nearMisses} near-misses · ${run.shards} shards`;
   $('record').textContent=Math.floor(run.score)>savedBest?'New personal best pending verification.':'Press R to fly again.';
   $('rank-result').textContent='Checking your flight replay…';
+  placement=ticket?.casual?null:predictPlacement(currentBoard(),run.score);
   if(ticket?.casual){
     $('rank-result').textContent='Played for fun · score saved for this screen only.';
     $('record').textContent=Math.floor(run.score)>savedBest?'New best this visit.':'';
@@ -381,9 +392,20 @@ function finish(immediate=false) {
   revealPending=true;revealAt=performance.now()+(reduced?200:1150);
   if(immediate)revealResults();
 }
+// A top-ten server placement replaces the ORBIT LOST headline; #1 gets the full treatment.
+function showPlacement(){
+  const overlay=$('overlay'),was=overlay.classList.contains('champion')?1:overlay.classList.contains('placed')?2:0;
+  overlay.classList.toggle('placed',placement!=null);overlay.classList.toggle('champion',placement===1);
+  if(placement==null){$('screen-title').textContent='ORBIT LOST';$('screen-description').textContent=run.cause;return;}
+  const copy=placementCopy(placement);
+  $('screen-title').textContent=copy.title;$('screen-description').textContent=`${copy.lead} ${run.cause}`;
+  if(!reduced)retrigger('screen-title','placed-in');
+  if(placement===1&&was!==1){sound.play('champion');haptic([40,30,40,30,160],!reduced);}
+}
 function revealResults(){
   revealPending=false;
   showOverlay('ORBIT LOST',run.cause,'Fly again');
+  showPlacement();
   $('results').hidden=false; $('instructions').hidden=true; $('retry').hidden=true;
   $('leaderboard').hidden=!!ticket?.casual;$('back-title').hidden=false;
   countUpFinal(finalTarget);
@@ -398,6 +420,9 @@ async function submitResult(submission){
     // A completed request must never overwrite the next run's results.
     if(submission.generation!==runGeneration)return;
     renderBoard(result.leaderboard);pendingSubmission=null;
+    // The verified rank replaces the provisional headline.
+    const placed=verifiedPlacement(result);
+    if(placed!==placement){placement=placed;if(!revealPending)showPlacement();}
     // The server's verdict is authoritative for the personal-best badge.
     if(typeof result.personalBest==='boolean'){
       $('best-badge').hidden=!result.personalBest;$('results').classList.toggle('new-best',result.personalBest);
@@ -410,6 +435,7 @@ async function submitResult(submission){
     $('rank-result').textContent=`Replay verified · server #${result.rank} · ${movement}. ${result.personalBest?'New server personal best!':''}`;
   }catch(error){
     if(submission.generation!==runGeneration)return;
+    if(placement!=null){placement=null;if(!revealPending)showPlacement();}
     $('rank-result').textContent=`Score not confirmed. ${error.message||'Retry the check or fly again.'}`;
     $('resubmit').hidden=false;
   }
@@ -452,7 +478,7 @@ $('dash').addEventListener('pointerdown',e=>{e.preventDefault();dash();});
 $('dash').addEventListener('click',e=>{if(e.detail===0)dash();});
 const game=$('game');
 const isFlightControlTarget=target=>target===canvas||target.closest('#boost');
-const blocksFlightHold=target=>target.closest('#overlay, #dash, #pause, #viewer-count, a, input, select, textarea, [contenteditable="true"]');
+const blocksFlightHold=target=>target.closest('#overlay, #dash, #pause, #viewer-count, #emoji-picker, a, input, select, textarea, [contenteditable="true"]');
 game.addEventListener('pointerdown',e=>{
   if(!['ready','playing'].includes(mode)||(e.pointerType==='mouse'&&e.button!==0)||blocksFlightHold(e.target))return;
   // The root lets touch players hold any unoccupied flight area, while real controls
@@ -463,6 +489,7 @@ game.addEventListener('pointerdown',e=>{
 for(const event of ['pointerup','pointercancel','lostpointercapture']) game.addEventListener(event,e=>pointers.delete(e.pointerId));
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{
+  if(e.target?.closest?.('input, textarea'))return;
   if(e.code==='Escape'||e.code==='KeyP') {e.preventDefault();if(!e.repeat){if(mode==='playing'||mode==='ready')pause();else if(mode==='paused')resume();}return;}
   if(e.code==='KeyR'&&mode==='dead'&&!e.repeat){e.preventDefault();start();return;}
   if(mode!=='playing'&&mode!=='ready')return;
