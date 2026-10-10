@@ -277,3 +277,4 @@ h1 span{filter:none}
 .board-tabs button{min-height:44px;font-size:12px;padding:6px 8px}
 .board-tabs button[aria-pressed="true"]{color:#e6fcff;border-color:#67ecff;background:#203340}
 @media(max-width:600px){#pilot-counts{font-size:10px;max-width:165px}.season-options button{flex:1 0 42%}.board-heading{align-items:center;gap:8px}}
+

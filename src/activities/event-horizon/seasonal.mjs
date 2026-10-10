@@ -2,17 +2,22 @@ import { CLASSIC_HOLE } from './render-cache.mjs';
 import { BULBS, artVariant } from './seasonal-art.mjs';
 export { drawSeasonalObject } from './seasonal-art.mjs';
 // Cosmetic themes never mutate simulation state, collision geometry, or replay inputs.
-// `released` seasons ship everywhere; `preview` seasons unlock only in builds that opt in.
+// Availability comes from the owner-controlled runtime configuration.
 export const SEASONS = Object.freeze([
-  {id:'classic', name:'Classic', stage:'released', description:'Rocks, plasma flares, and asteroids.'},
-  {id:'halloween', name:'Halloween', stage:'released', description:'Tumbling skulls, glowing jack-o’-lanterns, and a candy storm under a haunted sky.'},
-  {id:'thanksgiving', name:'Thanksgiving', stage:'preview', description:'Roast turkeys, bubbling gravy, and a pie storm over a harvest sky.'},
-  {id:'christmas', name:'Christmas', stage:'preview', description:'Snowballs and coal, Christmas lights, and runaway presents in a winter orbit.'},
+  {id:'classic', name:'Classic', description:'Rocks, plasma flares, and asteroids.'},
+  {id:'halloween', name:'Halloween', description:'Tumbling skulls, glowing jack-o’-lanterns, and a candy storm under a haunted sky.'},
+  {id:'thanksgiving', name:'Thanksgiving', description:'Roast turkeys, bubbling gravy, and a pie storm over a harvest sky.'},
+  {id:'christmas', name:'Christmas', description:'Snowballs and coal, Christmas lights, and runaway presents in a winter orbit.'},
 ]);
-export const seasonEnabled = (season,preview=false) => season.stage==='released'||(preview&&season.stage==='preview');
-export const availableSeason = (value,preview=false) => SEASONS.some(s=>s.id===value&&seasonEnabled(s,preview))?value:'classic';
-export function readSeason(storage,preview=false) {try{return availableSeason(storage?.getItem('eh-season'),preview);}catch{return 'classic';}}
-export function saveSeason(storage,value,preview=false) {const theme=availableSeason(value,preview);try{storage?.setItem('eh-season',theme);}catch{/* webview storage is optional */}return theme;}
+export function normalizeAvailability(value) {
+  return Object.fromEntries(SEASONS.map(({id})=>[id,id==='classic'?'playable':
+    value && typeof value==='object' && ['hidden','coming_soon','playable'].includes(value[id])?value[id]:'hidden']));
+}
+export const seasonState = (season,availability) => normalizeAvailability(availability)[season.id]??'hidden';
+export const seasonEnabled = (season,availability) => seasonState(season,availability)==='playable';
+export const availableSeason = (value,availability) => SEASONS.some(s=>s.id===value&&seasonEnabled(s,availability))?value:'classic';
+export function readSeason(storage,availability) {try{return availableSeason(storage?.getItem('eh-season'),availability);}catch{return 'classic';}}
+export function saveSeason(storage,value,availability) {const theme=availableSeason(value,availability);try{storage?.setItem('eh-season',theme);}catch{/* webview storage is optional */}return theme;}
 
 // One palette per season. Everything here is presentation: colours, copy, and which
 // ambient layer and debris bits the renderer bakes. Shards, Phase Shift, warning lines,

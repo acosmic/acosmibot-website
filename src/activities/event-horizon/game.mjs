@@ -1,4 +1,4 @@
-import { SEASONS, readSeason, saveSeason, seasonalCopy, seasonEnabled, seasonTheme, paintBackdrop, hazardRotation } from './seasonal.mjs';
+import { SEASONS, readSeason, saveSeason, seasonalCopy, seasonEnabled, seasonState, normalizeAvailability, seasonTheme, paintBackdrop, hazardRotation } from './seasonal.mjs';
 import { seasonBitCount } from './seasonal-art.mjs';
 import {drawDarkn1de,createDarkCues,POSE_NAMES} from './darkn1de-fx.mjs';
 import { createRun, step, DT, clamp, specialState, thrustActive, isInverted, resonanceReady } from './sim.mjs';
@@ -43,27 +43,36 @@ const DARK_SOUNDS={omen:'omen',lead:'darkLead',arrival:'darkArrival',ignite:'dar
 const DARK_HAPTICS={arrival:[90,50,140],ignite:[40,30,80],defeat:[60,40,60,40,160]};
 const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocket-grip.png';
 const seasonalStorage=(()=>{try{return localStorage;}catch{return null;}})();
-// Preview seasons unlock in local development and in builds that opt in (the isolated test image).
-const seasonPreview=import.meta.env.DEV||import.meta.env.VITE_EVENT_HORIZON_SEASON_PREVIEW==='1';
-let season=readSeason(seasonalStorage,seasonPreview);
+// Until server configuration arrives, only Classic is available.
+let seasonAvailability=normalizeAvailability(null);
+let season='classic';
 let pilotStats=null, watchedStats=null, casualStats={attempts:0,deaths:0};
 let localDeathPending=false;
 function statsCopy(stats){return stats?`Attempt ${Number(stats.attempts).toLocaleString()} · Deaths ${Number(stats.deaths).toLocaleString()}`:'Attempt — · Deaths —';}
-document.querySelector('.season-options').replaceChildren(...SEASONS.map(s=>{
-  const button=document.createElement('button'),swatch=document.createElement('span'),name=document.createElement('span');
-  const enabled=seasonEnabled(s,seasonPreview),[from,to]=seasonTheme(s.id).swatch;
-  button.type='button';button.disabled=!enabled;button.style.setProperty('--season',from);if(enabled)button.dataset.season=s.id;
-  swatch.className='season-swatch';swatch.style.background=`linear-gradient(135deg,${from},${to})`;name.textContent=s.name;button.append(swatch,name);
-  if(s.stage==='preview'){const tag=document.createElement('small');tag.textContent=enabled?'Test preview':'Coming soon';button.append(tag);}
-  return button;
-}));
+function renderSeasonOptions(){
+  document.querySelector('.season-options').replaceChildren(...SEASONS.filter(s=>seasonState(s,seasonAvailability)!=='hidden').map(s=>{
+    const button=document.createElement('button'),swatch=document.createElement('span'),name=document.createElement('span');
+    const enabled=seasonEnabled(s,seasonAvailability),[from,to]=seasonTheme(s.id).swatch;
+    button.type='button';button.disabled=!enabled;button.style.setProperty('--season',from);
+    swatch.className='season-swatch';swatch.style.background=`linear-gradient(135deg,${from},${to})`;name.textContent=s.name;button.append(swatch,name);
+    if(enabled){
+      button.dataset.season=s.id;
+      button.addEventListener('click',()=>{season=saveSeason(seasonalStorage,s.id,seasonAvailability);updateSeason();sound.setSeason(season);resize();});
+    }else{const tag=document.createElement('small');tag.textContent='Coming soon';button.append(tag);}
+    return button;
+  }));
+}
+function applySeasonAvailability(value){
+  seasonAvailability=normalizeAvailability(value);
+  season=readSeason(seasonalStorage,seasonAvailability);
+  renderSeasonOptions();updateSeason();sound.setSeason(season);resize();
+}
+renderSeasonOptions();
 function updateSeason(){
   for(const button of document.querySelectorAll('[data-season]'))button.setAttribute('aria-pressed',String(button.dataset.season===season));
   $('season-description').textContent=SEASONS.find(s=>s.id===season).description;
   $('season-rule').textContent=seasonTheme(season).rule;$('game').dataset.season=season;
 }
-// The sky, hole, hazards, and score are rebuilt once here, never mid-frame.
-for(const button of document.querySelectorAll('[data-season]'))button.addEventListener('click',()=>{season=saveSeason(seasonalStorage,button.dataset.season,seasonPreview);updateSeason();sound.setSeason(season);resize();});
 updateSeason();
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
 let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = false;
@@ -207,7 +216,7 @@ async function connectDiscord(approvedAuthorization=null) {
   $('connection-retry').disabled=true;
   setConnectionState('loading'); setSession(null); setRankedAvailable(false); rankedConnected=false;casualAvailable=false;
   try {
-    const config=await fetchConfig(); if(!config?.enabled)throw new Error('Event Horizon is not available right now. Please try again later.');
+    const config=await fetchConfig(); applySeasonAvailability(config.seasons); if(!config?.enabled)throw new Error('Event Horizon is not available right now. Please try again later.');
     const clientId=config.clientId || import.meta.env.VITE_DISCORD_CLIENT_ID; if(!clientId)throw new Error('This Activity is missing its public Discord client ID.');
     discordClientId=clientId;
     if(!approvedAuthorization){

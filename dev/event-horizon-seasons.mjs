@@ -3,7 +3,7 @@
 const realFetch=window.fetch.bind(window);
 window.fetch=async (input,options)=>{
   const url=String(input);
-  if(url==='/api/event-horizon/config')return new Response(JSON.stringify({enabled:true,watchEnabled:false,clientId:'preview',version:'event-horizon-v10'}),{headers:{'Content-Type':'application/json'}});
+  if(url==='/api/event-horizon/config')return new Response(JSON.stringify({enabled:true,watchEnabled:false,seasons:{classic:'playable',halloween:'playable',thanksgiving:'playable',christmas:'playable'},clientId:'preview',version:'event-horizon-v10'}),{headers:{'Content-Type':'application/json'}});
   if(url.startsWith('/api/event-horizon/'))return new Response(JSON.stringify({error:'Synthetic preview · no server connection'}),{status:503,headers:{'Content-Type':'application/json'}});
   return realFetch(input,options);
 };

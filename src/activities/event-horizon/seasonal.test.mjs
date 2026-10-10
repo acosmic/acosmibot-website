@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SEASONS, availableSeason, readSeason, saveSeason, drawSeasonalObject, seasonalCopy, seasonEnabled, seasonTheme, hazardAura, hazardRotation, ambientPose, paintBackdrop } from './seasonal.mjs';
+import { SEASONS, availableSeason, readSeason, saveSeason, drawSeasonalObject, seasonalCopy, seasonEnabled, seasonState, normalizeAvailability, seasonTheme, hazardAura, hazardRotation, ambientPose, paintBackdrop } from './seasonal.mjs';
 import { drawSeasonBit, seasonBitCount, drawAmbient, AMBIENT_VARIANTS } from './seasonal-art.mjs';
 import { SCORES } from './audio.mjs';
 
@@ -8,22 +8,28 @@ const gradient={addColorStop(){}};
 const fakeContext=()=>new Proxy({}, {get:(_,key)=>key.startsWith('create')?()=>gradient:()=>{}});
 const themed=['halloween','thanksgiving','christmas'];
 
-test('preview and invalid themes cannot be enabled through persisted preferences',()=>{
-  for(const id of ['thanksgiving','christmas','unknown',null])assert.equal(availableSeason(id),'classic');
+test('runtime availability controls visibility and playability independently',()=>{
+  const flags={halloween:'hidden',thanksgiving:'coming_soon',christmas:'playable'};
+  assert.deepEqual(SEASONS.filter(s=>seasonState(s,flags)!=='hidden').map(s=>s.id),['classic','thanksgiving','christmas']);
+  assert.deepEqual(SEASONS.filter(s=>seasonEnabled(s,flags)).map(s=>s.id),['classic','christmas']);
+  assert.equal(availableSeason('halloween',flags),'classic');
+  assert.equal(availableSeason('thanksgiving',flags),'classic');
+  assert.equal(availableSeason('christmas',flags),'christmas');
+  assert.equal(availableSeason('unknown',flags),'classic');
+  assert.deepEqual(normalizeAvailability(null),{classic:'playable',halloween:'hidden',thanksgiving:'hidden',christmas:'hidden'});
+  assert.equal(normalizeAvailability({classic:'hidden',halloween:true}).classic,'playable');
+  assert.equal(normalizeAvailability({halloween:true}).halloween,'hidden');
+});
+test('stored choices fall back when disabled and storage can be unavailable',()=>{
+  const flags={halloween:'playable',thanksgiving:'coming_soon',christmas:'hidden'};
   const storage={getItem:()=> 'halloween',setItem(key,value){this.saved=[key,value];}};
-  assert.equal(readSeason(storage),'halloween');assert.equal(saveSeason(storage,'christmas'),'classic');
+  assert.equal(readSeason(storage,flags),'halloween');
+  assert.equal(readSeason(storage,{...flags,halloween:'hidden'}),'classic');
+  assert.equal(readSeason(storage,{...flags,halloween:'coming_soon'}),'classic');
+  assert.equal(saveSeason(storage,'christmas',flags),'classic');
   assert.deepEqual(storage.saved,['eh-season','classic']);
   const denied={getItem(){throw Error('denied');},setItem(){throw Error('denied');}};
-  assert.equal(readSeason(denied),'classic');assert.equal(saveSeason(denied,'halloween'),'halloween');
-});
-test('a release build offers Classic and Halloween; a preview build offers every season',()=>{
-  assert.deepEqual(SEASONS.filter(s=>seasonEnabled(s)).map(s=>s.id),['classic','halloween']);
-  assert.deepEqual(SEASONS.filter(s=>seasonEnabled(s,true)).map(s=>s.id),['classic','halloween','thanksgiving','christmas']);
-  for(const id of ['thanksgiving','christmas'])assert.equal(availableSeason(id,true),id);
-  assert.equal(availableSeason('unknown',true),'classic');
-  const storage={getItem:()=> 'christmas',setItem(key,value){this.saved=[key,value];}};
-  assert.equal(readSeason(storage,true),'christmas');assert.equal(readSeason(storage),'classic');
-  assert.equal(saveSeason(storage,'thanksgiving',true),'thanksgiving');assert.deepEqual(storage.saved,['eh-season','thanksgiving']);
+  assert.equal(readSeason(denied,flags),'classic');assert.equal(saveSeason(denied,'halloween',flags),'halloween');
 });
 test('seasonal rendering handles only hazards and never changes their replay state',()=>{
   const ctx=fakeContext();
