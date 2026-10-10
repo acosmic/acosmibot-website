@@ -49,12 +49,30 @@ const flightSub = (survival: number | null | undefined): string => {
   const seconds = Math.floor(survival ?? 0);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')} survived`;
 };
+const isFlightMetric = (metric: string) => metric.startsWith('event-horizon');
+const flightLabels = {
+  'event-horizon': 'Event Horizon',
+  'event-horizon-deaths': 'Event Horizon · Most Deaths',
+  'event-horizon-average': 'Event Horizon · Highest Average Score',
+};
+const flightSummary = (metric: string, entry: GlobalEntry | GuildEventHorizonEntry) => ({
+  value: metric === 'event-horizon-deaths' ? `${fmt(entry.deaths)} deaths`
+    : metric === 'event-horizon-average' ? `${(entry.average_score ?? 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} avg pts`
+    : flightValue(entry.score),
+  sub: metric === 'event-horizon' ? flightSub(entry.survival) : `${fmt(entry.attempts)} attempts`,
+});
+const flightExplanation = (metric: string) => metric === 'event-horizon-average'
+  ? 'Total verified score ÷ all ranked attempts. Unfinished attempts count as zero; ties favor more attempts.'
+  : metric === 'event-horizon-deaths' ? 'Replay-verified deaths from available ranked history. Unfinished attempts are not deaths.'
+  : 'Best verified Event Horizon flights.';
 const FLIGHT_EMPTY = 'Rankings will appear after the first ranked /event-horizon flight.';
 
 const GLOBAL_FIELD_LABELS: Record<GlobalMetric, string> = {
   xp: 'Global XP field',
   economy: 'Net worth field',
   'event-horizon': 'Event Horizon field',
+  'event-horizon-deaths': 'Event Horizon deaths',
+  'event-horizon-average': 'Event Horizon average scores',
 };
 
 const maskName = (s: string): string => (s.length <= 2 ? s : `${s.slice(0, 2)}•••••`);
@@ -101,7 +119,6 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ['leaderboard', 'global', metric, limit],
     queryFn: () => leaderboardApi.getGlobal(metric, 0, limit),
-    placeholderData: keepPreviousData,
   });
 
   const economyValue = (entry: GlobalEntry): number | null | undefined =>
@@ -117,12 +134,12 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
     name: entry.global_name || entry.discord_username || `User ${entry.user_id}`,
     username: entry.discord_username,
     userId: entry.user_id,
-    value: metric === 'event-horizon'
-      ? flightValue(entry.score)
+    value: isFlightMetric(metric)
+      ? flightSummary(metric, entry).value
       : metric === 'economy'
         ? `${fmt(economyValue(entry))} Acosmicoins`
         : `${fmt(entry.global_exp)} XP`,
-    sub: metric === 'event-horizon' ? flightSub(entry.survival) : `Lvl ${fmt(entry.global_level)}`,
+    sub: isFlightMetric(metric) ? flightSummary(metric, entry).sub : `Lvl ${fmt(entry.global_level)}`,
     isMe: !!meId && meId === entry.user_id,
     masked: entry.masked ?? !isAuthed,
   }));
@@ -146,13 +163,15 @@ const GlobalBoard: React.FC<{ isAuthed: boolean; meId?: string }> = ({ isAuthed,
         }}
       />
 
+      {isFlightMetric(metric) && <p>{flightExplanation(metric)}</p>}
+
       <RankBoard
         entries={entries}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}
         emptyTitle="No entries yet"
-        emptySubtitle={metric === 'event-horizon' ? FLIGHT_EMPTY : undefined}
+        emptySubtitle={isFlightMetric(metric) ? FLIGHT_EMPTY : undefined}
         errorTitle="Couldn’t load the leaderboard"
         fieldLabel={GLOBAL_FIELD_LABELS[metric]}
       />
@@ -184,14 +203,13 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
         isMe: !!meId && meId === entry.user_id,
         masked: false,
       });
-      if (metric === 'event-horizon') {
-        const board = await leaderboardApi.getGuildEventHorizon(guildId, 0, limit);
+      if (metric !== 'level') {
+        const board = await leaderboardApi.getGuildEventHorizon(guildId, 0, limit, metric);
         return {
           guildName: board.guild.name,
           entries: board.entries.map((entry) => ({
             ...identity(entry),
-            value: flightValue(entry.score),
-            sub: flightSub(entry.survival),
+            ...flightSummary(metric, entry),
           })),
         };
       }
@@ -240,14 +258,14 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
       <LeaderboardHeader
         scope="Server standings"
         title={data?.guildName || 'Server Leaderboard'}
-        subtitle={metric === 'event-horizon'
-          ? 'Best Event Horizon flights in this server.'
+        subtitle={isFlightMetric(metric)
+          ? flightExplanation(metric)
           : 'Top members by level in this server.'}
       />
 
       <div className="leaderboard-controls">
         <div className="leaderboard-tabs" role="group" aria-label="Server ranking metric">
-          {(['level', 'event-horizon'] as const).map((option) => (
+          {(['level', 'event-horizon', 'event-horizon-deaths', 'event-horizon-average'] as const).map((option) => (
             <Tab
               key={option}
               active={metric === option}
@@ -256,7 +274,7 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
                 setLimit(PAGE);
               }}
             >
-              {option === 'level' ? 'Level' : 'Event Horizon'}
+              {option === 'level' ? 'Level' : flightLabels[option]}
             </Tab>
           ))}
         </div>
@@ -268,10 +286,10 @@ const GuildBoard: React.FC<{ guildId: string; isAuthed: boolean; meId?: string }
         isFetching={isFetching}
         isError={isError}
         emptyTitle="No entries yet"
-        emptySubtitle={metric === 'event-horizon' ? FLIGHT_EMPTY : undefined}
+        emptySubtitle={isFlightMetric(metric) ? FLIGHT_EMPTY : undefined}
         errorTitle={is403 ? 'You’re not a member of this server' : 'Couldn’t load this leaderboard'}
         errorIcon={is403 ? <Ban size={34} /> : undefined}
-        fieldLabel={metric === 'event-horizon' ? 'Server Event Horizon field' : 'Server level field'}
+        fieldLabel={isFlightMetric(metric) ? 'Server Event Horizon field' : 'Server level field'}
       />
 
       {!isError && entries.length >= limit && (
@@ -294,9 +312,11 @@ const BoardControls: React.FC<{
       <Tab active={metric === 'economy'} onClick={() => onMetricChange('economy')}>
         Net Worth
       </Tab>
-      <Tab active={metric === 'event-horizon'} onClick={() => onMetricChange('event-horizon')}>
-        Event Horizon
-      </Tab>
+      {(['event-horizon', 'event-horizon-deaths', 'event-horizon-average'] as const).map((option) => (
+        <Tab key={option} active={metric === option} onClick={() => onMetricChange(option)}>
+          {flightLabels[option]}
+        </Tab>
+      ))}
     </div>
     {isAuthed && <ServerSelector />}
   </div>

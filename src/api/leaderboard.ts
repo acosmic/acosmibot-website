@@ -17,6 +17,9 @@ export interface GlobalEntry {
   // Present on the Event Horizon board: best flight score and seconds survived.
   score?: number;
   survival?: number;
+  deaths?: number;
+  attempts?: number;
+  average_score?: number;
   // Server-decided: true when this person should be masked from the viewer
   // (not them, not opted-public, no shared server).
   masked?: boolean;
@@ -40,8 +43,11 @@ export interface GuildEventHorizonEntry {
   discord_username: string | null;
   display_name: string | null;
   avatar_url: string | null;
-  score: number;
-  survival: number;
+  score?: number;
+  survival?: number;
+  deaths?: number;
+  attempts?: number;
+  average_score?: number;
 }
 
 export interface GlobalLeaderboard {
@@ -61,13 +67,15 @@ export interface GuildEventHorizonLeaderboard extends Omit<GuildLeaderboard, 'en
   entries: GuildEventHorizonEntry[];
 }
 
-export type GlobalMetric = 'xp' | 'economy' | 'event-horizon';
-export type GuildMetric = 'level' | 'event-horizon';
+export type GlobalMetric = 'xp' | 'economy' | 'event-horizon' | 'event-horizon-deaths' | 'event-horizon-average';
+export type GuildMetric = 'level' | 'event-horizon' | 'event-horizon-deaths' | 'event-horizon-average';
 
 const GLOBAL_PATHS: Record<GlobalMetric, string> = {
   xp: 'global-xp',
   economy: 'global-currency',
   'event-horizon': 'global-event-horizon',
+  'event-horizon-deaths': 'global-event-horizon/deaths',
+  'event-horizon-average': 'global-event-horizon/average',
 };
 
 const PAGE = 50;
@@ -82,6 +90,6 @@ export const leaderboardApi = {
     api.fetch<GuildLeaderboard>(`/api/guilds/${encodeURIComponent(guildId)}/leaderboard?limit=${limit}&offset=${offset}`),
 
   /** Per-server Event Horizon high scores (members only — requires auth). */
-  getGuildEventHorizon: (guildId: string, offset = 0, limit = PAGE): Promise<GuildEventHorizonLeaderboard> =>
-    api.fetch<GuildEventHorizonLeaderboard>(`/api/guilds/${encodeURIComponent(guildId)}/leaderboard/event-horizon?limit=${limit}&offset=${offset}`),
+  getGuildEventHorizon: (guildId: string, offset = 0, limit = PAGE, metric: GuildMetric = 'event-horizon'): Promise<GuildEventHorizonLeaderboard> =>
+    api.fetch<GuildEventHorizonLeaderboard>(`/api/guilds/${encodeURIComponent(guildId)}/leaderboard/event-horizon${metric === 'event-horizon-deaths' ? '/deaths' : metric === 'event-horizon-average' ? '/average' : ''}?limit=${limit}&offset=${offset}`),
 };
