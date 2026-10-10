@@ -1,4 +1,5 @@
-import { SEASONS, readSeason, saveSeason, seasonalCopy } from './seasonal.mjs';
+import { SEASONS, readSeason, saveSeason, seasonalCopy, seasonEnabled, seasonTheme, paintBackdrop, hazardRotation } from './seasonal.mjs';
+import { seasonBitCount } from './seasonal-art.mjs';
 import {drawDarkn1de,createDarkCues,POSE_NAMES} from './darkn1de-fx.mjs';
 import { createRun, step, DT, clamp, specialState, thrustActive, isInverted, resonanceReady } from './sim.mjs';
 import { createPhaseBackdrop, drawSpecial, phaseNames } from './phases-fx.mjs';
@@ -42,15 +43,27 @@ const DARK_SOUNDS={omen:'omen',lead:'darkLead',arrival:'darkArrival',ignite:'dar
 const DARK_HAPTICS={arrival:[90,50,140],ignite:[40,30,80],defeat:[60,40,60,40,160]};
 const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocket-grip.png';
 const seasonalStorage=(()=>{try{return localStorage;}catch{return null;}})();
-let season=readSeason(seasonalStorage);
+// Preview seasons unlock in local development and in builds that opt in (the isolated test image).
+const seasonPreview=import.meta.env.DEV||import.meta.env.VITE_EVENT_HORIZON_SEASON_PREVIEW==='1';
+let season=readSeason(seasonalStorage,seasonPreview);
 let pilotStats=null, watchedStats=null, casualStats={attempts:0,deaths:0};
 let localDeathPending=false;
 function statsCopy(stats){return stats?`Attempt ${Number(stats.attempts).toLocaleString()} · Deaths ${Number(stats.deaths).toLocaleString()}`:'Attempt — · Deaths —';}
+document.querySelector('.season-options').replaceChildren(...SEASONS.map(s=>{
+  const button=document.createElement('button'),swatch=document.createElement('span'),name=document.createElement('span');
+  const enabled=seasonEnabled(s,seasonPreview),[from,to]=seasonTheme(s.id).swatch;
+  button.type='button';button.disabled=!enabled;button.style.setProperty('--season',from);if(enabled)button.dataset.season=s.id;
+  swatch.className='season-swatch';swatch.style.background=`linear-gradient(135deg,${from},${to})`;name.textContent=s.name;button.append(swatch,name);
+  if(s.stage==='preview'){const tag=document.createElement('small');tag.textContent=enabled?'Test preview':'Coming soon';button.append(tag);}
+  return button;
+}));
 function updateSeason(){
   for(const button of document.querySelectorAll('[data-season]'))button.setAttribute('aria-pressed',String(button.dataset.season===season));
   $('season-description').textContent=SEASONS.find(s=>s.id===season).description;
+  $('season-rule').textContent=seasonTheme(season).rule;$('game').dataset.season=season;
 }
-for(const button of document.querySelectorAll('[data-season]'))button.addEventListener('click',()=>{season=saveSeason(seasonalStorage,button.dataset.season);updateSeason();});
+// The sky, hole, hazards, and score are rebuilt once here, never mid-frame.
+for(const button of document.querySelectorAll('[data-season]'))button.addEventListener('click',()=>{season=saveSeason(seasonalStorage,button.dataset.season,seasonPreview);updateSeason();sound.setSeason(season);resize();});
 updateSeason();
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
 let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = false;
@@ -58,6 +71,7 @@ let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let muted = false, best = 0, savedBest = 0, shake = 0, toastUntil = 0;
 // Presentation-only feel and sound. Neither ever feeds back into the simulation.
 const juice=createJuice(), sound=createAudio();
+sound.setSeason(season);
 let death=null, revealPending=false, revealAt=0, frameMs=16.7, shownScore=0, hudTier='cool', watchAlive=true;
 let finalTarget=0, finalAnim=0, bannerTimer=0;
 const particleCap=()=>reduced?240:600;
@@ -244,19 +258,14 @@ function resize() {
   }));
   backdrop = document.createElement('canvas'); backdrop.width = Math.ceil(width); backdrop.height = Math.ceil(height);
   const b = backdrop.getContext('2d');
-  b.fillStyle = '#050812'; b.fillRect(0, 0, width, height);
-  for (const [x,y,r,color] of [[.85,.25,.6,'#261747'],[.16,.7,.7,'#092e4c'],[.65,.72,.35,'#331136']]) {
-    const grad = b.createRadialGradient(width*x,height*y,0,width*x,height*y,width*r);
-    grad.addColorStop(0,color); grad.addColorStop(1,'#05081200');
-    b.fillStyle = grad; b.fillRect(0,0,width,height);
-  }
-  gpu?.resize({width,height,ratio,camera,reduced,backdrop,stars});
+  paintBackdrop(b,width,height,season);
+  gpu?.resize({width,height,ratio,camera,reduced,backdrop,stars,season});
 }
 const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);
 
 function message(text, seconds = 1.6) { $('toast').textContent = text; toastUntil = visualTime + seconds; }
 // Visual-only randomness (Math.random) is fine here: particles never reach the sim.
-function burst(x,y,color,count=16,{speed=150,sparks=.6,ring=0,smoke=0}={}) {
+function burst(x,y,color,count=16,{speed=150,sparks=.6,ring=0,smoke=0,bits=0}={}) {
   if (reduced) count = Math.min(count, 6);
   for(let i=0;i<count;i++) {
     const a=Math.random()*Math.PI*2, v=30+Math.random()*speed, spark=Math.random()<sparks;
@@ -265,7 +274,11 @@ function burst(x,y,color,count=16,{speed=150,sparks=.6,ring=0,smoke=0}={}) {
   }
   if(!reduced&&ring)particles.push({x,y,vx:0,vy:0,life:.5,max:.5,color,size:ring,kind:'ring'});
   if(!reduced)for(let i=0;i<smoke;i++){const a=Math.random()*Math.PI*2,v=10+Math.random()*40;
-    particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.9+Math.random()*.8,max:1.7,color:'#46304a',size:14+Math.random()*22,kind:'smoke',drag:1.5});}
+    particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.9+Math.random()*.8,max:1.7,color:seasonTheme(season).fx.smoke,size:14+Math.random()*22,kind:'smoke',drag:1.5});}
+  // Seasonal debris: themed pieces tumble out of near-misses and break-ups.
+  const variants=reduced||!usePixi?0:seasonBitCount(season);
+  for(let i=0;i<bits&&variants;i++){const a=Math.random()*Math.PI*2,v=60+Math.random()*speed;
+    particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.7+Math.random()*.6,max:1.3,color,size:9+Math.random()*7,kind:'bit',variant:Math.floor(Math.random()*variants),rot:a,spin:(Math.random()-.5)*10,drag:1.8});}
   compactParticles(particles,particleCap());
 }
 function retrigger(id,className){const node=$(id);node.classList.remove(className);void node.offsetWidth;node.classList.add(className);}
@@ -390,8 +403,9 @@ function finish(immediate=false) {
   mode='dead'; const p=point(run.radius); shake=reduced?0:12;
   const fell=/event horizon/i.test(run.cause);
   death={t0:visualTime,x:p.x,y:p.y,fell};
-  burst(p.x,p.y,'#ffa677',fell?30:70,{speed:fell?120:260,sparks:.7,ring:fell?0:170,smoke:fell?0:8});
-  if(!fell)burst(p.x,p.y,'#fff1d6',24,{speed:360,sparks:1});
+  const fx=seasonTheme(season).fx;
+  burst(p.x,p.y,fx.death,fell?30:70,{speed:fell?120:260,sparks:.7,ring:fell?0:170,smoke:fell?0:8,bits:fell?0:12});
+  if(!fell)burst(p.x,p.y,fx.deathCore,24,{speed:360,sparks:1});
   addTrauma(juice,fell?.5:.9);punch(juice,{flash:fell?.22:.55,color:fell?[1,.55,.3]:[1,.85,.7],chroma:1.2,zoom:.05});
   shockwave(juice,p.x,p.y,1.2,visualTime);juice.slowUntil=reduced?0:visualTime+.9;
   haptic([60,40,90],!reduced);sound.play('death');
@@ -414,7 +428,7 @@ function finish(immediate=false) {
 function showPlacement(){
   const overlay=$('overlay'),was=overlay.classList.contains('champion')?1:overlay.classList.contains('placed')?2:0;
   overlay.classList.toggle('placed',placement!=null);overlay.classList.toggle('champion',placement===1);
-  if(placement==null){$('screen-title').textContent='ORBIT LOST';$('screen-description').textContent=seasonalCopy(run.cause,season);return;}
+  if(placement==null){$('screen-title').textContent=seasonTheme(season).lost;$('screen-description').textContent=seasonalCopy(run.cause,season);return;}
   const copy=placementCopy(placement);
   $('screen-title').textContent=copy.title;$('screen-description').textContent=`${copy.lead} ${seasonalCopy(run.cause,season)}`;
   if(!reduced)retrigger('screen-title','placed-in');
@@ -422,7 +436,7 @@ function showPlacement(){
 }
 function revealResults(){
   revealPending=false;
-  showOverlay('ORBIT LOST',seasonalCopy(run.cause,season),'Fly again');
+  showOverlay(seasonTheme(season).lost,seasonalCopy(run.cause,season),'Fly again');
   showPlacement();
   $('results').hidden=false; $('instructions').hidden=true; $('retry').hidden=true;
   $('leaderboard').hidden=!!ticket?.casual;$('back-title').hidden=false;
@@ -559,7 +573,7 @@ function background(t) {
   ctx.globalAlpha=1;
 }
 function blackHole(t) {
-  drawBlackHole(ctx,t,geo(),reduced,holeCache??={},undefined,tideStrength(run,reduced),run.time);
+  drawBlackHole(ctx,t,geo(),reduced,holeCache??={},undefined,tideStrength(run,reduced),run.time,seasonTheme(season).hole);
 }
 function object(o) {
   const g=geo();
@@ -583,7 +597,7 @@ function object(o) {
     ctx.strokeStyle=fire;ctx.lineWidth=rr*1.2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(p.x,p.y);ctx.stroke();
     ctx.restore();
   }
-  ctx.save();ctx.globalAlpha=debrisOpacity(o);ctx.translate(p.x,p.y);ctx.rotate(o.spin);
+  ctx.save();ctx.globalAlpha=debrisOpacity(o);ctx.translate(p.x,p.y);ctx.rotate(hazardRotation(o,season));
   drawObjectArt(ctx,o,rr,reduced,season);
   ctx.restore();
 }
@@ -621,7 +635,7 @@ function renderPixi(rawDt){
   if(mode==='intro')run.radius=.83+Math.sin(visualTime*.7)*.025;
   const flying=mode==='playing'||(watching&&watchedStatus==='playing');
   const boost=thrustActive(run,watching?!!(watchedInput&1):boosting());
-  if(flying&&boost&&!reduced&&Math.random()<.45){const p=point(run.radius),size=rocketSize(geo().r);particles.push({x:p.x-size*.3,y:p.y+size*.14,vx:-110-Math.random()*90,vy:30+Math.random()*40,life:.3,max:.3,color:'#7ff1ff',size:1+Math.random()*1.4,kind:'spark',drag:1});}
+  if(flying&&boost&&!reduced&&Math.random()<.45){const p=point(run.radius),size=rocketSize(geo().r);particles.push({x:p.x-size*.3,y:p.y+size*.14,vx:-110-Math.random()*90,vy:30+Math.random()*40,life:.3,max:.3,color:seasonTheme(season).exhaust,size:1+Math.random()*1.4,kind:'spark',drag:1});}
   for(const p of particles){p.life-=dt;if(p.drag){const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;}p.x+=p.vx*dt;p.y+=p.vy*dt;}
   gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,rocket,darkImages,juice,death,season});
   compactParticles(particles,particleCap());
@@ -673,7 +687,7 @@ function frame(now) {
   if(watching){
     const view=playback.sample(now);
     if(view){run=view.state;watchedInput=view.input;syncHUD();setText('watch-charge',resonanceReady(run)?'Resonance Pulse ready':`Phase Shift ${Math.floor(run.energy)}%`);}
-    if(watchAlive&&!run.alive){const p=point(run.radius);burst(p.x,p.y,'#ffa677',40,{speed:220,ring:150,smoke:5});shockwave(juice,p.x,p.y,1,visualTime);addTrauma(juice,.5);}
+    if(watchAlive&&!run.alive){const p=point(run.radius);burst(p.x,p.y,seasonTheme(season).fx.death,40,{speed:220,ring:150,smoke:5,bits:8});shockwave(juice,p.x,p.y,1,visualTime);addTrauma(juice,.5);}
     watchAlive=run.alive;
     if(now-lastWatchFrame>3000&&['playing','ready','paused'].includes(watchedStatus)){$('watch-status').textContent='Live view delayed · reconnecting…';watchedStatus='reconnecting';}
   }
@@ -717,7 +731,7 @@ function frame(now) {
         if(e.type==='shard'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#7df4ff',12,{speed:120,sparks:.8,ring:46});sound.play('shard',{index:run.shards});}
         if(e.type==='near'){
           comboText=`+${e.combo} COMBO`;comboUntil=visualTime+1.3;sound.play('near',{combo:e.combo});
-          const p=point(run.radius);burst(p.x,p.y,'#9af3ff',10,{speed:180,sparks:1});
+          const p=point(run.radius);burst(p.x,p.y,seasonTheme(season).fx.near,10,{speed:180,sparks:1,bits:2});
           punch(juice,{chroma:.5,speedLines:.7});haptic(12,!reduced);
         }
         if(e.type==='death')finish();

@@ -1,4 +1,4 @@
-import { seasonalCopy } from '../src/activities/event-horizon/seasonal.mjs';
+import { seasonalCopy, paintBackdrop } from '../src/activities/event-horizon/seasonal.mjs';
 import {createRun,step,DT,specialState,thrustActive} from '../src/activities/event-horizon/sim.mjs';
 import {createFlightRenderer} from '../src/activities/event-horizon/pixi-renderer.mjs';
 import {flightCamera} from '../src/activities/event-horizon/camera.mjs';
@@ -23,15 +23,16 @@ for(let i=0;i<=360*60;i++){
   step(s,{boost:held,dash:s.time>=330&&s.darkStage===2});
   if(i%3===0){const copy=structuredClone(s);copy.phase=s.darkStage===3&&s.time-s.darkDefeatedAt<2.5?2.5-(s.time-s.darkDefeatedAt):0;copy.alive=true;copy.cause='';frames.push({run:copy,held});}
 }
-function resize(){dirty=true;const {width,height}=canvas.getBoundingClientRect(),camera=flightCamera(width,height),ratio=Math.min(devicePixelRatio,2),backdrop=document.createElement('canvas');backdrop.width=Math.ceil(width);backdrop.height=Math.ceil(height);const b=backdrop.getContext('2d');b.fillStyle='#050812';b.fillRect(0,0,width,height);
- for(const [x,y,r,color] of [[.85,.25,.6,'#261747'],[.16,.7,.7,'#092e4c'],[.65,.72,.35,'#331136']]){const grad=b.createRadialGradient(width*x,height*y,0,width*x,height*y,width*r);grad.addColorStop(0,color);grad.addColorStop(1,'#05081200');b.fillStyle=grad;b.fillRect(0,0,width,height);}
- const stars=Array.from({length:230},(_,i)=>({x:Math.sin(i*93.13)*.5+.5,y:Math.cos(i*17.47)*.5+.5,size:.4+i%4*.35,phase:i*.84,layer:1+i%3}));gpu.resize({width,height,ratio,camera,reduced,backdrop,stars});}
+function resize(){dirty=true;const {width,height}=canvas.getBoundingClientRect(),camera=flightCamera(width,height),ratio=Math.min(devicePixelRatio,2),backdrop=document.createElement('canvas');backdrop.width=Math.ceil(width);backdrop.height=Math.ceil(height);paintBackdrop(backdrop.getContext('2d'),width,height,$('season').value);
+ const stars=Array.from({length:230},(_,i)=>({x:Math.sin(i*93.13)*.5+.5,y:Math.cos(i*17.47)*.5+.5,size:.4+i%4*.35,phase:i*.84,layer:1+i%3}));gpu.resize({width,height,ratio,camera,reduced,backdrop,stars,season:$('season').value});}
+// ?season=christmas&t=75 opens a themed moment directly.
+{const wanted=new URLSearchParams(location.search).get('season');if([...$('season').options].some(o=>o.value===wanted))$('season').value=wanted;}
 new ResizeObserver(resize).observe(canvas);resize();timeline.value=clock;
 const marks=[[0,'Launch'],[30,'0:30 · Eyes'],[82,'1:22 · Seam'],[127,'2:07 · Hood'],[172,'2:52 · Outflow'],[217,'3:37 · Grip'],[238,'3:58 · Lead-in'],[240,'4:00 · Emergence'],[244,'Puppet strings'],[284,'4:44 · Release'],[285.5,'4:45 · Breachstorm'],[291,'Gravity spear'],[329.5,'Pulse ready'],[330,'EMP defeat'],[350,'Last blink'],[355,'Mixed phases']];
 for(const [time,title] of marks){const button=document.createElement('button');button.textContent=title;button.onclick=()=>{gpu.resetTransient(time);dirty=true;clock=time;timeline.value=clock;playing=false;$('play').textContent='Play';};document.querySelector('nav').append(button);}
 timeline.oninput=()=>{clock=Number(timeline.value);gpu.resetTransient(clock);dirty=true;playing=false;$('play').textContent='Play';};
 $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';};
-$('season').onchange=()=>{dirty=true;};
+$('season').onchange=resize;
 $('reduced').onchange=()=>{reduced=$('reduced').checked;resize();};
 function render(now){if(!playing&&!dirty){last=now;requestAnimationFrame(render);return;}dirty=false;const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;if(playing){clock=Math.min(360,clock+dt*Number($('speed').value));timeline.value=clock;if(clock>=360){playing=false;$('play').textContent='Play';}}
  const {run,held}=frames[Math.min(frames.length-1,Math.round(clock*20))];

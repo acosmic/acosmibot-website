@@ -263,10 +263,12 @@ h1 span{filter:none}
 .season-picker{border:0;padding:0;margin:20px 0 16px;min-width:0}
 .season-picker legend{font-size:14px;font-weight:700;margin-bottom:8px;color:#edf6ff}
 .season-options{display:flex;flex-wrap:wrap;gap:8px}
-.season-options button{min-height:44px;padding:8px 12px;font-size:13px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
-.season-options button[aria-pressed="true"]{background:#263b48;color:#d9fbff;border-color:#67ecff}
-.season-options button[data-season="halloween"][aria-pressed="true"]{background:#482c24;color:#ffe1ac;border-color:#ffa94d}
+.season-options button{min-height:44px;padding:8px 12px;font-size:13px;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left}
+.season-swatch{width:14px;height:14px;border-radius:50%;grid-row:1/span 2;box-shadow:0 0 0 1px #ffffff33}
+.season-options small{grid-column:2}
+.season-options button[aria-pressed="true"]{background:#263b48;color:#f1f8fc;border-color:var(--season,#67ecff);box-shadow:0 0 0 1px var(--season,#67ecff) inset}
 .season-options button:disabled{opacity:1;color:#abb7c0;background:#18202a;border-color:#34404b;cursor:not-allowed}
+.season-options button:disabled .season-swatch{opacity:.45}
 .season-options small{font-size:11px;font-weight:400;color:inherit}
 #season-description,.season-note{font-size:13px;line-height:1.5;margin:8px 0 0;color:#c4d0db}
 .season-note{color:#a7b9c8}

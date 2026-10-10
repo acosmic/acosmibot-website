@@ -9,7 +9,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 ARG APP_REVISION=unknown
-RUN ACOSMIBOT_ASSET_REVISION="${APP_REVISION}" npm run build
+# This image is the isolated test harness, so it also unlocks preview-stage Event Horizon seasons.
+RUN ACOSMIBOT_ASSET_REVISION="${APP_REVISION}" VITE_EVENT_HORIZON_SEASON_PREVIEW=1 npm run build
 
 # Azure's managed functions are bundled once, then copied into the small
 # runtime image. The render function intentionally keeps resvg-wasm external.
