@@ -81,3 +81,32 @@ test('reactions are sent only to a relay that advertises them and only while wat
     client.stop();
   }
 });
+
+
+test('follow survives run end and reconnect, updates run targets, and stops on leave',async()=>{
+  const f=fixture();try{
+    f.live.start();await settle();let s=f.sockets.at(-1);s.open();s.message({type:'authenticated',features:['follow-pilot','reactions']});
+    f.live.watch('first');s.message({type:'watching',runId:'first',pilotId:'12',name:'Pilot'});
+    s.message({type:'ended',reason:'Pilot left'});
+    assert.equal(f.live.target,null);assert.equal(f.live.pilotId,'12');assert.equal(f.live.react('🔥'),false);
+    await f.live.connect();s=f.sockets.at(-1);s.open();s.message({type:'authenticated',features:['follow-pilot','reactions']});
+    assert.deepEqual(s.sent.at(-1),{type:'watch',runId:null,pilotId:'12'});
+    s.message({type:'waiting',pilotId:'12'});assert.equal(f.live.pilotId,'12');
+    s.message({type:'watching',runId:'second',pilotId:'12',name:'Pilot'});
+    assert.equal(f.live.target,'second');assert.equal(f.live.react('🔥'),true);
+    f.live.unwatch();assert.equal(f.live.target,null);assert.equal(f.live.pilotId,null);
+    await f.live.connect();s=f.sockets.at(-1);s.open();s.message({type:'authenticated',features:['follow-pilot']});
+    assert.equal(s.sent.filter(m=>m.type==='watch').length,0);
+  }finally{f.live.stop();}
+});
+test('switching clears prior pilot and legacy relays never receive follow extensions',async()=>{
+  const f=fixture();try{
+    f.live.start();await settle();let s=f.sockets.at(-1);s.open();s.message({type:'authenticated',features:['follow-pilot']});
+    f.live.watch('one');s.message({type:'watching',runId:'one',pilotId:'12'});
+    f.live.watch('other');assert.equal(f.live.pilotId,null);
+    s.message({type:'watching',runId:'other',pilotId:'13'});
+    await f.live.connect();s=f.sockets.at(-1);s.open();s.message({type:'authenticated'});
+    assert.deepEqual(s.sent.at(-1),{type:'watch',runId:'other'});
+    s.message({type:'watching',runId:'other'});assert.equal(f.live.pilotId,null);
+  }finally{f.live.stop();}
+});

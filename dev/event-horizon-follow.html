@@ -10,7 +10,7 @@
     <main id="game" aria-label="Event Horizon arcade game">
       <canvas id="space" aria-label="Flight area. Hold Space, W, Arrow Up, or hold the flight area to boost outward. Release to dive inward. Shift activates Phase Shift."></canvas>
       <header id="hud" hidden>
-        <div class="run-metrics"><div class="score-block"><span class="eyebrow">SCORE</span><strong id="score">0</strong><small id="best">PERSONAL BEST —</small><small id="pilot-counts">Attempt — · Deaths —</small></div><div class="run-clock"><span class="eyebrow">RUN TIME</span><strong id="run-time">0:00</strong></div></div>
+        <div class="run-metrics"><div class="score-block"><span class="eyebrow">SCORE</span><strong id="score">0</strong><small id="best">PERSONAL BEST —</small></div><div class="run-clock"><span class="eyebrow">RUN TIME</span><strong id="run-time">0:00</strong></div></div>
         <div class="telemetry"><strong id="multiplier">1.0×</strong><span id="zone">Orbit Score</span><label id="heat-gauge" class="heat-gauge"><span>HEAT</span><meter id="heat" min="0" max="100" value="0">0</meter><svg class="heat-arc" viewBox="0 0 160 22" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="heat-gradient" x1="0" x2="1"><stop offset="0" stop-color="#5fe8ff" /><stop offset=".55" stop-color="#ffb35c" /><stop offset="1" stop-color="#ff4b2b" /></linearGradient></defs><path class="heat-track" d="M4 18 Q80 2 156 18" pathLength="100" /><path class="heat-fill" d="M4 18 Q80 2 156 18" pathLength="100" /></svg></label></div><button id="pause" class="icon-button" aria-label="Pause game">Ⅱ</button>
       </header>
       <p id="toast" role="status"></p>
@@ -29,7 +29,7 @@
           <h1 id="screen-title">EVENT<br /><span>HORIZON</span></h1>
           <p id="screen-description" class="lead">Ride the edge.<br />Get close. Get greedy. Get out.</p>
           <p id="connection-note" class="local-note" role="status"></p>
-          <div id="results" hidden><span id="best-badge" hidden>NEW PERSONAL BEST</span><span class="eyebrow">FLIGHT SCORE</span><strong id="final-score"></strong><p id="run-stats"></p><p id="result-counts"></p><p id="record"></p><p id="rank-result" role="status"></p><button id="resubmit" hidden>Retry score check</button></div>
+          <div id="results" hidden><span id="best-badge" hidden>NEW PERSONAL BEST</span><span class="eyebrow">FLIGHT SCORE</span><strong id="final-score"></strong><p id="run-stats"></p><p id="record"></p><p id="rank-result" role="status"></p><button id="resubmit" hidden>Retry score check</button></div>
           <div class="actions"><button id="launch" class="primary" disabled>Connecting to Discord… <span>↗</span></button><button id="retry" hidden>New run</button></div>
           <div class="secondary-actions"><button id="back-title" hidden>Back to lobby</button><button id="connection-retry" hidden>Retry Discord connection</button><a id="install-bot" href="https://discord.com/oauth2/authorize?client_id=1186802023799214223&amp;permissions=8&amp;integration_type=0&amp;scope=bot" target="_blank" rel="noopener noreferrer" hidden><img src="/images/acosmibot-logo.png" width="28" height="28" alt="" />Add Acosmibot</a></div>
           <section id="live-lobby" hidden aria-labelledby="live-title"><div class="live-heading"><h2 id="live-title">Watch a flight</h2><span>In this Activity</span></div><p id="live-status" role="status">Connecting to live flights…</p><ul id="live-pilots"></ul></section>
@@ -38,9 +38,9 @@
           <div id="profile-setting" hidden><button id="profile-share" aria-describedby="profile-status">Show on Discord profile</button><p id="profile-status" class="local-note" role="status">Optional · share your flight activity for this session.</p></div>
           <p id="load-error" role="alert" hidden></p>
         </div>
-        <aside id="leaderboard" aria-labelledby="board-title"><p id="board-scope" class="eyebrow">Discord server standings</p><h2 id="board-title">The edge belongs<br />to the bold.</h2><div class="board-heading"><div class="board-tabs" role="group" aria-label="Leaderboard"><button id="board-scores" aria-pressed="true">Top scores</button><button id="board-failures" aria-pressed="false">Most Deaths</button><button id="board-averages" aria-pressed="false">Highest Average Score</button></div><button id="board-refresh" aria-label="Refresh standings">Refresh</button></div><p id="board-status" role="status">Connecting to verified standings…</p><ol id="standings" aria-label="Top standings"></ol><p id="board-empty">An empty orbit. Be the first to put a score on the board.</p><button id="board-expand" aria-expanded="false" aria-controls="standings" hidden>View Top 10</button><p id="your-standing"></p><p id="nearest-rival"></p></aside>
+        <aside id="leaderboard" aria-labelledby="board-title"><p id="board-scope" class="eyebrow">Discord server standings</p><h2 id="board-title">The edge belongs<br />to the bold.</h2><div class="board-heading"><span>TOP PILOTS</span><button id="board-refresh" aria-label="Refresh standings">Refresh</button></div><p id="board-status" role="status">Connecting to verified standings…</p><ol id="standings" aria-label="Top standings"></ol><p id="board-empty">An empty orbit. Be the first to put a score on the board.</p><button id="board-expand" aria-expanded="false" aria-controls="standings" hidden>View Top 10</button><p id="your-standing"></p><p id="nearest-rival"></p></aside>
       </section>
     </main>
-    <script type="module" src="/src/activities/event-horizon/game.mjs"></script>
+    <script type="module" src="/dev/event-horizon-follow.mjs"></script>
   </body>
 </html>
