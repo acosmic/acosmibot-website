@@ -13,7 +13,9 @@
 
 /* The flight surface is an intentional gesture area; overlay text still scrolls normally. */
 #game,#game *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}#space:focus{outline:none}
-#dash .dash-label{position:relative;z-index:1;font-weight:800}#desktop-charge-fill{position:absolute;left:0;bottom:0;width:0;height:4px;background:#5aeaff;pointer-events:none}
+#dash .dash-label{position:relative;z-index:1;font-weight:800}#dash.charge-pulse{animation:charge-pulse .35s ease-out}
+@keyframes charge-pulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.08);filter:brightness(1.6)}100%{transform:scale(1);filter:brightness(1)}}
+#desktop-charge-fill{position:absolute;left:0;bottom:0;width:0;height:4px;background:#5aeaff;pointer-events:none}
 #standings li{padding:8px 12px}
 
 /* Discord mobile: protect the app chrome, then make flight a one-thumb hold plus a distinct dash action. */
@@ -134,8 +136,6 @@ h1 span{background:linear-gradient(100deg,#9cf3ff 10%,#e7fbff 45%,#b48cff 90%);-
 #boost.active{box-shadow:0 0 24px #4fe4ff66,inset 0 0 18px #4fe4ff33;transform:scale(.985)}
 #dash.ready{box-shadow:0 0 0 1px #c3a6ff,0 0 22px #a98bff99;animation:dash-ready 1.6s ease-in-out infinite}
 @keyframes dash-ready{50%{box-shadow:0 0 0 1px #d9c6ff,0 0 34px #b48cffcc}}
-#dash.charge-pulse{animation:charge-pulse .35s ease-out}
-@keyframes charge-pulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.08);filter:brightness(1.6)}100%{transform:scale(1);filter:brightness(1)}}
 #desktop-charge-fill{background:linear-gradient(90deg,#5aeaff,#b48cff);box-shadow:0 0 10px #8fe9ff;transition:width .15s}
 #toast{font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 16px #4fe4ff88,0 2px 8px #000}
 /* Cinematic phase banner with letterbox bars */
@@ -260,3 +260,9 @@ h1 span{filter:none}
 .volume output{min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums;color:#a2f1ff}
 #game .volume input{user-select:auto;-webkit-user-select:auto}
 @media(max-width:600px){.volume input{width:96px}}
+
+#pilot-counts{display:block;font-size:11px;line-height:1.5;color:#d4e2ea;white-space:normal}
+.board-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.board-tabs button{min-height:44px;font-size:12px;padding:6px 8px}
+.board-tabs button[aria-pressed="true"]{color:#e6fcff;border-color:#67ecff;background:#203340}
+@media(max-width:600px){#pilot-counts{font-size:10px;max-width:165px}.board-heading{align-items:center;gap:8px}}

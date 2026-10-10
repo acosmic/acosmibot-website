@@ -2,7 +2,7 @@
 export class LiveClient {
   constructor({api, onMessage, onStatus, socketFactory = url => new WebSocket(url), origin = location.origin}) {
     Object.assign(this, {api,onMessage,onStatus,socketFactory,origin});
-    this.enabled=false;this.runId=null;this.socket=null;this.generation=0;this.seq=0;this.target=null;this.retry=0;
+    this.enabled=false;this.runId=null;this.socket=null;this.generation=0;this.seq=0;this.target=null;this.pilotId=null;this.retry=0;
     this.objectIds=new WeakMap();this.nextObjectId=0;
   }
   start() {this.enabled=true;void this.connect();}
@@ -40,10 +40,12 @@ export class LiveClient {
             clearTimeout(this.handshakeTimer);
             const firstAuthentication=!this.authenticated;
             this.authenticated=true;this.retry=0;this.features=Array.isArray(message.features)?message.features:[];this.onStatus('connected');
-            if(firstAuthentication&&this.target)this.send({type:'watch',runId:this.target});
+            if(firstAuthentication&&(this.target||(this.pilotId&&this.supports('follow-pilot'))))this.send({type:'watch',runId:this.target,...(this.pilotId&&this.supports('follow-pilot')?{pilotId:this.pilotId}:{})});
             clearTimeout(this.renewTimer);this.renewTimer=setTimeout(()=>void this.renew(generation),40000);
           }else {
-            if(message.type==='error'&&['unavailable','full'].includes(message.code))this.target=null;
+            if(message.type==='watching'){this.target=message.runId;this.pilotId=message.pilotId||null;}
+            if(message.type==='ended'||message.type==='waiting')this.target=null;
+            if(message.type==='error'&&['unavailable','full'].includes(message.code)){this.target=null;this.pilotId=null;}
             this.onMessage(message);
           }
         } catch {socket.close();}
@@ -77,8 +79,8 @@ export class LiveClient {
     if(this.runId===runId)return;
     this.runId=runId;this.seq=0;this.objectIds=new WeakMap();this.nextObjectId=0;if(this.enabled)void this.connect();
   }
-  watch(runId) {this.target=runId;return this.send({type:'watch',runId});}
-  unwatch() {this.target=null;this.send({type:'unwatch'});}
+  watch(runId) {this.pilotId=null;this.target=runId;return this.send({type:'watch',runId});}
+  unwatch() {this.pilotId=null;this.target=null;this.send({type:'unwatch'});}
   // An older relay closes the socket on unknown messages, so only send when it advertises support.
   supports(feature) {return this.authenticated===true&&(this.features||[]).includes(feature);}
   react(emoji) {return Boolean(this.target)&&this.supports('reactions')&&this.send({type:'react',emoji});}

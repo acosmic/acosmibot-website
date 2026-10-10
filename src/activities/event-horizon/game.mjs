@@ -40,6 +40,9 @@ const darkCues=createDarkCues();
 const DARK_SOUNDS={omen:'omen',lead:'darkLead',arrival:'darkArrival',ignite:'darkIgnite',breach:'darkBreach',defeat:'darkDefeat','claw-warn':'clawWarn','claw-fire':'clawFire','spear-warn':'spearWarn','spear-fire':'spearFire'};
 const DARK_HAPTICS={arrival:[90,50,140],ignite:[40,30,80],defeat:[60,40,60,40,160]};
 const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocket-grip.png';
+let pilotStats=null, watchedStats=null, casualStats={attempts:0,deaths:0};
+let localDeathPending=false;
+function statsCopy(stats){return stats?`Attempt ${Number(stats.attempts).toLocaleString()} · Deaths ${Number(stats.deaths).toLocaleString()}`:'Attempt — · Deaths —';}
 let mode = 'intro', run = createRun(42), width = 0, height = 0, ratio = 1;
 let last = performance.now(), accumulator = 0, visualTime = 0, dashQueued = false;
 let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,7 +78,7 @@ function renderPilots(){
   const focused=document.activeElement?.dataset?.watchRun;
   $('live-pilots').replaceChildren(...liveFlights.map(f=>{
     const row=document.createElement('li'),info=document.createElement('span'),name=document.createElement('strong'),detail=document.createElement('small'),button=document.createElement('button');
-    name.textContent=f.name;detail.textContent=`${Math.floor(f.time)}s · ${Math.floor(f.score).toLocaleString()} points · ${f.status==='playing'?'Flying':f.status==='paused'?'Paused':'Connecting'}`;
+    name.textContent=f.name;detail.textContent=`${statsCopy(f.stats)} · ${Math.floor(f.time)}s · ${Math.floor(f.score).toLocaleString()} points · ${f.status==='playing'?'Flying':f.status==='paused'?'Paused':'Connecting'}`;
     info.append(name,detail);button.textContent='Watch';button.disabled=['playing','ready','paused','preparing'].includes(mode);
     button.dataset.watchRun=f.runId;button.setAttribute('aria-label',`Watch ${f.name}`);button.addEventListener('click',()=>beginWatching(f.runId));row.append(info,button);return row;
   }));
@@ -104,11 +107,14 @@ function liveMessage(message){
     container.hidden=false;return;
   }
   if(message.type==='watching'){
-    playback.reset();watching=true;watchAlive=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
+    watchedStats=message.stats||null;
+    const continuing=watching;
+    particles=[];collectors=[];death=null;revealPending=false;gpu?.resetTransient(visualTime);
+    run=createRun(42);playback.reset();watching=true;watchAlive=true;mode='watching';watchedStatus='connecting';lastWatchFrame=performance.now();accumulator=0;
     $('watch-name').textContent=`Watching ${message.name}`;$('watch-status').textContent='Joining flight…';
     $('overlay').hidden=true;$('hud').hidden=false;$('pause').hidden=true;$('flight-controls').hidden=true;$('watch-controls').hidden=false;
     $('best').hidden=true;canvas.setAttribute('aria-label',`Live view of ${message.name}'s flight. Use Switch pilot or Leave view to return to the lobby.`);
-    $('watch-leave').focus({preventScroll:true});
+    if(!continuing)$('watch-leave').focus({preventScroll:true});
     $('viewer-count').hidden=true;$('watch-viewers').hidden=true;syncReactionBar();void reactions.refresh();return;
   }
   if(message.type==='snapshot'&&watching){
@@ -116,15 +122,16 @@ function liveMessage(message){
     watchedStatus=message.status;watchedInput=message.input;lastWatchFrame=performance.now();
     playback.push(state,watchedStatus,watchedInput,lastWatchFrame);
     run=playback.sample(lastWatchFrame).state;
-    $('watch-status').textContent=watchedStatus==='paused'?'Pilot paused':watchedStatus==='ready'?'Pilot preparing':watchedStatus==='dead'?'Flight ended · checking score…':'Live · score awaiting verification';
+    $('watch-status').textContent=watchedStatus==='paused'?'Pilot paused':watchedStatus==='ready'?'Pilot preparing':watchedStatus==='dead'?`Flight ended · checking score…${live?.pilotId?' · following next run…':''}`:'Live · score awaiting verification';
     $('watch-charge').textContent=`Phase Shift ${Math.floor(run.energy)}%`;syncHUD();return;
   }
   if(message.type==='status'&&watching){watchedStatus=message.status;$('watch-status').textContent='Pilot reconnecting…';return;}
   if(message.type==='verified'&&watching){
-    watchedStatus='verified';$('watch-status').textContent=`Verified · ${Math.floor(message.result.score).toLocaleString()} points${message.result.rank?` · server #${message.result.rank}`:''}`;
+    watchedStats=message.result.stats||watchedStats;syncHUD();
+    watchedStatus='verified';$('watch-status').textContent=`Verified · ${Math.floor(message.result.score).toLocaleString()} points${message.result.rank?` · server #${message.result.rank}`:''}${live?.pilotId?' · following next run…':''}`;
     return;
   }
-  if(message.type==='ended'&&watching){watchedStatus='ended';live.target=null;$('watch-viewers').hidden=true;$('watch-status').textContent=message.reason||'Flight ended';return;}
+  if(['ended','waiting'].includes(message.type)&&watching){watchedStatus='ended';$('watch-viewers').hidden=true;$('watch-status').textContent=message.type==='waiting'&&message.reason?message.reason:live?.pilotId?'Waiting for this pilot’s next flight…':message.reason||'Flight ended';syncReactionBar();return;}
   if(message.type==='error'){
     const text=message.message||'This flight is unavailable. Choose another pilot.';
     if(['unavailable','full'].includes(message.code)&&watching)$('back-title').click();
@@ -134,7 +141,7 @@ function liveMessage(message){
 // ---- Spectator emoji reactions (presentation only) ----
 const reactions=createReactionUI({$,storage:(()=>{try{return localStorage;}catch{return null;}})(),fetchCatalog:()=>api('/emojis'),send:emoji=>Boolean(live?.react(emoji))});
 function syncReactionBar(){
-  reactions.setAvailable(watching&&Boolean(live?.supports('reactions')));
+  reactions.setAvailable(watching&&Boolean(live?.target)&&Boolean(live?.supports('reactions')));
   if(!watching&&!ticket?.runId)reactions.clear();
 }
 function setLiveStatus(status){
@@ -276,6 +283,10 @@ function countUpFinal(value){
 }
 function clearInput() { keys.clear(); pointers.clear(); dashQueued=false; $('boost').classList.remove('active'); }
 function syncHUD() {
+  const counts=watching?watchedStats:pilotStats;
+  const countText=statsCopy(counts)+(localDeathPending&&!watching?' · +1 pending':'')+(ticket?.casual&&!watching?' · this visit':'');
+  setText('pilot-counts',countText);
+  if(!watching)setText('result-counts',countText);
   shownScore=watching?run.score:rollToward(shownScore,run.score,frameMs/1000);
   setText('score',label('score',Math.floor(shownScore),localNumber)); setText('best',`BEST ${label('best',Math.floor(best),localNumber)}`);
   const tier=heatTier(run.multiplier);
@@ -331,6 +342,8 @@ async function start() {
   }
   if(generation!==runGeneration)return;
   $('launch').disabled=false;$('retry').disabled=false;
+  if(ticket.casual){casualStats.attempts++;pilotStats={...casualStats};}else pilotStats=ticket.stats||null;
+  localDeathPending=false;
   run=createRun(ticket.seed);
   $('phase-status').textContent='';
   mode='ready'; accumulator=0; last=performance.now(); particles=[]; best=Math.max(best,ticket.casual?0:verifiedBest()); savedBest=best; shake=0; heatWarning=0; shownScore=0; hudTier='cool'; $('multiplier').dataset.tier='cool';
@@ -369,6 +382,9 @@ function resume() {
 }
 // The death sequence plays for about a second before results; submission starts at once.
 function finish(immediate=false) {
+  if(mode==='dead')return;
+  if(ticket?.casual){casualStats.deaths++;pilotStats={...casualStats};}else localDeathPending=true;
+  syncHUD();
   mode='dead'; const p=point(run.radius); shake=reduced?0:12;
   const fell=/event horizon/i.test(run.cause);
   death={t0:visualTime,x:p.x,y:p.y,fell};
@@ -419,6 +435,7 @@ async function submitResult(submission){
     const result=await api(`/runs/${encodeURIComponent(submission.ticket.runId)}/finish`,{inputs:submission.inputs,version:submission.ticket.version});
     // A completed request must never overwrite the next run's results.
     if(submission.generation!==runGeneration)return;
+    pilotStats=result.stats||pilotStats;localDeathPending=false;syncHUD();
     renderBoard(result.leaderboard);pendingSubmission=null;
     // The verified rank replaces the provisional headline.
     const placed=verifiedPlacement(result);
@@ -750,6 +767,6 @@ async function bootRenderer(){
   }
 }
 // Local visual QA only; stripped from production builds.
-if(import.meta.env.DEV)window.__eventHorizonDev={fly(){casualAvailable=true;setConnectionState('casual');void start();},banner(){showBanner('NEW PHASE','GRAVITY TIDE','The hole surges · hold altitude','tide');},state:()=>({mode,score:run.score,heat:run.heat,frameMs,stats:gpu?.stats()})};
+if(import.meta.env.DEV)window.__eventHorizonDev={connectLive(options){live?.stop();live=new LiveClient({...options,onMessage:liveMessage,onStatus:setLiveStatus});$('live-lobby').hidden=false;live.start();},fly(){casualAvailable=true;setConnectionState('casual');void start();},banner(){showBanner('NEW PHASE','GRAVITY TIDE','The hole surges · hold altitude','tide');},state:()=>({mode,score:run.score,heat:run.heat,frameMs,stats:gpu?.stats()})};
 window.addEventListener('pagehide',event=>{if(event.persisted)return;disposed=true;cancelAnimationFrame(animationFrame);resizeObserver.disconnect();gpu?.destroy();});
 void bootRenderer();
