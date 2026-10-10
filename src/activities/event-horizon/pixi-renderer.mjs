@@ -1,3 +1,4 @@
+import { seasonalCopy } from './seasonal.mjs';
 import {darkn1deView,createDarkMemory,trackDark} from './darkn1de-fx.mjs';
 import {createDarkScene} from './pixi-darkn1de.mjs';
 import {isInverted,resonanceReady} from './sim.mjs';
@@ -36,7 +37,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   let quality=createQuality('high'),tier='high',probeFrames=0,blackFrames=0;
   let config,scene,hole,holeGlow,bg,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
   let dark,darkBack,darkFront,darkUi,darkView=null,phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
-  let tex={},rocketTexture=null;
+  let tex={},rocketTexture=null,theme='classic';
   let textures=[],objectTextures=new Map(),labels=new Map(),sourceImages=new WeakMap();
   let tint=[...palettes.orbit],frame=0,lost=false,destroyed=false;
   const darkMemory=createDarkMemory();
@@ -200,12 +201,12 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
       aura.visible=rim.visible=false;return;
     }
     const pad=Math.ceil(rr*3+60);
-    art.texture=objectTexture(`${o.type}:${o.size}:${o.shape}`,pad,c=>drawObjectArt(c,o,rr,config.reduced));art.rotation=o.spin;
+    art.texture=objectTexture(`${theme}:${o.type}:${o.size}:${o.shape}`,pad,c=>drawObjectArt(c,o,rr,config.reduced,theme));art.rotation=o.spin;
     const rock=o.type!=='shard'&&o.type!=='resonance'&&o.type!=='plasma';
-    rim.visible=rock;aura.visible=!rock;
+    rim.visible=rock&&theme==='classic';aura.visible=!rock;
     if(rock){rim.texture=objectTexture(`rim:${rr}`,Math.ceil(rr*2.6+8),c=>drawRim(c,rr));rim.rotation=Math.atan2(g.cy-y,g.cx-x);rim.alpha=.55;}
     else if(o.type==='shard'||o.type==='resonance'){aura.texture=tex.star;aura.tint=0xa6f7ff;const s=rr*3.2*(reduced?1:.85+.25*Math.sin(t*6+o.shape*10));aura.width=aura.height=s;aura.rotation=reduced?0:t*.8;aura.alpha=.35;}
-    else{aura.texture=tex.glow;aura.tint=0xff4f7d;const s=rr*2.6*(reduced?1:1+.1*Math.sin(t*5+o.shape));aura.width=aura.height=s;aura.alpha=.28;}
+    else{aura.texture=tex.glow;aura.tint=theme==='halloween'?0xff9b36:0xff4f7d;const s=rr*2.6*(reduced?1:1+.1*Math.sin(t*5+o.shape));aura.width=aura.height=s;aura.alpha=.28;}
     if(streak.visible){
       const length=reduced?rr*3:rr*7,key=`trail:${rr}:${length}`;let entry=objectTextures.get(key);
       if(!entry){const pad=rr*1.2+4,image=bake(length+pad,pad,c=>{const gr=c.createLinearGradient(pad/2,0,length+pad/2,0);gr.addColorStop(0,'#ff724400');gr.addColorStop(.7,'#ff9a5a99');gr.addColorStop(1,'#ffe0b8ee');c.strokeStyle=gr;c.lineWidth=rr*1.2;c.lineCap='round';c.beginPath();c.moveTo(pad/2,pad/2);c.lineTo(length+pad/2,pad/2);c.stroke();});entry={texture:image.texture,used:frame,pad,length};objectTextures.set(key,entry);}
@@ -225,7 +226,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     }
     if(show){const stacked=state.kinds.length>1,parts=stacked?state.kinds.map(k=>phaseNames[k]):phaseNames[state.kind].split(' ');
       const font=`700 ${Math.max(12,Math.min(stacked?18:24,g.r*.064))}px ${FONT}`;
-      text(phaseLabels.children[0],parts[0],font,'#eee7da',0,-18,g.r*.72);text(phaseLabels.children[1],parts.slice(1).join(' '),font,'#eee7da',0,2,g.r*.72);
+      text(phaseLabels.children[0],seasonalCopy(parts[0],theme),font,'#eee7da',0,-18,g.r*.72);text(phaseLabels.children[1],seasonalCopy(parts.slice(1).join(' '),theme),font,'#eee7da',0,2,g.r*.72);
       const cue=state.beam!==null?'CLIMB OUTWARD':state.gravity>1?'STRONG PULL +15%':stacked?'DOUBLE PRESSURE':state.kind==='convoy'?'RIDE THE STAIRCASE':'NORMAL PULL';
       text(phaseLabels.children[2],cue,`${state.gravity>1?700:600} ${Math.max(11,Math.min(18,g.r*.052))}px ${FONT}`,state.gravity>1?'#ffd099':'#b9cbd5',0,30,g.r*.72);
     }
@@ -280,7 +281,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     }
     for(let i=particles.length;i<particlePool.length;i++)particlePool[i].visible=false;
   }
-  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,rocket,darkImages,juice,death}){
+  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,rocket,darkImages,juice,death,season='classic'}){
+    theme=season;
     if(lost||destroyed||!scene)return;frame++;
     const {camera:g,width,height,reduced}=config;
     const nextTier=sampleQuality(quality,frameMs);if(nextTier!==tier){tier=nextTier;applyTier();}

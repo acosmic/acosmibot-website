@@ -1,3 +1,4 @@
+import { seasonalCopy } from '../src/activities/event-horizon/seasonal.mjs';
 import {createRun,step,DT,specialState,thrustActive} from '../src/activities/event-horizon/sim.mjs';
 import {createFlightRenderer} from '../src/activities/event-horizon/pixi-renderer.mjs';
 import {flightCamera} from '../src/activities/event-horizon/camera.mjs';
@@ -30,11 +31,12 @@ const marks=[[0,'Launch'],[30,'0:30 · Eyes'],[82,'1:22 · Seam'],[127,'2:07 · 
 for(const [time,title] of marks){const button=document.createElement('button');button.textContent=title;button.onclick=()=>{gpu.resetTransient(time);dirty=true;clock=time;timeline.value=clock;playing=false;$('play').textContent='Play';};document.querySelector('nav').append(button);}
 timeline.oninput=()=>{clock=Number(timeline.value);gpu.resetTransient(clock);dirty=true;playing=false;$('play').textContent='Play';};
 $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';};
+$('season').onchange=()=>{dirty=true;};
 $('reduced').onchange=()=>{reduced=$('reduced').checked;resize();};
-function render(now){if(!playing&&!dirty){last=now;requestAnimationFrame(render);return;}dirty=false;const dt=Math.min(.05,(now-last)/1000);last=now;if(playing){clock=Math.min(360,clock+dt*Number($('speed').value));timeline.value=clock;if(clock>=360){playing=false;$('play').textContent='Play';}}
+function render(now){if(!playing&&!dirty){last=now;requestAnimationFrame(render);return;}dirty=false;const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;if(playing){clock=Math.min(360,clock+dt*Number($('speed').value));timeline.value=clock;if(clock>=360){playing=false;$('play').textContent='Play';}}
  const {run,held}=frames[Math.min(frames.length-1,Math.round(clock*20))];
  $('clock').textContent=`${Math.floor(clock/60)}:${(clock%60).toFixed(1).padStart(4,'0')}`;
  const sight=SIGHTINGS.findIndex((t,i)=>clock>=t&&clock<t+SIGHT_SECONDS[i]);
- $('scene').textContent=run.darkStage===1?'INVERSION · HOLD TO DESCEND / RELEASE TO CLIMB':run.darkStage===2?`BREACHSTORM · RESONANCE ${run.resonance}/10`:run.darkStage===3&&clock<334?'RESONANCE PULSE':clock>=238.5&&clock<240?'LEAD-IN':sight>=0?'SIGHTING':specialState(run).kind.toUpperCase();
- gpu.render({run,mode:'playing',watching:false,boost:thrustActive(run,held),flying:true,t:clock,dt,frameMs:16.7,phase:specialState(run),particles:[],comboUntil:0,comboText:'',rocket,darkImages,juice:createJuice(),death:null});requestAnimationFrame(render);}
+ $('scene').textContent=run.darkStage===1?'INVERSION · HOLD TO DESCEND / RELEASE TO CLIMB':run.darkStage===2?`BREACHSTORM · RESONANCE ${run.resonance}/10`:run.darkStage===3&&clock<334?'RESONANCE PULSE':clock>=238.5&&clock<240?'LEAD-IN':sight>=0?'SIGHTING':seasonalCopy(specialState(run).kind==='asteroids'?'ASTEROID STORM':specialState(run).kind.toUpperCase(),$('season').value);
+ gpu.render({run,mode:'playing',watching:false,boost:thrustActive(run,held),flying:true,t:clock,dt,frameMs:16.7,phase:specialState(run),particles:[],comboUntil:0,comboText:'',rocket,darkImages,juice:createJuice(),death:null,season:$('season').value});requestAnimationFrame(render);}
 requestAnimationFrame(render);

@@ -1,8 +1,10 @@
+import { drawSeasonalObject } from './seasonal.mjs';
 import { seeded } from './vfx-art.mjs';
 // Local artwork is shared by the retained GPU sprites and Canvas rollback renderer.
 // Silhouettes stay within the collision radius `rr`; detail is seeded by shape.
 const TAU = Math.PI * 2;
-export function drawObjectArt(ctx,o,rr,reduced){
+export function drawObjectArt(ctx,o,rr,reduced,theme='classic'){
+  if(drawSeasonalObject(ctx,o,rr,theme))return;
   if(o.type==='resonance'){
     ctx.save();ctx.strokeStyle='#8afff5';ctx.lineWidth=Math.max(1,rr*.12);ctx.shadowColor='#62fff0';ctx.shadowBlur=reduced?0:rr*.5;
     ctx.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3;const x=Math.cos(a)*rr,y=Math.sin(a)*rr;if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);}ctx.closePath();ctx.fillStyle='#123b4b';ctx.fill();ctx.stroke();
