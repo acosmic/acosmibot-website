@@ -35,10 +35,10 @@ export function drawRing(ctx, size, thickness = .06) {
   ctx.fillStyle = g; ctx.fillRect(0, 0, size, size);
 }
 // A warm crescent facing local +X. Rotated toward the hole, it rim-lights rocks.
-export function drawRim(ctx, rr) {
+export function drawRim(ctx, rr, colors = ['rgba(255,190,120,.85)', 'rgba(255,120,60,.35)', 'rgba(255,90,40,0)']) {
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   const g = ctx.createRadialGradient(rr * .55, 0, 0, rr * .55, 0, rr * 1.15);
-  g.addColorStop(0, 'rgba(255,190,120,.85)'); g.addColorStop(.55, 'rgba(255,120,60,.35)'); g.addColorStop(1, 'rgba(255,90,40,0)');
+  g.addColorStop(0, colors[0]); g.addColorStop(.55, colors[1]); g.addColorStop(1, colors[2]);
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rr * 1.04, -1.25, 1.25); ctx.arc(rr * -.25, 0, rr * 1.02, 1.05, -1.05, true); ctx.closePath(); ctx.fill();
   ctx.restore();
 }
@@ -90,7 +90,7 @@ const NEBULA_PALETTES = [
   ['rgba(30,110,170,A)', 'rgba(140,60,190,A)', 'rgba(220,110,90,A)', 'rgba(70,60,160,A)'],
 ];
 export function drawNebula(ctx, w, h, seed, palette = 0, density = 1) {
-  const rand = seeded(seed), colors = NEBULA_PALETTES[palette % NEBULA_PALETTES.length];
+  const rand = seeded(seed), colors = Array.isArray(palette) ? palette : NEBULA_PALETTES[palette % NEBULA_PALETTES.length];
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   const filaments = 3;
   for (let f = 0; f < filaments; f++) {

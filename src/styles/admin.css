@@ -2689,3 +2689,12 @@
 .live-user-message h4 { margin: 0 0 12px; color: #f4fbff; font-size: 16px; }
 .live-user-message__text { margin: 0; padding: 16px; border-radius: 8px; background: #08111a; color: #f4fbff; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .live-user-message__note { margin: 8px 0 0; color: #a9bac7; font-size: 13px; line-height: 1.6; }
+
+
+.eh-theme-settings { padding-block: 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); }
+.eh-theme-setting { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; padding-block: 10px; }
+.eh-theme-setting label { font-weight: 600; }
+.eh-theme-setting select { min-height: 44px; min-width: 180px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font: inherit; }
+.eh-theme-setting select:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.eh-theme-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
+.eh-theme-error { color: var(--error-color); margin-top: 12px; }

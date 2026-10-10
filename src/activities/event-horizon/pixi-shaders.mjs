@@ -27,7 +27,7 @@ function quad(x0, y0, x1, y1, u0, v0, u1, v1) {
 const diskFragment = `
 precision highp float;
 varying vec2 vUV;
-uniform float uTime;uniform float uTide;uniform float uIntensity;
+uniform float uTime;uniform float uTide;uniform float uIntensity;uniform vec3 uHot;uniform vec3 uMid;uniform vec3 uCool;
 ${noise}
 void main(){
   float rr=length(vUV);
@@ -43,18 +43,21 @@ void main(){
   float dop=1.+.55*cos(a-${DOPPLER_ANGLE.toFixed(6)});
   float lum=clamp(profile*(.2+n*1.15)*dop*uIntensity*(1.+uTide*.5),0.,1.4);
   float tcol=smoothstep(.355,.5,rr);
-  vec3 color=mix(vec3(1.,.94,.82),vec3(1.,.58,.24),smoothstep(0.,.55,tcol));
-  color=mix(color,vec3(.82,.2,.12),smoothstep(.55,1.,tcol));
+  vec3 color=mix(uHot,uMid,smoothstep(0.,.55,tcol));
+  color=mix(color,uCool,smoothstep(.55,1.,tcol));
   color=mix(color,vec3(.82,.9,1.),clamp(dop-1.,0.,.55)*.55);
   color*=mix(1.,.7,clamp(1.-dop,0.,1.));
   gl_FragColor=vec4(color*lum,lum);
 }`;
 
-export function createDiskMesh(camera) {
+// `colors` runs hot inner gas, mid disk, cool outer edge.
+export function createDiskMesh(camera, colors = [[1, .94, .82], [1, .58, .24], [.82, .2, .12]]) {
   const { cx, cy, r } = camera, e = .62;
   const geometry = quad(cx - r * e, cy - r * e, cx + r * e, cy + r * e, -e, -e, e, e);
   const shader = Shader.from({ gl: { vertex, fragment: diskFragment }, resources: { disk: {
     uTime: { value: 0, type: 'f32' }, uTide: { value: 0, type: 'f32' }, uIntensity: { value: .85, type: 'f32' },
+    uHot: { value: new Float32Array(colors[0]), type: 'vec3<f32>' }, uMid: { value: new Float32Array(colors[1]), type: 'vec3<f32>' },
+    uCool: { value: new Float32Array(colors[2]), type: 'vec3<f32>' },
   } } });
   const mesh = new Mesh({ geometry, shader }); mesh.blendMode = 'add';
   const u = shader.resources.disk.uniforms;

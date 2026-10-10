@@ -1,3 +1,4 @@
+import { EventHorizonSeasons } from './EventHorizonSeasons';
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, AdminFeatureSettings, StripeMode, type AdminStripeReadiness } from '@/api/admin';
@@ -96,6 +97,7 @@ export const FeatureSettingsTab: React.FC = () => {
   return (
     <div style={{ maxWidth: 640 }}>
       <h3 className="mb-4">Feature Flags</h3>
+      <EventHorizonSeasons />
       <p className="text-muted mb-4">
         Bot-wide feature toggles. Changes take effect immediately across all servers.
       </p>

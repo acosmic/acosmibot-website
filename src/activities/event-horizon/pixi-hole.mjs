@@ -2,7 +2,7 @@
 import { Application, Container, CanvasSource, Color, Geometry, Graphics, Mesh, Shader, Sprite, Texture } from 'pixi.js';
 import { drawBlackHole } from './black-hole.mjs';
 import { tideStrength, tideDust, TIDE_DUST_COUNT } from './tide-fx.mjs';
-import { holeGeometry } from './render-cache.mjs';
+import { holeGeometry, CLASSIC_HOLE } from './render-cache.mjs';
 import { DOPPLER_ANGLE } from './juice.mjs';
 import { createDiskMesh } from './pixi-shaders.mjs';
 
@@ -66,7 +66,7 @@ function arcMesh(arcs, camera, width, height, ratio) {
   return {mesh:new Mesh({geometry,shader}),shader,geometry};
 }
 
-export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
+export function createHoleScene({width,height,ratio=2,camera,reduced=false,palette=CLASSIC_HOLE,disk:diskColors}){
   const stage=new Container();stage.eventMode='none';
   const textures=[],meshes=[],embers=[],dust=[];
   const mote={};
@@ -81,22 +81,22 @@ export function createHoleScene({width,height,ratio=2,camera,reduced=false}){
     buffer.width=Math.max(1,Math.round((right-left)*ratio));buffer.height=Math.max(1,Math.round((bottom-top)*ratio));
     const ctx=buffer.getContext('2d');ctx.scale(ratio,ratio);ctx.translate(-left,-top);
     const layers={bloom:false,streams:false,core:false,photons:false,embers:false,lane:false};layers[name]=true;
-    drawBlackHole(ctx,0,camera,reduced,{},layers);
+    drawBlackHole(ctx,0,camera,reduced,{},layers,0,0,palette);
     const texture=new Texture({source:new CanvasSource({resource:buffer,resolution:ratio})});
     textures.push(texture);textureBytes+=buffer.width*buffer.height*4;
     const sprite=new Sprite(texture);sprite.position.set(left,top);stage.addChild(sprite);
   }
   function arcs(data){const item=arcMesh(data,camera,width,height,ratio);meshes.push(item);stage.addChild(item.mesh);}
-  const geometry=holeGeometry(camera.r,reduced);
+  const geometry=holeGeometry(camera.r,reduced,palette);
   staticLayer('bloom',.77);
-  const disk=reduced?null:createDiskMesh(camera);
+  const disk=reduced?null:createDiskMesh(camera,diskColors);
   if(disk)stage.addChild(disk.mesh);
   arcs(geometry.streams.map(({i,k,rr,ry,color,width})=>({rx:rr,ry,angle:i*2.39,span:1.8+i%3,speed:.08+k*.12,rotation:-.28,color,width})));
   staticLayer('core',.36);
   arcs(geometry.photons.flatMap(({i,rr,span,strokes})=>strokes.map(({j,color,width})=>({rx:rr,ry:rr,
     angle:i*2.399-span+j*span/12,span:span/12+.002,speed:reduced?0:.18+i*.027,rotation:0,color,width}))));
   if(!reduced)for(let i=0;i<60;i++){
-    const sprite=new Sprite(Texture.WHITE);sprite.tint=i%3?0xffc689:0xfff1ca;sprite.alpha=i%3?.6:.8;
+    const sprite=new Sprite(Texture.WHITE);sprite.tint=palette.ember[i%3?0:1];sprite.alpha=i%3?.6:.8;
     sprite.width=sprite.height=.8+i%2;stage.addChild(sprite);embers.push(sprite);
   }
   if(!reduced)for(let i=0;i<TIDE_DUST_COUNT;i++){

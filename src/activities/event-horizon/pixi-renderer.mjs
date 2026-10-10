@@ -1,3 +1,5 @@
+import { seasonalCopy, seasonTheme, hazardAura, hazardRotation, ambientPose } from './seasonal.mjs';
+import { drawSeasonBit, drawAmbient, AMBIENT_VARIANTS } from './seasonal-art.mjs';
 import {darkn1deView,createDarkMemory,trackDark} from './darkn1de-fx.mjs';
 import {createDarkScene} from './pixi-darkn1de.mjs';
 import {isInverted,resonanceReady} from './sim.mjs';
@@ -36,7 +38,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   let quality=createQuality('high'),tier='high',probeFrames=0,blackFrames=0;
   let config,scene,hole,holeGlow,bg,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
   let dark,darkBack,darkFront,darkUi,darkView=null,phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
-  let tex={},rocketTexture=null;
+  let tex={},rocketTexture=null,theme='classic',palette=seasonTheme('classic'),ambient=[];
+  const pose={};
   let textures=[],objectTextures=new Map(),labels=new Map(),sourceImages=new WeakMap();
   let tint=[...palettes.orbit],frame=0,lost=false,destroyed=false;
   const darkMemory=createDarkMemory();
@@ -96,7 +99,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   }
   function resize(next){
     if(destroyed||next.width<1||next.height<1)return;
-    config=next;if(lost)return;
+    // The season is part of the baked scene: switching it rebuilds the artwork once.
+    theme=next.season??theme;palette=seasonTheme(theme);config={...next,season:theme};if(lost)return;
     probeFrames=0;blackFrames=0;clearScene();
     const {width,height,ratio,camera,reduced,backdrop,stars}=config;
     app.renderer.resize(width,height,ratio);
@@ -113,15 +117,20 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     tex.cone=bake(256,64,c=>drawCone(c,256,64),1).texture;
     tex.chevron=bake(40,40,c=>drawChevron(c,40)).texture;
     tex.reticle=bake(48,48,c=>drawReticle(c,48)).texture;
+    tex.bits=Array.from({length:palette.bits},(_,i)=>bake(24,24,c=>drawSeasonBit(c,theme,i,24)).texture);
     // Background (lensed): base gradient, two drifting painted nebulae, galaxies, stars, comet.
     background=sprite(makeTexture(backdrop),bg);background.width=width;background.height=height;
     const nw=width*1.25,nh=height*1.25;
-    nebulaFar=sprite(bake(nw,nh,c=>{drawNebula(c,nw,nh,11,0,1);const rand=seeded(5);for(let i=0;i<3;i++){c.save();c.translate(rand()*nw,rand()*nh);drawGalaxy(c,40+rand()*50,i+3);c.restore();}},NEBULA_RES).texture,bg);
-    nebulaNear=sprite(bake(nw,nh,c=>drawNebula(c,nw,nh,29,1,.6),NEBULA_RES).texture,bg);nebulaNear.blendMode='add';nebulaNear.alpha=.5;
+    nebulaFar=sprite(bake(nw,nh,c=>{drawNebula(c,nw,nh,11,palette.nebula[0],1);const rand=seeded(5);for(let i=0;i<3;i++){c.save();c.translate(rand()*nw,rand()*nh);drawGalaxy(c,40+rand()*50,i+3);c.restore();}},NEBULA_RES).texture,bg);
+    nebulaNear=sprite(bake(nw,nh,c=>drawNebula(c,nw,nh,29,palette.nebula[1],.6),NEBULA_RES).texture,bg);nebulaNear.blendMode='add';nebulaNear.alpha=.5;
     for(const n of [nebulaFar,nebulaNear])n.anchor.set(.5);
     starSprites=stars.map((star,i)=>{const s=sprite(tex.star,bg);s.anchor.set(.5);s.blendMode='add';
-      const bright=!reduced&&i%17===0;s.tint=star.layer===3?0xc9b6ff:i%5===0?0xffe6c8:0xcfeeff;s.width=s.height=star.size*(bright?9:4.2);s.bright=bright;return s;});
-    comet=sprite(tex.spark,bg);comet.anchor.set(1,.5);comet.blendMode='add';comet.visible=false;comet.tint=0xd8f4ff;
+      const bright=!reduced&&i%17===0;s.tint=palette.stars[star.layer===3?0:i%5===0?1:2];s.width=s.height=star.size*(bright?9:4.2);s.bright=bright;return s;});
+    comet=sprite(tex.spark,bg);comet.anchor.set(1,.5);comet.blendMode='add';comet.visible=false;comet.tint=palette.comet;
+    // Seasonal drifters live behind the hole, so they never cover a hazard.
+    ambient=[];
+    if(palette.ambient&&!reduced){const {kind,count}=palette.ambient,variants=Array.from({length:AMBIENT_VARIANTS[kind]},(_,i)=>bake(32,32,c=>drawAmbient(c,kind,i,32)).texture);
+      for(let i=0;i<count;i++){const s=sprite(variants[i%variants.length],bg);s.anchor.set(.5);ambient.push(s);}}
     const wash=bake(width,height,c=>{const g=c.createRadialGradient(width*.6,height*.5,0,width*.6,height*.5,Math.max(width,height)*.8);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#ffffff00');c.fillStyle=g;c.fillRect(0,0,width,height);},NEBULA_RES);
     scene.wash=sprite(wash.texture,bg);scene.wash.width=width;scene.wash.height=height;scene.wash.alpha=.22;
     // World: god rays, bloomed hole, objects, trail, ship, particles.
@@ -129,7 +138,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     for(let i=0;i<3;i++){const s=sprite(tex.cone,godRays);s.anchor.set(0,.5);s.blendMode='add';s.tint=0xfff0c8;}
     godRays.position.set(camera.cx,camera.cy);godRays.visible=false;
     holeGlow=new Container();world.addChild(holeGlow);
-    hole=createHoleScene({width,height,ratio,camera,reduced});holeGlow.addChild(hole.stage);
+    hole=createHoleScene({width,height,ratio,camera,reduced,palette:palette.hole,disk:palette.disk});holeGlow.addChild(hole.stage);
     beamGlow=sprite(tex.ring,world);beamGlow.anchor.set(.5);beamGlow.blendMode='add';beamGlow.tint=0xffd98f;beamGlow.position.set(camera.cx,camera.cy);beamGlow.visible=false;
     // Darkn1de sits behind the debris so hazards always read; his attacks draw above it.
     darkBack=new Container();world.addChild(darkBack);
@@ -148,7 +157,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     const warningText=sprite(Texture.EMPTY,warning);text(warningText,'BOOST TO COOL',`700 10px ${FONT}`,'#ffcca7',0,size*.78+10-3);
     shield=centered(pad,pad,c=>{c.strokeStyle='#beacff';c.lineWidth=2;c.shadowColor='#a18aff';c.shadowBlur=reduced?0:22;c.beginPath();c.arc(0,0,size*.48,0,TAU);c.stroke();},ship).s;
     ship.addChild(shipTurn);
-    engineGlow=sprite(tex.glow,shipTurn);engineGlow.anchor.set(.5);engineGlow.blendMode='add';engineGlow.tint=0x59e8ff;engineGlow.position.set(NOZZLE_X*size,NOZZLE_Y*size);
+    engineGlow=sprite(tex.glow,shipTurn);engineGlow.anchor.set(.5);engineGlow.blendMode='add';engineGlow.tint=palette.engine;engineGlow.position.set(NOZZLE_X*size,NOZZLE_Y*size);
     flame=createFlameMesh();shipTurn.addChild(flame.mesh);flame.mesh.position.set(NOZZLE_X*size,NOZZLE_Y*size);flame.mesh.rotation=FLAME_ANGLE;
     rocketFallback=new Graphics().poly([size*.4,0,-size*.3,-size*.2,-size*.2,size*.2],true).fill(0x75efff);shipTurn.addChild(rocketFallback);
     rocketSprite=sprite(Texture.EMPTY,shipTurn);rocketSprite.anchor.set(.5);
@@ -200,15 +209,15 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
       aura.visible=rim.visible=false;return;
     }
     const pad=Math.ceil(rr*3+60);
-    art.texture=objectTexture(`${o.type}:${o.size}:${o.shape}`,pad,c=>drawObjectArt(c,o,rr,config.reduced));art.rotation=o.spin;
+    art.texture=objectTexture(`${theme}:${o.type}:${o.size}:${o.shape}`,pad,c=>drawObjectArt(c,o,rr,config.reduced,theme));art.rotation=hazardRotation(o,theme);
     const rock=o.type!=='shard'&&o.type!=='resonance'&&o.type!=='plasma';
     rim.visible=rock;aura.visible=!rock;
-    if(rock){rim.texture=objectTexture(`rim:${rr}`,Math.ceil(rr*2.6+8),c=>drawRim(c,rr));rim.rotation=Math.atan2(g.cy-y,g.cx-x);rim.alpha=.55;}
+    if(rock){rim.texture=objectTexture(`rim:${theme}:${rr}`,Math.ceil(rr*2.6+8),c=>drawRim(c,rr,palette.rim));rim.rotation=Math.atan2(g.cy-y,g.cx-x);rim.alpha=.55;}
     else if(o.type==='shard'||o.type==='resonance'){aura.texture=tex.star;aura.tint=0xa6f7ff;const s=rr*3.2*(reduced?1:.85+.25*Math.sin(t*6+o.shape*10));aura.width=aura.height=s;aura.rotation=reduced?0:t*.8;aura.alpha=.35;}
-    else{aura.texture=tex.glow;aura.tint=0xff4f7d;const s=rr*2.6*(reduced?1:1+.1*Math.sin(t*5+o.shape));aura.width=aura.height=s;aura.alpha=.28;}
+    else{aura.texture=tex.glow;aura.tint=hazardAura(o,theme);const s=rr*2.6*(reduced?1:1+.1*Math.sin(t*5+o.shape));aura.width=aura.height=s;aura.alpha=.28;}
     if(streak.visible){
-      const length=reduced?rr*3:rr*7,key=`trail:${rr}:${length}`;let entry=objectTextures.get(key);
-      if(!entry){const pad=rr*1.2+4,image=bake(length+pad,pad,c=>{const gr=c.createLinearGradient(pad/2,0,length+pad/2,0);gr.addColorStop(0,'#ff724400');gr.addColorStop(.7,'#ff9a5a99');gr.addColorStop(1,'#ffe0b8ee');c.strokeStyle=gr;c.lineWidth=rr*1.2;c.lineCap='round';c.beginPath();c.moveTo(pad/2,pad/2);c.lineTo(length+pad/2,pad/2);c.stroke();});entry={texture:image.texture,used:frame,pad,length};objectTextures.set(key,entry);}
+      const length=reduced?rr*3:rr*7,key=`trail:${theme}:${rr}:${length}`;let entry=objectTextures.get(key);
+      if(!entry){const pad=rr*1.2+4,image=bake(length+pad,pad,c=>{const gr=c.createLinearGradient(pad/2,0,length+pad/2,0);gr.addColorStop(0,palette.streak[0]);gr.addColorStop(.7,palette.streak[1]);gr.addColorStop(1,palette.streak[2]);c.strokeStyle=gr;c.lineWidth=rr*1.2;c.lineCap='round';c.beginPath();c.moveTo(pad/2,pad/2);c.lineTo(length+pad/2,pad/2);c.stroke();});entry={texture:image.texture,used:frame,pad,length};objectTextures.set(key,entry);}
       entry.used=frame;streak.texture=entry.texture;streak.anchor.set((entry.length+entry.pad/2)/(entry.length+entry.pad),.5);streak.rotation=Math.atan2(o.vy,o.vx);streak.blendMode='add';
     }
   }
@@ -225,7 +234,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     }
     if(show){const stacked=state.kinds.length>1,parts=stacked?state.kinds.map(k=>phaseNames[k]):phaseNames[state.kind].split(' ');
       const font=`700 ${Math.max(12,Math.min(stacked?18:24,g.r*.064))}px ${FONT}`;
-      text(phaseLabels.children[0],parts[0],font,'#eee7da',0,-18,g.r*.72);text(phaseLabels.children[1],parts.slice(1).join(' '),font,'#eee7da',0,2,g.r*.72);
+      text(phaseLabels.children[0],seasonalCopy(parts[0],theme),font,'#eee7da',0,-18,g.r*.72);text(phaseLabels.children[1],seasonalCopy(parts.slice(1).join(' '),theme),font,'#eee7da',0,2,g.r*.72);
       const cue=state.beam!==null?'CLIMB OUTWARD':state.gravity>1?'STRONG PULL +15%':stacked?'DOUBLE PRESSURE':state.kind==='convoy'?'RIDE THE STAIRCASE':'NORMAL PULL';
       text(phaseLabels.children[2],cue,`${state.gravity>1?700:600} ${Math.max(11,Math.min(18,g.r*.052))}px ${FONT}`,state.gravity>1?'#ffd099':'#b9cbd5',0,30,g.r*.72);
     }
@@ -242,6 +251,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     if(cometPath){const p=(t-cometStart)/2.6;if(p>=1){cometPath=null;comet.visible=false;}else{
       const e=easeOutCubic(p)*.3+p*.7,x=cometPath.x0+(cometPath.x1-cometPath.x0)*e,y=cometPath.y0+(cometPath.y1-cometPath.y0)*e;
       comet.visible=true;comet.position.set(x,y);comet.rotation=Math.atan2(cometPath.y1-cometPath.y0,cometPath.x1-cometPath.x0);comet.width=Math.min(width*.22,180);comet.height=3;comet.alpha=Math.sin(p*Math.PI)*.85;}}
+    if(ambient.length){const kind=palette.ambient.kind;for(let i=0;i<ambient.length;i++){const s=ambient[i];ambientPose(kind,i,t,width,height,pose);
+      s.position.set(pose.x,pose.y);s.rotation=pose.rotation;s.width=pose.size*pose.squash;s.height=pose.size;s.scale.x=Math.abs(s.scale.x)*pose.flip;s.alpha=pose.alpha*(1-starDim);}}
     const target=kinds.map(k=>palettes[k]??palettes.orbit),blend=reduced?1:1-Math.exp(-dt*.9);
     for(let i=0;i<3;i++)tint[i]+=(target.reduce((s,c)=>s+c[i],0)/target.length-tint[i])*blend;
     scene.wash.tint=(Math.round(tint[0])<<16)|(Math.round(tint[1])<<8)|Math.round(tint[2]);
@@ -259,7 +270,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
       const a=trailPoints[i],b=trailPoints[i-1],ageA=(t-a.t)/TRAIL_SECONDS,ageB=(t-b.t)/TRAIL_SECONDS;
       const ax=nx-(t-a.t)*speed,bx=nx-(t-b.t)*speed,wa=size*.11*(1-ageA),wb=size*.11*(1-ageB);
       const alpha=(1-ageA)*(.18+.4*a.boost);if(alpha<=.01)continue;
-      trail.poly([ax,a.y-wa,bx,b.y-wb,bx,b.y+wb,ax,a.y+wa]).fill({color:a.phase?0xa98bff:0x4fe4ff,alpha});
+      trail.poly([ax,a.y-wa,bx,b.y-wb,bx,b.y+wb,ax,a.y+wa]).fill({color:a.phase?0xa98bff:palette.trail,alpha});
     }
   }
   function drawGhosts(t,run,flying,x,y,rotation,size){
@@ -275,12 +286,14 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
       const life=Math.max(0,p.life/p.max),kind=p.kind||'glow';s.visible=true;s.position.set(p.x,p.y);s.tint=p.color;
       if(kind==='spark'){s.texture=tex.spark;s.blendMode='add';s.rotation=Math.atan2(p.vy,p.vx);const speed=Math.hypot(p.vx,p.vy);s.width=Math.max(p.size*2.5,speed*.07);s.height=p.size*1.3;s.alpha=life;}
       else if(kind==='ring'){s.texture=tex.ring;s.blendMode='add';s.rotation=0;const d=p.size*easeOutCubic(1-life);s.width=s.height=d;s.alpha=life*.9;}
+      else if(kind==='bit'&&tex.bits.length){s.texture=tex.bits[p.variant%tex.bits.length];s.tint=0xffffff;s.blendMode='normal';s.rotation=p.rot+(p.max-p.life)*p.spin;s.width=s.height=p.size;s.alpha=Math.min(1,life*2.5);}
       else if(kind==='smoke'){s.texture=tex.glow;s.blendMode='normal';s.rotation=0;s.width=s.height=p.size*(1+(1-life)*1.5);s.alpha=life*.35;}
       else{s.texture=tex.glow;s.blendMode='add';s.rotation=0;s.width=s.height=p.size*2.2;s.alpha=life*.8;}
     }
     for(let i=particles.length;i<particlePool.length;i++)particlePool[i].visible=false;
   }
-  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,rocket,darkImages,juice,death}){
+  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,rocket,darkImages,juice,death,season='classic'}){
+    if(season!==theme&&config&&!lost&&!destroyed)resize({...config,season});
     if(lost||destroyed||!scene)return;frame++;
     const {camera:g,width,height,reduced}=config;
     const nextTier=sampleQuality(quality,frameMs);if(nextTier!==tier){tier=nextTier;applyTier();}
@@ -330,7 +343,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     const flameOn=flying||mode==='ready';
     flame.mesh.visible=flameOn&&!spaghetti;
     flame.mesh.scale.set(size*(.2+.48*boostLevel)*flicker,size*(.2+.12*boostLevel));
-    flame.update(reduced?0:t,.55+.45*boostLevel,run.phase>0?[.7,.55,1]:[.35,.95,1]);
+    flame.update(reduced?0:t,.55+.45*boostLevel,run.phase>0?[.7,.55,1]:palette.flame);
     engineGlow.visible=flame.mesh.visible;engineGlow.width=engineGlow.height=size*(.45+.55*boostLevel)*flicker;engineGlow.alpha=.1+.28*boostLevel;
     rocketFallback.visible=!(rocket.complete&&rocket.naturalWidth);
     if(rocket.complete&&rocket.naturalWidth){let texture=sourceImages.get(rocket);if(!texture){texture=new Texture({source:new ImageSource({resource:rocket})});textures.push(texture);sourceImages.set(rocket,texture);}rocketTexture=texture;rocketSprite.texture=texture;rocketSprite.width=rocketSprite.height=size;}

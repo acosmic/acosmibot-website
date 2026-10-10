@@ -1,3 +1,4 @@
+import { seasonalCopy } from './seasonal.mjs';
 const colors={orbit:[9,25,48],asteroids:[85,40,20],convoy:[49,40,74],tide:[12,65,65],pulsar:[30,24,61]};
 export const phaseNames={convoy:'DEBRIS FIELD',tide:'GRAVITY TIDE',pulsar:'PULSAR SWEEP',asteroids:'ASTEROID STORM'};
 export function createPhaseBackdrop(){
@@ -11,7 +12,7 @@ export function createPhaseBackdrop(){
     ctx.fillStyle=wash;ctx.fillRect(0,0,width,height);
   };
 }
-export function drawSpecial(ctx,g,run,state,reduced,showLabel=true){
+export function drawSpecial(ctx,g,run,state,reduced,showLabel=true,season='classic'){
   if(!run.specials.length)return;
   ctx.save();ctx.translate(g.cx,g.cy);
   if(state.beam!==null){
@@ -28,7 +29,7 @@ export function drawSpecial(ctx,g,run,state,reduced,showLabel=true){
     const parts=stacked?state.kinds.map(k=>phaseNames[k]):phaseNames[state.kind].split(' ');
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#eee7da';
     ctx.font=`750 ${Math.max(12,Math.min(stacked?18:24,g.r*.064))}px system-ui`;
-    ctx.fillText(parts[0],0,-18,g.r*.72);ctx.fillText(parts.slice(1).join(' '),0,2,g.r*.72);
+    ctx.fillText(seasonalCopy(parts[0],season),0,-18,g.r*.72);ctx.fillText(seasonalCopy(parts.slice(1).join(' '),season),0,2,g.r*.72);
     const cue=state.beam!==null?'CLIMB OUTWARD':state.gravity>1?'STRONG PULL +15%':stacked?'DOUBLE PRESSURE':state.kind==='convoy'?'RIDE THE STAIRCASE':'NORMAL PULL';
     ctx.font=`${state.gravity>1?750:600} ${Math.max(11,Math.min(18,g.r*.052))}px system-ui`;ctx.fillStyle=state.gravity>1?'#ffd099':'#b9cbd5';ctx.fillText(cue,0,30,g.r*.72);
   }

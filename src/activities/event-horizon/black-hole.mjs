@@ -1,15 +1,15 @@
 import { tideDust, TIDE_DUST_COUNT } from './tide-fx.mjs';
-import { holeGeometry } from './render-cache.mjs';
+import { holeGeometry, CLASSIC_HOLE } from './render-cache.mjs';
 const allLayers={};
 
 // Cache belongs to one camera/resolution. The optional layer mask is for the
 // renderer experiment; the game draws every layer in the original order.
-export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers,tide=0,tideTime=t){
-  const geometry=cache.geometry??=holeGeometry(r,reduced);
+export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers,tide=0,tideTime=t,palette=CLASSIC_HOLE){
+  const geometry=cache.geometry??=holeGeometry(r,reduced,palette);
   ctx.save(); ctx.translate(cx,cy);
   if(layers.bloom!==false){
     const bloom=ctx.createRadialGradient(0,0,r*.30,0,0,r*.76);
-    bloom.addColorStop(0,'#ffa06465');bloom.addColorStop(.35,'#b840352b');bloom.addColorStop(1,'#a9408200');
+    bloom.addColorStop(0,palette.bloom[0]);bloom.addColorStop(.35,palette.bloom[1]);bloom.addColorStop(1,palette.bloom[2]);
     ctx.fillStyle=bloom;ctx.beginPath();ctx.arc(0,0,r*.76,0,Math.PI*2);ctx.fill();
   }
   // Accretion streamlines orbit continuously. Bright inner light contrasts with
@@ -24,7 +24,7 @@ export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers,
     const hole=ctx.createRadialGradient(-r*.08,-r*.1,0,0,0,r*.35);
     hole.addColorStop(0,'#010208');hole.addColorStop(.9,'#020309');hole.addColorStop(1,'#271621');
     ctx.fillStyle=hole;ctx.beginPath();ctx.arc(0,0,r*.35,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#ffe4b6';ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(0,0,r*.354,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle=palette.rim;ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(0,0,r*.354,0,Math.PI*2);ctx.stroke();
   }
   // Tapered photon streams skim the rim; nothing crosses the dark center.
   if(layers.photons!==false)for(const {i,rr,span,strokes} of geometry.photons){
@@ -37,7 +37,7 @@ export function drawBlackHole(ctx,t,{cx,cy,r},reduced,cache={},layers=allLayers,
   }
   if(layers.embers!==false&&!reduced)for(let i=0;i<60;i++){
     const a=i*2.399+t*(.06+i%4*.025),rr=r*(.37+(i%13)*.006);
-    ctx.fillStyle=i%3?'#ffc68999':'#fff1cacc';
+    ctx.fillStyle=palette.emberCss[i%3?0:1];
     ctx.fillRect(Math.cos(a)*rr,Math.sin(a)*rr,.8+i%2,.8+i%2);
   }
   if(tide>0){

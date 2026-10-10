@@ -134,8 +134,6 @@ h1 span{background:linear-gradient(100deg,#9cf3ff 10%,#e7fbff 45%,#b48cff 90%);-
 #boost.active{box-shadow:0 0 24px #4fe4ff66,inset 0 0 18px #4fe4ff33;transform:scale(.985)}
 #dash.ready{box-shadow:0 0 0 1px #c3a6ff,0 0 22px #a98bff99;animation:dash-ready 1.6s ease-in-out infinite}
 @keyframes dash-ready{50%{box-shadow:0 0 0 1px #d9c6ff,0 0 34px #b48cffcc}}
-#dash.charge-pulse{animation:charge-pulse .35s ease-out}
-@keyframes charge-pulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.08);filter:brightness(1.6)}100%{transform:scale(1);filter:brightness(1)}}
 #desktop-charge-fill{background:linear-gradient(90deg,#5aeaff,#b48cff);box-shadow:0 0 10px #8fe9ff;transition:width .15s}
 #toast{font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 16px #4fe4ff88,0 2px 8px #000}
 /* Cinematic phase banner with letterbox bars */
@@ -261,8 +259,24 @@ h1 span{filter:none}
 #game .volume input{user-select:auto;-webkit-user-select:auto}
 @media(max-width:600px){.volume input{width:96px}}
 
+/* Seasonal cosmetics stay next to the existing comfort controls. */
+.season-picker{border:0;padding:0;margin:20px 0 16px;min-width:0}
+.season-picker legend{font-size:14px;font-weight:700;margin-bottom:8px;color:#edf6ff}
+.season-options{display:flex;flex-wrap:wrap;gap:8px}
+.season-options button{min-height:44px;padding:8px 12px;font-size:13px;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left}
+.season-swatch{width:14px;height:14px;border-radius:50%;grid-row:1/span 2;box-shadow:0 0 0 1px #ffffff33}
+.season-options small{grid-column:2}
+.season-options button[aria-pressed="true"]{background:#263b48;color:#f1f8fc;border-color:var(--season,#67ecff);box-shadow:0 0 0 1px var(--season,#67ecff) inset}
+.season-options button:disabled{opacity:1;color:#abb7c0;background:#18202a;border-color:#34404b;cursor:not-allowed}
+.season-options button:disabled .season-swatch{opacity:.45}
+.season-options small{font-size:11px;font-weight:400;color:inherit}
+#season-description,.season-note{font-size:13px;line-height:1.5;margin:8px 0 0;color:#c4d0db}
+.season-note{color:#a7b9c8}
 #pilot-counts{display:block;font-size:11px;line-height:1.5;color:#d4e2ea;white-space:normal}
 .board-tabs{display:flex;gap:6px;flex-wrap:wrap}
 .board-tabs button{min-height:44px;font-size:12px;padding:6px 8px}
 .board-tabs button[aria-pressed="true"]{color:#e6fcff;border-color:#67ecff;background:#203340}
-@media(max-width:600px){#pilot-counts{font-size:10px;max-width:165px}.board-heading{align-items:center;gap:8px}}
+@media(max-width:600px){#pilot-counts{font-size:10px;max-width:165px}.season-options button{flex:1 0 42%}.board-heading{align-items:center;gap:8px}}
+
+#dash.charge-pulse{animation:charge-pulse .35s ease-out}
+@keyframes charge-pulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.08);filter:brightness(1.6)}100%{transform:scale(1);filter:brightness(1)}}
