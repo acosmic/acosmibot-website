@@ -2,6 +2,24 @@ import type { PublicIncidentRecord } from '@/status/publicIncidents';
 
 export type ServiceHealth = 'operational' | 'degraded' | 'outage' | 'unknown';
 
+export interface PublicUptimeSegment {
+  timestamp: string;
+  status: ServiceHealth;
+  percentage?: number | null;
+  totalChecks?: number;
+  failedChecks?: number;
+  missedChecks?: number;
+  downtimeMinutes?: number | null;
+}
+
+export interface PublicUptimeHistory {
+  periodDays: 30;
+  state: 'available' | 'unavailable' | 'not_configured';
+  percentage: number | null;
+  totalChecks: number;
+  segments: PublicUptimeSegment[];
+}
+
 export interface PublicStatusComponent {
   id: 'website' | 'api' | 'bot-database';
   name: string;
@@ -9,6 +27,7 @@ export interface PublicStatusComponent {
   status: ServiceHealth;
   checkedAt: string;
   latencyMs?: number;
+  history?: PublicUptimeHistory;
 }
 
 export type PublicStatusIncident = PublicIncidentRecord;
@@ -26,7 +45,7 @@ export interface PublicStatusResponse {
     percentage: number | null;
     totalChecks: number;
     monitoringStartedAt?: string;
-    segments: Array<{ timestamp: string; status: ServiceHealth }>;
+    segments: PublicUptimeSegment[];
   };
   incidents: PublicStatusIncident[];
 }

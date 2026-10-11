@@ -265,12 +265,35 @@
 
 .status-recorder__track {
   display: grid;
-  height: 62px;
+  height: 36px;
   grid-template-columns: repeat(30, 1fr);
   gap: 3px;
   align-items: stretch;
-  margin: 28px 0 9px;
+  margin: 10px 0 9px;
 }
+
+.status-recorder__row { margin-top: 22px; }
+
+.status-recorder__row-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  color: var(--status-white);
+  font-size: 14px;
+}
+
+.status-recorder__row-heading strong { font-size: 16px; }
+
+.status-recorder__note,
+.status-recorder__policy {
+  margin: 8px 0 0;
+  color: var(--status-copy);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.status-recorder__policy { margin-top: 16px; }
 
 .status-recorder__segment {
   display: block;
@@ -685,7 +708,7 @@
   }
 
   .status-recorder__track {
-    height: 48px;
+    height: 32px;
     gap: 2px;
   }
 

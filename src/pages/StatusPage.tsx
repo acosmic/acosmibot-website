@@ -27,6 +27,8 @@ import {
   fetchPublicStatus,
   PublicStatusComponent,
   PublicStatusIncident,
+  PublicUptimeHistory,
+  PublicUptimeSegment,
   ServiceHealth,
 } from '@/api/status';
 import { PUBLIC_STATUS_INCIDENTS } from '@/status/publicIncidents';
@@ -117,15 +119,16 @@ const worstStatus = (left: ServiceHealth, right: ServiceHealth): ServiceHealth =
 };
 
 const buildThirtyDayRecorder = (
-  segments: Array<{ timestamp: string; status: ServiceHealth }>,
+  segments: PublicUptimeSegment[],
   now: number,
 ) => {
-  const daily = new Map<string, ServiceHealth>();
+  const daily = new Map<string, PublicUptimeSegment>();
   for (const segment of segments) {
     const timestamp = Date.parse(segment.timestamp);
     if (!Number.isFinite(timestamp)) continue;
     const key = new Date(timestamp).toISOString().slice(0, 10);
-    daily.set(key, worstStatus(daily.get(key) ?? 'unknown', segment.status));
+    const existing = daily.get(key);
+    if (!existing || worstStatus(existing.status, segment.status) === segment.status) daily.set(key, segment);
   }
 
   return Array.from({ length: 30 }, (_, index) => {
@@ -133,8 +136,35 @@ const buildThirtyDayRecorder = (
     date.setUTCHours(0, 0, 0, 0);
     date.setUTCDate(date.getUTCDate() - (29 - index));
     const key = date.toISOString().slice(0, 10);
-    return { key, date: date.toISOString(), status: daily.get(key) ?? 'unknown' };
+    return { key, date: date.toISOString(), status: daily.get(key)?.status ?? 'unknown', sample: daily.get(key) };
   });
+};
+
+const HistoryRow: React.FC<{
+  name: string;
+  history?: PublicUptimeHistory;
+  now: number;
+}> = ({ name, history, now }) => {
+  const recorder = useMemo(() => buildThirtyDayRecorder(history?.segments ?? [], now), [history?.segments, now]);
+  const recorded = recorder.filter(segment => segment.status !== 'unknown').length;
+  return (
+    <div className="status-recorder__row">
+      <div className="status-recorder__row-heading">
+        <span>{name}</span>
+        <strong>{history?.percentage == null ? 'No history yet' : `${history.percentage.toFixed(3)}%`}</strong>
+      </div>
+      <div className="status-recorder__track" role="img" aria-label={`${name}: ${recorded} days of availability history available`}>
+        {recorder.map(segment => {
+          const sample = segment.sample;
+          const detail = sample?.percentage == null ? HEALTH_LABELS[segment.status]
+            : `${sample.percentage.toFixed(3)}% availability; ~${sample.downtimeMinutes ?? 0} min recorded downtime; ${sample.failedChecks ?? 0} failed, ${sample.missedChecks ?? 0} missed checks`;
+          return <span key={segment.key} className={`status-recorder__segment status-recorder__segment--${segment.status}`} title={`${name} · ${shortDateFormatter.format(Date.parse(segment.date))} (UTC): ${detail}`} />;
+        })}
+      </div>
+      {history?.state === 'not_configured' && <p className="status-recorder__note">Independent monitoring is not configured.</p>}
+      {history?.state === 'unavailable' && <p className="status-recorder__note">Monitoring history is unavailable.</p>}
+    </div>
+  );
 };
 
 const StatusMark: React.FC<{ status: ServiceHealth }> = ({ status }) => (
@@ -235,16 +265,13 @@ export const StatusPage: React.FC = () => {
   const overallStatus = response?.overallStatus ?? 'unknown';
   const checkedAt = response?.checkedAt;
   const components = response?.components ?? FALLBACK_COMPONENTS;
-  const recorder = useMemo(
-    () => buildThirtyDayRecorder(response?.uptime.segments ?? [], now),
-    [response?.uptime.segments, now],
-  );
-  const monitoredDays = recorder.filter((segment) => segment.status !== 'unknown').length;
+  const apiHistory = components.find(component => component.id === 'api')?.history ?? (response ? {
+    ...response.uptime, state: response.uptime.totalChecks > 0 ? 'available' as const : 'unavailable' as const,
+  } : undefined);
   const incidents = response?.incidents ?? PUBLIC_STATUS_INCIDENTS;
   const activeIncidents = incidents.filter((incident) => incident.status !== 'resolved');
   const resolvedIncidents = incidents.filter((incident) => incident.status === 'resolved');
   const incidentDataUnavailable = !response && query.isError;
-  const uptimePercentage = response?.uptime.percentage;
   const headline = response?.headline ?? HEALTH_SUMMARIES[overallStatus];
 
   return (
@@ -267,14 +294,9 @@ export const StatusPage: React.FC = () => {
             </div>
           </div>
 
-          <aside className="status-recorder" aria-label="Thirty day API availability">
+          <aside className="status-recorder" aria-label="Thirty day service availability">
             <div className="status-recorder__header">
-              <div>
-                <span>30-day API availability</span>
-                <strong>
-                  {uptimePercentage == null ? 'Collecting history' : `${uptimePercentage.toFixed(3)}%`}
-                </strong>
-              </div>
+              <div><span>30-day availability</span></div>
               <button
                 type="button"
                 aria-label={query.isFetching ? 'Checking status' : 'Refresh'}
@@ -285,32 +307,23 @@ export const StatusPage: React.FC = () => {
                 <span>{query.isFetching ? 'Checking' : 'Refresh'}</span>
               </button>
             </div>
-            <div
-              className="status-recorder__track"
-              role="img"
-              aria-label={`${monitoredDays} days of availability history currently available`}
-            >
-              {recorder.map((segment) => (
-                <span
-                  key={segment.key}
-                  className={`status-recorder__segment status-recorder__segment--${segment.status}`}
-                  title={`${shortDateFormatter.format(Date.parse(segment.date))} (UTC): ${HEALTH_LABELS[segment.status]}`}
-                />
-              ))}
-            </div>
+            <HistoryRow name="API" history={apiHistory} now={now} />
+            <HistoryRow name="Bot & database" history={components.find(component => component.id === 'bot-database')?.history} now={now} />
+            <HistoryRow name="Website" history={components.find(component => component.id === 'website')?.history} now={now} />
             <div className="status-recorder__footer">
               <span>30 days ago</span>
               <span>Today</span>
             </div>
+            <p className="status-recorder__policy">Daily downtime: green 0 · yellow under 1 hour · red 1 hour or more. Gray means no data.</p>
             <div className="status-recorder__freshness">
               <span className={`status-mark status-mark--${query.isError ? 'unknown' : overallStatus}`} aria-hidden="true"><span /></span>
               <div>
                 <strong>{query.isError ? 'Status relay unavailable' : `Updated ${formatRelativeTime(checkedAt, now)}`}</strong>
                 <small>
                   {response?.dataState === 'live'
-                    ? 'Sentry confirmation and an independent live probe'
+                    ? 'Independent uptime checks and bot heartbeats'
                     : response?.dataState === 'partial'
-                      ? 'Live probe active; Sentry history is not connected yet'
+                      ? 'Live probes active; monitoring history is unavailable'
                       : 'This page is online, but monitoring data is delayed'}
                 </small>
               </div>
