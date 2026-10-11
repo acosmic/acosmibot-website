@@ -3,8 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, AdminAiSettings, AdminAiTier, AdminAiTierLimits, type AdminAiLabCase, type AdminAiLabJob, type AiProvider } from '@/api/admin';
 import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import './AiSettingsTab.css';
+import { ROUTING_MODES } from './RoutingComparisonPanel';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'response_notice' | 'response_trace' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits' | 'provider_layers'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'response_notice' | 'response_trace' | 'routing_mode' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits' | 'provider_layers'>;
 
 const PLAN_LIMITS: Array<{ tier: AdminAiTier; label: string; description: string }> = [
   { tier: 'free', label: 'Free', description: 'Basic AI chat' },
@@ -60,11 +61,12 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, response_notice, response_trace, model, polymorph_model, timezone, web_search_provider, tier_limits, provider_layers } = query.data.data;
+      const { enabled, response_notice, response_trace, routing_mode, model, polymorph_model, timezone, web_search_provider, tier_limits, provider_layers } = query.data.data;
       setForm({
         enabled,
         response_notice: response_notice ?? true,
         response_trace: response_trace ?? false,
+        routing_mode: routing_mode ?? 'llm_shadow_jev',
         model,
         polymorph_model,
         timezone: timezone || 'UTC',
@@ -155,6 +157,30 @@ export const AiSettingsTab: React.FC = () => {
             Web Search Tool”. Turn off to hide it everywhere.
           </p>
         </div>
+
+        <fieldset className="ai-routing-settings" aria-describedby="ai-routing-help">
+          <legend>Tool routing</legend>
+          <p id="ai-routing-help" className="text-muted">
+            Choose who makes tool decisions. Shadow routers record proposals and never run tools or send replies.
+            The history filter is shared, and the selected chat model writes the final reply.
+          </p>
+          <div className="ai-routing-options">
+            {ROUTING_MODES.map(option => (
+              <label key={option.value} className={`ai-routing-option${form.routing_mode === option.value ? ' is-selected' : ''}`}>
+                <input type="radio" name="routing-mode" value={option.value}
+                  checked={form.routing_mode === option.value}
+                  onChange={() => setForm({ ...form, routing_mode: option.value })} />
+                <span><strong>{option.label}</strong><small>{option.description}</small></span>
+              </label>
+            ))}
+          </div>
+          <p className="text-muted small">Jev may hand unsupported requests or incomplete arguments to the LLM; those handoffs are logged. Both modes add shadow provider cost, without an extra member usage charge. Changes apply to new requests after saving.</p>
+          <label className="ai-routing-disclosure">
+            <input type="checkbox" checked={form.response_trace ?? false}
+              onChange={event => setForm({ ...form, response_trace: event.target.checked })} />
+            Show the actual execution path under replies
+          </label>
+        </fieldset>
 
         <div className="mb-4">
           <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>

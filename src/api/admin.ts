@@ -115,11 +115,14 @@ export interface AdminAiProviderLayer {
   available_models: Record<AiProvider, string[]>;
 }
 
+export type AiRoutingMode = 'jev_only' | 'llm_only' | 'jev_shadow_llm' | 'llm_shadow_jev';
+
 export interface AdminAiSettings {
   enabled: boolean;
   /** Show the disclaimer + "Used X Tool" subtext under AI replies. */
   response_notice: boolean;
-  response_trace: boolean;
+  response_trace?: boolean;
+  routing_mode?: AiRoutingMode;
   model: string;
   polymorph_model: string;
   /** Bot-wide fallback timezone (IANA) for the AI clock. */
@@ -609,6 +612,7 @@ export const adminApi = {
     }),
 
   getAiComparison: (days = 7) => api.fetch<AiComparisonReport>(`/api/admin/ai-traces/comparison?days=${days}`),
+  getRoutingComparison: (days = 7) => api.fetch<RoutingComparisonReport>(`/api/admin/ai-traces/routing-comparison?days=${days}`),
 
   getAiTraces: (days = 7, status?: AdminAiTraceStatus) => {
     const params = new URLSearchParams({ days: String(days), limit: '100' });
@@ -747,3 +751,13 @@ export const adminApi = {
       body: JSON.stringify(payload),
     }),
 };
+
+export interface RoutingComparisonReport {
+  success: boolean;
+  days: number;
+  scope: string;
+  providers: { mode: AiRoutingMode; engine: string; role: string; provider: string; model: string;
+    calls: number; mean_ms: number; cost_usd: string; unknown_cost_calls: number; tokens: number; failed_calls: number }[];
+  comparisons: { mode: AiRoutingMode; agreement: string; count: number }[];
+  recent_trace_ids: string[];
+}

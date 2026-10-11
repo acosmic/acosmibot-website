@@ -1,5 +1,6 @@
 import { AiComparisonPanel } from './AiComparisonPanel';
 import { isTestEnvironment } from '@/lib/runtimeConfig';
+import { RoutingComparisonPanel } from './RoutingComparisonPanel';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -219,6 +220,7 @@ export const AiTracesTab: React.FC = () => {
       </header>
 
       {isTestEnvironment() && <AiComparisonPanel days={days} onSelectTrace={id => { setSelectedId(id); document.querySelector('.ai-trace-detail')?.scrollIntoView({ behavior: 'auto', block: 'start' }); }} />}
+      <RoutingComparisonPanel days={days} onSelectTrace={setSelectedId} />
 
       <div className="ai-traces__console">
         <section className="ai-trace-index" aria-label="Recent AI traces">
