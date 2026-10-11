@@ -293,8 +293,6 @@
   letter-spacing: 0.04em;
 }
 
-.status-recorder__footer span:nth-child(2) { text-align: center; }
-
 .status-recorder__freshness {
   display: flex;
   align-items: center;
@@ -690,8 +688,6 @@
     height: 48px;
     gap: 2px;
   }
-
-  .status-recorder__footer span:nth-child(2) { display: none; }
 
   .status-section-heading {
     align-items: flex-start;
