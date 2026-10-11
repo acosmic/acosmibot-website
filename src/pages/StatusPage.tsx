@@ -89,6 +89,7 @@ const shortDateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
+  timeZone: 'UTC',
 });
 
 const formatTimestamp = (value?: string) => {
@@ -276,6 +277,7 @@ export const StatusPage: React.FC = () => {
               </div>
               <button
                 type="button"
+                aria-label={query.isFetching ? 'Checking status' : 'Refresh'}
                 onClick={() => void query.refetch()}
                 disabled={query.isFetching}
               >
@@ -292,13 +294,12 @@ export const StatusPage: React.FC = () => {
                 <span
                   key={segment.key}
                   className={`status-recorder__segment status-recorder__segment--${segment.status}`}
-                  title={`${shortDateFormatter.format(Date.parse(segment.date))}: ${HEALTH_LABELS[segment.status]}`}
+                  title={`${shortDateFormatter.format(Date.parse(segment.date))} (UTC): ${HEALTH_LABELS[segment.status]}`}
                 />
               ))}
             </div>
             <div className="status-recorder__footer">
               <span>30 days ago</span>
-              <span>{monitoredDays > 0 ? `${monitoredDays} days recorded` : 'History begins after Sentry is connected'}</span>
               <span>Today</span>
             </div>
             <div className="status-recorder__freshness">

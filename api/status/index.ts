@@ -307,11 +307,19 @@ const getSentrySnapshot = async (): Promise<SentrySnapshot> => {
   const uptimeDetailUrl = detectorId
     ? `${sentryOrigin}/api/0/projects/${org}/${apiProject}/uptime/${encodeURIComponent(detectorId)}/`
     : null;
+  // Uptime stats uses StatsMixin's since/until/resolution parameters. It
+  // silently ignores statsPeriod/interval and otherwise returns just 24 hours.
+  // Match the recorder's 30 UTC calendar days, including today so far, and use
+  // the same window for the percentage and the daily bars.
+  const until = Math.floor(Date.now() / 1_000);
+  const since = Math.floor(until / 86_400) * 86_400 - 29 * 86_400;
+  const start = new Date(since * 1_000).toISOString();
+  const end = new Date(until * 1_000).toISOString();
   const summaryUrl = detectorId
-    ? `${sentryOrigin}/api/0/organizations/${org}/uptime-summary/?uptimeDetectorId=${encodeURIComponent(detectorId)}&statsPeriod=30d`
+    ? `${sentryOrigin}/api/0/organizations/${org}/uptime-summary/?${new URLSearchParams({ uptimeDetectorId: detectorId, start, end })}`
     : null;
   const statsUrl = detectorId
-    ? `${sentryOrigin}/api/0/organizations/${org}/uptime-stats/?uptimeDetectorId=${encodeURIComponent(detectorId)}&statsPeriod=30d&interval=1d`
+    ? `${sentryOrigin}/api/0/organizations/${org}/uptime-stats/?${new URLSearchParams({ uptimeDetectorId: detectorId, since: String(since), until: String(until), resolution: '1d' })}`
     : null;
   const sentryEnvironment = encodeURIComponent(
     process.env.SENTRY_STATUS_ENVIRONMENT?.trim() || 'production',
