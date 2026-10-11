@@ -520,7 +520,7 @@ export const buildStatusPayload = (
     },
     {
       id: 'bot-database',
-      name: 'Bot & database',
+      name: 'Bot',
       description: 'Discord bot process and database heartbeat',
       status: sentry.botStatus,
       checkedAt,

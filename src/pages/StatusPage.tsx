@@ -71,7 +71,7 @@ const FALLBACK_COMPONENTS: PublicStatusComponent[] = [
   },
   {
     id: 'bot-database',
-    name: 'Bot & database',
+    name: 'Bot',
     description: 'Discord bot process and database heartbeat',
     status: 'unknown',
     checkedAt: new Date(0).toISOString(),
@@ -308,8 +308,7 @@ export const StatusPage: React.FC = () => {
               </button>
             </div>
             <HistoryRow name="API" history={apiHistory} now={now} />
-            <HistoryRow name="Bot & database" history={components.find(component => component.id === 'bot-database')?.history} now={now} />
-            <HistoryRow name="Website" history={components.find(component => component.id === 'website')?.history} now={now} />
+            <HistoryRow name="Bot" history={components.find(component => component.id === 'bot-database')?.history} now={now} />
             <div className="status-recorder__footer">
               <span>30 days ago</span>
               <span>Today</span>
