@@ -1,3 +1,4 @@
+import { RoutingComparisonPanel } from './RoutingComparisonPanel';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -213,6 +214,8 @@ export const AiTracesTab: React.FC = () => {
           </button>
         </div>
       </header>
+
+      <RoutingComparisonPanel days={days} onSelectTrace={setSelectedId} />
 
       <div className="ai-traces__console">
         <section className="ai-trace-index" aria-label="Recent AI traces">

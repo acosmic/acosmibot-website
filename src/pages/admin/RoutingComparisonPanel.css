@@ -1,0 +1,10 @@
+.routing-comparison { padding-block: 24px; border-block-start: 1px solid var(--border-light); }
+.routing-comparison h3 { margin: 0 0 8px; }
+.routing-comparison__outcomes { display: flex; flex-wrap: wrap; gap: 16px 32px; list-style: none; padding: 0; }
+.routing-comparison__outcomes span, .routing-comparison small { display: block; color: var(--text-muted); font-size: 0.8rem; font-weight: 400; }
+.routing-comparison__table { overflow-x: auto; }
+.routing-comparison table { width: 100%; border-collapse: collapse; text-align: start; font-variant-numeric: tabular-nums; }
+.routing-comparison th, .routing-comparison td { padding: 12px; border-block-end: 1px solid var(--border-light); white-space: nowrap; }
+.routing-comparison__traces { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block-start: 16px; }
+.routing-comparison__traces button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-light); background: var(--bg-secondary); color: var(--text-primary); border-radius: 6px; cursor: pointer; }
+.routing-comparison button:focus-visible, .routing-comparison__table:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
