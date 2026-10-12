@@ -23,7 +23,7 @@ test('X Alerts uses the dedicated API contract', () => {
 test('X Alerts has a dedicated dashboard route and navigation item', () => {
   assert.match(app, /feature === 'x-alerts'/);
   assert.match(app, /<XAlertsPage \/>/);
-  assert.match(sidebar, /\/x-alerts`} icon=\{AtSign\} label="X Posts"/);
+  assert.match(sidebar, /\/x-alerts`} assetIcon="x" label="X Posts"/);
 });
 
 test('X Alerts preserves downgrade priority and filters noisy post types', () => {
