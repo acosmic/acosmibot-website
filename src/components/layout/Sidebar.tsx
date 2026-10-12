@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ArrowLeft,
-  AtSign,
   BarChart3,
   Bot,
   ChevronDown,
@@ -17,17 +16,14 @@ import {
   Music2,
   Orbit,
   PanelTop,
-  RadioTower,
   Radar,
   Shield,
   Shuffle,
   Sparkles,
   Ticket,
   Trophy,
-  Tv,
   UserRoundX,
   UsersRound,
-  Video,
   type LucideIcon,
 } from 'lucide-react';
 import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
@@ -36,14 +32,15 @@ import { useGuildPermissions } from '@/hooks/useGuildPermissions';
 
 interface NavItemProps {
   to: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  assetIcon?: 'twitch' | 'youtube' | 'kick' | 'x';
   label: string;
   end?: boolean;
   status?: 'soon';
   onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, end, status, onClick }) => (
+const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, assetIcon, label, end, status, onClick }) => (
   <NavLink
     to={to}
     end={end}
@@ -51,11 +48,26 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, end, status, o
     onClick={onClick}
     aria-label={status === 'soon' ? `${label}, coming soon` : undefined}
   >
-    <span className="nav-icon"><Icon aria-hidden="true" /></span>
-    <span className="nav-text">{label}</span>
-    {status === 'soon'
-      ? <span className="nav-status" aria-hidden="true">Soon</span>
-      : <span className="nav-signal" aria-hidden="true" />}
+    {({ isActive }) => (
+      <>
+        <span className="nav-icon">
+          {assetIcon ? (
+            <img
+              src={`/images/acosmibot_${assetIcon}-${isActive ? 'active' : 'inactive'}.svg`}
+              width={17}
+              height={17}
+              alt=""
+              aria-hidden="true"
+              style={{ objectFit: 'contain' }}
+            />
+          ) : Icon ? <Icon aria-hidden="true" /> : null}
+        </span>
+        <span className="nav-text">{label}</span>
+        {status === 'soon'
+          ? <span className="nav-status" aria-hidden="true">Soon</span>
+          : <span className="nav-signal" aria-hidden="true" />}
+      </>
+    )}
   </NavLink>
 );
 
@@ -195,10 +207,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </NavSection>
 
               <NavSection title="Social alerts">
-                <NavItem to={`/server/${guildId}/kick`} icon={RadioTower} label="Kick" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/twitch`} icon={Tv} label="Twitch" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/x-alerts`} icon={AtSign} label="X Posts" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/youtube`} icon={Video} label="YouTube" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/kick`} assetIcon="kick" label="Kick" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/twitch`} assetIcon="twitch" label="Twitch" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/x-alerts`} assetIcon="x" label="X Posts" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/youtube`} assetIcon="youtube" label="YouTube" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Chaos">

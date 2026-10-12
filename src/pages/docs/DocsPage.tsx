@@ -24,7 +24,7 @@ interface NavItemDef {
   label: string;
   icon: LucideIcon;
   iconColor?: string;
-  assetIcon?: 'twitch' | 'youtube' | 'kick';
+  assetIcon?: 'twitch' | 'youtube' | 'kick' | 'x';
 }
 
 const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
@@ -55,7 +55,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'twitch',  label: 'Twitch Integration', icon: TvMinimalPlay, assetIcon: 'twitch' },
       { slug: 'youtube', label: 'YouTube Integration', icon: TvMinimalPlay, assetIcon: 'youtube' },
       { slug: 'kick',    label: 'Kick Integration', icon: TvMinimalPlay, assetIcon: 'kick' },
-      { slug: 'x-alerts', label: 'X Post Alerts', icon: AtSign },
+      { slug: 'x-alerts', label: 'X Post Alerts', icon: AtSign, assetIcon: 'x' },
     ],
   },
   {
