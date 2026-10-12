@@ -38,3 +38,17 @@ test('missing, malformed, or textless content never substitutes other roles or l
     request([{ role: 'user', content: 'Later synthetic input' }]),
   ]), null);
 });
+
+test('delivered output renders ordered text, embeds and filenames, never provider drafts', async () => {
+  const { getLiveActivityOutputs } = await import('../src/utils/liveActivityPrompt.ts');
+  assert.deepEqual(getLiveActivityOutputs([
+    { content_type: 'provider_response', payload: { content: 'Unscreened draft' }, truncated: false },
+    { content_type: 'discord_output', payload: { content: '<script>literal</script>', embeds: [{ title: 'Analysis', description: 'Result', fields: [{ name: 'Question', value: 'Example' }], footer: { text: 'Footer' } }], attachments: [{ filename: 'result.png' }] }, truncated: true },
+    { content_type: 'discord_output', payload: { content: 'Second message' }, truncated: false },
+  ]), [
+    { text: '<script>literal</script>\n\nAnalysis\n\nResult\n\nQuestion\n\nExample\n\nFooter\n\nAttachment: result.png', truncated: true },
+    { text: 'Second message', truncated: false },
+  ]);
+  assert.deepEqual(getLiveActivityOutputs([{ content_type: 'discord_output', payload: null, truncated: false }]), []);
+  assert.deepEqual(getLiveActivityOutputs([]), []);
+});

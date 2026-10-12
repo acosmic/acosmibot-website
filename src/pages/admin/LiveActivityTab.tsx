@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Bot, CircleAlert, Clock3, Cpu, Expand, FileJson2, Globe2, Pause, Play, RefreshCw, ScrollText, TerminalSquare, X } from 'lucide-react';
 import { adminApi, type AdminAiTraceDetail, type AdminAiTraceSpan } from '@/api/admin';
-import { getLiveActivityPrompt } from '@/utils/liveActivityPrompt';
+import { getLiveActivityPrompt, getLiveActivityOutputs } from '@/utils/liveActivityPrompt';
 
 type Category = 'command' | 'ai' | 'website';
 type Outcome = 'running' | 'success' | 'error' | 'blocked' | 'cancelled';
@@ -120,6 +120,7 @@ export const LiveActivityTab: React.FC = () => {
   const [buffered, setBuffered] = useState<LiveEvent[]>([]);
   const [selected, setSelected] = useState<LiveEvent | null>(null);
   const [traceDetail, setTraceDetail] = useState<AdminAiTraceDetail | null>(null);
+  const finalOutputs = useMemo(() => getLiveActivityOutputs(traceDetail?.content || []), [traceDetail]);
   const userPrompt = useMemo(() => getLiveActivityPrompt(traceDetail?.content || []), [traceDetail]);
   const [runtimeLogs, setRuntimeLogs] = useState<RuntimeLogEntry[]>([]);
   const [diagnosticsLoading, setDiagnosticsLoading] = useState(false);
@@ -439,6 +440,21 @@ export const LiveActivityTab: React.FC = () => {
               {diagnosticsLoading ? 'Loading user message…' : traceError || traceDetail?.content_error
                 ? 'Could not load the user message. Refresh diagnostics to retry.'
                 : 'No user message is available in the saved trace. It may not have been captured or its retention window may have expired.'}
+            </p>}
+          </section>}
+
+          {selected.category === 'ai' && <section className="live-diagnostics live-user-message live-final-output" aria-labelledby="live-final-output-title">
+            <h4 id="live-final-output-title">Final output</h4>
+            {finalOutputs.length > 0 ? <>
+              <p className="live-user-message__note">Messages sent to Discord, in delivery order. Media and interactive controls are not reproduced.</p>
+              {finalOutputs.map((output, index) => <div key={index}>
+                <p className="live-user-message__text">{output.text}</p>
+                {output.truncated && <p className="live-user-message__note">Stored attachment was truncated</p>}
+              </div>)}
+            </> : <p className="live-user-message__note" role={diagnosticsLoading ? 'status' : undefined}>
+              {diagnosticsLoading ? 'Loading final output…' : traceError || traceDetail?.content_error
+                ? 'Could not load the final output. Refresh diagnostics to retry.'
+                : 'No delivered output is available in the saved trace. It may not have been captured or its retention window may have expired.'}
             </p>}
           </section>}
 

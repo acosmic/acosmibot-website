@@ -2689,6 +2689,7 @@
 .live-user-message h4 { margin: 0 0 12px; color: #f4fbff; font-size: 16px; }
 .live-user-message__text { margin: 0; padding: 16px; border-radius: 8px; background: #08111a; color: #f4fbff; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .live-user-message__note { margin: 8px 0 0; color: #a9bac7; font-size: 13px; line-height: 1.6; }
+.live-final-output > div { margin-top: 12px; }
 
 
 .eh-theme-settings { padding-block: 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); }
