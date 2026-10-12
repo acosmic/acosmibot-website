@@ -48,6 +48,7 @@ import { PremiumGrantsTab } from './PremiumGrantsTab';
 import { SocialStudioTab } from './SocialStudioTab';
 import { LiveActivityTab } from './LiveActivityTab';
 import '@/styles/admin.css';
+import { AdminSummary } from './AdminSummary';
 
 const ADMIN_TABS = [
   { id: 'live', label: 'Live Activity', group: 'Now', description: 'Watch commands, AI routes, tools, and website actions as they happen.', icon: Activity },
@@ -420,6 +421,8 @@ export const AdminPage: React.FC = () => {
             </div>
           </div>
         </header>
+
+        <AdminSummary />
 
         <div className="admin-console">
           <aside className="admin-module-rail" aria-label="Admin modules">

@@ -77,16 +77,27 @@ export const endSession = async (): Promise<void> => {
 /** Mount once near the application root to discover an existing cookie session. */
 export function AuthSessionBootstrap(): null {
   useEffect(() => {
-    void refreshSession();
-
     // A tab can remain open beyond the cookie's 24-hour lifetime. Revalidate
     // when the user returns so the navbar cannot keep showing a stale avatar.
     const refreshWhenVisible = () => {
       if (document.visibilityState === 'visible') void refreshSession();
     };
+    // Presence is first-party operational telemetry. Hidden tabs do not report
+    // activity, and no browsing path or third-party analytics is involved.
+    const reportPresence = () => {
+      if (document.visibilityState !== 'visible' || !useAuthStore.getState().isAuthenticated) return;
+      void fetch(`${apiBase()}/auth/presence`, { method: 'POST', credentials: 'include' })
+        .then(response => { if (response.status === 401) clearExpiredSession(); })
+        .catch(() => { /* Presence outages must not interrupt the website. */ });
+    };
+    void refreshSession().then(reportPresence);
+    const presenceTimer = window.setInterval(reportPresence, 60_000);
+    document.addEventListener('visibilitychange', reportPresence);
     window.addEventListener('focus', refreshWhenVisible);
     document.addEventListener('visibilitychange', refreshWhenVisible);
     return () => {
+      window.clearInterval(presenceTimer);
+      document.removeEventListener('visibilitychange', reportPresence);
       window.removeEventListener('focus', refreshWhenVisible);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
