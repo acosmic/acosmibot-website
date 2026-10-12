@@ -40,3 +40,32 @@ export function getLiveActivityPrompt(content: readonly ContentAttachment[]) {
   }
   return null;
 }
+
+/** Only acknowledged Discord sends qualify; provider/tool text is never a substitute. */
+export function getLiveActivityOutputs(content: readonly ContentAttachment[]) {
+  return content.filter((item) => item.content_type === 'discord_output').flatMap((item) => {
+    const payload = object(item.payload);
+    if (!payload) return [];
+    const parts: string[] = [];
+    const append = (value: unknown) => {
+      if (typeof value === 'string' && value.trim()) parts.push(value);
+    };
+    append(payload.content);
+    if (Array.isArray(payload.embeds)) for (const value of payload.embeds) {
+      const embed = object(value);
+      append(embed?.title);
+      append(embed?.description);
+      if (Array.isArray(embed?.fields)) for (const value of embed.fields) {
+        const field = object(value);
+        append(field?.name);
+        append(field?.value);
+      }
+      append(object(embed?.footer)?.text);
+    }
+    if (Array.isArray(payload.attachments)) for (const value of payload.attachments) {
+      const filename = object(value)?.filename;
+      if (typeof filename === 'string') parts.push(`Attachment: ${filename}`);
+    }
+    return [{ text: parts.join('\n\n') || 'Message sent without captured text (for example, an image or interactive component).', truncated: item.truncated }];
+  });
+}
