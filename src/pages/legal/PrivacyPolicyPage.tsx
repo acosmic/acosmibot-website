@@ -65,7 +65,9 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Browser/Device Info:</strong> Your user-agent string (browser type and OS) for security context</li>
         <li><strong>Sign-In Timestamp:</strong> Date and time of each login</li>
       </ul>
-      <p>Sign-in logs are retained for 90 days and then automatically deleted. This data is used exclusively for security and abuse prevention and is never shared with third parties.</p>
+      <p>Sign-in records, including your Discord ID, username, display name, avatar reference, browser/device information, and sign-in timestamp, are retained indefinitely for account history, security, and lifetime usage totals, unless a deletion request is fulfilled. IP addresses expire after 90 days: they are hidden from log results and searches, and cleared from stored records on subsequent sign-ins or owner log reads. This data is never shared with third parties.</p>
+
+      <p>For owner-only website usage totals, we also retain a minimal record of your Discord ID and first recorded sign-in, alongside the retained sign-in history. This record persists until a deletion request is fulfilled. Session presence stores a non-reusable keyed session hash, Discord ID, expiry, and the latest time a signed-in website tab was visible. Expired presence records are removed during subsequent presence updates; signing out removes that browser’s record. These operational counts do not store browsing paths or page content and are not sent to third-party analytics.</p>
 
       <LegalSubheading>2.6 Server (Guild) Information</LegalSubheading>
       <ul>
