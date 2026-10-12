@@ -1,0 +1,25 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Weather and Daily Discoveries</h1>
+    <p class="docs-page-description">Check a five-day forecast, explore NASA’s Astronomy Picture of the Day, or meet the day’s featured bird.</p>
+  </header>
+  <section class="docs-section">
+    <h2>Weather</h2>
+    <p>Use <code>/weather cityname:Houston, Texas</code> for current conditions and a five-day forecast. Include a state or country when the city name is ambiguous. The optional <code>unit</code> setting chooses Fahrenheit or Celsius; Fahrenheit is the default.</p>
+    <p>The result includes a weather card and a unit switch that only the requester can use. If the location is not found, try its city, state, and country. A temporary weather-service problem may require retrying later.</p>
+  </section>
+  <section class="docs-section">
+    <h2>Astronomy Picture of the Day</h2>
+    <p><code>/apod</code> posts the latest NASA Astronomy Picture of the Day with its title, explanation, and image credit. A video entry includes links to the video and NASA page instead of an image attachment.</p>
+    <p>Results are cached and refreshed periodically, so repeated requests can show the same entry. Availability depends on NASA’s feed and media.</p>
+  </section>
+  <section class="docs-section">
+    <h2>Bird of the Day</h2>
+    <p><code>/botd</code> shows the daily bird’s common and scientific names, available information, and imagery. Everyone gets the same selection for the current UTC date; it changes with the UTC day.</p>
+    <p>When a recording is available, the bot replies to the bird post with an audio attachment. Missing imagery or audio does not mean the daily selection failed.</p>
+  </section>
+  <section class="docs-section">
+    <h2>More Utilities</h2>
+    <p>Use <code>/define</code> for a word definition, <code>/avatar</code> for a member’s avatar, or <code>/ping</code> to check bot latency. See the <a href="/docs/commands">command list</a> for more, or the <a href="/docs/reminders">reminders guide</a> to schedule a personal reminder.</p>
+  </section>
+</div>

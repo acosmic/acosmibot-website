@@ -61,6 +61,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
   {
     category: 'Games & Gambling',
     items: [
+      { slug: 'event-horizon', label: 'Event Horizon', icon: Orbit },
       { slug: 'slots',     label: 'Slots', icon: Cherry },
       { slug: 'mines',     label: 'Mines', icon: Bomb },
       { slug: 'keno',      label: 'Keno', icon: Grid3x3 },
@@ -78,6 +79,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'reaction-roles',    label: 'Reaction Roles', icon: Sparkles },
       { slug: 'custom-commands',   label: 'Custom Commands', icon: Settings },
       { slug: 'embeds',            label: 'Better Embeds', icon: FileText },
+      { slug: 'daily-utilities', label: 'Weather & Daily Discoveries', icon: Sparkles },
       { slug: 'reminders',         label: 'Reminders', icon: AlarmClock },
       { slug: 'wow',               label: 'World of Warcraft', icon: Shield },
       { slug: 'lol',               label: 'League of Legends', icon: Shield, iconColor: '#67ECFF' },

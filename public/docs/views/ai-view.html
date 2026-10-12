@@ -134,7 +134,7 @@
         <div class="step-number">3</div>
         <div class="step-content">
           <h3>Context is Maintained Automatically</h3>
-          <p>The bot reads recent Discord channel history when it is mentioned, then sends the relevant recent messages as conversation context.</p>
+          <p>The bot selects relevant recent channel messages for the current request. Reply directly to the message you mean when following up, and restate details if the topic has moved on. A previous message’s facts do not automatically describe what is happening now.</p>
         </div>
       </div>
 
@@ -301,6 +301,13 @@
       <p><code>/ai image</code> and mention-based image requests show an editable confirmation before quota or AI Credits are spent. Included requests show 0 AI Credits; eligible paid overage shows the fixed cost of 350 AI Credits. Cancelling or letting the five-minute confirmation expire spends nothing, and paid images do not advance the included monthly image allowance.</p>
       <p><a href="/docs/ai-credits" onclick="event.preventDefault(); window.DocsRouter.navigate('ai-credits')">Read the AI Credits and Fuel Cells guide →</a></p>
     </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Image Edits and Follow-Ups</h2>
+    <p>Reply to an image or attach a reference and tell Acosmibot what to change. Name the details you want to preserve, such as the subject, pose, or composition, and describe the change separately.</p>
+    <p>If the bot asks which image or detail you mean, reply to that question in the same channel. It keeps your brief during that clarification for up to ten minutes. If a source attachment can no longer be downloaded, upload it again when asked.</p>
+    <p>Clarifying an edit does not start image generation. Review and confirm the final image request before it spends quota or AI Credits; that confirmation has its own five-minute expiry. Cancel to stop the request.</p>
   </section>
 
   <section class="docs-section">
