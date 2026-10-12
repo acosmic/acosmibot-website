@@ -1,0 +1,93 @@
+<div class="docs-page-container">
+  <header class="docs-page-header">
+    <h1>Event Horizon</h1>
+    <p class="docs-page-description">Pilot Acosmibot’s rocket around a black hole, survive the changing hazards, and compete for your server’s best Orbit Score.</p>
+  </header>
+
+  <section class="docs-section">
+    <h2>Launch from Discord</h2>
+    <p>Use <code>/event-horizon</code> in a server channel, select Acosmibot in Discord’s App Launcher, or choose <strong>Play</strong> on a server-record post. An App Launcher invitation has a <strong>Join flight</strong> button so others can join the same Activity. The slash command opens the Activity directly.</p>
+    <p>Event Horizon is a single-player flight with shared leaderboards and live spectators. It is available on Free, Plus, Pro, and Max without a plan-specific play quota. There is no entry fee, wager, or payout: scores do not award Acosmicoins, XP, achievements, or items.</p>
+    <p>Discord verifies your identity and participation. In a server with Acosmibot installed, flights can enter that server’s ranked boards. If the bot is absent, you can fly casually; those scores are not saved to the boards. A server administrator can use <strong>Add Acosmibot</strong>, then <strong>Check again</strong>, to unlock server features. Opening the Activity’s website directly outside Discord cannot start a flight.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Controls</h2>
+    <table class="docs-table">
+      <thead><tr><th>Action</th><th>Desktop</th><th>Mobile</th></tr></thead>
+      <tbody>
+        <tr><td>Boost outward</td><td>Hold Space, W, Up Arrow, the flight area, or Hold to Boost.</td><td>Hold the unobstructed flight area.</td></tr>
+        <tr><td>Dive inward</td><td>Release boost.</td><td>Lift your boost finger.</td></tr>
+        <tr><td>Phase Shift</td><td>Press Shift at full charge.</td><td>Tap the purple Phase Shift button. You can keep your other thumb held down to boost.</td></tr>
+        <tr><td>Pause or resume</td><td>Use the pause button, Escape, or P.</td><td>Use the pause button and Resume flight.</td></tr>
+        <tr><td>Try again</td><td>Choose the restart control or press R after the flight ends.</td><td>Use the restart control after the flight ends.</td></tr>
+      </tbody>
+    </table>
+    <p>Switching away pauses your flight. Phase Shift needs 100% charge, which regenerates over time; each cyan shard adds another 5 percentage points. It briefly lets you pass through hazards and reduces heat without changing your direction or momentum. It cannot protect you inside the black hole.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Score, Heat, and Combos</h2>
+    <p>Survive, collect cyan shards, and pass close to hazards to build your score. Flying nearer the black hole raises the Orbit Score multiplier up to <strong>5×</strong>, but also builds heat. Move outward to cool down. Full heat or a collision ends the flight.</p>
+    <p>A near-miss adds a combo stack, up to 12. Each stack adds 8% to the continuous score rate; another near-miss refreshes the six-second combo timer. Shards and phasing through hazards do not refresh that timer. The multiplier and combo affect this flight’s score, not your wallet or account level.</p>
+    <p>The run timer measures the current flight. Attempt and death counters are separate: starting a ranked flight adds an attempt, while a finished flight counts as a death only after its replay is verified. Leaving or disconnecting does not add a verified death.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Flight Phases</h2>
+    <table class="docs-table">
+      <thead><tr><th>Flight time</th><th>What changes</th><th>How to respond</th></tr></thead>
+      <tbody>
+        <tr><td>Start</td><td>Orbiting rocks, plasma, and cyan shards.</td><td>Balance outward boost with inward gravity and watch your heat.</td></tr>
+        <tr><td>1:00</td><td>Incoming asteroids cross the orbit.</td><td>Watch their approach and change altitude or use Phase Shift.</td></tr>
+        <tr><td>1:45</td><td>Debris Field creates diagonal walls.</td><td>Follow the shard path as it climbs and dips between orbit layers.</td></tr>
+        <tr><td>2:30</td><td>Gravity Tide alternates normal gravity and stronger inward pulls.</td><td>Watch the STRONG PULL cue and boost to counter the tide.</td></tr>
+        <tr><td>3:15</td><td>Pulsar Sweep sends expanding rings outward.</td><td>Climb ahead of a ring or cross it with a charged Phase Shift.</td></tr>
+      </tbody>
+    </table>
+    <p>Survive beyond the familiar phases and the orbit has more surprises waiting. Watch closely, trust what you see, and discover the later encounter for yourself.</p>
+    <p>Ordinary hazards continue through phase changes. A new phase does not clear the obstacles already in your path.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Leaderboards and Records</h2>
+    <p>The Activity shows your server’s top pilots, your personal best, your rank, and the nearest higher rival. On compact screens, choose <strong>View Top 10</strong>. The boards measure different things:</p>
+    <table class="docs-table">
+      <thead><tr><th>Board</th><th>Ranking</th><th>Discord command choice</th></tr></thead>
+      <tbody>
+        <tr><td>High score</td><td>Best verified score, then that flight’s survival time.</td><td><code>/leaderboard stat:Event Horizon</code></td></tr>
+        <tr><td>Most Deaths</td><td>Number of replay-verified finished deaths.</td><td><code>/leaderboard stat:Event Horizon Deaths</code></td></tr>
+        <tr><td>Highest Average Score</td><td>Total verified score divided by ranked attempts; ties favor more attempts.</td><td><code>/leaderboard stat:Event Horizon Average</code></td></tr>
+      </tbody>
+    </table>
+    <p>An unfinished attempt contributes zero to the average until its score is verified. Casual flights do not enter ranked standings. You can also browse Event Horizon boards on the <a href="/leaderboard">website leaderboards</a>; global averages combine total verified score and total attempts across servers.</p>
+    <p>A strictly higher server record posts an announcement in the launch channel with the score, survival time, and a Play button. Equal scores and personal bests below the server record do not post. A new personal best inside the top ten shows your placement on the finish screen.</p>
+    <p>The bot needs permission to view the launch channel, send messages, and embed links; threads also need thread-send permission. A missed announcement does not erase an accepted score.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Watch a Flight</h2>
+    <p>Choose <strong>Watch a flight</strong> to see pilots in your current Discord Activity session. Join the same Activity invitation as the pilot; a separate session in the same server has its own flight list. Finish or leave your own flight before watching.</p>
+    <p>Viewers see the flight, score, charge, and other spectators. You keep following the same pilot into their next flight until you choose <strong>Leave view</strong> or <strong>Switch pilot</strong>. Live scores are provisional until the finished replay is verified.</p>
+    <p>Spectators can send emoji reactions from the quick buttons or searchable picker. Available choices include Acosmibot emotes, standard emoji, and custom emoji from servers shared with the bot. Reactions cannot steer the rocket or affect the score; use <strong>Spectator emojis</strong> to hide them.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Sound, Themes, and Profile Activity</h2>
+    <p>Sound starts enabled and plays after your first interaction. Use Sound to mute or adjust the volume slider. <strong>Reduced effects</strong> lowers decorative motion without changing the rules or score.</p>
+    <p>The lobby offers Classic and any seasonal themes currently enabled. A theme marked <strong>Coming soon</strong> cannot be selected yet. Themes change the artwork, colors, and sound presentation; they do not change collisions, difficulty, or leaderboard rules.</p>
+    <p><strong>Show on Discord profile</strong> is optional. It asks for Discord’s Set your current activity permission so your profile can show Event Horizon activity. Declining leaves the game playable. Discord’s own visibility settings determine who can see the status.</p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Connection and Score Checks</h2>
+    <ul>
+      <li><strong>Cannot launch:</strong> reopen the Activity from Discord, rather than its standalone website URL. Rapid repeat launches have a short cooldown.</li>
+      <li><strong>Cannot see a pilot:</strong> confirm you joined the same Activity session and that live watching is available.</li>
+      <li><strong>Score awaiting verification:</strong> use the retry/check control. A local score is not ranked until the server accepts its replay.</li>
+      <li><strong>Disconnected while watching:</strong> reconnect to the live view. The pilot may still be flying.</li>
+      <li><strong>No record post:</strong> only a strictly higher server-wide score qualifies; check the bot’s launch-channel permissions.</li>
+    </ul>
+    <p>You can ask Acosmibot to explain the game or show recorded leaderboard stats. AI cannot launch, play, or submit a flight for you.</p>
+  </section>
+</div>
