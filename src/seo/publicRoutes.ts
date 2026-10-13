@@ -6,7 +6,7 @@ const buildEnvironment = (globalThis as typeof globalThis & {
 const configuredOrigin = buildEnvironment?.SITE_ORIGIN ?? buildEnvironment?.VITE_SITE_ORIGIN;
 export const SITE_ORIGIN = (configuredOrigin?.trim() || 'https://acosmibot.com').replace(/\/$/, '');
 export const DISCORD_INVITE_URL = buildEnvironment?.DISCORD_INVITE_URL?.trim()
-  || 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+  || 'https://api.acosmibot.com/auth/install/website';
 export const HOME_TAGLINE = 'A cosmic intelligence at your server’s command.';
 
 export type FeatureLandingTheme = 'intelligence' | 'leveling' | 'economy' | 'games';

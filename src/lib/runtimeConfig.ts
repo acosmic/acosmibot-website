@@ -24,7 +24,7 @@ export interface RuntimeConfig {
 
 const PRODUCTION_API = 'https://api.acosmibot.com';
 const PRODUCTION_SITE = 'https://acosmibot.com';
-const PRODUCTION_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+const PRODUCTION_INVITE = 'https://api.acosmibot.com/auth/install/website';
 const PRODUCTION_PAYMENT = 'https://donate.stripe.com/bJe3co1sfayvcMD16xgnK00';
 
 const readConfig = (): RuntimeConfig => {
@@ -100,7 +100,7 @@ export const inviteUrl = (): string | null => {
   const config = readConfig();
   if (isTestEnvironment()) {
     const value = cleanUrl(config.inviteUrl ?? undefined);
-    return value && !value.includes('client_id=1186802023799214223') ? value : null;
+    return value && !value.includes('client_id=1186802023799214223') && !value.startsWith(PRODUCTION_API) ? value : null;
   }
   return config.inviteUrl === null ? null : cleanUrl(config.inviteUrl ?? PRODUCTION_INVITE) ?? null;
 };

@@ -42,6 +42,7 @@ import { FeatureSettingsTab } from './FeatureSettingsTab';
 import { CosmeticsTab } from './CosmeticsTab';
 import { AchievementsTab } from './AchievementsTab';
 import { ItemsTab } from './ItemsTab';
+import { GrowthTab } from './GrowthTab';
 import { AnalyticsTab } from './AnalyticsTab';
 import { AdminDetailDialog } from './AdminDetailDialog';
 import { PremiumGrantsTab } from './PremiumGrantsTab';
@@ -52,6 +53,7 @@ import { apiBase as runtimeApiBase } from '@/lib/runtimeConfig';
 import { AdminSummary } from './AdminSummary';
 
 const ADMIN_TABS = [
+  { id: 'growth', label: 'Growth & Retention', group: 'Telemetry', description: 'Connect acquisition sources to installs, feature use, and removals.', icon: BarChart3 },
   { id: 'live', label: 'Live Activity', group: 'Now', description: 'Watch commands, AI routes, tools, and website actions as they happen.', icon: Activity },
   { id: 'signins', label: 'Sign-In Log', group: 'Security', description: 'Review recent website authentication events and reveal network details only when needed.', icon: Fingerprint },
   { id: 'servers', label: 'Servers', group: 'Network', description: 'Inspect every connected Discord server, its status, subscription, and stored configuration.', icon: Server },
@@ -469,6 +471,7 @@ export const AdminPage: React.FC = () => {
             </header>
 
             <div className="admin-workspace__body">
+        {tab === 'growth' && <GrowthTab />}
         {tab === 'live' && <LiveActivityTab />}
         {tab === 'signins' && (
           <div className="admin-surface">

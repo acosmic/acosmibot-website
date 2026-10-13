@@ -1,0 +1,34 @@
+.admin-growth { color: var(--text-primary); }
+.growth-toolbar { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 24px; }
+.growth-toolbar h2 { margin: 0 0 8px; }
+.growth-toolbar p, .growth-note { color: var(--text-secondary); max-width: 75ch; line-height: 1.6; }
+.growth-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.growth-controls label { display: flex; align-items: center; gap: 8px; }
+.growth-controls select, .growth-controls button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-light); border-radius: 8px; background: var(--bg-card); color: var(--text-primary); }
+.growth-controls button:hover { border-color: var(--accent-primary, #00d9ff); }
+.growth-controls button:disabled { opacity: .6; cursor: wait; }
+.growth-controls :focus-visible { outline: 2px solid #00d9ff; outline-offset: 3px; }
+.admin-growth h3 { margin: 32px 0 12px; font-size: 20px; }
+.growth-table-wrap { overflow-x: auto; border: 1px solid var(--border-light); border-radius: 12px; }
+.admin-growth table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.admin-growth caption { text-align: left; padding: 12px 16px; color: var(--text-secondary); }
+.admin-growth th, .admin-growth td { text-align: left; padding: 12px 16px; border-top: 1px solid var(--border-light); vertical-align: top; }
+.admin-growth thead { background: var(--bg-card); }
+.admin-growth th { font-weight: 600; }
+.admin-growth td { white-space: nowrap; }
+.admin-growth small { display: block; color: var(--text-secondary); font-weight: 400; margin-top: 4px; }
+@media (max-width: 640px) {
+  .growth-table-wrap { overflow: visible; }
+  .admin-growth table, .admin-growth tbody, .admin-growth tr { display: block; }
+  .admin-growth thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .admin-growth caption { display: block; }
+  .admin-growth tr + tr { border-top: 2px solid var(--border-light); }
+  .admin-growth th, .admin-growth td { display: grid; grid-template-columns: minmax(110px, .8fr) minmax(0, 1fr); gap: 6px 14px; white-space: normal; overflow-wrap: anywhere; }
+  .admin-growth [data-label]::before { content: attr(data-label); color: var(--text-secondary); font-weight: 400; }
+  .admin-growth small { grid-column: 2; }
+}
+.admin-growth summary { cursor: pointer; min-height: 44px; padding-top: 12px; color: var(--text-primary); }
+.admin-growth summary:focus-visible { outline: 2px solid #00d9ff; outline-offset: 2px; }
+.admin-growth details { white-space: normal; min-width: 160px; }
+.admin-growth details ul { padding-left: 18px; }
+@media (max-width: 640px) { .admin-growth details { grid-column: 2; min-width: 0; } }
