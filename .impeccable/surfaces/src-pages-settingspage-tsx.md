@@ -19,7 +19,11 @@ The authenticated profile privacy model, visible guild list, timezone, and Spoti
 
 ## Direction and memorable moment
 
-Signal-Routing Board: a compact owner identity scope sits beside one grouped control plane, making privacy dependencies and server-specific visibility easier to scan.
+Plain settings console: a sticky summary and jump index sit beside one grouped list of switches, making privacy dependencies and server-specific visibility easy to scan. The page answers three questions in order: who can see me, what do they see, and how does Acosmibot reach me.
+
+## Copy
+
+This is a utility surface, so copy is literal. Headings, labels, and hints name the thing and say what happens when a switch is on or off; no "signal", "routing", "dossier", or "control plane" metaphors. Every switch reads the same way: on means shared or active. When the profile page is private, the profile-content groups say so instead of silently having no effect.
 
 ## Constraints
 

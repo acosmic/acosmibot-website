@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Link2, Music } from 'lucide-react';
+import { Music } from 'lucide-react';
 import type { SpotifyStatus } from '@/api/spotify';
 
 export const ConnectedAccountsSettings: React.FC<{
@@ -9,31 +9,31 @@ export const ConnectedAccountsSettings: React.FC<{
   optOutSaving?: boolean;
   onToggleOptOut: (optedOut: boolean) => void;
 }> = ({ spotify, loading, optOutSaving, onToggleOptOut }) => (
-  <section className="settings-group connected-settings">
+  <section id="settings-spotify" className="settings-group connected-settings" aria-labelledby="settings-spotify-title">
     <header>
-      <span><Link2 aria-hidden="true" /></span>
+      <span><Music aria-hidden="true" /></span>
       <div>
-        <h3>Connected signals</h3>
-        <p>Presence-based services that contribute personal activity to Acosmibot.</p>
-      </div>
-    </header>
-    <div className="connected-settings__source">
-      <span className="connected-settings__icon"><Music aria-hidden="true" /></span>
-      <div>
-        <strong>Spotify presence</strong>
+        <h3 id="settings-spotify-title">Spotify listening</h3>
         <p>
-          Plays are read from Discord’s “Listening to Spotify” status in enabled servers.
-          No Spotify account link is required. <Link to="/docs/music">Learn how it works</Link>.
+          Acosmibot reads what you’re playing from your Discord “Listening to Spotify” status in servers
+          where music is enabled. You never link a Spotify account. <Link to="/docs/music">How it works</Link>
         </p>
       </div>
-      <label className={`member-toggle is-compact${loading || optOutSaving ? ' is-disabled' : ''}`}>
-        <span><strong>Keep listening private</strong><small>Stop tracking and sharing plays through /music</small></span>
+    </header>
+    <div className="settings-group__controls">
+      {/* The API stores an opt-out, so the switch is its inverse: every switch
+          on this page then reads the same way (on means shared or active). */}
+      <label className={`member-toggle${loading || optOutSaving ? ' is-disabled' : ''}`}>
+        <span>
+          <strong>Track my Spotify listening</strong>
+          <small>When on, Acosmibot tracks your plays and can share them through /music. Turn it off to stop both.</small>
+        </span>
         <input
           type="checkbox"
           role="switch"
-          checked={!!spotify?.opted_out}
+          checked={!spotify?.opted_out}
           disabled={loading || optOutSaving}
-          onChange={(event) => onToggleOptOut(event.target.checked)}
+          onChange={(event) => onToggleOptOut(!event.target.checked)}
         />
         <i aria-hidden="true"><span /></i>
       </label>

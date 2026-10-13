@@ -1,18 +1,19 @@
 /**
- * THESIS: Member settings are a signal-routing board, not a long undifferentiated form.
- * OWN-WORLD: Restrained observatory console, sticky scope index, grouped control ledgers, and literal save state.
- * STORY: Confirm identity, understand what is public, then route profile, server, AI-clock, and listening signals.
- * FIRST VIEWPORT: A compact owner header leads into a left scope rail and a focused privacy workspace.
- * FORM: Third-ranked signal-routing-board structure; established world; seed 44f65275.
+ * THESIS: Member settings answer three plain questions: who can see me, what do they see, and how does Acosmibot reach me.
+ * OWN-WORLD: Restrained observatory console, sticky summary with a jump index, grouped control ledgers, and literal save state.
+ * STORY: Read the current state at a glance, jump to a group, flip a switch, and see it saved.
+ * FIRST VIEWPORT: A plain Settings header leads into a left summary and index beside the visibility controls.
+ * FORM: Utility surface on the established world; seed 44f65275. Copy is literal: no metaphor in headings, labels, or hints.
  */
 import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock3, Eye, Link2, LockKeyhole, Settings2, TriangleAlert } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Clock3, Eye, EyeOff, Settings2, TriangleAlert, UserRound } from 'lucide-react';
 import { profileApi, type PrivacySettings, type PublicProfile } from '@/api/profile';
 import { spotifyApi, type SpotifyStatus } from '@/api/spotify';
 import { ConnectedAccountsSettings } from '@/components/profile/ConnectedAccountsSettings';
 import { MemberNav } from '@/components/profile/MemberNav';
-import { OwnerSettings } from '@/components/profile/OwnerSettings';
+import { OwnerSettings, SETTINGS_SECTIONS } from '@/components/profile/OwnerSettings';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { useAuthStore } from '@/store/auth';
@@ -55,20 +56,22 @@ export const SettingsPage: React.FC = () => {
 
   const profile = profileQuery.data;
   const privacy = profile?.privacy;
-  const visibleSignals = privacy
+  // The optional sections of the profile page, as listed under "What your
+  // profile shows" and "Servers on your profile".
+  const profileDetails = privacy
     ? [
-        privacy.profile_public,
-        privacy.show_avatar,
         privacy.show_xp,
         privacy.show_messages,
         privacy.show_reactions,
         privacy.show_commands,
         privacy.show_economy,
-        privacy.show_guilds,
         privacy.show_achievements,
-        privacy.public_identity,
-      ].filter(Boolean).length
-    : 0;
+        privacy.show_guilds,
+      ]
+    : [];
+  const shownDetails = profileDetails.filter(Boolean).length;
+  const isSaving = privacyMutation.isPending || timezoneMutation.isPending || spotifyOptOutMutation.isPending;
+  const hasSaved = privacyMutation.isSuccess || timezoneMutation.isSuccess || spotifyOptOutMutation.isSuccess;
   const saveError = privacyMutation.error || timezoneMutation.error || spotifyOptOutMutation.error;
 
   return (
@@ -79,14 +82,14 @@ export const SettingsPage: React.FC = () => {
       <main className="member-main settings-main">
         <header className="member-header">
           <div>
-            <p className="member-kicker">Personal control plane</p>
-            <h1>Route your member signals.</h1>
-            <p>Control what your profile reveals, how servers appear, and which personal context Acosmibot can use.</p>
+            <p className="member-kicker">Your account</p>
+            <h1>Settings</h1>
+            <p>Choose what other people can see on your profile, when Acosmibot messages you, and which timezone it uses for you.</p>
           </div>
           {profile && (
-            <a className="member-header__action" href={`/u/${profile.username}`}>
-              <Eye aria-hidden="true" /> View public profile
-            </a>
+            <Link className="member-header__action" to={`/u/${profile.username}`}>
+              <Eye aria-hidden="true" /> View my profile
+            </Link>
           )}
         </header>
 
@@ -96,41 +99,56 @@ export const SettingsPage: React.FC = () => {
           <section className="member-error">
             <TriangleAlert aria-hidden="true" />
             <h2>Couldn’t load your settings.</h2>
-            <p>Refresh your member data or sign in again.</p>
-            <button type="button" onClick={() => profileQuery.refetch()}>Retry settings</button>
+            <p>Try again. If it keeps failing, sign out and back in.</p>
+            <button type="button" onClick={() => profileQuery.refetch()}>Try again</button>
           </section>
         ) : profile ? (
           <div className="settings-console">
-            <aside className="settings-scope" aria-label="Settings overview">
+            <aside className="settings-scope" aria-label="Settings summary">
               <div className="settings-scope__identity">
-                <span><LockKeyhole aria-hidden="true" /></span>
-                <div><strong>@{profile.username}</strong><small>Authenticated owner</small></div>
+                <span><UserRound aria-hidden="true" /></span>
+                <div><strong translate="no">@{profile.username}</strong><small>Signed in with Discord</small></div>
               </div>
               <div className="settings-scope__signals">
-                <div><Eye aria-hidden="true" /><span><strong>{visibleSignals}/10</strong> public signals</span></div>
-                <div><Clock3 aria-hidden="true" /><span><strong>{profile.timezone || 'Server default'}</strong> AI clock</span></div>
-                <div><Link2 aria-hidden="true" /><span><strong>Discord presence</strong> connected source</span></div>
+                <div className={privacy?.profile_public ? 'is-on' : undefined}>
+                  {privacy?.profile_public ? <Eye aria-hidden="true" /> : <EyeOff aria-hidden="true" />}
+                  <span><strong>{privacy?.profile_public ? 'Public' : 'Private'}</strong> Profile page</span>
+                </div>
+                <div>
+                  <Settings2 aria-hidden="true" />
+                  <span>
+                    <strong>{privacy?.profile_public ? `${shownDetails} of ${profileDetails.length} sections` : 'Hidden while private'}</strong>
+                    {' '}Shown on your profile
+                  </span>
+                </div>
+                <div>
+                  <Clock3 aria-hidden="true" />
+                  <span><strong>{profile.timezone ? profile.timezone.replace(/_/g, ' ') : 'Server default'}</strong> Timezone</span>
+                </div>
               </div>
-              <p>Changes save immediately. Visibility rules are enforced by the profile API, not only by this page.</p>
+              <nav className="settings-scope__index" aria-label="Settings sections">
+                <p>Jump to</p>
+                {SETTINGS_SECTIONS.map((section) => (
+                  <a key={section.id} href={`#${section.id}`}>{section.label}</a>
+                ))}
+              </nav>
             </aside>
 
             <section className="settings-workspace" aria-labelledby="settings-workspace-title">
               <header>
                 <span><Settings2 aria-hidden="true" /></span>
                 <div>
-                  <p>Member preferences</p>
-                  <h2 id="settings-workspace-title">Visibility & context</h2>
+                  <h2 id="settings-workspace-title">Privacy & preferences</h2>
+                  <p>Each switch saves as soon as you change it.</p>
                 </div>
-                <small aria-live="polite">
-                  {privacyMutation.isPending || timezoneMutation.isPending || spotifyOptOutMutation.isPending
-                    ? 'Saving changes…'
-                    : 'Changes save automatically'}
+                <small className={isSaving ? 'is-saving' : saveError ? 'is-error' : undefined} aria-live="polite">
+                  {isSaving ? 'Saving…' : saveError ? 'Not saved' : hasSaved ? 'Saved' : 'Saves automatically'}
                 </small>
               </header>
 
               {saveError && (
                 <p className="settings-save-error" role="alert">
-                  A change could not be saved. Your previous setting is still active.
+                  That change didn’t save, so your previous setting is still in place. Try it again in a moment.
                 </p>
               )}
 
@@ -167,7 +185,7 @@ export const SettingsPage: React.FC = () => {
 };
 
 const SettingsSkeleton: React.FC = () => (
-  <div className="settings-skeleton" aria-label="Loading settings">
+  <div className="settings-skeleton" role="status" aria-label="Loading settings…">
     <span />
     <div>{Array.from({ length: 6 }, (_, index) => <i key={index} />)}</div>
   </div>

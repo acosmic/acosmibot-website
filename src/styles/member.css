@@ -646,6 +646,10 @@
 
 /* Settings board */
 
+.settings-main .member-header {
+  min-height: 0;
+}
+
 .settings-console {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
@@ -741,13 +745,46 @@
   font-size: 12px;
 }
 
-.settings-scope > p {
-  margin: 0;
-  padding: 13px 15px;
+.settings-scope__signals > .is-on svg {
+  color: var(--member-green);
+}
+
+.settings-scope__index {
+  display: grid;
+  padding: 9px;
   border-top: 1px solid var(--member-border);
+}
+
+.settings-scope__index > p {
+  margin: 0;
+  padding: 6px 7px 4px;
   color: var(--member-muted);
-  font-size: 12px;
-  line-height: 1.55;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.settings-scope__index a {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 6px 7px;
+  border-radius: 7px;
+  color: var(--member-secondary);
+  font-size: 13px;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.settings-scope__index a:hover {
+  background: rgba(103, 236, 255, 0.07);
+  color: var(--member-text);
+}
+
+.settings-scope__index a:focus-visible,
+.settings-page .member-header__action:focus-visible {
+  outline: 2px solid var(--member-cyan);
+  outline-offset: 2px;
 }
 
 .settings-workspace {
@@ -782,17 +819,24 @@
 }
 
 .settings-workspace > header p {
-  margin: 0;
-  color: var(--member-cyan);
-  font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 11px;
-  text-transform: uppercase;
+  margin: 3px 0 0;
+  color: var(--member-muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .settings-workspace > header h2 {
-  margin: 3px 0 0;
+  margin: 0;
   color: var(--member-text);
   font-size: 20px;
+}
+
+.settings-workspace > header small.is-saving {
+  color: var(--member-cyan);
+}
+
+.settings-workspace > header small.is-error {
+  color: #ffad98;
 }
 
 .settings-workspace > header small {
@@ -812,6 +856,27 @@
   gap: 28px;
   padding: 24px;
   border-bottom: 1px solid var(--member-border);
+  scroll-margin-top: 18px;
+}
+
+/* These still work while the profile is private; they just have no audience. */
+.settings-group.is-inactive .member-toggle > span {
+  opacity: 0.66;
+}
+
+.settings-group__notice {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(159, 139, 255, 0.28);
+  border-radius: 9px;
+  background: rgba(159, 139, 255, 0.07);
+  color: var(--member-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.settings-group > header a {
+  color: var(--member-cyan);
 }
 
 .settings-group:last-child {
@@ -868,6 +933,7 @@
   padding: 8px 2px;
   border-bottom: 1px solid rgba(134, 163, 181, 0.1);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .member-toggle:last-child {
@@ -887,6 +953,7 @@
 .member-toggle strong {
   color: var(--member-secondary);
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
 .member-toggle small {
@@ -946,6 +1013,18 @@
   background: rgba(5, 8, 13, 0.34);
 }
 
+.settings-server-list__caption,
+.settings-timezone__match {
+  margin: 0;
+  color: var(--member-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.settings-server-list__caption {
+  padding: 6px 2px 4px;
+}
+
 .settings-timezone {
   display: grid;
   gap: 9px;
@@ -980,47 +1059,6 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 13px;
-}
-
-.connected-settings__source {
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  gap: 10px;
-}
-
-.connected-settings__icon {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(79, 227, 161, 0.28);
-  border-radius: 50%;
-  color: var(--member-green);
-}
-
-.connected-settings__icon svg {
-  width: 17px;
-}
-
-.connected-settings__source > div > strong {
-  color: var(--member-text);
-  font-size: 14px;
-}
-
-.connected-settings__source > div > p {
-  margin: 4px 0 0;
-  color: var(--member-muted);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.connected-settings__source a {
-  color: var(--member-cyan);
-}
-
-.connected-settings .member-toggle {
-  grid-column: 1 / -1;
-  margin-top: 8px;
 }
 
 .settings-save-error {
@@ -2369,8 +2407,16 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .settings-scope > p {
-    display: none;
+  .settings-scope__index {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .settings-scope__index > p {
+    grid-column: 1 / -1;
+  }
+
+  .settings-scope__index a {
+    min-height: 44px;
   }
 
   .profile-dossier,
