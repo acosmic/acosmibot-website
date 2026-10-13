@@ -1,0 +1,1683 @@
+/* Homepage — "In Discord" showcase: live cards and embeds on a tilted stage */
+
+/* The Discord cards are drawn in Urbanist by the render-card function. These are
+   copies of api/render-card/fonts (the dev server proxies /api, so the originals
+   cannot be served from there) so the live components match the PNG the bot sends. */
+@font-face {
+    font-family: 'Urbanist';
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    src: url('../assets/fonts/Urbanist-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Urbanist';
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    src: url('../assets/fonts/Urbanist-Bold.ttf') format('truetype');
+}
+
+/* Event Horizon's display face, copied from @fontsource/chakra-petch. The build
+   inlines anything imported from that package for the Activity, so the homepage
+   keeps its own copies to load them as ordinary font files. */
+@font-face {
+    font-family: 'Chakra Petch';
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    src: url('../assets/fonts/ChakraPetch-600.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Chakra Petch';
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    src: url('../assets/fonts/ChakraPetch-700.woff2') format('woff2');
+}
+
+.showcase-section {
+    position: relative;
+    padding: 118px 0 140px;
+    border-top: 1px solid var(--home-border);
+    /* Tilted panels and their glows reach past the shell; never widen the page. */
+    overflow-x: clip;
+}
+
+.showcase {
+    display: grid;
+    gap: clamp(96px, 12vw, 168px);
+}
+
+/* The title stands alone, so it sits closer to the first row than rows sit to
+   each other. */
+.showcase__intro {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    margin-bottom: clamp(-84px, -6vw, -44px);
+}
+
+.showcase__intro h2 {
+    margin: 0;
+    color: var(--home-white);
+    font-size: clamp(2.4rem, 4.4vw, 4.2rem);
+    font-weight: 750;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+}
+
+/* One feature per row. --dir is 1 when the panel sits on the right and -1 when
+   it sits on the left, so a single set of rules mirrors the tilt, the shadows,
+   and the entrance toward the page center. */
+.showcase-row {
+    --dir: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+    align-items: center;
+    gap: clamp(36px, 5.5vw, 92px);
+    scroll-margin-block: 24px;
+}
+
+.showcase-row--left {
+    --dir: -1;
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
+}
+
+.showcase-row--left .showcase-row__copy {
+    order: 2;
+}
+
+.showcase-row__copy {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+}
+
+.showcase-row__trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+}
+
+.showcase-row__trigger span {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(103, 236, 255, 0.4);
+    border-radius: 9px;
+    background: #15212b;
+}
+
+.showcase-row__trigger svg {
+    width: 16px;
+    height: 16px;
+    color: var(--home-cyan-bright);
+}
+
+.showcase-row__trigger code {
+    color: var(--home-cyan-bright);
+    font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.02em;
+}
+
+.showcase-row__copy h3 {
+    margin: 0;
+    color: var(--home-white);
+    font-size: clamp(1.9rem, 3vw, 2.7rem);
+    font-weight: 750;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+}
+
+.showcase-row__lede {
+    max-width: 46ch;
+    margin: 16px 0 0;
+    color: #aebfc9;
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+.showcase-row__points {
+    display: grid;
+    gap: 9px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.showcase-row__points li {
+    position: relative;
+    padding-left: 20px;
+    color: var(--home-text);
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.showcase-row__points li::before {
+    content: "";
+    position: absolute;
+    top: 0.58em;
+    left: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--home-cyan);
+    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.12);
+}
+
+/* Variant picker for the rows that cycle: one chip per slide plus a pause control. */
+.showcase-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 26px;
+}
+
+/* The homepage resets `button { font: inherit }` with more weight than a lone
+   class, so these are scoped under the picker to keep their own type. */
+.showcase-picker .showcase-pick,
+.showcase-picker .showcase-picker__toggle {
+    position: relative;
+    min-height: 38px;
+    overflow: hidden;
+    padding: 0 13px;
+    border: 1px solid var(--home-border);
+    border-radius: 10px;
+    background: rgba(7, 14, 20, 0.68);
+    color: var(--home-text);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.showcase-pick:hover,
+.showcase-picker__toggle:hover {
+    border-color: var(--home-border-strong);
+    color: var(--home-white);
+}
+
+.showcase-pick.is-active {
+    border-color: rgba(103, 236, 255, 0.5);
+    background: rgba(0, 217, 255, 0.08);
+    color: var(--home-white);
+}
+
+.showcase-pick:focus-visible,
+.showcase-picker__toggle:focus-visible {
+    outline: 2px solid var(--home-cyan-bright);
+    outline-offset: 2px;
+}
+
+.showcase-picker .showcase-picker__toggle {
+    width: 38px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+}
+
+.showcase-picker__toggle svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Fills across the active chip over the time until the next slide. */
+.showcase-pick__progress {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--home-cyan-bright);
+    transform-origin: left center;
+    animation: showcase-progress linear both;
+}
+
+.showcase-row__caption {
+    max-width: 46ch;
+    min-height: 3.3em;
+    margin: 14px 0 0;
+    color: #9fb1bc;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.showcase-row__caption strong {
+    margin-right: 4px;
+    color: var(--home-white);
+    font-weight: 600;
+}
+
+.showcase-row__caption code {
+    margin-right: 4px;
+    color: var(--home-cyan-bright);
+    font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.showcase-row__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    margin-top: 10px;
+    color: var(--home-white);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.showcase-row__link svg {
+    width: 15px;
+    height: 15px;
+    color: var(--home-cyan);
+    transition: transform 180ms ease;
+}
+
+.showcase-row__link:hover svg {
+    transform: translateX(4px);
+}
+
+.showcase-row__link:focus-visible {
+    outline: 2px solid var(--home-cyan-bright);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+/* Stage: a perspective container, one tilting plane, and pieces lifted off it. */
+.showcase__stage {
+    --lean-x: 0;
+    --lean-y: 0;
+    position: relative;
+    min-width: 0;
+    padding: 44px 34px 44px 10px;
+    perspective: 1500px;
+    perspective-origin: 30% 46%;
+}
+
+.showcase-row--left .showcase__stage {
+    padding: 44px 10px 44px 34px;
+    perspective-origin: 70% 46%;
+}
+
+.showcase__glow {
+    position: absolute;
+    inset: 4% -4% 2% 6%;
+    background:
+        radial-gradient(ellipse at 62% 42%, rgba(0, 217, 255, 0.13), transparent 58%),
+        radial-gradient(ellipse at 28% 74%, rgba(159, 139, 255, 0.12), transparent 56%);
+    filter: blur(26px);
+    pointer-events: none;
+}
+
+.showcase-row--left .showcase__glow {
+    inset: 4% 6% 2% -4%;
+    transform: scaleX(-1);
+}
+
+/* Carousel rows stack every panel in one grid cell: the cell keeps the height
+   of the tallest slide, so switching slides never moves the page. */
+.showcase__tilt {
+    position: relative;
+    display: grid;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    transform-style: preserve-3d;
+    transform:
+        rotateX(calc(5deg - var(--lean-y) * 3deg))
+        rotateY(calc(var(--dir) * -14deg + var(--lean-x) * 5deg))
+        rotateZ(calc(var(--dir) * 0.8deg));
+    transform-origin: 50% 50%;
+    transition: transform 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.showcase-row--left .showcase__tilt {
+    margin-right: auto;
+    margin-left: 0;
+}
+
+.showcase__panel {
+    position: relative;
+    grid-area: 1 / 1;
+    align-self: center;
+    min-width: 0;
+    transform-style: preserve-3d;
+    background: linear-gradient(180deg, #121c26, #0b131b);
+    border: 1px solid var(--home-border-strong);
+    border-radius: 16px;
+    box-shadow:
+        calc(var(--dir) * -38px) 48px 90px rgba(0, 0, 0, 0.58),
+        calc(var(--dir) * -8px) 10px 22px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.showcase__panel:not(.is-active) {
+    visibility: hidden;
+}
+
+.showcase__panel.is-active {
+    animation: showcase-panel-in 460ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* A lit edge on the receding side gives the plane visible thickness. */
+.showcase__panel::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: -1px;
+    width: 2px;
+    background: linear-gradient(180deg, transparent, rgba(103, 236, 255, 0.5), transparent);
+    border-radius: 2px;
+}
+
+.showcase-row--left .showcase__panel::before {
+    right: -1px;
+    left: auto;
+}
+
+.showcase__channel {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 46px;
+    padding: 0 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    color: #f2f3f5;
+    font: 600 15px/1 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.showcase__channel svg {
+    width: 18px;
+    height: 18px;
+    color: #80848e;
+}
+
+.showcase__feed {
+    display: grid;
+    gap: 18px;
+    padding: 18px 20px 24px;
+    transform-style: preserve-3d;
+}
+
+/* Lifted pieces shift toward the near edge; on mirrored rows that is the side
+   without the avatar column, so it needs the extra room instead. */
+.showcase-row--left .showcase__feed {
+    padding-right: 36px;
+}
+
+/* Discord message anatomy. Colors follow Discord's dark theme so the embeds and
+   cards read exactly as they do in a channel; only the surrounding plane is
+   re-skinned to the observatory palette. */
+.dc-message {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    transform-style: preserve-3d;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.dc-message__context {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    margin: 0 0 5px 54px;
+    overflow: hidden;
+    color: #b5bac1;
+    font-size: 13px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The curved connector Discord draws from the context line to the avatar. */
+.dc-message.has-context::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 19px;
+    width: 30px;
+    height: 12px;
+    border-top: 2px solid #4e5058;
+    border-left: 2px solid #4e5058;
+    border-top-left-radius: 7px;
+}
+
+.dc-message__context img {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.dc-message__context strong {
+    flex: 0 0 auto;
+    color: #f2f3f5;
+    font-weight: 600;
+}
+
+.dc-message__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1e1f22;
+    object-fit: cover;
+}
+
+.dc-message__body {
+    min-width: 0;
+    transform-style: preserve-3d;
+}
+
+/* Lifted pieces drift outward from the perspective origin, so the header and
+   the button row keep extra clearance while the stage is tilted. */
+.dc-message__body > header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 22px;
+    margin-bottom: 12px;
+}
+
+.dc-message__body > header strong {
+    color: #f2f3f5;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.375;
+}
+
+.dc-message__body > header strong.is-app {
+    color: var(--home-cyan-bright);
+}
+
+.dc-app-tag {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: #5865f2;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* The verified check Discord draws inside a verified app's tag. */
+.dc-app-tag svg {
+    width: 9px;
+    height: 9px;
+    stroke-width: 4;
+}
+
+.dc-message__context .dc-app-tag {
+    padding: 1px 4px;
+    font-size: 9px;
+}
+
+/* The quoted text of a reply truncates on one line, as it does in Discord. */
+.dc-message__quote {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dc-context-icon {
+    width: 14px;
+    height: 14px;
+    vertical-align: -2px;
+}
+
+.dc-message__time {
+    margin-left: 2px;
+    color: #949ba4;
+    font-size: 12px;
+}
+
+/* Discord marks messages sent with notifications suppressed. */
+.dc-message__silent {
+    width: 14px;
+    height: 14px;
+    color: #949ba4;
+}
+
+.dc-text {
+    margin: 0 0 16px;
+    color: #dbdee1;
+    font-size: 16px;
+    line-height: 1.375;
+    overflow-wrap: anywhere;
+}
+
+.dc-chip {
+    padding: 0 3px;
+    border-radius: 3px;
+    background: rgba(88, 101, 242, 0.3);
+    color: #c9cdfb;
+    font-weight: 500;
+}
+
+.dc-link {
+    color: #00a8fc;
+}
+
+/* A Discord timestamp, which the client renders in the reader's own timezone. */
+.dc-timestamp {
+    justify-self: start;
+    padding: 0 2px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* An image attachment in a message. */
+.dc-image {
+    display: block;
+    width: min(100%, 196px);
+    height: auto;
+    border-radius: 8px;
+}
+
+.dc-embed-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    background: #000;
+}
+
+/* A ">>> " block quote inside an embed description. */
+.dc-quote {
+    margin: 0 0 8px;
+    padding-left: 12px;
+    border-left: 4px solid #4e5058;
+}
+
+.showcase .discord-embed-footer {
+    align-items: center;
+}
+
+.showcase .discord-embed-footer-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: contain;
+}
+
+/* Lifted pieces sit above the plane, so they shift against it as it tilts. */
+.dc-lift {
+    transform: translateZ(42px);
+    box-shadow: calc(var(--dir, 1) * -22px) 28px 44px rgba(0, 0, 0, 0.5);
+}
+
+.dc-attachment {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 9px;
+    background: #111318;
+}
+
+.dc-attachment__canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: top left;
+}
+
+/* Rank-card loadouts crossfade: the incoming card fades in over the last one. */
+.dc-card-layer {
+    position: absolute;
+    inset: 0;
+}
+
+.dc-card-layer.is-current {
+    z-index: 1;
+    animation: showcase-card-in 620ms ease both;
+}
+
+.dc-embed-host .discord-message-preview {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: inherit;
+}
+
+.showcase .discord-embed {
+    max-width: none;
+}
+
+/* The host also wraps the link buttons, so the shadow belongs to the embed. */
+.dc-embed-host {
+    box-shadow: none;
+}
+
+.dc-embed-host .discord-embed {
+    box-shadow: calc(var(--dir, 1) * -22px) 28px 44px rgba(0, 0, 0, 0.5);
+}
+
+/* Embed titles are only link-blue when they carry a URL; these do not. */
+.showcase .discord-embed-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #f2f3f5;
+}
+
+.showcase .discord-embed-description {
+    color: #dbdee1;
+}
+
+.dc-embed-lines {
+    display: grid;
+    gap: 2px;
+    white-space: normal;
+}
+
+.dc-embed-lines p {
+    margin: 0;
+}
+
+/* A blank line between paragraphs in the bot's embed text. */
+.dc-embed-lines .dc-embed-gap {
+    margin-top: 14px;
+}
+
+/* A markdown "# " heading inside an embed description. */
+.dc-embed-h1 {
+    margin: 8px 0 4px;
+    color: #f2f3f5;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.showcase .discord-embed-fields {
+    margin-top: 10px;
+}
+
+.showcase .discord-embed-field-name {
+    color: #f2f3f5;
+    font-weight: 600;
+}
+
+.showcase .discord-embed code {
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: #1e1f22;
+    color: #dbdee1;
+    font: 12px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.showcase .discord-embed-image img {
+    width: 100%;
+    height: auto;
+}
+
+/* The zero-width spacer field the bot inserts between rounds and standings. */
+.dc-embed-spacer {
+    height: 10px;
+}
+
+.dc-embed-lines strong {
+    color: #f2f3f5;
+    font-weight: 700;
+}
+
+.dc-emoji {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    vertical-align: -5px;
+    object-fit: contain;
+}
+
+/* The bot sends the reels as a markdown heading, so emoji render at jumbo size. */
+.dc-slots-reels {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 6px 0 14px;
+    color: #f2f3f5;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.dc-emoji--jumbo {
+    width: 34px;
+    height: 34px;
+    vertical-align: middle;
+}
+
+/* Keno board: every cell is one tile from a shared sprite (numbers 1–40, then
+   the hit, miss, and drawn markers), 8 columns by 6 rows. */
+.dc-keno {
+    display: grid;
+    gap: 8px;
+    margin: 6px 0 14px;
+}
+
+.dc-keno__row {
+    display: flex;
+    gap: 3px;
+}
+
+.dc-keno__tile {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    background: url('/images/showcase/games/keno-tiles.webp') no-repeat;
+    background-size: 800% 600%;
+}
+
+.dc-keno__tile--inline {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    vertical-align: -4px;
+}
+
+/* Blackjack hands are a markdown heading of card emoji. */
+.dc-hand {
+    display: flex;
+    gap: 3px;
+    margin: 8px 0 2px;
+}
+
+.dc-hand img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.dc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    transform: translateZ(18px);
+}
+
+.dc-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 32px;
+    padding: 2px 14px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: default;
+}
+
+.dc-button svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.85;
+}
+
+.dc-button--link {
+    background: #4e5058;
+}
+
+.dc-button--primary {
+    background: #5865f2;
+}
+
+.dc-button--secondary {
+    background: #4e5058;
+}
+
+.dc-button--success {
+    background: #248046;
+}
+
+.dc-button--danger {
+    background: #da373c;
+}
+
+/* Buttons stay on the message, dimmed, once the requester has decided. */
+.dc-button.is-disabled {
+    opacity: 0.5;
+}
+
+.dc-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 400px;
+    min-height: 40px;
+    margin-top: 8px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: #1e1f22;
+    color: #b5bac1;
+    font-size: 14px;
+    transform: translateZ(18px);
+}
+
+.dc-select svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+
+.dc-embed-host .discord-button {
+    min-height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: #4e5058;
+    color: #fff;
+    cursor: default;
+}
+
+/* A "### " heading inside an embed description. */
+.dc-embed-h3 {
+    margin: 2px 0;
+    color: #f2f3f5;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.375;
+}
+
+/* A "-# " subtext line inside an embed description. */
+.dc-embed-subtext {
+    margin: 12px 0 0;
+    color: #949ba4;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.showcase .discord-embed em {
+    font-style: italic;
+}
+
+/* An embed thumbnail sits beside the title, description, and fields; the
+   image below them keeps the full width. */
+.showcase .discord-embed-thumbnail {
+    top: 14px;
+}
+
+.showcase .discord-embed-thumbnail img {
+    display: block;
+    width: 72px;
+    height: 72px;
+    max-height: none;
+    background: #1e1f22;
+}
+
+.showcase .discord-embed-content.has-thumbnail > .discord-embed-title,
+.showcase .discord-embed-content.has-thumbnail > .discord-embed-description,
+.showcase .discord-embed-content.has-thumbnail > .discord-embed-fields {
+    margin-right: 88px;
+}
+
+/* Reaction pills under a message. */
+.dc-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+    transform: translateZ(18px);
+}
+
+.dc-reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: #2b2d31;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.dc-reaction b {
+    color: #b5bac1;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* A reaction the viewer has pressed. */
+.dc-reaction.is-mine {
+    border-color: #5865f2;
+    background: rgba(88, 101, 242, 0.16);
+}
+
+.dc-reaction.is-mine b {
+    color: #dee0fc;
+}
+
+/* The note under a reply only its requester can see. */
+.dc-ephemeral {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 8px 0 0;
+    color: #949ba4;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.dc-ephemeral svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+}
+
+/* Discord's member list, grouped by the roles set to display separately. */
+.dc-members {
+    display: grid;
+    gap: 16px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.dc-members section {
+    display: grid;
+    gap: 2px;
+}
+
+.dc-members h4 {
+    margin: 0 0 4px;
+    color: #949ba4;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.dc-member {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.dc-member__avatar {
+    position: relative;
+    grid-row: span 2;
+    width: 32px;
+    height: 32px;
+}
+
+.dc-member__avatar img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1e1f22;
+    object-fit: cover;
+}
+
+/* Presence dot: green for online, Discord's purple while streaming. */
+.dc-member__avatar::after {
+    content: "";
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 10px;
+    height: 10px;
+    border: 3px solid #0f1821;
+    border-radius: 50%;
+    background: #23a55a;
+}
+
+.dc-member__avatar.is-streaming::after {
+    background: #593695;
+}
+
+.dc-member__name {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.dc-member__activity {
+    overflow: hidden;
+    color: #949ba4;
+    font-size: 12px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dc-member__activity strong {
+    color: #b5bac1;
+    font-weight: 600;
+}
+
+/* The dashboard overview's "Server activity" panel. Tokens and proportions
+   follow dashboard.css so the shared member-growth chart reads as it does there. */
+.dash-activity {
+    --border-light: rgba(134, 163, 181, 0.18);
+    --text-muted: #8293a0;
+    --text-primary: #f4fbff;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    border-radius: 13px;
+    background: #0d151d;
+    font-family: 'Poppins', sans-serif;
+}
+
+.dash-activity__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--border-light);
+}
+
+.dash-activity__metrics > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+    min-width: 0;
+    padding: 13px 10px;
+    background: #111c26;
+}
+
+.dash-activity__metrics dt {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.dash-activity__metrics dd {
+    margin: 0;
+    color: #67ecff;
+    font-size: 19px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.dash-activity .is-positive {
+    color: var(--success-color);
+}
+
+.dash-activity .is-negative {
+    color: var(--error-color);
+}
+
+.dash-activity__growth {
+    padding: 16px 16px 14px;
+}
+
+.dash-activity__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dash-activity__header h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.dash-activity__header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: right;
+}
+
+/* Event Horizon: the Activity's flight view beside its leaderboard card.
+   Colors and proportions follow the Activity's own stylesheet. */
+.eh {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 14px;
+    transform-style: preserve-3d;
+    font-family: 'Chakra Petch', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* The clip fills whatever height the leaderboard card sets. */
+.eh__screen {
+    position: relative;
+    min-height: 320px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #05070f;
+}
+
+.eh__screen video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+}
+
+.eh__board {
+    min-width: 0;
+    padding: 16px 12px 8px;
+    border: 1px solid rgba(127, 241, 255, 0.1);
+    border-radius: 14px;
+    background: linear-gradient(160deg, #0a1626, #060d18);
+    box-shadow:
+        calc(var(--dir, 1) * -14px) 18px 30px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: #e9f4ff;
+    transform: translateZ(22px);
+}
+
+.eh__scope {
+    margin: 0 4px;
+    color: #a5c3d9;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1.3;
+}
+
+.eh__board h4 {
+    margin: 8px 4px 12px;
+    color: #fff;
+    /* Headings default to the site face; this one belongs to the Activity. */
+    font-family: inherit;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.eh__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 0 4px;
+}
+
+.eh__tabs span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 8px;
+    border: 1px solid #5d7185;
+    border-radius: 9px;
+    background: #0c1928;
+    color: #dbe9f5;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.eh__tabs span.is-active {
+    border-color: #67ecff;
+    background: #203340;
+    color: #e6fcff;
+}
+
+.eh__status {
+    margin: 10px 4px 4px;
+    color: #bed4e6;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.eh__standings {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.eh__standings li {
+    display: grid;
+    grid-template-columns: 14px 24px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 41px;
+    padding: 0 6px;
+    border-bottom: 1px solid #233349;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.eh__standings li:last-child {
+    border-bottom: 0;
+}
+
+/* The viewer's own row. */
+.eh__standings li.is-you {
+    background: #133447;
+}
+
+.eh__place {
+    color: #b4c7db;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.eh__standings li:first-child .eh__place {
+    color: #ffd598;
+}
+
+.eh__standings img {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #273c52;
+    object-fit: cover;
+}
+
+.eh__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.eh__result {
+    display: grid;
+    gap: 1px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.eh__result strong {
+    color: #fff;
+    font-weight: 700;
+}
+
+.eh__result small {
+    color: #aabed2;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+/* Compact preview (the feature map's inspector): one flat panel, laid out at a
+   fixed width and scaled to its frame. In a flex column the frame takes the
+   height that is left, up to the example's own scaled height; anything past
+   the frame fades out. */
+.showcase--preview {
+    --dir: 0;
+    position: relative;
+    display: block;
+    flex: 1 1 0;
+    /* The host can raise --preview-min where it has room to give. */
+    min-height: min(var(--preview-min, 226px), var(--preview-height, var(--preview-min, 226px)));
+    max-height: var(--preview-height, none);
+    overflow: hidden;
+    margin-top: 16px;
+    border-radius: 12px;
+}
+
+.showcase--preview.is-clipped {
+    mask-image: linear-gradient(180deg, #000 calc(100% - var(--preview-fade, 64px)), transparent);
+}
+
+.showcase-preview__canvas {
+    transform-origin: top left;
+}
+
+.showcase--preview .showcase__panel {
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+.showcase--preview .showcase__panel::before {
+    display: none;
+}
+
+.showcase--preview .dc-lift,
+.showcase--preview .dc-actions,
+.showcase--preview .dc-reactions,
+.showcase--preview .dc-select {
+    transform: none;
+}
+
+.showcase--preview .dc-lift,
+.showcase--preview .dc-embed-host .discord-embed {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.showcase--preview .dc-embed-host {
+    box-shadow: none;
+}
+
+.showcase--preview .dc-message__body > header {
+    margin-bottom: 3px;
+}
+
+.showcase--preview .dc-text,
+.showcase--preview .dc-actions {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.showcase--preview .dc-actions {
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+/* Each piece of a message settles in when its panel becomes the active slide.
+   Animating the leaves (never their shared parent) keeps the 3D lift intact. */
+.showcase__panel.is-active .dc-message__context,
+.showcase__panel.is-active .dc-message__avatar,
+.showcase__panel.is-active .dc-message__body > * {
+    animation: showcase-piece-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.showcase__panel.is-active .dc-message__body > *:nth-child(2) { animation-delay: 50ms; }
+.showcase__panel.is-active .dc-message__body > *:nth-child(3) { animation-delay: 100ms; }
+.showcase__panel.is-active .dc-message__body > *:nth-child(4) { animation-delay: 150ms; }
+.showcase__panel.is-active .dc-message + .dc-message .dc-message__context,
+.showcase__panel.is-active .dc-message + .dc-message .dc-message__avatar,
+.showcase__panel.is-active .dc-message + .dc-message .dc-message__body > * { animation-delay: 200ms; }
+
+/* Entrances. Script arms them only for pieces that start below the viewport,
+   so prerendered HTML and reduced-motion visitors always see the resting state.
+   Transforms and leaf opacity only: fading the plane itself would flatten it. */
+.showcase-row__copy.is-armed {
+    opacity: 0;
+    translate: 0 22px;
+}
+
+.showcase__stage.is-armed .showcase__tilt {
+    transform:
+        translateX(calc(var(--dir) * 56px))
+        rotateX(9deg)
+        rotateY(calc(var(--dir) * -26deg))
+        rotateZ(calc(var(--dir) * 1.6deg));
+}
+
+.showcase__stage.is-armed .dc-message__context,
+.showcase__stage.is-armed .dc-message__avatar,
+.showcase__stage.is-armed .dc-message__body > * {
+    opacity: 0;
+    animation: none;
+}
+
+.showcase-row__copy.is-visible {
+    animation: showcase-copy-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.showcase__stage.is-visible .showcase__tilt {
+    animation: showcase-tilt-in 900ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+@keyframes showcase-piece-in {
+    from { opacity: 0; translate: 0 12px; }
+    to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes showcase-panel-in {
+    from { translate: 0 14px; scale: 0.985; }
+    to { translate: 0 0; scale: 1; }
+}
+
+@keyframes showcase-card-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes showcase-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes showcase-copy-in {
+    from { opacity: 0; translate: 0 22px; }
+    to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes showcase-tilt-in {
+    from {
+        transform:
+            translateX(calc(var(--dir) * 56px))
+            rotateX(9deg)
+            rotateY(calc(var(--dir) * -26deg))
+            rotateZ(calc(var(--dir) * 1.6deg));
+    }
+}
+
+@keyframes showcase-tilt-in-flat {
+    from { transform: translateY(28px); }
+}
+
+@media (pointer: coarse) {
+    .showcase-picker .showcase-pick,
+    .showcase-picker .showcase-picker__toggle {
+        min-height: 44px;
+    }
+
+    .showcase-picker .showcase-picker__toggle {
+        width: 44px;
+    }
+}
+
+@media (max-width: 1080px) {
+    .showcase-row {
+        grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
+        gap: 28px;
+    }
+
+    .showcase-row--left {
+        grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr);
+    }
+
+    .showcase__stage {
+        padding-right: 22px;
+    }
+
+    .showcase-row--left .showcase__stage {
+        padding-right: 10px;
+        padding-left: 22px;
+    }
+}
+
+/* Below this width the stage goes flat: readable beats dimensional on a phone.
+   Every row stacks the same way, explanation first, then the example. */
+@media (max-width: 860px) {
+    .showcase-section {
+        padding: 84px 0 96px;
+    }
+
+    .showcase {
+        gap: 84px;
+    }
+
+    .showcase-row,
+    .showcase-row--left {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .showcase-row--left .showcase-row__copy {
+        order: 0;
+    }
+
+    .showcase-row .showcase__stage {
+        padding: 0;
+        perspective: none;
+    }
+
+    .showcase-row .showcase__tilt {
+        max-width: 600px;
+        margin: 0 auto;
+        transform: none;
+    }
+
+    .showcase-row .showcase__stage.is-armed .showcase__tilt {
+        transform: translateY(28px);
+    }
+
+    .showcase-row .showcase__stage.is-visible .showcase__tilt {
+        animation-name: showcase-tilt-in-flat;
+        animation-duration: 600ms;
+    }
+
+    /* Stacked under its explanation, a short slide sits at the top of the
+       space reserved for the tallest one. */
+    .showcase__panel {
+        align-self: start;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .showcase-row .showcase__panel::before {
+        display: none;
+    }
+
+    .dc-lift,
+    .dc-actions,
+    .dc-select,
+    .eh__board {
+        transform: none;
+    }
+
+    .eh__board {
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .dc-message__body > header {
+        margin-bottom: 3px;
+    }
+
+    .dc-text {
+        margin-bottom: 8px;
+    }
+
+    .dc-actions {
+        margin-top: 8px;
+    }
+
+    .showcase-row--left .showcase__feed {
+        padding-right: 20px;
+    }
+
+    .dc-lift,
+    .dc-embed-host .discord-embed {
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+    }
+
+    .dc-embed-host {
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .showcase__intro h2 {
+        font-size: clamp(2.2rem, 10.5vw, 3.2rem);
+    }
+
+    .showcase-row__lede {
+        font-size: 14px;
+    }
+
+    .showcase__channel {
+        padding: 0 14px;
+    }
+
+    .showcase__feed,
+    .showcase-row--left .showcase__feed {
+        gap: 16px;
+        padding: 14px 12px 18px;
+    }
+
+    /* The flight and the leaderboard stack; the clip keeps its own shape. */
+    .eh {
+        grid-template-columns: 1fr;
+    }
+
+    .eh__screen {
+        min-height: 0;
+        aspect-ratio: 4 / 5;
+    }
+
+    .dc-message {
+        grid-template-columns: 32px minmax(0, 1fr);
+        column-gap: 10px;
+    }
+
+    .dc-message__avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .dc-message__context {
+        margin-left: 42px;
+    }
+
+    .dc-message.has-context::before {
+        left: 15px;
+        width: 24px;
+    }
+
+    .dc-text {
+        font-size: 15px;
+    }
+
+    .dc-slots-reels {
+        gap: 4px;
+        font-size: 18px;
+    }
+
+    .dc-emoji--jumbo {
+        width: 26px;
+        height: 26px;
+    }
+
+    .dc-keno__row {
+        gap: 2px;
+    }
+
+    .dc-keno__tile:not(.dc-keno__tile--inline),
+    .dc-hand img {
+        width: 26px;
+        height: 26px;
+    }
+
+    .dc-embed-h1 {
+        font-size: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .showcase__tilt {
+        transition: none;
+    }
+
+    .showcase__panel.is-active,
+    .showcase__panel.is-active .dc-message__context,
+    .showcase__panel.is-active .dc-message__avatar,
+    .showcase__panel.is-active .dc-message__body > *,
+    .dc-card-layer.is-current {
+        animation: none;
+    }
+}
