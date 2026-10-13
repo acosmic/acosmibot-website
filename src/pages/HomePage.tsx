@@ -29,7 +29,9 @@ import {
   Network,
   Orbit,
   Package,
+  Pause,
   PieChart,
+  Play,
   Plus,
   Radio,
   Shield,
@@ -38,6 +40,8 @@ import {
   Terminal,
   Wrench,
 } from 'lucide-react';
+import { DiscordShowcase, ShowcasePreview, showcaseAnchor, showcasePreviewSurface, type ShowcasePreviewId, type ShowcaseRowId } from '@/components/home/DiscordShowcase';
+import { revealClass, usePrefersReducedMotion, useReveal, type Reveal } from '@/components/home/useReveal';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { startLogin } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
@@ -171,7 +175,7 @@ const FEATURES: Feature[] = [
     Icon: Terminal,
     x: 49,
     y: 65,
-    description: 'Build server-specific slash commands with custom responses, no code required.',
+    description: 'Build server-specific commands with your own prefix and custom responses, no code required.',
     bullets: ['Create commands from the dashboard', 'Plain-text or rich embed responses', 'Per-server command library', 'Edit and disable on the fly', 'Usage tracking per command'],
   },
   {
@@ -187,7 +191,7 @@ const FEATURES: Feature[] = [
   },
   {
     id: 'embeds',
-    name: 'Better Embeds',
+    name: 'Custom Embeds',
     shortName: 'Embeds',
     family: 'operate',
     Icon: FileText,
@@ -231,18 +235,58 @@ const FEATURES: Feature[] = [
   },
 ];
 
-const FEATURE_EDGES: Array<[string, string]> = [
-  ['leveling', 'economy'],
-  ['leveling', 'items'],
-  ['economy', 'items'],
-  ['economy', 'games'],
-  ['moderation', 'reaction-roles'],
-  ['moderation', 'activity-monitoring'],
-  ['reaction-roles', 'embeds'],
-  ['analytics', 'ai'],
-  ['analytics', 'commands'],
-  ['chaos', 'moderation'],
+interface FeatureRelation {
+  from: string;
+  to: string;
+  /** What moves across the link, phrased so it reads the same from either end. */
+  label: string;
+  /**
+   * Pins the label at this fraction of the way from `from` to `to`, for links
+   * whose default spot would cover a node or the core.
+   */
+  labelAt?: number;
+}
+
+// Only relationships the product really has; a feature with none keeps just
+// its link to the core.
+const FEATURE_RELATIONS: FeatureRelation[] = [
+  { from: 'leveling', to: 'economy', label: 'Daily chat rewards' },
+  { from: 'leveling', to: 'items', label: 'XP boosts' },
+  { from: 'leveling', to: 'reaction-roles', label: 'Level-up roles' },
+  { from: 'economy', to: 'items', label: 'Shop purchases' },
+  { from: 'economy', to: 'games', label: 'Wagers and payouts' },
+  { from: 'ai', to: 'economy', label: 'Balance lookups' },
+  { from: 'ai', to: 'utilities', label: 'Weather and reminders' },
+  { from: 'ai', to: 'analytics', label: 'AI usage reports' },
+  { from: 'analytics', to: 'commands', label: 'Command usage', labelAt: 0.35 },
+  { from: 'commands', to: 'embeds', label: 'Embed replies', labelAt: 0.66 },
+  { from: 'reaction-roles', to: 'embeds', label: 'Embed messages', labelAt: 0.5 },
+  { from: 'moderation', to: 'reaction-roles', label: 'Role change logs', labelAt: 0.12 },
+  { from: 'moderation', to: 'activity-monitoring', label: 'Log exclusions', labelAt: 0.42 },
 ];
+
+// The idle tour walks neighbors where it can, so each step keeps a lit link.
+const FEATURE_TOUR = [
+  'ai',
+  'utilities',
+  'economy',
+  'games',
+  'items',
+  'leveling',
+  'analytics',
+  'commands',
+  'embeds',
+  'reaction-roles',
+  'moderation',
+  'activity-monitoring',
+  'streaming',
+  'giveaways',
+  'chaos',
+];
+const TOUR_INTERVAL_MS = 5000;
+// How far along a lit link its label sits, measured from the selected feature.
+// Past the midpoint, so labels on links that leave one node together fan apart.
+const RELATION_LABEL_POSITION = 0.66;
 
 const FAMILY_LABELS: Record<FeatureFamily, string> = {
   connect: 'Community',
@@ -271,6 +315,36 @@ const FEATURE_DOC_PATHS: Partial<Record<string, string>> = {
   embeds: '/docs/embeds',
   utilities: '/docs/reminders',
   chaos: '/docs/portals',
+};
+
+// The compact live example each feature shows in the inspector. A feature
+// without one falls back to its capability checklist.
+const FEATURE_PREVIEWS: Partial<Record<string, ShowcasePreviewId>> = {
+  streaming: 'stream-live',
+  ai: 'ai-weather',
+  leveling: 'rank-card',
+  economy: 'ai-stats',
+  items: 'item-shop',
+  games: 'slots',
+  giveaways: 'giveaway',
+  moderation: 'mod-log',
+  'reaction-roles': 'reaction-roles',
+  commands: 'custom-command',
+  utilities: 'ai-reminder',
+  embeds: 'custom-embed',
+  'activity-monitoring': 'activity-roles',
+  analytics: 'analytics',
+  chaos: 'chaos',
+};
+
+// Features that have a live example row in the "In your server" showcase.
+const FEATURE_SHOWCASE_ROWS: Partial<Record<string, ShowcaseRowId>> = {
+  ai: 'ai',
+  leveling: 'rank',
+  economy: 'games',
+  games: 'games',
+  utilities: 'ai',
+  embeds: 'custom-embeds',
 };
 
 const HomeCosmos: React.FC = () => {
@@ -397,9 +471,21 @@ const MiniConstellation: React.FC<MiniConstellationProps> = ({ onSelect }) => {
       </svg>
       <div className="hero-constellation__hub">
         <span className="hero-constellation__hub-pulse" />
-        <img src="/images/acosmibot-logo.png" alt="" />
-        <strong>Acosmibot</strong>
-        <small>community core</small>
+        <img
+          className="hero-constellation__mascot"
+          src="/images/mascot/acosmibot-mascot-320.webp"
+          srcSet="/images/mascot/acosmibot-mascot-320.webp 320w, /images/mascot/acosmibot-mascot-640.webp 640w"
+          sizes="(max-width: 640px) 150px, 236px"
+          width={320}
+          height={343}
+          alt=""
+          // React 18 only recognizes the lowercase attribute name.
+          {...{ fetchpriority: 'high' }}
+        />
+        <div className="hero-constellation__plate">
+          <strong translate="no">Acosmibot</strong>
+          <small>community core</small>
+        </div>
       </div>
       {visibleNodes.map((feature, index) => {
         const point = positions[feature.id];
@@ -428,104 +514,245 @@ const MiniConstellation: React.FC<MiniConstellationProps> = ({ onSelect }) => {
   );
 };
 
+interface FeatureTour {
+  /** False for reduced-motion visitors, who never get an automatic tour. */
+  available: boolean;
+  paused: boolean;
+  running: boolean;
+  onToggle: () => void;
+  /** Holds the tour while the visitor is reading the inspector. */
+  onHold: (held: boolean) => void;
+}
+
 interface FeatureMapProps {
   selectedId: string;
   onSelect: (id: string) => void;
+  onShowRow: (id: ShowcaseRowId) => void;
+  tour: FeatureTour;
+  reveal: Reveal;
+  explorerRef: React.RefObject<HTMLDivElement>;
 }
 
-const FeatureMap: React.FC<FeatureMapProps> = ({ selectedId, onSelect }) => {
-  const selected = FEATURES.find(feature => feature.id === selectedId) ?? FEATURES[1];
+const featureById = (id: string): Feature | undefined => FEATURES.find(feature => feature.id === id);
+
+const FeatureMap: React.FC<FeatureMapProps> = ({ selectedId, onSelect, onShowRow, tour, reveal, explorerRef }) => {
+  const plotRef = useRef<HTMLDivElement>(null);
+  const selected = featureById(selectedId) ?? FEATURES[1];
   const SelectedIcon = selected.Icon;
   const landingPath = FEATURE_LANDING_PATHS[selected.id];
   const docsPath = FEATURE_DOC_PATHS[selected.id] ?? '/docs/introduction';
+  const showcaseRow = FEATURE_SHOWCASE_ROWS[selected.id];
+  const previewId = FEATURE_PREVIEWS[selected.id];
+
+  // The selected feature's relationships, each paired with the feature at the other end.
+  const connections = FEATURE_RELATIONS.flatMap(relation => {
+    if (relation.from !== selected.id && relation.to !== selected.id) return [];
+    const partner = featureById(relation.from === selected.id ? relation.to : relation.from);
+    return partner ? [{ relation, partner }] : [];
+  });
+  const partnerIds = new Set(connections.map(connection => connection.partner.id));
+
+  // On small screens the nodes are a horizontal strip; keep the selected one in
+  // view as the tour moves, without scrolling the page itself.
+  useEffect(() => {
+    const plot = plotRef.current;
+    if (!plot || plot.scrollWidth <= plot.clientWidth) return;
+    const node = plot.querySelector<HTMLElement>('.feature-node.is-selected');
+    if (!node) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    plot.scrollTo({
+      left: node.offsetLeft - (plot.clientWidth - node.offsetWidth) / 2,
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+  }, [selectedId]);
 
   return (
-    <div className="feature-explorer">
+    <div ref={explorerRef} className={`feature-explorer${revealClass(reveal)}`}>
       <div className="feature-map" aria-label="Explore Acosmibot features">
         <div className="feature-map__header">
           <span><Network aria-hidden="true" /> System topology</span>
-          <span>{FEATURES.length} nodes · {FEATURES.length + FEATURE_EDGES.length} links</span>
+          <div className="feature-map__tools">
+            <span className="feature-map__count">{FEATURES.length} nodes · {FEATURES.length + FEATURE_RELATIONS.length} links</span>
+            {tour.available && (
+              <button type="button" className="feature-map__tour" onClick={tour.onToggle}>
+                {tour.paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+                {tour.paused ? 'Resume tour' : 'Pause tour'}
+              </button>
+            )}
+          </div>
+          {tour.running && (
+            <i key={selected.id} className="feature-map__tour-progress" aria-hidden="true" style={{ animationDuration: `${TOUR_INTERVAL_MS}ms` }} />
+          )}
         </div>
-        <svg className="feature-map__links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          {FEATURES.map(feature => (
-            <line
-              key={`hub-${feature.id}`}
-              className={selectedId === feature.id ? 'is-active' : ''}
-              x1="50"
-              y1="50"
-              x2={feature.x}
-              y2={feature.y}
-            />
-          ))}
-          {FEATURE_EDGES.map(([fromId, toId]) => {
-            const from = FEATURES.find(feature => feature.id === fromId);
-            const to = FEATURES.find(feature => feature.id === toId);
-            if (!from || !to) return null;
-            const active = selectedId === fromId || selectedId === toId;
-            return (
+        <div ref={plotRef} className="feature-map__plot">
+          <svg className="feature-map__links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            {FEATURES.map(feature => (
               <line
-                key={`${fromId}-${toId}`}
-                className={`feature-map__relation${active ? ' is-active' : ''}`}
-                x1={from.x}
-                y1={from.y}
-                x2={to.x}
-                y2={to.y}
+                key={`hub-${feature.id}`}
+                className={selected.id === feature.id ? 'is-active' : ''}
+                x1="50"
+                y1="50"
+                x2={feature.x}
+                y2={feature.y}
               />
+            ))}
+            {FEATURE_RELATIONS.map(relation => {
+              const from = featureById(relation.from);
+              const to = featureById(relation.to);
+              if (!from || !to) return null;
+              const active = selected.id === relation.from || selected.id === relation.to;
+              return (
+                <line
+                  key={`${relation.from}-${relation.to}`}
+                  className={`feature-map__relation${active ? ' is-active' : ''}`}
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                />
+              );
+            })}
+          </svg>
+          {/* Signals: two pulses from the core to the selected feature, then one
+              along each of its relationships. */}
+          <div className="feature-map__signals" key={selected.id} aria-hidden="true">
+            {[0, 1].map(step => (
+              <span
+                key={step}
+                className="feature-map__signal"
+                style={{ '--from-x': '50%', '--from-y': '50%', '--to-x': `${selected.x}%`, '--to-y': `${selected.y}%`, '--delay': `${step * 1.1}s` } as React.CSSProperties}
+              >
+                <i />
+              </span>
+            ))}
+            {connections.map(({ partner }, index) => (
+              <span
+                key={partner.id}
+                className="feature-map__signal feature-map__signal--relation"
+                style={{ '--from-x': `${selected.x}%`, '--from-y': `${selected.y}%`, '--to-x': `${partner.x}%`, '--to-y': `${partner.y}%`, '--delay': `${0.5 + index * 0.35}s` } as React.CSSProperties}
+              >
+                <i />
+              </span>
+            ))}
+          </div>
+          <div className="feature-map__hub" aria-hidden="true">
+            <img src="/images/mascot/acosmibot-mascot-320.webp" width={320} height={343} alt="" loading="lazy" />
+          </div>
+          {connections.map(({ relation, partner }) => {
+            // Measured from the selected feature, whichever end of the link it is.
+            const pinned = relation.from === selected.id ? relation.labelAt : relation.labelAt !== undefined ? 1 - relation.labelAt : undefined;
+            const along = pinned ?? RELATION_LABEL_POSITION;
+            return (
+              <span
+                key={`${selected.id}-${partner.id}`}
+                className="feature-map__relation-label"
+                aria-hidden="true"
+                style={{
+                  '--label-x': `${selected.x + (partner.x - selected.x) * along}%`,
+                  '--label-y': `${selected.y + (partner.y - selected.y) * along}%`,
+                } as React.CSSProperties}
+              >
+                {relation.label}
+              </span>
             );
           })}
-        </svg>
-        <div className="feature-map__hub" aria-hidden="true">
-          <img src="/images/acosmibot-logo.png" alt="" />
-          <span>Acosmibot</span>
+          {FEATURES.map((feature, index) => {
+            const FeatureIcon = feature.Icon;
+            const isSelected = feature.id === selected.id;
+            return (
+              <button
+                key={feature.id}
+                type="button"
+                className={`feature-node feature-node--${feature.family}${isSelected ? ' is-selected' : ''}${partnerIds.has(feature.id) ? ' is-related' : ''}`}
+                style={{ '--node-x': `${feature.x}%`, '--node-y': `${feature.y}%`, '--order': index } as React.CSSProperties}
+                onClick={() => onSelect(feature.id)}
+                aria-pressed={isSelected}
+              >
+                <span className="feature-node__mark"><FeatureIcon aria-hidden="true" /></span>
+                <span className="feature-node__label">{feature.shortName}</span>
+              </button>
+            );
+          })}
         </div>
-        {FEATURES.map((feature, index) => {
-          const FeatureIcon = feature.Icon;
-          const isSelected = feature.id === selectedId;
-          return (
-            <button
-              key={feature.id}
-              type="button"
-              className={`feature-node feature-node--${feature.family}${isSelected ? ' is-selected' : ''}`}
-              style={{ '--node-x': `${feature.x}%`, '--node-y': `${feature.y}%`, '--delay': `${index * -0.45}s` } as React.CSSProperties}
-              onClick={() => onSelect(feature.id)}
-              aria-pressed={isSelected}
-            >
-              <span className="feature-node__mark"><FeatureIcon aria-hidden="true" /></span>
-              <span className="feature-node__label">{feature.shortName}</span>
-            </button>
-          );
-        })}
         <div className="feature-map__hint">
           <MousePointer2 aria-hidden="true" />
-          Select a node to inspect
+          {tour.running ? 'Touring · select a node to take over' : 'Select a node to inspect'}
         </div>
       </div>
 
-      <aside className={`feature-inspector feature-inspector--${selected.family}`} aria-live="polite">
-        <div className="feature-inspector__head">
-          <div className="feature-inspector__icon"><SelectedIcon aria-hidden="true" /></div>
-          <div>
-            <span>{FAMILY_LABELS[selected.family]} system</span>
-            <h3>{selected.name}</h3>
+      <aside
+        className={`feature-inspector feature-inspector--${selected.family}`}
+        // Announcing every automatic step would talk over the visitor.
+        aria-live={tour.paused || !tour.available ? 'polite' : 'off'}
+        onPointerEnter={() => tour.onHold(true)}
+        onPointerLeave={() => tour.onHold(false)}
+      >
+        <div className="feature-inspector__body" key={selected.id}>
+          <div className="feature-inspector__head">
+            <div className="feature-inspector__icon"><SelectedIcon aria-hidden="true" /></div>
+            <div>
+              <span>{FAMILY_LABELS[selected.family]} system</span>
+              <h3>{selected.name}</h3>
+            </div>
           </div>
-        </div>
-        <p>{selected.description}</p>
-        <div className="feature-inspector__divider">
-          <span>Connected capabilities</span>
-          <span>{selected.bullets.length.toString().padStart(2, '0')}</span>
-        </div>
-        <ul>
-          {selected.bullets.map(item => <li key={item}><Check aria-hidden="true" /> {item}</li>)}
-        </ul>
-        <div className="feature-inspector__links">
-          {landingPath && (
-            <Link to={landingPath} className="feature-inspector__link feature-inspector__link--primary">
-              Explore {selected.shortName} <ArrowRight aria-hidden="true" />
-            </Link>
+          <p>{selected.description}</p>
+          {connections.length > 0 && (
+            <div className="feature-inspector__partners">
+              <span>Works with</span>
+              {connections.map(({ relation, partner }) => {
+                const PartnerIcon = partner.Icon;
+                return (
+                  <button
+                    key={partner.id}
+                    type="button"
+                    className={`feature-inspector__partner feature-node--${partner.family}`}
+                    onClick={() => onSelect(partner.id)}
+                    aria-label={`${partner.name}: ${relation.label}`}
+                  >
+                    <PartnerIcon aria-hidden="true" /> {partner.shortName}
+                  </button>
+                );
+              })}
+            </div>
           )}
-          <Link to={docsPath} className="feature-inspector__link">
-            Read the docs <ArrowRight aria-hidden="true" />
-          </Link>
+          {previewId ? (
+            <>
+              <div className="feature-inspector__divider">
+                <span>{showcasePreviewSurface(previewId) === 'dashboard' ? 'In the dashboard' : 'In Discord'}</span>
+                <span>Sample data</span>
+              </div>
+              <ShowcasePreview id={previewId} />
+            </>
+          ) : (
+            <>
+              <div className="feature-inspector__divider">
+                <span>Connected capabilities</span>
+                <span>{selected.bullets.length.toString().padStart(2, '0')}</span>
+              </div>
+              <ul>
+                {selected.bullets.map(item => <li key={item}><Check aria-hidden="true" /> {item}</li>)}
+              </ul>
+            </>
+          )}
+          <div className="feature-inspector__links">
+            {showcaseRow && (
+              <button
+                type="button"
+                className="feature-inspector__link feature-inspector__link--primary"
+                onClick={() => onShowRow(showcaseRow)}
+              >
+                See it in Discord <ArrowRight aria-hidden="true" />
+              </button>
+            )}
+            {landingPath && (
+              <Link to={landingPath} className="feature-inspector__link">
+                Explore {selected.shortName} <ArrowRight aria-hidden="true" />
+              </Link>
+            )}
+            <Link to={docsPath} className="feature-inspector__link">
+              Read the docs <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </aside>
     </div>
@@ -536,7 +763,14 @@ export const HomePage: React.FC = () => {
   const donationDialogRef = useRef<HTMLDivElement>(null);
   const bitcoinDialogRef = useRef<HTMLDivElement>(null);
   const modalRestoreRef = useRef<HTMLElement | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState('ai');
+  const [selectedFeature, setSelectedFeature] = useState(FEATURE_TOUR[0]);
+  // The map tours itself while it is on screen, until the visitor picks a node
+  // or pauses it. It also holds while they hover the inspector to read.
+  const reducedMotion = usePrefersReducedMotion();
+  const mapReveal = useReveal<HTMLDivElement>(0.3);
+  const [tourPaused, setTourPaused] = useState(false);
+  const [tourHeld, setTourHeld] = useState(false);
+  const tourRunning = mapReveal.inView && !tourPaused && !tourHeld && !reducedMotion;
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [showBitcoinPopup, setShowBitcoinPopup] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -608,6 +842,26 @@ export const HomePage: React.FC = () => {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
+  useEffect(() => {
+    if (!tourRunning) return;
+    const timer = window.setTimeout(() => {
+      setSelectedFeature(current => FEATURE_TOUR[(FEATURE_TOUR.indexOf(current) + 1) % FEATURE_TOUR.length]);
+    }, TOUR_INTERVAL_MS);
+    return () => window.clearTimeout(timer);
+  }, [tourRunning, selectedFeature]);
+
+  // A selection made by the visitor ends the tour; they can resume it from the map.
+  const selectFeature = useCallback((id: string) => {
+    setSelectedFeature(id);
+    setTourPaused(true);
+  }, []);
+  const toggleTour = useCallback(() => setTourPaused(current => !current), []);
+
+  const showRowInDiscord = useCallback((id: ShowcaseRowId) => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(showcaseAnchor(id))?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+  }, []);
+
   const handleLogin = () => {
     showNotif('Redirecting to Discord...', 'info');
     startLogin();
@@ -677,12 +931,18 @@ export const HomePage: React.FC = () => {
                 <span>One dashboard</span>
               </div>
             </div>
-            <MiniConstellation onSelect={setSelectedFeature} />
+            <MiniConstellation onSelect={selectFeature} />
           </div>
-          <a className="home-hero__scroll" href="#system-map">
-            <span>Explore topology</span>
+          <a className="home-hero__scroll" href="#in-discord">
+            <span>See it in action</span>
             <i />
           </a>
+        </section>
+
+        <section className="showcase-section" id="in-discord" aria-labelledby="showcase-title">
+          <div className="home-shell">
+            <DiscordShowcase />
+          </div>
         </section>
 
         <section className="system-section" id="system-map">
@@ -697,7 +957,14 @@ export const HomePage: React.FC = () => {
                 Select any node to see what it brings to your server.
               </p>
             </div>
-            <FeatureMap selectedId={selectedFeature} onSelect={setSelectedFeature} />
+            <FeatureMap
+              selectedId={selectedFeature}
+              onSelect={selectFeature}
+              onShowRow={showRowInDiscord}
+              tour={{ available: !reducedMotion, paused: tourPaused, running: tourRunning, onToggle: toggleTour, onHold: setTourHeld }}
+              reveal={mapReveal.reveal}
+              explorerRef={mapReveal.ref}
+            />
             <nav className="home-feature-routes" aria-label="Explore core Acosmibot features">
               <span>Core feature guides</span>
               <Link to="/features/ai-discord-bot">Agentic AI Discord bot <ArrowRight aria-hidden="true" /></Link>
