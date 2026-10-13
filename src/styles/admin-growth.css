@@ -32,3 +32,9 @@
 .admin-growth details { white-space: normal; min-width: 160px; }
 .admin-growth details ul { padding-left: 18px; }
 @media (max-width: 640px) { .admin-growth details { grid-column: 2; min-width: 0; } }
+.growth-summary { line-height: 1.6; }
+.growth-server-filter { margin: 16px 0; color: var(--text-secondary); }
+.growth-feature-preview { display: block; max-width: 28ch; white-space: normal; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+.growth-coverage { margin-top: 28px; border-top: 1px solid var(--border-light); }
+.growth-coverage summary { min-height: 44px; }
+@media (max-width: 640px) { .growth-feature-preview { grid-column: 2; } }
