@@ -17,7 +17,7 @@ import type { Guild } from '@/types/guild';
 import '@/styles/servers.css';
 import { trackEvent } from '@/lib/analytics';
 
-const INVITE_URL = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+const INVITE_URL = 'https://api.acosmibot.com/auth/install/website';
 
 type LoadState = 'loading' | 'ready' | 'error';
 

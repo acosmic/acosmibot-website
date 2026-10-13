@@ -49,7 +49,7 @@ import { COMPANY_BRAND } from '@/lib/company';
 import { HOME_TAGLINE } from '@/seo/publicRoutes';
 import '@/styles/home.css';
 
-const DISCORD_INVITE = 'https://discord.com/oauth2/authorize?client_id=1186802023799214223&permissions=8&integration_type=0&scope=bot';
+const DISCORD_INVITE = 'https://api.acosmibot.com/auth/install/website';
 const STRIPE_DONATION_URL = 'https://donate.stripe.com/bJe3co1sfayvcMD16xgnK00';
 const BTC_ADDRESS = '3GgkQphwJyarorF4tXntXBLYRJNGSkTMfS';
 

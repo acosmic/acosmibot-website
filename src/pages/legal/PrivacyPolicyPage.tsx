@@ -8,7 +8,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="September 6, 2026"
+    lastUpdated="October 13, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -39,6 +39,8 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Level Information:</strong> Your current level in each server and globally</li>
         <li><strong>Owner Activity Feed:</strong> Command names, AI route and tool labels, completed website actions, outcome, timing, Discord display name, and server name may appear for up to 24 hours in an owner-only operational feed. Command arguments, message content, AI prompts and output, tool payloads, and configuration values are excluded.</li>
       </ul>
+
+      <p>Owner-only installation analytics record the invitation source (such as Top.gg or our website), invitation and authorization timestamps, server ID, bot join/removal timestamps, and completed command or AI feature outcomes. These records contain no message content, command arguments, member identity, IP address, or OAuth credential. Invitation and feature records expire after 90 days; installation records persist while the bot is installed and expire 90 days after removal. This data stays in our operational database and is not sent to Google Analytics. Top.gg receives only aggregate server and shard counts for the public listing.</p>
 
       <LegalSubheading>2.3 Economy &amp; Game Data</LegalSubheading>
       <ul>
