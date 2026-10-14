@@ -81,6 +81,7 @@ const FEATURE_TITLES: Record<string, string> = {
   'better-embeds': 'Better Embeds',
   embeds: 'Embeds',
   'reaction-roles': 'Reaction Roles',
+  'server-images': 'Server Images',
 };
 
 const DOC_PAGES = new Set([
