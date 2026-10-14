@@ -8,6 +8,6 @@ export function useGuildChannels(guildId: string) {
     queryKey: ['guild', guildId, 'config-hybrid'],
     queryFn: () => api.fetch<any>(`/api/guilds/${guildId}/config-hybrid`),
     enabled: !!guildId,
-    select: (data) => (data?.data?.available_channels ?? []) as { id: string; name: string; type: number }[],
+    select: (data) => (data?.data?.available_channels ?? []) as { id: string; name: string; type: number; is_private?: boolean }[],
   });
 }

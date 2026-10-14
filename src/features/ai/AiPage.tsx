@@ -9,6 +9,7 @@ import {
 import { PersonalitySettings } from './PersonalitySettings';
 import { AiMemorySection } from './AiMemorySection';
 import { AiServerMemorySection } from './AiServerMemorySection';
+import { AiMemoryChannelsSection } from './AiMemoryChannelsSection';
 import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, TimezoneSelect } from '@/components/ui';
 import { detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import { useDirtyState } from '@/hooks/useDirtyState';
@@ -181,8 +182,16 @@ export const AiPage: React.FC = () => {
         label="Memory"
         enabled={form.memory_enabled}
         onChange={(v) => setForm({ memory_enabled: v })}
-        description="Let the AI remember facts members share about themselves (favorite game, timezone, running jokes) and use them in future replies. Members can review or clear their own memory with /ai memory."
+        description="Let the AI remember facts members share about themselves (favorite game, timezone, running jokes) and use them in future replies anywhere in this server. Members can review or clear their own memory with /ai memory."
       />
+
+      {form.memory_enabled && (
+        <AiMemoryChannelsSection
+          channels={textChannels}
+          excluded={form.memory_excluded_channels}
+          onChange={(memory_excluded_channels) => setForm({ memory_excluded_channels })}
+        />
+      )}
 
       <AiMemorySection guildId={guildId!} enabled={form.memory_enabled} />
       <AiServerMemorySection guildId={guildId!} enabled={form.memory_enabled} />
