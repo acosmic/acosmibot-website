@@ -4,6 +4,7 @@ import { configApi } from '@/api/config';
 import personaCatalog from './personaCatalog.json';
 import { personalityDuration } from './personalityDuration';
 import { normalizePersonalityIntensity, PersonalityIntensity } from './personalityIntensity';
+import { normalizeMemoryExcludedChannels } from './memoryChannels';
 
 const AMBIENT_IMAGE_DAILY_MAX = 5;
 
@@ -19,6 +20,8 @@ export interface AiConfig {
   web_search: boolean;
   tools: Record<AiToolName, boolean>;
   memory_enabled: boolean;
+  /** Channels where the AI does not learn new memories. */
+  memory_excluded_channels: string[];
   /** OpenAI image filtering mode; low is runtime-gated to age-restricted channels. */
   image_moderation: 'auto' | 'low';
   personality_marketplace_enabled: boolean;
@@ -191,6 +194,7 @@ const DEFAULT_AI: AiConfig = {
   web_search: false,
   tools: DEFAULT_TOOLS,
   memory_enabled: true,
+  memory_excluded_channels: [],
   image_moderation: 'auto',
   personality_marketplace_enabled: false,
   max_active_traits: 3,
@@ -285,6 +289,7 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
       ...(raw?.tools || {}),
     },
     web_search: Boolean(raw?.tools?.web_search ?? raw?.web_search ?? false),
+    memory_excluded_channels: normalizeMemoryExcludedChannels(merged.memory_excluded_channels),
     image_moderation: merged.image_moderation === 'low' ? 'low' : 'auto',
     personality_marketplace_enabled: Boolean(merged.personality_marketplace_enabled),
     max_active_traits: Math.min(Math.max(Number(merged.max_active_traits) || 3, 1), 3),
