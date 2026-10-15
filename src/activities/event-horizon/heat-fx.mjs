@@ -11,14 +11,14 @@ export function rocketTremble(multiplier, time, reduced = false) {
     y: Math.sin(time * 57) * 1.4 * strength,
     angle: Math.sin(time * 39) * .012 * strength };
 }
-export function drawNoseHeat(ctx, size, heat, time, reduced = false) {
+export function drawNoseHeat(ctx, size, heat, time, reduced = false, nose) {
   const level = Math.max(0, Math.min(1, heat / 100));
   if (!level) return;
   // A slow breathing glow, never a strobe. Reduced effects keeps steady heat.
   const pulse = reduced ? 1 : 1 + Math.sin(time * Math.PI * 2 * .8) * .12 * level;
   const intensity = Math.min(1, level ** .4 * pulse);
   ctx.save();
-  const anchor=heatAnchor(size);
+  const anchor=heatAnchor(size,nose);
   ctx.translate(anchor.x,anchor.y);
   ctx.rotate(HEAT_ANGLE);
   ctx.globalCompositeOperation = 'screen';

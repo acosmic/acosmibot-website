@@ -5,7 +5,7 @@ export { drawSeasonalObject } from './seasonal-art.mjs';
 // Availability comes from the owner-controlled runtime configuration.
 export const SEASONS = Object.freeze([
   {id:'classic', name:'Classic', description:'Rocks, plasma flares, and asteroids.'},
-  {id:'halloween', name:'Halloween', description:'Tumbling skulls, glowing jack-o’-lanterns, and a candy storm under a haunted sky.'},
+  {id:'halloween', name:'Halloween', description:'Ride a broomstick past tumbling skulls, glowing jack-o’-lanterns, and a candy storm under a haunted sky.'},
   {id:'thanksgiving', name:'Thanksgiving', description:'Roast turkeys, bubbling gravy, and a pie storm over a harvest sky.'},
   {id:'christmas', name:'Christmas', description:'Snowballs and coal, Christmas lights, and runaway presents in a winter orbit.'},
 ]);
@@ -19,16 +19,17 @@ export const availableSeason = (value,availability) => SEASONS.some(s=>s.id===va
 export function readSeason(storage,availability) {try{return availableSeason(storage?.getItem('eh-season'),availability);}catch{return 'classic';}}
 export function saveSeason(storage,value,availability) {const theme=availableSeason(value,availability);try{storage?.setItem('eh-season',theme);}catch{/* webview storage is optional */}return theme;}
 
-// One palette per season. Everything here is presentation: colours, copy, and which
-// ambient layer and debris bits the renderer bakes. Shards, Phase Shift, warning lines,
-// and heat cues keep their Classic colours in every season so they always read the same.
+// One palette per season. Everything here is presentation: colours, copy, the pilot's
+// ride, and which ambient layer and debris bits the renderer bakes. Shards, Phase Shift,
+// warning lines, and heat cues keep their Classic colours in every season so they always
+// read the same.
 const CLASSIC = {
   id:'classic',swatch:['#67ecff','#a98bff'],
   backdrop:{base:'#050812',glows:[[.85,.25,.6,'#261747'],[.16,.7,.7,'#092e4c'],[.65,.72,.35,'#331136']]},
   nebula:[0,1],stars:[0xc9b6ff,0xffe6c8,0xcfeeff],comet:0xd8f4ff,
   hole:CLASSIC_HOLE,disk:[[1,.94,.82],[1,.58,.24],[.82,.2,.12]],
   aura:0xff4f7d,rim:['rgba(255,190,120,.85)','rgba(255,120,60,.35)','rgba(255,90,40,0)'],streak:['#ff724400','#ff9a5a99','#ffe0b8ee'],
-  exhaust:'#7ff1ff',trail:0x4fe4ff,flame:[.35,.95,1],engine:0x59e8ff,
+  exhaust:'#7ff1ff',trail:0x4fe4ff,flame:[.35,.95,1],engine:0x59e8ff,rider:'rocket',
   fx:{near:'#9af3ff',death:'#ffa677',deathCore:'#fff1d6',smoke:'#46304a'},
   bits:0,ambient:null,lost:'ORBIT LOST',
   rule:'Skim the hot inner orbit for up to 5× points, dodge rocks and plasma, collect cyan shards, and boost out to cool down.',
@@ -43,7 +44,7 @@ const THEMES = {
     hole:{...CLASSIC_HOLE,hue:16,span:16,photon:[255,160,70],bloom:['#ff8a2a65','#7a2aa82b','#4c9a2a00'],rim:'#ffd28a',ember:[0xff9a3c,0xb6ff6a],emberCss:['#ff9a3c99','#b6ff6acc']},
     disk:[[1,.9,.62],[1,.48,.1],[.5,.16,.72]],
     aura:0xff9b36,rim:['rgba(170,255,140,.8)','rgba(90,220,90,.3)','rgba(60,200,80,0)'],streak:['#7a2aff00','#b56bff99','#ffd9ffee'],
-    exhaust:'#a8ff7a',trail:0x86f06a,flame:[.5,1,.38],engine:0x8cff66,
+    exhaust:'#a8ff7a',trail:0x86f06a,flame:[.5,1,.38],engine:0x8cff66,rider:'broom',
     fx:{near:'#c9a6ff',death:'#ff9b36',deathCore:'#eaffc8',smoke:'#2c2140'},
     bits:3,ambient:{kind:'bats',count:6},lost:'R.I.P. ORBIT',
     rule:'Skim the hot inner orbit for up to 5× points, dodge skulls and jack-o’-lanterns, collect cyan shards, and boost out to cool down.',

@@ -1,4 +1,5 @@
-import { seasonalCopy, paintBackdrop } from '../src/activities/event-horizon/seasonal.mjs';
+import { seasonalCopy, paintBackdrop, seasonTheme } from '../src/activities/event-horizon/seasonal.mjs';
+import {RIDERS} from '../src/activities/event-horizon/rocket-art.mjs';
 import {createRun,step,DT,specialState,thrustActive} from '../src/activities/event-horizon/sim.mjs';
 import {createFlightRenderer} from '../src/activities/event-horizon/pixi-renderer.mjs';
 import {flightCamera} from '../src/activities/event-horizon/camera.mjs';
@@ -8,7 +9,8 @@ import {SIGHTINGS,SIGHT_SECONDS,POSE_NAMES} from '../src/activities/event-horizo
 if(!import.meta.env.DEV)throw Error('Local visual rehearsal only');
 const $=id=>document.getElementById(id),canvas=$('space'),timeline=$('timeline');
 const load=async file=>{const image=new Image();image.src=`/activities/event-horizon/assets/${file}`;await image.decode();return image;};
-const rocket=await load('rocket-grip.png'),darkImages={};
+const riders={},darkImages={};
+for(const [id,{src}] of Object.entries(RIDERS))riders[id]=await load(src);
 for(const name of POSE_NAMES)darkImages[name]=await load(`darkn1de-${name}.webp`);
 const gpu=await createFlightRenderer(canvas),frames=[],s=createRun(42);
 let clock=Math.max(0,Math.min(360,Number(new URLSearchParams(location.search).get('t'))||0)),playing=false,last=performance.now(),reduced=false,held=false,dirty=true;
@@ -39,5 +41,5 @@ function render(now){if(!playing&&!dirty){last=now;requestAnimationFrame(render)
  $('clock').textContent=`${Math.floor(clock/60)}:${(clock%60).toFixed(1).padStart(4,'0')}`;
  const sight=SIGHTINGS.findIndex((t,i)=>clock>=t&&clock<t+SIGHT_SECONDS[i]);
  $('scene').textContent=run.darkStage===1?'INVERSION · HOLD TO DESCEND / RELEASE TO CLIMB':run.darkStage===2?`BREACHSTORM · RESONANCE ${run.resonance}/10`:run.darkStage===3&&clock<334?'RESONANCE PULSE':clock>=238.5&&clock<240?'LEAD-IN':sight>=0?'SIGHTING':seasonalCopy(specialState(run).kind==='asteroids'?'ASTEROID STORM':specialState(run).kind.toUpperCase(),$('season').value);
- gpu.render({run,mode:'playing',watching:false,boost:thrustActive(run,held),flying:true,t:clock,dt,frameMs:16.7,phase:specialState(run),particles:[],comboUntil:0,comboText:'',rocket,darkImages,juice:createJuice(),death:null,season:$('season').value});requestAnimationFrame(render);}
+ gpu.render({run,mode:'playing',watching:false,boost:thrustActive(run,held),flying:true,t:clock,dt,frameMs:16.7,phase:specialState(run),particles:[],comboUntil:0,comboText:'',rocket:riders[seasonTheme($('season').value).rider],darkImages,juice:createJuice(),death:null,season:$('season').value});requestAnimationFrame(render);}
 requestAnimationFrame(render);

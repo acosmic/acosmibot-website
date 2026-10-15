@@ -5,6 +5,7 @@ import {createDarkScene} from './pixi-darkn1de.mjs';
 import {isInverted,resonanceReady} from './sim.mjs';
 import { debrisOpacity, tideStrength } from './tide-fx.mjs';
 import {createHeatMesh} from './pixi-heat.mjs';
+import {riderArt} from './rocket-art.mjs';
 import { Application, CanvasSource, Container, Graphics, ImageSource, Rectangle, Sprite, Texture } from 'pixi.js';
 import { createHoleScene } from './pixi-hole.mjs';
 import { drawObjectArt } from './object-art.mjs';
@@ -19,8 +20,8 @@ const palettes={inversion:[70,10,22],breachstorm:[62,8,30],orbit:[9,25,48],aster
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const TAU=Math.PI*2;
 export const FONT='"Chakra Petch", system-ui, sans-serif';
-// Rocket-local nozzle and exhaust direction, matching the rocket artwork.
-const NOZZLE_X=-.185,NOZZLE_Y=.32,FLAME_ANGLE=2.547;
+// Rider-local exhaust direction; each rider's artwork supplies its own nozzle.
+const FLAME_ANGLE=2.547;
 // Soft gradients are baked near display density: an upscaled low-res bake magnifies
 // the browser's gradient dithering into a visible grid on high-DPI screens.
 const NEBULA_RES=1.5;
@@ -38,7 +39,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   let quality=createQuality('high'),tier='high',probeFrames=0,blackFrames=0;
   let config,scene,hole,holeGlow,bg,world,ui,overlay,background,nebulaFar,nebulaNear,comet,starSprites=[],objectPool=[],particlePool=[];
   let dark,darkBack,darkFront,darkUi,darkView=null,phaseGraphics,phaseLabels,godRays,beamGlow,storm,ship,shipTurn,rocketSprite,rocketFallback,heat,ready,shield,warning,you,flame,engineGlow,border,combo,trail,ghosts,speedLines,flash;
-  let tex={},rocketTexture=null,theme='classic',palette=seasonTheme('classic'),ambient=[];
+  let tex={},rocketTexture=null,theme='classic',palette=seasonTheme('classic'),rider=riderArt(palette.rider),ambient=[];
   const pose={};
   let textures=[],objectTextures=new Map(),labels=new Map(),sourceImages=new WeakMap();
   let tint=[...palettes.orbit],frame=0,lost=false,destroyed=false;
@@ -100,7 +101,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
   function resize(next){
     if(destroyed||next.width<1||next.height<1)return;
     // The season is part of the baked scene: switching it rebuilds the artwork once.
-    theme=next.season??theme;palette=seasonTheme(theme);config={...next,season:theme};if(lost)return;
+    theme=next.season??theme;palette=seasonTheme(theme);rider=riderArt(palette.rider);config={...next,season:theme};if(lost)return;
     probeFrames=0;blackFrames=0;clearScene();
     const {width,height,ratio,camera,reduced,backdrop,stars}=config;
     app.renderer.resize(width,height,ratio);
@@ -157,11 +158,12 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     const warningText=sprite(Texture.EMPTY,warning);text(warningText,'BOOST TO COOL',`700 10px ${FONT}`,'#ffcca7',0,size*.78+10-3);
     shield=centered(pad,pad,c=>{c.strokeStyle='#beacff';c.lineWidth=2;c.shadowColor='#a18aff';c.shadowBlur=reduced?0:22;c.beginPath();c.arc(0,0,size*.48,0,TAU);c.stroke();},ship).s;
     ship.addChild(shipTurn);
-    engineGlow=sprite(tex.glow,shipTurn);engineGlow.anchor.set(.5);engineGlow.blendMode='add';engineGlow.tint=palette.engine;engineGlow.position.set(NOZZLE_X*size,NOZZLE_Y*size);
-    flame=createFlameMesh();shipTurn.addChild(flame.mesh);flame.mesh.position.set(NOZZLE_X*size,NOZZLE_Y*size);flame.mesh.rotation=FLAME_ANGLE;
+    const [nozzleX,nozzleY]=rider.nozzle;
+    engineGlow=sprite(tex.glow,shipTurn);engineGlow.anchor.set(.5);engineGlow.blendMode='add';engineGlow.tint=palette.engine;engineGlow.position.set(nozzleX*size,nozzleY*size);
+    flame=createFlameMesh();shipTurn.addChild(flame.mesh);flame.mesh.position.set(nozzleX*size,nozzleY*size);flame.mesh.rotation=FLAME_ANGLE;
     rocketFallback=new Graphics().poly([size*.4,0,-size*.3,-size*.2,-size*.2,size*.2],true).fill(0x75efff);shipTurn.addChild(rocketFallback);
     rocketSprite=sprite(Texture.EMPTY,shipTurn);rocketSprite.anchor.set(.5);
-    heat=createHeatMesh();shipTurn.addChild(heat.mesh);
+    heat=createHeatMesh(rider.nose);shipTurn.addChild(heat.mesh);
     scene.particles=new Container();world.addChild(scene.particles);
     storm=new Container();world.addChild(storm);storm.visible=false;
     for(let i=0;i<24;i++){const s=sprite(tex.spark,storm);s.anchor.set(.5);s.blendMode='add';s.tint=0xffb27a;}
@@ -259,8 +261,8 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     post.blendGrade(kinds,blend);
   }
   function drawTrail(t,flying,boost,run,x,y,size,rotation){
-    const {camera:g,reduced}=config;
-    const nx=x+(Math.cos(rotation)*NOZZLE_X-Math.sin(rotation)*NOZZLE_Y)*size,ny=y+(Math.sin(rotation)*NOZZLE_X+Math.cos(rotation)*NOZZLE_Y)*size;
+    const {camera:g,reduced}=config,[nozzleX,nozzleY]=rider.nozzle;
+    const nx=x+(Math.cos(rotation)*nozzleX-Math.sin(rotation)*nozzleY)*size,ny=y+(Math.sin(rotation)*nozzleX+Math.cos(rotation)*nozzleY)*size;
     if(flying&&!reduced)trailPoints.push({y:ny,t,boost:boost?1:0,phase:run.phase>0});
     while(trailPoints.length&&t-trailPoints[0].t>TRAIL_SECONDS)trailPoints.shift();
     if(!flying)trailPoints.length=0;

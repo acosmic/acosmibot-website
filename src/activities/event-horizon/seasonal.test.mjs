@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { SEASONS, availableSeason, readSeason, saveSeason, drawSeasonalObject, seasonalCopy, seasonEnabled, seasonState, normalizeAvailability, seasonTheme, hazardAura, hazardRotation, ambientPose, paintBackdrop } from './seasonal.mjs';
 import { drawSeasonBit, seasonBitCount, drawAmbient, AMBIENT_VARIANTS } from './seasonal-art.mjs';
 import { SCORES } from './audio.mjs';
+import { RIDERS } from './rocket-art.mjs';
+import { existsSync } from 'node:fs';
 
 const gradient={addColorStop(){}};
 const fakeContext=()=>new Proxy({}, {get:(_,key)=>key.startsWith('create')?()=>gradient:()=>{}});
@@ -83,4 +85,12 @@ test('seasonal labels work both as whole titles and split renderer words',()=>{
   assert.equal(seasonalCopy('Hit by orbital debris. Watch the incoming arc and change your altitude.','christmas'),'Hit by a snowball. Watch the incoming arc and change your altitude.');
   assert.equal(seasonalCopy('Hit by a plasma flare. Change orbit or Phase Shift through it.','thanksgiving'),'Hit by a gravy flare. Change orbit or Phase Shift through it.');
   assert.equal(seasonalCopy('GRAVITY TIDE','christmas'),'GRAVITY TIDE');
+});
+test('every season flies a rider whose artwork ships with the Activity',()=>{
+  for(const {id} of SEASONS){
+    const rider=RIDERS[seasonTheme(id).rider];assert.ok(rider,`${id} has a rider`);
+    assert.ok(existsSync(new URL(`../../../public/activities/event-horizon/assets/${rider.src}`,import.meta.url)),rider.src);
+    for(const value of [...rider.nose,...rider.nozzle,...rider.sparks])assert.ok(Math.abs(value)<.5);
+  }
+  assert.equal(seasonTheme('classic').rider,'rocket');assert.equal(seasonTheme('halloween').rider,'broom');
 });
