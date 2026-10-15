@@ -5,6 +5,7 @@ import { createRun, step, DT, clamp, specialState, thrustActive, isInverted, res
 import { createPhaseBackdrop, drawSpecial, phaseNames } from './phases-fx.mjs';
 import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
 import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-fx.mjs';
+import { riderArt } from './rocket-art.mjs';
 import { flightError, needsReconnect } from './errors.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { api, refreshBoard, renderBoard, boardReady, currentBoard, setRankedAvailable, setSession, verifiedBest } from './leaderboard.mjs';
@@ -41,7 +42,11 @@ const darkImages=Object.fromEntries(POSE_NAMES.map(name=>{const image=new Image(
 const darkCues=createDarkCues();
 const DARK_SOUNDS={omen:'omen',lead:'darkLead',arrival:'darkArrival',ignite:'darkIgnite',breach:'darkBreach',defeat:'darkDefeat','claw-warn':'clawWarn','claw-fire':'clawFire','spear-warn':'spearWarn','spear-fire':'spearFire'};
 const DARK_HAPTICS={arrival:[90,50,140],ignite:[40,30,80],defeat:[60,40,60,40,160]};
-const rocket = new Image(); rocket.src = '/activities/event-horizon/assets/rocket-grip.png';
+const riderImages=new Map();
+// Each season's ride loads on first use; the Classic rocket stands in until it is ready.
+function riderImage(id){let image=riderImages.get(id);if(!image){image=new Image();image.src=`/activities/event-horizon/assets/${riderArt(id).src}`;riderImages.set(id,image);}return image;}
+const rocket = riderImage('rocket');
+function pilotArt(){const image=riderImage(seasonTheme(season).rider);return image.complete&&image.naturalWidth?image:rocket;}
 const seasonalStorage=(()=>{try{return localStorage;}catch{return null;}})();
 // Until server configuration arrives, only Classic is available.
 let seasonAvailability=normalizeAvailability(null);
@@ -611,7 +616,7 @@ function object(o) {
   ctx.restore();
 }
 function ship(t) {
-  const p=point(run.radius), size=rocketSize(geo().r);
+  const p=point(run.radius), size=rocketSize(geo().r), rider=riderArt(seasonTheme(season).rider);
   if(mode==='playing') {
     if(thrustActive(run,watching?!!(watchedInput&1):boosting())&&Math.random()<.7){particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
   }
@@ -628,11 +633,13 @@ function ship(t) {
   ctx.translate(tremble.x,tremble.y);
   ctx.rotate(Math.PI*.23-run.velocity*.6+tremble.angle);
   if(thrustActive(run,watching?!!(watchedInput&1):boosting())&&mode==='playing'){
-    ctx.fillStyle='#a0faff';ctx.beginPath();ctx.moveTo(-size*.24,size*.28);ctx.lineTo(-size*(.60+Math.sin(t*60)*.05),size*.60);ctx.lineTo(-size*.13,size*.36);ctx.closePath();ctx.fill();
+    const [nx,ny]=rider.nozzle;
+    ctx.fillStyle='#a0faff';ctx.beginPath();ctx.moveTo(size*(nx-.055),size*(ny-.04));ctx.lineTo(size*(nx-.415-Math.sin(t*60)*.05),size*(ny+.28));ctx.lineTo(size*(nx+.055),size*(ny+.04));ctx.closePath();ctx.fill();
   }
-  if(rocket.complete&&rocket.naturalWidth)ctx.drawImage(rocket,-size/2,-size/2,size,size);
+  const art=pilotArt();
+  if(art.complete&&art.naturalWidth)ctx.drawImage(art,-size/2,-size/2,size,size);
   else{ctx.fillStyle='#75efff';ctx.beginPath();ctx.moveTo(size*.4,0);ctx.lineTo(-size*.3,-size*.2);ctx.lineTo(-size*.2,size*.2);ctx.closePath();ctx.fill();}
-  drawNoseHeat(ctx,size,visualHeat(run.heat,run.multiplier),run.time,reduced);
+  drawNoseHeat(ctx,size,visualHeat(run.heat,run.multiplier),run.time,reduced,rider.nose);
   ctx.restore();
   if(mode==='playing'&&run.time<8){ctx.fillStyle='#d6faff';ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.fillText('YOU',p.x,p.y-size*.55);}
 }
@@ -644,9 +651,9 @@ function renderPixi(rawDt){
   if(mode==='intro')run.radius=.83+Math.sin(visualTime*.7)*.025;
   const flying=mode==='playing'||(watching&&watchedStatus==='playing');
   const boost=thrustActive(run,watching?!!(watchedInput&1):boosting());
-  if(flying&&boost&&!reduced&&Math.random()<.45){const p=point(run.radius),size=rocketSize(geo().r);particles.push({x:p.x-size*.3,y:p.y+size*.14,vx:-110-Math.random()*90,vy:30+Math.random()*40,life:.3,max:.3,color:seasonTheme(season).exhaust,size:1+Math.random()*1.4,kind:'spark',drag:1});}
+  if(flying&&boost&&!reduced&&Math.random()<.45){const p=point(run.radius),size=rocketSize(geo().r),[sx,sy]=riderArt(seasonTheme(season).rider).sparks;particles.push({x:p.x+size*sx,y:p.y+size*sy,vx:-110-Math.random()*90,vy:30+Math.random()*40,life:.3,max:.3,color:seasonTheme(season).exhaust,size:1+Math.random()*1.4,kind:'spark',drag:1});}
   for(const p of particles){p.life-=dt;if(p.drag){const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;}p.x+=p.vx*dt;p.y+=p.vy*dt;}
-  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,rocket,darkImages,juice,death,season});
+  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,rocket:pilotArt(),darkImages,juice,death,season});
   compactParticles(particles,particleCap());
   if(mode!=='playing')comboUntil=0;
   if(visualTime>toastUntil)setText('toast','');

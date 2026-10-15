@@ -1,8 +1,8 @@
 import {Geometry,Mesh,Shader} from 'pixi.js';
-import {ROCKET_NOSE_X,ROCKET_NOSE_Y,HEAT_ANGLE} from './rocket-art.mjs';
+import {RIDERS,HEAT_ANGLE} from './rocket-art.mjs';
 // Four retained Bezier strips reproduce drawNoseHeat's swept fills. Geometry is
 // evaluated on the GPU; heat animation never uploads a bitmap per frame.
-export function createHeatMesh(){
+export function createHeatMesh(nose=RIDERS.rocket.nose){
   const positions=[],shapes=[],indices=[];
   for(let shape=0;shape<4;shape++){
     const base=positions.length/2;
@@ -29,7 +29,7 @@ void main(){
  float t=aPosition.x,s=1.-t;vec2 p=s*s*s*p0+3.*s*s*t*p1+3.*s*t*t*p2+t*t*t*p3;
  vX=p.x;vShape=aShape;vLength=length;vLevel=level;vIntensity=min(1.,pow(level,.4)*pulse);
  float c=cos(${HEAT_ANGLE}),sn=sin(${HEAT_ANGLE});
- p=mat2(c,sn,-sn,c)*(p-vec2(tip,0.))+uSize*vec2(${ROCKET_NOSE_X},${ROCKET_NOSE_Y});
+ p=mat2(c,sn,-sn,c)*(p-vec2(tip,0.))+uSize*vec2(${nose[0]},${nose[1]});
  vec3 projected=uProjectionMatrix*uWorldTransformMatrix*uTransformMatrix*vec3(p,1.);
  gl_Position=vec4(projected.xy,0.,1.);
 }`;

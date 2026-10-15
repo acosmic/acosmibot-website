@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {heatAnchor,HEAT_ANGLE,ROCKET_NOSE_X,ROCKET_NOSE_Y} from './rocket-art.mjs';
+import {heatAnchor,HEAT_ANGLE,ROCKET_NOSE_X,ROCKET_NOSE_Y,RIDERS} from './rocket-art.mjs';
 import { drawNoseHeat, drawPhaseReady, visualHeat } from './heat-fx.mjs';
 
 function canvasSpy() {
@@ -47,4 +47,12 @@ test('heat stays off when cold, is visible early, and uses four swept fills', ()
     assert.ok(Math.abs(anchor.y+Math.sin(HEAT_ANGLE)*size*.035-size*ROCKET_NOSE_Y)<1e-9);
     assert.ok(hot.calls.some(c => c[0] === 'stop' && c[2] === 'rgba(255,240,190,1)'));
   }
+});
+test('heat follows the nose of whichever rider is flying', () => {
+  const {nose}=RIDERS.broom,broom=canvasSpy(); drawNoseHeat(broom.ctx,84,100,1,true,nose);
+  const anchor=heatAnchor(84,nose);
+  assert.deepEqual(broom.calls.find(c => c[0] === 'translate'), ['translate',anchor.x,anchor.y]);
+  assert.ok(Math.abs(anchor.x+Math.cos(HEAT_ANGLE)*84*.035-84*nose[0])<1e-9);
+  assert.ok(Math.abs(anchor.y+Math.sin(HEAT_ANGLE)*84*.035-84*nose[1])<1e-9);
+  assert.notDeepEqual(anchor,heatAnchor(84));
 });
