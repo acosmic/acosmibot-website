@@ -24,6 +24,7 @@ import {
   Trophy,
   UserRoundX,
   UsersRound,
+  Images,
   type LucideIcon,
 } from 'lucide-react';
 import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
@@ -204,6 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavItem to={`/server/${guildId}/embeds`} icon={PanelTop} label="Embeds" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/moderation`} icon={Shield} label="Moderation" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/reaction-roles`} icon={UsersRound} label="Reaction Roles" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/server-images`} icon={Images} label="Server Images" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Social alerts">
