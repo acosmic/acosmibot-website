@@ -15,6 +15,7 @@ import {
   MessageSquareHeart,
   Music2,
   Orbit,
+  Palette,
   PanelTop,
   Radar,
   Shield,
@@ -24,12 +25,12 @@ import {
   Trophy,
   UserRoundX,
   UsersRound,
-  Images,
   type LucideIcon,
 } from 'lucide-react';
 import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 import { useGuildPermissions } from '@/hooks/useGuildPermissions';
+import { getGuildTier } from '@/features/analytics/entitlement';
 
 interface NavItemProps {
   to: string;
@@ -37,7 +38,7 @@ interface NavItemProps {
   assetIcon?: 'twitch' | 'youtube' | 'kick' | 'x';
   label: string;
   end?: boolean;
-  status?: 'soon';
+  status?: 'soon' | 'plus';
   onClick?: () => void;
 }
 
@@ -47,7 +48,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, assetIcon, label, end
     end={end}
     className={({ isActive }) => `nav-item${isActive ? ' active' : ''}${status ? ` is-${status}` : ''}`}
     onClick={onClick}
-    aria-label={status === 'soon' ? `${label}, coming soon` : undefined}
+    aria-label={status === 'soon' ? `${label}, coming soon` : status === 'plus' ? `${label}, Plus plan feature` : undefined}
   >
     {({ isActive }) => (
       <>
@@ -64,8 +65,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, assetIcon, label, end
           ) : Icon ? <Icon aria-hidden="true" /> : null}
         </span>
         <span className="nav-text">{label}</span>
-        {status === 'soon'
-          ? <span className="nav-status" aria-hidden="true">Soon</span>
+        {status
+          ? <span className={`nav-status nav-status--${status}`} aria-hidden="true">{status === 'soon' ? 'Soon' : 'Plus'}</span>
           : <span className="nav-signal" aria-hidden="true" />}
       </>
     )}
@@ -101,6 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { guilds, currentGuild, setSelectedGuildId } = useGuildStore();
   const navigate = useNavigate();
   const { canManage } = useGuildPermissions(guildId);
+  const guildTier = getGuildTier(currentGuild ?? undefined);
   const manageableGuilds = guilds.filter(
     (guild) => guild.owner || guild.permissions?.includes('administrator'),
   );
@@ -186,6 +188,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {canManage && <NavItem to={`/server/${guildId}/billing`} icon={CreditCard} label="Billing" onClick={onClose} />}
             {canManage && <NavItem to={`/server/${guildId}`} icon={Eye} label="Member page" end onClick={onClose} />}
             <NavItem to={`/server/${guildId}/overview`} icon={LayoutDashboard} label="Overview" onClick={onClose} />
+            {canManage && (
+              <NavItem
+                to={`/server/${guildId}/server-branding`}
+                icon={Palette}
+                label="Server Branding"
+                status={guildTier === 'free' ? 'plus' : undefined}
+                onClick={onClose}
+              />
+            )}
           </NavSection>
 
           {canManage && (
@@ -205,7 +216,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavItem to={`/server/${guildId}/embeds`} icon={PanelTop} label="Embeds" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/moderation`} icon={Shield} label="Moderation" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/reaction-roles`} icon={UsersRound} label="Reaction Roles" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/server-images`} icon={Images} label="Server Images" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Social alerts">

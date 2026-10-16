@@ -21,7 +21,7 @@ const SECTION_LABELS: Record<string, string> = {
   'custom-commands': 'Custom Commands',
   moderation: 'Moderation',
   'banned-users': 'Banned Users',
-  'server-images': 'Server Images',
+  'server-branding': 'Server Branding',
   ai: 'AI Customization',
   twitch: 'Twitch',
   youtube: 'YouTube',

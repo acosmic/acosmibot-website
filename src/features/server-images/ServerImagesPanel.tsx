@@ -10,7 +10,6 @@ import {
   Pencil,
   Pin,
   PinOff,
-  RefreshCw,
   Trash2,
   Upload,
 } from 'lucide-react';
@@ -24,7 +23,7 @@ import { LoadingSpinner } from '@/components/ui';
 import { useServerImages } from './useServerImages';
 import './ServerImagesPage.css';
 
-const KINDS: { kind: ServerImageKind; label: string; shape: 'square' | 'wide'; spec: string }[] = [
+export const IMAGE_KINDS: { kind: ServerImageKind; label: string; shape: 'square' | 'wide'; spec: string }[] = [
   { kind: 'icon', label: 'Server Icon', shape: 'square', spec: 'Cropped to a 1024×1024 square' },
   { kind: 'banner', label: 'Server Banner', shape: 'wide', spec: 'Cropped to 16:9, up to 1920×1080' },
   { kind: 'splash', label: 'Invite Background', shape: 'wide', spec: 'Cropped to 16:9, up to 1920×1080' },
@@ -66,10 +65,10 @@ function formatBytes(size: number): string {
   return size >= 1024 * 1024 ? `${(size / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(size / 1024))} KB`;
 }
 
-export const ServerImagesPage: React.FC = () => {
+/** One image type on the Server Branding page (icon, banner or invite background). */
+export const ServerImagesPanel: React.FC<{ kind: ServerImageKind }> = ({ kind }) => {
   const { guildId = '' } = useParams<{ guildId: string }>();
   const { query, upload, update, remove, apply, removeCurrent } = useServerImages(guildId);
-  const [kind, setKind] = useState<ServerImageKind>('icon');
   const [confirming, setConfirming] = useState<{ id: number; action: 'apply' | 'delete' } | null>(null);
   const [confirmRemoveCurrent, setConfirmRemoveCurrent] = useState(false);
   const [editing, setEditing] = useState<{ id: number; label: string } | null>(null);
@@ -87,15 +86,14 @@ export const ServerImagesPage: React.FC = () => {
   const error = query.error;
   if (error instanceof ServerImagesError && error.code === 'tier_required') {
     return (
-      <div className="feature-page server-images-page">
-        <PageHeader />
+      <div className="server-images-page">
         <section className="server-images-lock" aria-labelledby="server-images-lock-title">
           <div className="server-images-lock__signal" aria-hidden="true"><LockKeyhole /></div>
           <div>
-            <span className="server-images-kicker">Pro feature</span>
+            <span className="server-images-kicker">Plus feature</span>
             <h2 id="server-images-lock-title">Keep every server icon, banner and invite background.</h2>
             <p>
-              On Pro and Max, Acosmibot can set your server images from chat or this page, and archives
+              On Plus and higher, Acosmibot can set your server images from this page, and archives
               the old one first so you can always switch back.
             </p>
             <Link to={`/pricing?guild=${guildId}`} className="btn primary">
@@ -109,7 +107,7 @@ export const ServerImagesPage: React.FC = () => {
 
   if (error || !query.data) {
     return (
-      <div className="feature-page server-images-page">
+      <div className="server-images-page">
         <div className="server-images-state" role="alert">
           <CircleAlert aria-hidden="true" />
           <h1>Server images could not load</h1>
@@ -121,10 +119,12 @@ export const ServerImagesPage: React.FC = () => {
   }
 
   const data = query.data;
-  const meta = KINDS.find((item) => item.kind === kind)!;
+  const meta = IMAGE_KINDS.find((item) => item.kind === kind)!;
+  const readOnly = Boolean(data.locked);
   const rule = availability(kind, data.perks);
   const current = data.current[kind];
-  const busy = upload.isPending || update.isPending || remove.isPending || apply.isPending || removeCurrent.isPending;
+  const busy = readOnly || upload.isPending || update.isPending || remove.isPending || apply.isPending
+    || removeCurrent.isPending;
 
   const run = async (action: () => Promise<unknown>, success: string) => {
     setStatus(null);
@@ -151,27 +151,13 @@ export const ServerImagesPage: React.FC = () => {
   };
 
   return (
-    <div className="feature-page server-images-page">
-      <PageHeader />
-
-      <div className="server-images-tabs" role="tablist" aria-label="Image type">
-        {KINDS.map((item) => {
-          const count = data.images.filter((image) => image.kind === item.kind).length;
-          return (
-            <button
-              key={item.kind}
-              type="button"
-              role="tab"
-              aria-selected={kind === item.kind}
-              className={`server-images-tab${kind === item.kind ? ' is-active' : ''}`}
-              onClick={() => { setKind(item.kind); setConfirming(null); setEditing(null); setStatus(null); }}
-            >
-              {item.label}
-              <span className="server-images-tab__count">{count}</span>
-            </button>
-          );
-        })}
-      </div>
+    <div className="server-images-page">
+      {readOnly && (
+        <p className="server-images-status server-images-status--error" role="status">
+          This server is on the Free plan, so the library is read-only. You can still open and download every
+          image. <Link to={`/pricing?guild=${guildId}`}>Upgrade to Plus</Link> to switch or add images.
+        </p>
+      )}
 
       {status && (
         <p className={`server-images-status server-images-status--${status.tone}`} role={status.tone === 'error' ? 'alert' : 'status'}>
@@ -268,17 +254,6 @@ export const ServerImagesPage: React.FC = () => {
     </div>
   );
 };
-
-const PageHeader: React.FC = () => (
-  <header className="page-header text-start mt-0 mb-4">
-    <span className="server-images-kicker"><RefreshCw aria-hidden="true" /> Server identity</span>
-    <h1>Server Images</h1>
-    <p>
-      Every icon, banner and invite background Acosmibot sets is kept here, including the one it replaced.
-      Switch between them, download them, or add new ones.
-    </p>
-  </header>
-);
 
 interface LibraryCardProps {
   image: ServerImage;
