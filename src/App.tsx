@@ -14,7 +14,7 @@ const GiveawayPage = lazyRoute(() => import('./features/giveaway/GiveawayPage').
 const LevelingPage = lazyRoute(() => import('./features/leveling/LevelingPage').then(module => ({ default: module.LevelingPage })));
 const StreamPlatformFeature = lazyRoute(() => import('./features/streaming/StreamPlatformFeature').then(module => ({ default: module.StreamPlatformFeature })));
 const XAlertsPage = lazyRoute(() => import('./features/x-alerts/XAlertsPage').then(module => ({ default: module.XAlertsPage })));
-const ServerImagesPage = lazyRoute(() => import('./features/server-images/ServerImagesPage').then(module => ({ default: module.ServerImagesPage })));
+const ServerBrandingPage = lazyRoute(() => import('./features/server-branding/ServerBrandingPage').then(module => ({ default: module.ServerBrandingPage })));
 const OverviewPage = lazyRoute(() => import('./features/overview/OverviewPage').then(module => ({ default: module.OverviewPage })));
 const CustomCommandsPage = lazyRoute(() => import('./features/custom-commands/CustomCommandsPage').then(module => ({ default: module.CustomCommandsPage })));
 const ModerationPage = lazyRoute(() => import('./features/moderation/ModerationPage').then(module => ({ default: module.ModerationPage })));
@@ -148,8 +148,12 @@ const FeatureOutlet = () => {
     return <XAlertsPage />;
   }
 
+  if (feature === 'server-branding') {
+    return <ServerBrandingPage />;
+  }
+
   if (feature === 'server-images') {
-    return <ServerImagesPage />;
+    return <Navigate to={`/server/${guildId}/server-branding`} replace />;
   }
   
   if (feature === 'custom-commands') {

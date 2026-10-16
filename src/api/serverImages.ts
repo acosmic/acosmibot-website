@@ -35,6 +35,8 @@ export interface ServerImagesOverview {
   current: Record<ServerImageKind, { key: string | null; url: string | null }>;
   perks: ServerImagePerks;
   max_unpinned_per_kind: number;
+  /** Below Plus: viewable and downloadable, but read-only. */
+  locked?: boolean;
 }
 
 export interface ApplyResult {
@@ -52,7 +54,7 @@ export class ServerImagesError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const isForm = init?.body instanceof FormData;
   const response = await fetch(`${apiBase()}${path}`, {
     ...init,
