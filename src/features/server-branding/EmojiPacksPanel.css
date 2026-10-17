@@ -222,63 +222,152 @@ button.emoji-tile__flag:hover:not(:disabled) {
   cursor: grabbing;
 }
 
-.emoji-tile__add {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-}
-
-.emoji-tile__add > .server-images-icon-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-}
-
-.emoji-tile__add > .server-images-icon-btn:hover:not(:disabled) {
-  background: var(--bg-overlay-hover);
-  color: var(--primary-color);
-}
-
-.emoji-tile__add svg {
-  width: 14px;
-  height: 14px;
-}
-
-.emoji-tile__add .pack-picker__list {
-  left: 0;
-  transform: none;
-}
-
-.emoji-tile__remove {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-muted);
-}
-
-.emoji-tile__remove:hover:not(:disabled) {
-  background: var(--bg-overlay-hover);
-  color: #ffb3b3;
-}
-
-.emoji-tile__remove svg {
-  width: 14px;
-  height: 14px;
-}
-
-.emoji-packs-remove {
-  grid-column: 1 / -1;
-}
-
 .emoji-pack-card__preview img.is-draggable {
   cursor: grab;
+}
+
+.emoji-tile .emoji-tile__actions .server-images-icon-btn {
+  width: 34px;
+  height: 34px;
+}
+
+.emoji-grid--editor {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+}
+
+/* -------------------------------------------------------- confirm */
+
+.emoji-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--server-backdrop, rgba(0, 0, 0, 0.68));
+  backdrop-filter: blur(7px);
+}
+
+.emoji-confirm {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 26px;
+  border: 1px solid var(--border-medium);
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.58);
+  color: var(--text-secondary);
+}
+
+.emoji-confirm__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.emoji-confirm__close:hover:not(:disabled) {
+  border-color: var(--border-cyan);
+  color: var(--text-primary);
+}
+
+.emoji-confirm__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.emoji-confirm__heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 44px;
+}
+
+.emoji-confirm__image {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  padding: 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-primary);
+  object-fit: contain;
+}
+
+.emoji-confirm__heading span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--primary-color);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.emoji-confirm__heading h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.emoji-confirm__body {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.emoji-confirm__body p {
+  margin: 0;
+}
+
+.emoji-confirm__body strong {
+  color: var(--text-primary);
+}
+
+.emoji-confirm__warn {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--error-color) 45%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--error-color) 10%, transparent);
+  color: var(--text-primary);
+}
+
+.emoji-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.emoji-confirm__actions .btn {
+  min-height: 44px;
+  padding: 10px 16px;
+}
+
+.emoji-confirm__danger {
+  border: 1px solid color-mix(in srgb, var(--error-color) 62%, transparent);
+  background: color-mix(in srgb, var(--error-color) 18%, var(--bg-tertiary));
+  color: #fff;
+}
+
+.emoji-confirm__danger:hover:not(:disabled),
+.emoji-confirm__danger:focus-visible {
+  border-color: var(--error-color);
+  background: color-mix(in srgb, var(--error-color) 28%, var(--bg-tertiary));
 }
 
 .emoji-pack-card.is-drop-target {
@@ -565,18 +654,10 @@ button.emoji-tile__flag:hover:not(:disabled) {
   height: 36px;
 }
 
-.pack-picker {
-  position: relative;
-  display: inline-flex;
-}
-
 .pack-picker__list {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  left: 50%;
+  position: fixed;
+  z-index: 1200;
   display: grid;
-  min-width: 190px;
   max-height: 260px;
   overflow-y: auto;
   padding: 6px;
@@ -584,7 +665,6 @@ button.emoji-tile__flag:hover:not(:disabled) {
   border-radius: 10px;
   background: var(--bg-secondary);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
-  transform: translateX(-50%);
 }
 
 .pack-picker__title,

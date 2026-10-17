@@ -18,6 +18,7 @@ import type { EmojiPack, EmojiPackItem, EmojiPackJob, EmojiPacksOverview, LiveEm
 import { emojiPacksApi } from '@/api/emojiPacks';
 import { ServerImagesError } from '@/api/serverImages';
 import { LoadingSpinner } from '@/components/ui';
+import { ConfirmDialog } from './ConfirmDialog';
 import { PackPicker } from './PackPicker';
 import { SevenTvBrowser } from './SevenTvBrowser';
 import { useEmojiPacks } from './useEmojiPacks';
@@ -362,16 +363,19 @@ const LiveCard: React.FC<{
         {!readOnly && <p>Drag an emoji onto a pack below, or use its <strong>+</strong>, to save it into that pack.</p>}
       </div>
       {removing && (
-        <div className="server-images-confirm emoji-packs-remove" role="alertdialog" aria-label={`Remove :${removing.name}:`}>
-          <span>
-            Remove <strong>:{removing.name}:</strong> from Discord?{' '}
-            {keptIn(removing).length
-              ? `It stays saved in ${keptIn(removing).join(', ')}.`
-              : 'It isn’t saved in any other pack, so it will be gone. Drag it onto a pack first to keep a copy.'}
-          </span>
-          <button type="button" className="btn danger" disabled={removeBusy} onClick={() => onConfirmRemove(removing)}>Remove</button>
-          <button type="button" className="btn secondary" onClick={() => onRemove(null)}>Cancel</button>
-        </div>
+        <ConfirmDialog kicker="Live in Discord" title={`Remove :${removing.name}: from the server?`}
+          confirmLabel="Remove from server" imageUrl={removing.url} pending={removeBusy}
+          onConfirm={() => onConfirmRemove(removing)} onClose={() => onRemove(null)}>
+          <p>Acosmibot deletes this emoji from Discord now{livePack ? ` and takes it out of ${livePack.name}` : ''}.</p>
+          {keptIn(removing).length ? (
+            <p>It stays saved in <strong>{keptIn(removing).join(', ')}</strong>, so you can bring it back later.</p>
+          ) : (
+            <p className="emoji-confirm__warn">
+              It isn’t saved in any other pack, so it will be gone for good. Cancel and drag it onto a pack first to
+              keep a copy.
+            </p>
+          )}
+        </ConfirmDialog>
       )}
       {live.emojis.length === 0 ? (
         <p className="server-images-empty">This server has no custom emojis right now.</p>
@@ -392,15 +396,17 @@ const LiveCard: React.FC<{
                 <img src={emoji.url} alt="" loading="lazy" />
                 <span className="emoji-tile__name">:{emoji.name}:</span>
                 {draggable(emoji) && (
-                  <PackPicker className="emoji-tile__add" label={`Save :${emoji.name}: to a pack`} packs={targets}
-                    disabled={adding} onPick={(pack) => onAddToPack(emoji, pack)} />
-                )}
-                {!readOnly && !auto && (
-                  <button type="button" className="emoji-tile__remove" disabled={removeBusy}
-                    aria-label={`Remove :${emoji.name}: from the server`} title="Remove from server"
-                    onClick={() => onRemove(emoji)}>
-                    <Trash2 aria-hidden="true" />
-                  </button>
+                  <span className="emoji-tile__actions">
+                    <PackPicker label={`Save :${emoji.name}: to a pack`} packs={targets}
+                      disabled={adding} onPick={(pack) => onAddToPack(emoji, pack)} />
+                    {!auto && (
+                      <button type="button" className="server-images-icon-btn" disabled={removeBusy}
+                        aria-label={`Remove :${emoji.name}: from the server`} title="Remove from server"
+                        onClick={() => onRemove(emoji)}>
+                        <Trash2 aria-hidden="true" />
+                      </button>
+                    )}
+                  </span>
                 )}
                 {auto ? (
                   <span className="emoji-tile__flag"><LockKeyhole aria-label={title} /></span>
@@ -553,39 +559,44 @@ const PackCard: React.FC<{
         ))}
         {pack.items.length > preview.length && <span>+{pack.items.length - preview.length}</span>}
       </div>
-      {confirming ? (
-        <div className="server-images-confirm">
-          <span>
-            {confirming === 'apply'
-              ? 'Apply this pack? Only emojis that differ change, and anything unsaved is backed up first.'
-              : 'Delete this pack? Emoji in Discord are not affected.'}
-          </span>
-          <button type="button" className={`btn ${confirming === 'apply' ? 'primary' : 'danger'}`} disabled={busy}
-            onClick={confirming === 'apply' ? onApply : onDelete}>
-            {confirming === 'apply' ? 'Apply' : 'Delete'}
-          </button>
-          <button type="button" className="btn secondary" onClick={onCancel}>Cancel</button>
-        </div>
-      ) : (
-        <div className="server-images-actions">
-          <button type="button" className="btn primary" disabled={busy || !pack.usable || overflow}
-            title={overflow ? 'This pack has more emojis than the server has slots' : undefined}
-            onClick={() => onConfirm('apply')}>
-            {pack.live ? 'Re-apply' : 'Apply'}
-          </button>
-          <button type="button" className="btn secondary" aria-expanded={selected} onClick={onSelect}>
-            <Pencil aria-hidden="true" /> {pack.usable ? 'Edit' : 'View'}
-          </button>
-          <a className="server-images-icon-btn" href={emojiPacksApi.downloadUrl(guildId, pack.id)} aria-label={`Download ${pack.name} as a zip`}>
-            <Download aria-hidden="true" />
-          </a>
-          <button type="button" className="server-images-icon-btn" disabled={busy || pack.live}
-            aria-label={`Delete ${pack.name}`} title={pack.live ? 'Apply another pack before deleting this one' : undefined}
-            onClick={() => onConfirm('delete')}>
-            <Trash2 aria-hidden="true" />
-          </button>
-        </div>
+      {confirming === 'apply' && (
+        <ConfirmDialog kicker="Emoji pack" title={`Apply ${pack.name}?`} confirmLabel="Apply pack" tone="primary"
+          pending={busy} onConfirm={onApply} onClose={onCancel}>
+          <p>
+            Discord's emojis change to match <strong>{pack.name}</strong> ({pack.counts.static} static,{' '}
+            {pack.counts.animated} animated). Only emojis that differ change, and any live emoji that isn't saved in a
+            pack yet is saved first.
+          </p>
+          <p>Pinned, reaction-role and integration emojis stay put.</p>
+        </ConfirmDialog>
       )}
+      {confirming === 'delete' && (
+        <ConfirmDialog kicker="Emoji pack" title={`Delete ${pack.name}?`} confirmLabel="Delete pack"
+          pending={busy} onConfirm={onDelete} onClose={onCancel}>
+          <p>
+            The pack and its {pack.counts.total} saved {pack.counts.total === 1 ? 'emoji' : 'emojis'} are deleted from
+            Acosmibot. Emojis in Discord aren't affected, and emojis that are also in other packs stay there.
+          </p>
+        </ConfirmDialog>
+      )}
+      <div className="server-images-actions">
+        <button type="button" className="btn primary" disabled={busy || !pack.usable || overflow}
+          title={overflow ? 'This pack has more emojis than the server has slots' : undefined}
+          onClick={() => onConfirm('apply')}>
+          {pack.live ? 'Re-apply' : 'Apply'}
+        </button>
+        <button type="button" className="btn secondary" aria-expanded={selected} onClick={onSelect}>
+          <Pencil aria-hidden="true" /> {pack.usable ? 'Edit' : 'View'}
+        </button>
+        <a className="server-images-icon-btn" href={emojiPacksApi.downloadUrl(guildId, pack.id)} aria-label={`Download ${pack.name} as a zip`}>
+          <Download aria-hidden="true" />
+        </a>
+        <button type="button" className="server-images-icon-btn" disabled={busy || pack.live}
+          aria-label={`Delete ${pack.name}`} title={pack.live ? 'Apply another pack before deleting this one' : undefined}
+          onClick={() => onConfirm('delete')}>
+          <Trash2 aria-hidden="true" />
+        </button>
+      </div>
     </li>
   );
 };
@@ -610,6 +621,7 @@ const PackEditor: React.FC<{
   const [packName, setPackName] = useState(pack.name);
   const [editing, setEditing] = useState<{ id: number; name: string } | null>(null);
   const [filter, setFilter] = useState('');
+  const [deleting, setDeleting] = useState<EmojiPackItem | null>(null);
   const busy = readOnly || hooks.addItems.isPending || hooks.renameItem.isPending || hooks.deleteItem.isPending;
   const items = useMemo(
     () => pack.items.filter((item) => item.name.toLowerCase().includes(filter.trim().toLowerCase())),
@@ -643,6 +655,21 @@ const PackEditor: React.FC<{
 
   return (
     <section ref={section} className="server-images-upload emoji-pack-editor" aria-labelledby="emoji-pack-editor-title">
+      {deleting && (
+        <ConfirmDialog kicker={pack.name} title={`Remove :${deleting.name}: from ${pack.name}?`} confirmLabel="Remove from pack"
+          imageUrl={deleting.url} pending={hooks.deleteItem.isPending}
+          onClose={() => setDeleting(null)}
+          onConfirm={() => void run(async () => {
+            await hooks.deleteItem.mutateAsync({ packId: pack.id, itemId: deleting.id });
+            setDeleting(null);
+          }, `Removed :${deleting.name}: from ${pack.name}.`)}>
+          <p>
+            It's only removed from this pack. {pack.live
+              ? 'The emoji stays in Discord until you apply the pack again.'
+              : 'Discord and your other packs aren’t affected.'}
+          </p>
+        </ConfirmDialog>
+      )}
       <div className="emoji-pack-editor__head">
         <h2 id="emoji-pack-editor-title">{readOnly ? <Smile aria-hidden="true" /> : <Pencil aria-hidden="true" />} {pack.name}</h2>
         <span>{pack.counts.static}/{limit} static · {pack.counts.animated}/{limit} animated</span>
@@ -686,15 +713,11 @@ const PackEditor: React.FC<{
       {pack.items.length === 0 ? (
         <p className="server-images-empty">No emojis in this pack yet.</p>
       ) : (
-        <ul className="emoji-grid">
+        <ul className="emoji-grid emoji-grid--editor">
           {items.map((item) => (
             <li key={item.id} className={`emoji-tile emoji-tile--editable${canCopy ? ' is-draggable' : ''}`}
               title={item.source === '7tv' ? `From 7TV${item.source_author ? ` · by ${item.source_author}` : ''}` : undefined}
               draggable={canCopy && editing?.id !== item.id} onDragStart={canCopy ? dragItem(item) : undefined}>
-              {canCopy && (
-                <PackPicker className="emoji-tile__add" label={`Copy :${item.name}: to a pack`} packs={copyTargets}
-                  disabled={hooks.copyItems.isPending} onPick={(target) => onCopy(item, target)} />
-              )}
               <img src={item.url} alt="" loading="lazy" />
               {editing?.id === item.id ? (
                 <form className="emoji-tile__rename" onSubmit={(event) => {
@@ -712,16 +735,24 @@ const PackEditor: React.FC<{
               ) : (
                 <>
                   <span className="emoji-tile__name">:{item.name}:{item.animated ? ' · GIF' : ''}</span>
-                  {!readOnly && (
+                  {(canCopy || !readOnly) && (
                     <span className="emoji-tile__actions">
-                      <button type="button" className="server-images-icon-btn" aria-label={`Rename :${item.name}:`} disabled={busy}
-                        onClick={() => setEditing({ id: item.id, name: item.name })}>
-                        <Pencil aria-hidden="true" />
-                      </button>
-                      <button type="button" className="server-images-icon-btn" aria-label={`Remove :${item.name}: from ${pack.name}`} disabled={busy}
-                        onClick={() => void run(() => hooks.deleteItem.mutateAsync({ packId: pack.id, itemId: item.id }), `Removed :${item.name}:.`)}>
-                        <Trash2 aria-hidden="true" />
-                      </button>
+                      {canCopy && (
+                        <PackPicker label={`Copy :${item.name}: to a pack`} packs={copyTargets}
+                          disabled={hooks.copyItems.isPending} onPick={(target) => onCopy(item, target)} />
+                      )}
+                      {!readOnly && (
+                        <>
+                          <button type="button" className="server-images-icon-btn" aria-label={`Rename :${item.name}:`} disabled={busy}
+                            onClick={() => setEditing({ id: item.id, name: item.name })}>
+                            <Pencil aria-hidden="true" />
+                          </button>
+                          <button type="button" className="server-images-icon-btn" aria-label={`Remove :${item.name}: from ${pack.name}`} disabled={busy}
+                            onClick={() => setDeleting(item)}>
+                            <Trash2 aria-hidden="true" />
+                          </button>
+                        </>
+                      )}
                     </span>
                   )}
                 </>
