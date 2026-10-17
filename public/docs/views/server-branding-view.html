@@ -1,0 +1,166 @@
+<div class="docs-page-container">
+  <div class="docs-breadcrumb">
+    <a href="/docs/introduction" onclick="event.preventDefault(); window.DocsRouter.navigate('introduction')">Documentation</a>
+    <span class="separator">›</span>
+    <span class="current">Core Systems</span>
+  </div>
+
+  <header class="docs-page-header">
+    <h1>Server Branding</h1>
+    <p class="docs-page-description">
+      Set the server icon, banner, and invite background from Discord or the website, keep every version in a stored image library, and swap whole sets of custom emoji with emoji packs.
+    </p>
+    <a href="/servers" class="btn-configure">Open Server Branding →</a>
+  </header>
+
+  <section class="docs-section">
+    <h2>Overview</h2>
+    <p>
+      Server Branding is available on <strong>Plus and higher</strong> to members with <strong>Manage Server</strong>. Change the server icon, banner, and invite background with the <code>/server</code> commands or from the <strong>Server Branding</strong> page in the website dashboard. On Pro and Max, you can also ask Acosmibot in chat: attach an image, or reply to one such as a picture Acosmibot just generated, and say "set this as the server icon", "make this our server banner", or "use this as the invite background". You can also say "remove the server banner".
+    </p>
+    <div class="info-card">
+      <h3>Key Features</h3>
+      <ul>
+        <li>Set or remove the icon, banner, and invite background from an attached image or GIF</li>
+        <li>Automatic crop and resize: square 1024×1024 for the icon, 16:9 up to 1920×1080 for the banner and invite background</li>
+        <li>A confirmation card shows exactly what will be uploaded before anything changes</li>
+        <li>Every image is archived, so you can always switch back to a previous one</li>
+        <li>Emoji packs save your custom emoji as named sets you can swap in and out</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Commands</h2>
+
+    <div class="command-card">
+      <div class="command-signature">/server icon</div>
+      <div class="command-description">
+        Set the server icon from an attached image or GIF, or remove it.
+      </div>
+    </div>
+
+    <div class="command-card">
+      <div class="command-signature">/server banner</div>
+      <div class="command-description">
+        Set or remove the server banner. Discord unlocks banners at Boost Level 2.
+      </div>
+    </div>
+
+    <div class="command-card">
+      <div class="command-signature">/server invite-background</div>
+      <div class="command-description">
+        Set or remove the invite background. Discord unlocks it at Boost Level 1.
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>Animated images and boost perks</h3>
+      <p>
+        Animated GIFs stay animated when the server has the perk: animated icons at Boost Level 1, animated banners at Boost Level 3. Otherwise the first frame is used. Discord never animates invite backgrounds. Large or long GIFs are shrunk, and frames dropped if needed, to fit Discord's size limit. Ask Acosmibot "what boost perks does this server have?" to see which ones are unlocked.
+      </p>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Generate and Set in One Request</h2>
+    <p>
+      On Pro and Max you can make an image and apply it in a single request, for example "generate a halloween version of our server icon, then set it as the icon". Mentioning "our server icon", "our banner", or "our invite background" uses the current one as the starting picture. You confirm the generated picture first, then a second card asks before anything changes in Discord.
+    </p>
+  </section>
+
+  <section class="docs-section">
+    <h2>Server Image Library</h2>
+    <p>
+      Every image Acosmibot sets is stored, and the image it replaces or removes is saved first, so you can always go back. Up to 25 unpinned images are kept per type; pinned images are kept forever.
+    </p>
+    <ul>
+      <li><strong>Website:</strong> the Server Branding page shows the current icon, banner, and invite background. Upload new ones, rename, pin, download, delete, and set any stored image as current.</li>
+      <li><strong>Chat (Pro and Max):</strong> ask "what stored icons do you have?" to list them, "send me the halloween one" to get the file, or "switch the server icon back to the previous one" to set an older one again. It still asks you to confirm.</li>
+    </ul>
+  </section>
+
+  <section class="docs-section">
+    <h2>Emoji Packs</h2>
+    <p>
+      Emoji packs save your server's custom emoji as named sets you can swap in and out, such as a Halloween set and a Winter set. Open <strong>Server Branding → Emoji Packs</strong> on the website and turn them on. Acosmibot first downloads every current emoji into a pack called <strong>Original</strong>. It works like any other pack, so you can edit, rename, or delete it, but it never counts toward your plan.
+    </p>
+
+    <table class="config-table">
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Your own packs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Free</td><td>Not included</td></tr>
+        <tr><td>Plus</td><td>3</td></tr>
+        <tr><td>Pro</td><td>5</td></tr>
+        <tr><td>Max</td><td>10</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Building and applying packs</h3>
+    <ul>
+      <li>Build a pack by uploading images (PNG, JPEG, GIF, or WebP; anything over Discord's 256 KB emoji limit is shrunk), duplicating another pack, or saving what is live in Discord right now.</li>
+      <li>Applying a pack only changes what differs. Emoji in both packs stay put with the same ID, so old messages keep showing them.</li>
+      <li>Before anything is removed, any live emoji that is not saved in a pack yet is added to the pack that was live.</li>
+      <li>Mark emoji <strong>Always keep</strong> to leave them in place whichever pack is live. Emoji used by reaction roles, and emoji managed by an integration such as Twitch, are always kept automatically. Kept emoji still use slots, so a pack has to fit in the slots left over.</li>
+    </ul>
+
+    <h3>Keeping packs in sync</h3>
+    <ul>
+      <li>Emoji someone adds directly in Discord are saved into the live pack automatically.</li>
+      <li>To copy emoji between packs, drag them from <strong>Live in Discord</strong> or from one pack onto another, or use an emoji's <strong>+</strong>. Copying never changes Discord.</li>
+      <li>To take an emoji off the server, use its <strong>Remove from server</strong> button. It is deleted from Discord and from the live pack, and stays in any other pack that has it.</li>
+    </ul>
+
+    <div class="info-card info-card-warning">
+      <h3>Things to Keep in Mind</h3>
+      <ul>
+        <li>Discord limits how fast emoji can be uploaded, so a large pack can take a while. The page shows progress, and you can leave it open or come back later.</li>
+        <li>Acosmibot needs Discord's <strong>Manage Expressions</strong> permission to apply a pack.</li>
+        <li>If the server drops to a lower plan, extra packs are kept but locked until you are back under the limit.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <h4>Q: The /server commands say the feature is not available</h4>
+      <p>A: Server Branding requires Plus or higher and the Manage Server permission. Check the server's plan on its Billing page.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: My animated icon or banner stopped animating</h4>
+      <p>A: Discord only animates icons at Boost Level 1 and banners at Boost Level 3. Below those levels Acosmibot uploads the first frame. Invite backgrounds are never animated.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: A pack would not apply</h4>
+      <p>A: A pack has to fit in the emoji slots left after kept emoji. Mark fewer emoji as Always keep, remove unused live emoji, or trim the pack. Also confirm Acosmibot has Manage Expressions.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I use these from chat on Plus?</h4>
+      <p>A: On Plus, use the /server commands or the website. Asking Acosmibot in chat to set images or browse the library is an AI tool and requires Pro or Max.</p>
+    </div>
+  </section>
+
+  <!-- Navigation -->
+  <div class="docs-nav-container">
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('moderation')">
+      <span class="arrow">←</span>
+      <span class="nav-label">Back</span>
+      <span class="nav-page">Moderation</span>
+    </button>
+    <button class="docs-nav-btn" onclick="window.DocsRouter.navigate('ai')">
+      <span class="nav-page">AI Integration</span>
+      <span class="nav-label">Next</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</div>
