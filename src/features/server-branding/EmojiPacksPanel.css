@@ -365,6 +365,222 @@ button.emoji-tile__flag:hover:not(:disabled) {
   max-width: 320px;
 }
 
+/* ------------------------------------------------------------- 7TV */
+
+.seventv {
+  display: grid;
+  gap: 14px;
+}
+
+.seventv__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.seventv__head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.seventv__head h2 svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary-color);
+}
+
+.seventv__modes {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--bg-primary);
+}
+
+.seventv__modes button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.seventv__modes button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.seventv__modes button.is-active {
+  background: var(--bg-overlay-hover);
+  color: var(--text-primary);
+}
+
+.seventv__target {
+  max-width: 360px;
+}
+
+.seventv select {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.seventv__select {
+  flex: 0 1 160px;
+}
+
+.seventv__hint,
+.seventv__credit {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.seventv__credit {
+  margin: 0;
+}
+
+.seventv__grid {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+}
+
+.seventv__grid.is-fetching {
+  opacity: 0.6;
+}
+
+.seventv__tile .emoji-tile__name {
+  color: var(--text-primary);
+}
+
+.seventv__author {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seventv__author svg {
+  flex: none;
+  width: 11px;
+  height: 11px;
+}
+
+.seventv__tile .server-images-icon-btn {
+  width: 36px;
+  height: 36px;
+}
+
+.seventv__pick {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-color);
+}
+
+.seventv__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.seventv__users {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.seventv__users button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.seventv__users button:hover {
+  border-color: var(--border-cyan);
+}
+
+.seventv__users img,
+.seventv__users svg {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.seventv__users span {
+  display: grid;
+  min-width: 0;
+}
+
+.seventv__users strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seventv__users small {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.seventv__set {
+  display: grid;
+  gap: 12px;
+}
+
+.seventv__set-head,
+.seventv__set-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.seventv__set-head span,
+.seventv__set-tools span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.seventv__set-tools span {
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 760px) {
   .emoji-packs-live {
     grid-template-columns: 1fr;

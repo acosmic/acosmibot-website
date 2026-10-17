@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { emojiPacksApi, type NewPackSource } from '@/api/emojiPacks';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { emojiPacksApi, SEVENTV_BATCH, type ImportResult, type NewPackSource, type SevenTvSort } from '@/api/emojiPacks';
 
 const JOB_POLL_MS = 2500;
 
@@ -58,5 +58,62 @@ export function useEmojiPacks(guildId: string) {
     onSuccess: invalidate,
   });
 
-  return { query, enable, createPack, renamePack, deletePack, addItems, renameItem, deleteItem, apply, capture, setKeep };
+  const addSevenTv = useMutation({
+    /** Imports in batches the API can download within one request. */
+    mutationFn: async (input: { packId: number; emotes: { id: string; name?: string }[] }) => {
+      const total: ImportResult = { added: [], errors: [] };
+      for (let start = 0; start < input.emotes.length; start += SEVENTV_BATCH) {
+        const batch = input.emotes.slice(start, start + SEVENTV_BATCH);
+        const result = await emojiPacksApi.addSevenTv(guildId, input.packId, batch);
+        total.added.push(...result.added);
+        total.errors.push(...result.errors);
+      }
+      return total;
+    },
+    onSettled: invalidate,
+  });
+  const addSevenTvToServer = useMutation({
+    mutationFn: (emote: { id: string; name?: string }) => emojiPacksApi.addSevenTvToServer(guildId, emote),
+    onSuccess: invalidate,
+  });
+
+  return {
+    query, enable, createPack, renamePack, deletePack, addItems, renameItem, deleteItem, apply, capture, setKeep,
+    addSevenTv, addSevenTvToServer,
+  };
+}
+
+const SEVENTV_STALE_MS = 5 * 60 * 1000;
+const retryUnlessClientError = (count: number, error: unknown) =>
+  count < 1 && !(error instanceof Error && 'status' in error && Number(error.status) < 500);
+
+export function useSevenTvSearch(guildId: string, input: { q: string; sort: SevenTvSort; animated: '' | 'true' | 'false'; page: number }) {
+  return useQuery({
+    queryKey: ['seventv', 'emotes', guildId, input] as const,
+    queryFn: () => emojiPacksApi.searchSevenTv(guildId, input),
+    placeholderData: keepPreviousData,
+    staleTime: SEVENTV_STALE_MS,
+    retry: retryUnlessClientError,
+  });
+}
+
+export function useSevenTvUsers(guildId: string, q: string) {
+  return useQuery({
+    queryKey: ['seventv', 'users', guildId, q] as const,
+    queryFn: () => emojiPacksApi.searchSevenTvUsers(guildId, q),
+    enabled: q.trim().length >= 2,
+    staleTime: SEVENTV_STALE_MS,
+    retry: retryUnlessClientError,
+  });
+}
+
+export function useSevenTvSet(guildId: string, setId: string | null, page: number) {
+  return useQuery({
+    queryKey: ['seventv', 'set', guildId, setId, page] as const,
+    queryFn: () => emojiPacksApi.sevenTvSet(guildId, setId as string, page),
+    enabled: Boolean(setId),
+    placeholderData: keepPreviousData,
+    staleTime: SEVENTV_STALE_MS,
+    retry: retryUnlessClientError,
+  });
 }
