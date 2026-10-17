@@ -71,14 +71,25 @@
 
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/admin-start-lotto &lt;hours&gt; [channel]</div>
+        <div class="command-signature">/admin-start-lotto &lt;hours&gt; [channel] [amount]</div>
         <div class="command-description">
-          Start a server lottery. Requires administrator permissions. The lottery runs for the specified number of hours and the announcement is posted in the specified channel. The prize pool is drawn from the guild vault balance at the time the lottery starts.
+          Start a server lottery. Requires administrator permissions. The lottery runs for the specified number of hours and the announcement is posted in the specified channel. The optional <code>amount</code> sets a fixed prize taken from the server Bank; leave it out to raffle the whole Bank.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
           <code>/admin-start-lotto 24 #giveaways</code>
-          <code>/admin-start-lotto 48 #announcements</code>
+          <code>/admin-start-lotto 48 #announcements 5000</code>
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-signature">/admin-cancel-lotto</div>
+        <div class="command-description">
+          Stop the running lottery. Requires administrator permissions. No winner is drawn, nothing leaves the Bank, and the pinned entry message is removed.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/admin-cancel-lotto</code>
         </div>
       </div>
     </div>
@@ -94,7 +105,7 @@
       <h3>Vault Requirements</h3>
       <ul>
         <li>The guild vault must have sufficient Acosmicoins to fund the lottery prize before it can be started</li>
-        <li>The prize amount is locked at lottery start — vault changes during the lottery do not affect the payout</li>
+        <li>A fixed prize amount is capped at the Bank balance if the Bank shrinks before the draw; without an amount, the whole Bank is paid out</li>
         <li>If the vault is empty or insufficient, the bot will notify the admin and prevent the lottery from starting</li>
         <li>Vault balance can be checked and managed through the <a href="/servers" target="_blank">/server dashboard</a></li>
       </ul>
@@ -119,7 +130,7 @@
       <h3>Things to Keep in Mind</h3>
       <ul>
         <li>Only <strong>one lottery can run at a time</strong> — you cannot stack multiple drawings</li>
-        <li>The lottery cannot be cancelled once started — plan your timing carefully</li>
+        <li>A running lottery can be stopped with <code>/admin-cancel-lotto</code> — no winner is drawn and nothing leaves the Bank</li>
         <li>Make sure the bot has permission to <strong>read reactions</strong> in the lottery channel</li>
         <li>Members who leave the server before the draw are <strong>removed from the entry pool</strong></li>
       </ul>
@@ -146,12 +157,12 @@
 
     <div class="faq-item">
       <h4>Q: Can I run a lottery without using the guild vault?</h4>
-      <p>A: Currently the prize is always drawn from the guild vault. Custom prize amounts and member-funded entry pools are not supported at this time.</p>
+      <p>A: The prize is always taken from the server Bank. Use the optional <code>amount</code> on <code>/admin-start-lotto</code> for a fixed prize, or omit it to raffle the whole Bank. Member-funded entry pools are not supported.</p>
     </div>
 
     <div class="faq-item">
       <h4>Q: Can I cancel a lottery that's already running?</h4>
-      <p>A: Cancelling an active lottery is not currently supported through a command. Contact support if you need to emergency-stop a running lottery.</p>
+      <p>A: Yes. An administrator can run <code>/admin-cancel-lotto</code>. No winner is drawn, nothing leaves the Bank, and the pinned entry message is removed.</p>
     </div>
   </section>
 

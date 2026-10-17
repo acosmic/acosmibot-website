@@ -114,10 +114,9 @@
     <p>Customize your announcement messages with these placeholders:</p>
 
     <div class="code-block">
-      <code>🔴 {streamer} is now live on Twitch!
+      <code>🔴 {username} is now live on Twitch!
 {title}
-Playing: {game}
-{url}</code>
+Playing: {game} ({viewer_count} viewers)</code>
     </div>
 
     <table class="docs-table">
@@ -129,11 +128,6 @@ Playing: {game}
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td><code>{streamer}</code></td>
-          <td>Streamer's display name</td>
-          <td>xQc</td>
-        </tr>
         <tr>
           <td><code>{username}</code></td>
           <td>Streamer's Twitch username</td>
@@ -150,12 +144,7 @@ Playing: {game}
           <td>VALORANT</td>
         </tr>
         <tr>
-          <td><code>{url}</code></td>
-          <td>Twitch channel URL</td>
-          <td>https://twitch.tv/xqc</td>
-        </tr>
-        <tr>
-          <td><code>{viewers}</code></td>
+          <td><code>{viewer_count}</code></td>
           <td>Current viewer count</td>
           <td>45,123</td>
         </tr>
@@ -196,7 +185,7 @@ Playing: {game}
         <div class="step">
           <div class="step-number">5</div>
           <div class="step-content">
-            <p>Set custom message: "@everyone 🔴 {streamer} is live! {url}"</p>
+            <p>Set custom message: "@everyone 🔴 {username} is live playing {game}!"</p>
           </div>
         </div>
       </div>
@@ -291,7 +280,7 @@ Playing: {game}
 
     <div class="faq-item">
       <h4>Q: How many streamers can I track?</h4>
-      <p>A: There's no hard limit, but we recommend staying under 50 streamers per server for performance. Paid plans may have higher limits.</p>
+      <p>A: Free servers can track 1 Twitch streamer. Plus, Pro, and Max servers can track up to 5 per server.</p>
     </div>
   </section>
 
