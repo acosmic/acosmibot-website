@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink, Plus, Search, Send, Users } from 'lucide-react';
 import type { EmojiPack, SevenTvEmote, SevenTvSort } from '@/api/emojiPacks';
 import { useEmojiPacks, useSevenTvSearch, useSevenTvSet, useSevenTvUsers } from './useEmojiPacks';
@@ -62,10 +62,10 @@ export const SevenTvBrowser: React.FC<{
 
   const busy = hooks.addSevenTv.isPending || hooks.addSevenTvToServer.isPending;
   const actions: TileActions = {
-    packName: target?.name ?? null,
+    packs: editable,
     serverDisabled: working || busy || !hasLive,
-    packDisabled: busy || !target,
-    onPack: (emote) => void addToPack([emote]),
+    packDisabled: busy,
+    onPack: (emote, pack) => void addToPack([emote], pack.id, pack.name),
     onServer: addToServer,
   };
 
@@ -85,16 +85,18 @@ export const SevenTvBrowser: React.FC<{
         </div>
       </div>
 
-      <label className="server-images-field seventv__target">
-        <span>Add to pack</span>
-        {editable.length ? (
-          <select value={target?.id ?? ''} onChange={(event) => setTargetId(Number(event.target.value))}>
-            {editable.map((pack) => <option key={pack.id} value={pack.id}>{pack.name}</option>)}
-          </select>
-        ) : (
-          <span className="seventv__hint">Create a pack above to collect emotes. You can still add them straight to your server.</span>
-        )}
-      </label>
+      {mode === 'sets' && (
+        <label className="server-images-field seventv__target">
+          <span>Add selected emotes to</span>
+          {editable.length ? (
+            <select value={target?.id ?? ''} onChange={(event) => setTargetId(Number(event.target.value))}>
+              {editable.map((pack) => <option key={pack.id} value={pack.id}>{pack.name}</option>)}
+            </select>
+          ) : (
+            <span className="seventv__hint">No packs yet. Use “New pack from selection” or create one above.</span>
+          )}
+        </label>
+      )}
 
       {mode === 'emotes'
         ? <EmoteSearch guildId={guildId} actions={actions} />
@@ -298,10 +300,10 @@ const SetImport: React.FC<{
 /* ------------------------------------------------------------------ pieces */
 
 type TileActions = {
-  packName: string | null;
+  packs: EmojiPack[];
   packDisabled: boolean;
   serverDisabled: boolean;
-  onPack: (emote: SevenTvEmote) => void;
+  onPack: (emote: SevenTvEmote, pack: EmojiPack) => void;
   onServer: (emote: SevenTvEmote) => void;
 };
 
@@ -318,11 +320,7 @@ const EmoteTile: React.FC<{ emote: SevenTvEmote; actions: TileActions; picked?: 
       {emote.author ? `by ${emote.author}` : '7TV'} <ExternalLink aria-hidden="true" />
     </a>
     <span className="emoji-tile__actions">
-      <button type="button" className="server-images-icon-btn" disabled={actions.packDisabled}
-        aria-label={actions.packName ? `Add :${emote.name}: to ${actions.packName}` : `Add :${emote.name}: to a pack`}
-        title={actions.packName ? `Add to ${actions.packName}` : 'Create a pack first'} onClick={() => actions.onPack(emote)}>
-        <Plus aria-hidden="true" />
-      </button>
+      <PackMenu emote={emote} actions={actions} />
       <button type="button" className="server-images-icon-btn" disabled={actions.serverDisabled}
         aria-label={`Add :${emote.name}: to the server`} title="Add to server now" onClick={() => actions.onServer(emote)}>
         <Send aria-hidden="true" />
@@ -330,6 +328,51 @@ const EmoteTile: React.FC<{ emote: SevenTvEmote; actions: TileActions; picked?: 
     </span>
   </li>
 );
+
+/** The + button: opens a list of packs to add this emote to. */
+const PackMenu: React.FC<{ emote: SevenTvEmote; actions: TileActions }> = ({ emote, actions }) => {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent ? event.key === 'Escape' : !root.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
+
+  return (
+    <span className="seventv__menu" ref={root}>
+      <button type="button" className="server-images-icon-btn" disabled={actions.packDisabled}
+        aria-haspopup="menu" aria-expanded={open} aria-label={`Add :${emote.name}: to a pack`} title="Add to a pack"
+        onClick={() => setOpen((value) => !value)}>
+        <Plus aria-hidden="true" />
+      </button>
+      {open && (
+        <span className="seventv__menu-list" role="menu" aria-label={`Add :${emote.name}: to`}>
+          <span className="seventv__menu-title">Add to pack</span>
+          {actions.packs.length ? actions.packs.map((pack) => (
+            <button key={pack.id} type="button" role="menuitem" onClick={() => {
+              setOpen(false);
+              actions.onPack(emote, pack);
+            }}>
+              <span>{pack.name}</span>
+              <small>{pack.counts.total}</small>
+            </button>
+          )) : <span className="seventv__menu-empty">No packs yet. Create one above.</span>}
+        </span>
+      )}
+    </span>
+  );
+};
 
 const Pager: React.FC<{ page: number; pages: number; onPage: (page: number) => void }> = ({ page, pages, onPage }) => (
   <nav className="seventv__pager" aria-label="7TV pages">
