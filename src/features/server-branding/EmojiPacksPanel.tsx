@@ -15,7 +15,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import type { EmojiPack, EmojiPackJob, EmojiPacksOverview, LiveEmoji, NewPackSource } from '@/api/emojiPacks';
+import type { EmojiPack, EmojiPackItem, EmojiPackJob, EmojiPacksOverview, LiveEmoji, NewPackSource } from '@/api/emojiPacks';
 import { emojiPacksApi } from '@/api/emojiPacks';
 import { ServerImagesError } from '@/api/serverImages';
 import { LoadingSpinner } from '@/components/ui';
@@ -34,8 +34,14 @@ const JOB_VERBS: Record<EmojiPackJob['kind'], string> = {
 
 type Status = { tone: 'ok' | 'error'; text: string } | null;
 
-/** Drag payload for live Discord emojis dropped on a pack card. */
+/** Drag payloads dropped on a pack card: live Discord emoji ids, or pack item ids. */
 const DRAG_TYPE = 'application/x-acosmibot-emoji';
+const ITEM_DRAG_TYPE = 'application/x-acosmibot-pack-item';
+
+const dragItem = (item: EmojiPackItem) => (event: React.DragEvent) => {
+  event.dataTransfer.setData(ITEM_DRAG_TYPE, JSON.stringify([item.id]));
+  event.dataTransfer.effectAllowed = 'copy';
+};
 
 export const EmojiPacksPanel: React.FC = () => {
   const { guildId = '' } = useParams<{ guildId: string }>();
@@ -44,6 +50,7 @@ export const EmojiPacksPanel: React.FC = () => {
   const [status, setStatus] = useState<Status>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<{ packId: number; action: 'apply' | 'delete' } | null>(null);
+  const [removing, setRemoving] = useState<LiveEmoji | null>(null);
 
   if (query.isLoading) return <LoadingSpinner />;
   if (query.error || !query.data) {
@@ -80,6 +87,18 @@ export const EmojiPacksPanel: React.FC = () => {
       throw new ServerImagesError(result.errors.map((error) => `${error.file} ${error.message}`).join(' '), 409);
     }
   }, emojis.length === 1 ? `Saved :${emojis[0].name}: to ${pack.name}.` : `Saved ${emojis.length} emojis to ${pack.name}.`);
+
+  const copyTo = (pack: EmojiPack, itemIds: number[]) => void run(async () => {
+    const result = await packs.copyItems.mutateAsync({ packId: pack.id, itemIds });
+    if (!result.added.length) {
+      throw new ServerImagesError(result.errors.map((error) => `${error.file} ${error.message}`).join(' '), 409);
+    }
+  }, itemIds.length === 1 ? `Copied to ${pack.name}.` : `Copied ${itemIds.length} emojis to ${pack.name}.`);
+
+  /** Packs that would still hold a live emoji after removing it from Discord. */
+  const keptIn = (emoji: LiveEmoji) => data.packs
+    .filter((pack) => (!pack.live || pack.kind === 'original') && pack.items.some((item) => item.discord_emoji_id === emoji.id))
+    .map((pack) => pack.name);
 
   if (!data.enabled) {
     return readOnly
@@ -124,6 +143,14 @@ export const EmojiPacksPanel: React.FC = () => {
         savedIds={new Set(data.packs.flatMap((pack) => pack.items.map((item) => item.discord_emoji_id ?? '')))}
         adding={packs.addLive.isPending}
         onAddToPack={(emoji, pack) => addLiveTo(pack, [emoji])}
+        removing={removing}
+        removeBusy={working || packs.removeFromServer.isPending}
+        keptIn={keptIn}
+        onRemove={setRemoving}
+        onConfirmRemove={(emoji) => void run(async () => {
+          await packs.removeFromServer.mutateAsync(emoji.id);
+          setRemoving(null);
+        }, `Removed :${emoji.name}: from Discord.`)}
         onToggleKeep={(emoji) => {
           const kept = new Set(data.live.emojis.filter((item) => item.kept).map((item) => item.id));
           if (kept.has(emoji.id)) kept.delete(emoji.id); else kept.add(emoji.id);
@@ -166,6 +193,11 @@ export const EmojiPacksPanel: React.FC = () => {
                 const dropped = data.live.emojis.filter((emoji) => ids.includes(emoji.id));
                 if (dropped.length) addLiveTo(pack, dropped);
               }}
+              onDropItems={readOnly || !pack.usable ? undefined : (ids) => {
+                const others = ids.filter((id) => !pack.items.some((item) => item.id === id));
+                if (others.length) copyTo(pack, others);
+              }}
+              draggableItems={!readOnly && pack.usable}
               onSelect={() => setSelectedId(pack.id === selectedId ? null : pack.id)}
               onConfirm={(action) => setConfirm({ packId: pack.id, action })}
               onCancel={() => setConfirm(null)}
@@ -213,6 +245,8 @@ export const EmojiPacksPanel: React.FC = () => {
           working={working}
           hooks={packs}
           onStatus={setStatus}
+          copyTargets={readOnly || !selected.usable ? [] : data.packs.filter((pack) => pack.usable && pack.id !== selected.id)}
+          onCopy={(item, pack) => copyTo(pack, [item.id])}
         />
       )}
     </div>
@@ -303,7 +337,15 @@ const LiveCard: React.FC<{
   adding: boolean;
   onToggleKeep: (emoji: LiveEmoji) => void;
   onAddToPack: (emoji: LiveEmoji, pack: EmojiPack) => void;
-}> = ({ data, livePack, busy, readOnly, targets, savedIds, adding, onToggleKeep, onAddToPack }) => {
+  removing: LiveEmoji | null;
+  removeBusy: boolean;
+  keptIn: (emoji: LiveEmoji) => string[];
+  onRemove: (emoji: LiveEmoji | null) => void;
+  onConfirmRemove: (emoji: LiveEmoji) => void;
+}> = ({
+  data, livePack, busy, readOnly, targets, savedIds, adding, onToggleKeep, onAddToPack,
+  removing, removeBusy, keptIn, onRemove, onConfirmRemove,
+}) => {
   const { live } = data;
   const draggable = (emoji: LiveEmoji) => !readOnly && !emoji.managed;
   return (
@@ -321,6 +363,18 @@ const LiveCard: React.FC<{
         </p>
         {!readOnly && <p>Drag an emoji onto a pack below, or use its <strong>+</strong>, to save it into that pack.</p>}
       </div>
+      {removing && (
+        <div className="server-images-confirm emoji-packs-remove" role="alertdialog" aria-label={`Remove :${removing.name}:`}>
+          <span>
+            Remove <strong>:{removing.name}:</strong> from Discord?{' '}
+            {keptIn(removing).length
+              ? `It stays saved in ${keptIn(removing).join(', ')}.`
+              : 'It isn’t saved in any other pack, so it will be gone. Drag it onto a pack first to keep a copy.'}
+          </span>
+          <button type="button" className="btn danger" disabled={removeBusy} onClick={() => onConfirmRemove(removing)}>Remove</button>
+          <button type="button" className="btn secondary" onClick={() => onRemove(null)}>Cancel</button>
+        </div>
+      )}
       {live.emojis.length === 0 ? (
         <p className="server-images-empty">This server has no custom emojis right now.</p>
       ) : (
@@ -342,6 +396,13 @@ const LiveCard: React.FC<{
                 {draggable(emoji) && (
                   <PackPicker className="emoji-tile__add" label={`Save :${emoji.name}: to a pack`} packs={targets}
                     disabled={adding} onPick={(pack) => onAddToPack(emoji, pack)} />
+                )}
+                {!readOnly && !auto && (
+                  <button type="button" className="emoji-tile__remove" disabled={removeBusy}
+                    aria-label={`Remove :${emoji.name}: from the server`} title="Remove from server"
+                    onClick={() => onRemove(emoji)}>
+                    <Trash2 aria-hidden="true" />
+                  </button>
                 )}
                 {auto ? (
                   <span className="emoji-tile__flag"><LockKeyhole aria-label={title} /></span>
@@ -430,14 +491,23 @@ const PackCard: React.FC<{
   liveLimit: number;
   /** Set when live emojis can be dropped on this pack. */
   onDropEmojis?: (emojiIds: string[]) => void;
+  /** Set when emojis from other packs can be dropped (copied) on this pack. */
+  onDropItems?: (itemIds: number[]) => void;
+  draggableItems: boolean;
   onSelect: () => void;
   onConfirm: (action: 'apply' | 'delete') => void;
   onCancel: () => void;
   onApply: () => void;
   onDelete: () => void;
-}> = ({ pack, guildId, selected, confirming, busy, liveLimit, onDropEmojis, onSelect, onConfirm, onCancel, onApply, onDelete }) => {
+}> = ({
+  pack, guildId, selected, confirming, busy, liveLimit, onDropEmojis, onDropItems, draggableItems,
+  onSelect, onConfirm, onCancel, onApply, onDelete,
+}) => {
   const [dropping, setDropping] = useState(false);
-  const accepts = (event: React.DragEvent) => Boolean(onDropEmojis) && event.dataTransfer.types.includes(DRAG_TYPE);
+  const accepts = (event: React.DragEvent) => {
+    const types = event.dataTransfer.types;
+    return (Boolean(onDropEmojis) && types.includes(DRAG_TYPE)) || (Boolean(onDropItems) && types.includes(ITEM_DRAG_TYPE));
+  };
   const overflow = pack.counts.static > liveLimit || pack.counts.animated > liveLimit;
   const preview = pack.items.slice(0, PREVIEW_COUNT);
   return (
@@ -456,8 +526,12 @@ const PackCard: React.FC<{
         if (!accepts(event)) return;
         event.preventDefault();
         try {
-          const ids = JSON.parse(event.dataTransfer.getData(DRAG_TYPE));
-          if (Array.isArray(ids)) onDropEmojis?.(ids.map(String));
+          const live = event.dataTransfer.getData(DRAG_TYPE);
+          const items = event.dataTransfer.getData(ITEM_DRAG_TYPE);
+          const ids = JSON.parse(live || items);
+          if (!Array.isArray(ids)) return;
+          if (live) onDropEmojis?.(ids.map(String));
+          else onDropItems?.(ids.map(Number).filter(Number.isFinite));
         } catch {
           // Not our payload.
         }
@@ -475,7 +549,11 @@ const PackCard: React.FC<{
         {overflow && <span className="emoji-pack-card__warn"> · needs more slots than this server has</span>}
       </p>
       <div className="emoji-pack-card__preview" aria-hidden="true">
-        {preview.length === 0 ? <span>Empty</span> : preview.map((item) => <img key={item.id} src={item.url} alt="" loading="lazy" />)}
+        {preview.length === 0 ? <span>Empty</span> : preview.map((item) => (
+          <img key={item.id} src={item.url} alt="" loading="lazy" title={`:${item.name}:`}
+            draggable={draggableItems} onDragStart={draggableItems ? dragItem(item) : undefined}
+            className={draggableItems ? 'is-draggable' : undefined} />
+        ))}
         {pack.items.length > preview.length && <span>+{pack.items.length - preview.length}</span>}
       </div>
       {confirming ? (
@@ -526,7 +604,10 @@ const PackEditor: React.FC<{
   working: boolean;
   hooks: ReturnType<typeof useEmojiPacks>;
   onStatus: (status: Status) => void;
-}> = ({ pack, limit, readOnly, working, hooks, onStatus }) => {
+  copyTargets: EmojiPack[];
+  onCopy: (item: EmojiPackItem, pack: EmojiPack) => void;
+}> = ({ pack, limit, readOnly, working, hooks, onStatus, copyTargets, onCopy }) => {
+  const canCopy = copyTargets.length > 0;
   const fileInput = useRef<HTMLInputElement>(null);
   const [packName, setPackName] = useState(pack.name);
   const [editing, setEditing] = useState<{ id: number; name: string } | null>(null);
@@ -570,7 +651,10 @@ const PackEditor: React.FC<{
       </div>
 
       {pack.kind === 'original' && (
-        <p>The Original pack is the backup taken when you turned emoji packs on. Copy it to make an editable version.</p>
+        <p>
+          The Original pack is your backup. Drag emojis from it onto other packs, or copy the whole pack to make an
+          editable version.
+        </p>
       )}
 
       {!readOnly && (
@@ -617,8 +701,13 @@ const PackEditor: React.FC<{
       ) : (
         <ul className="emoji-grid">
           {items.map((item) => (
-            <li key={item.id} className="emoji-tile emoji-tile--editable"
-              title={item.source === '7tv' ? `From 7TV${item.source_author ? ` · by ${item.source_author}` : ''}` : undefined}>
+            <li key={item.id} className={`emoji-tile emoji-tile--editable${canCopy ? ' is-draggable' : ''}`}
+              title={item.source === '7tv' ? `From 7TV${item.source_author ? ` · by ${item.source_author}` : ''}` : undefined}
+              draggable={canCopy && editing?.id !== item.id} onDragStart={canCopy ? dragItem(item) : undefined}>
+              {canCopy && (
+                <PackPicker className="emoji-tile__add" label={`Copy :${item.name}: to a pack`} packs={copyTargets}
+                  disabled={hooks.copyItems.isPending} onPick={(target) => onCopy(item, target)} />
+              )}
               <img src={item.url} alt="" loading="lazy" />
               {editing?.id === item.id ? (
                 <form className="emoji-tile__rename" onSubmit={(event) => {

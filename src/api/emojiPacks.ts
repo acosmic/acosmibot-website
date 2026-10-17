@@ -148,6 +148,12 @@ export const emojiPacksApi = {
   addLive: (guildId: string, packId: number, emojiIds: string[]) =>
     request<ImportResult>(`${base(guildId)}/packs/${packId}/live`, json('POST', { emoji_ids: emojiIds })),
 
+  copyItems: (guildId: string, packId: number, itemIds: number[]) =>
+    request<ImportResult>(`${base(guildId)}/packs/${packId}/copy`, json('POST', { item_ids: itemIds })),
+
+  removeFromServer: (guildId: string, emojiId: string) =>
+    request<{ removed: string; kept_in: string[] }>(`${base(guildId)}/live/${emojiId}`, json('DELETE')),
+
   renameItem: (guildId: string, packId: number, itemId: number, name: string) =>
     request<{ item: EmojiPackItem }>(`${base(guildId)}/packs/${packId}/items/${itemId}`, json('PATCH', { name })),
 
