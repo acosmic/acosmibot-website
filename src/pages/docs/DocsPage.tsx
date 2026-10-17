@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   AlarmClock, AtSign, Bomb, BookOpen, Bot, Cherry, ClipboardList, Coins, Dices, Grid3x3,
-  FileText, Gem, Landmark, Lock, Music, Orbit, Package, Rocket, Settings, Shield, Spade,
+  FileText, Gem, Landmark, Lock, Music, Orbit, Package, Palette, Rocket, Settings, Shield, Spade,
   Sparkles, Ticket, TrendingUp, TvMinimalPlay, Vault, VenetianMask, PanelLeftClose, PanelLeftOpen,
   Search, X, ArrowUpRight, HandHeart,
   type LucideIcon,
@@ -43,6 +43,7 @@ const NAV_SECTIONS: Array<{ category: string; items: NavItemDef[] }> = [
       { slug: 'economy',    label: 'Economy & Banking', icon: Landmark },
       { slug: 'items',      label: 'Items & Inventory', icon: Package },
       { slug: 'moderation', label: 'Moderation', icon: Shield },
+      { slug: 'server-branding', label: 'Server Branding', icon: Palette },
       { slug: 'ai',         label: 'AI Integration', icon: Bot },
       { slug: 'ai-credits', label: 'AI Credits', icon: Coins },
       { slug: 'stats',      label: 'Stats & Member Hub', icon: ClipboardList },

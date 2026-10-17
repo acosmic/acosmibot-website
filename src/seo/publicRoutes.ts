@@ -208,6 +208,7 @@ export const DOC_ROUTES = [
   ['economy', 'Discord Economy and Banking'],
   ['items', 'Items and Inventory'],
   ['moderation', 'Discord Moderation'],
+  ['server-branding', 'Discord Server Branding'],
   ['ai', 'AI Discord Bot'],
   ['ai-credits', 'AI Credits and Fuel Cells'],
   ['stats', 'Discord Statistics and Member Hub'],
