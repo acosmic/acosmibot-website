@@ -31,7 +31,7 @@
     <div class="info-card">
       <h3>🛍️ Buying items</h3>
       <p>
-        Run <code>/shop</code> to see what's available and how much each item costs in Acosmicoins. Buy one with <code>/buy &lt;item&gt;</code> — the cost is deducted from your server wallet and the item is added to your inventory. Each item has a rarity (common, rare, and so on) and a maximum stack size.
+        Run <code>/shop</code> to see what's available and how much each item costs in Acosmicoins. Buy one with <code>/buy &lt;item&gt; [quantity]</code> — stackable items can be bought in multiples after a requester-only Buy/Cancel confirmation that expires after 60 seconds. The cost is deducted from your server wallet and the item is added to your inventory. Each item has a rarity (common, rare, and so on) and a maximum stack size.
       </p>
     </div>
 
@@ -74,13 +74,14 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/buy &lt;item&gt;</div>
+        <div class="command-signature">/buy &lt;item&gt; [quantity]</div>
         <div class="command-description">
-          Buy an item from the shop with Acosmicoins. The cost is deducted from your server wallet and the item is added to your inventory.
+          Buy an item from the shop with Acosmicoins. Stackable items can be bought in multiples by setting a quantity. A requester-only Buy/Cancel confirmation appears first and expires after 60 seconds; nothing is charged if you cancel or it expires. The cost is then deducted from your server wallet and the item is added to your inventory.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
           <code>/buy XP Booster</code>
+          <code>/buy XP Booster 3</code>
         </div>
       </div>
 
@@ -168,6 +169,11 @@
     <div class="faq-item">
       <h4>Q: Can I move items between servers?</h4>
       <p>A: Trades happen between members of the same server. A boost's reach depends on its scope — server-scoped boosts only apply where they're activated, while global-scoped boosts follow you everywhere.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: How do Streak Freezes work?</h4>
+      <p>A: Streak Freezes are automatic items, not <code>/use</code> items. One freeze covers one missed UTC day of the daily-message streak in one server, and is consumed automatically on your first message back. They cost 10,000 Acosmicoins in <code>/shop</code>, are tradeable, stack up to 20, and can drop from successful Good Deeds or Heists.</p>
     </div>
 
     <div class="faq-item">

@@ -73,13 +73,13 @@
       <div class="command-card">
         <div class="command-signature">/games blackjack &lt;bet&gt;</div>
         <div class="command-description">
-          Start a new Blackjack game with the specified Acosmicoin bet. Bets must be between 50 and 10,000 Acosmicoins. You must have enough Acosmicoins in your balance to cover the bet before the game starts.
+          Start a new Blackjack game with the specified Acosmicoin bet. Bets default to 1 to 100,000 Acosmicoins, and servers can customize the bounds. You must have enough Acosmicoins in your balance to cover the bet before the game starts.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
           <code>/games blackjack 100</code>
           <code>/games blackjack 5000</code>
-          <code>/games blackjack 10000</code>
+          <code>/games blackjack 100000</code>
         </div>
       </div>
     </div>
@@ -138,11 +138,11 @@
         </tr>
         <tr>
           <td><strong>Minimum Bet</strong></td>
-          <td>50 Acosmicoins</td>
+          <td>1 Acosmicoin (default; servers can customize)</td>
         </tr>
         <tr>
           <td><strong>Maximum Bet</strong></td>
-          <td>10,000 Acosmicoins</td>
+          <td>100,000 Acosmicoins (default; servers can customize)</td>
         </tr>
       </tbody>
     </table>
@@ -234,7 +234,7 @@
 
     <div class="faq-item">
       <h4>Q: I don't have enough Acosmicoins to play</h4>
-      <p>A: The minimum bet is 50 Acosmicoins. Earn more Acosmicoins by playing other games (slots, coinflip, deathroll) or receiving Acosmicoins from other members with <code>/give</code>.</p>
+      <p>A: The default minimum bet is 1 Acosmicoin (servers can customize the bounds). Earn more Acosmicoins by playing other games (slots, coinflip, deathroll) or receiving Acosmicoins from other members with <code>/give</code>.</p>
     </div>
 
     <div class="faq-item">
