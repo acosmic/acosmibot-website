@@ -28,7 +28,7 @@ export const ServerBrandingPage: React.FC = () => {
         <span className="server-images-kicker"><Palette aria-hidden="true" /> Server identity</span>
         <h1>Server Branding</h1>
         <p>
-          Your server's icon, banner, invite background and emoji, all in one place. Everything Acosmibot replaces is
+          Your server's icon, banner, invite background and emojis, all in one place. Everything Acosmibot replaces is
           saved first, so you can always switch back.
         </p>
       </header>

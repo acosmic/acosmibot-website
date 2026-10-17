@@ -26,8 +26,8 @@ import './EmojiPacksPanel.css';
 const PREVIEW_COUNT = 14;
 const TIER_NAMES: Record<string, string> = { free: 'Free', plus: 'Plus', pro: 'Pro', max: 'Max' };
 const JOB_VERBS: Record<EmojiPackJob['kind'], string> = {
-  snapshot: 'Saving your current emoji',
-  capture: 'Saving live emoji into the pack',
+  snapshot: 'Saving your current emojis',
+  capture: 'Saving live emojis into the pack',
   apply: 'Applying pack',
 };
 
@@ -91,10 +91,10 @@ export const EmojiPacksPanel: React.FC = () => {
       {job && <JobBanner job={job} packs={data.packs} />}
       {!working && !readOnly && !data.packs.some((pack) => pack.kind === 'original') && (
         <div className="server-images-confirm">
-          <span>Your current emoji haven't been backed up yet.</span>
+          <span>Your current emojis haven't been backed up yet.</span>
           <button type="button" className="btn primary" disabled={packs.enable.isPending}
-            onClick={() => void run(() => packs.enable.mutateAsync(), 'Saving your current emoji…')}>
-            Save my current emoji
+            onClick={() => void run(() => packs.enable.mutateAsync(), 'Saving your current emojis…')}>
+            Save my current emojis
           </button>
         </div>
       )}
@@ -126,13 +126,13 @@ export const EmojiPacksPanel: React.FC = () => {
         {!readOnly && (
           <NewPackForm
             packs={data.packs}
-            disabled={atLimit || working || packs.createPack.isPending}
+            disabled={atLimit || packs.createPack.isPending}
             atLimit={atLimit}
             guildId={guildId}
             onCreate={(input) => void run(async () => {
               const result = await packs.createPack.mutateAsync(input);
               setSelectedId(result.pack.id);
-            }, input.source === 'live' ? 'Pack created. Saving the live emoji into it…' : 'Pack created.')}
+            }, input.source === 'live' ? 'Pack created. Saving the live emojis into it…' : 'Pack created.')}
           />
         )}
 
@@ -206,10 +206,10 @@ const UpsellCard: React.FC<{ guildId: string }> = ({ guildId }) => (
     <div className="server-images-lock__signal" aria-hidden="true"><LockKeyhole /></div>
     <div>
       <span className="server-images-kicker">Plus feature</span>
-      <h2 id="emoji-packs-lock-title">Swap whole sets of server emoji in one click.</h2>
+      <h2 id="emoji-packs-lock-title">Swap whole sets of server emojis in one click.</h2>
       <p>
-        Save your emoji as packs, such as a Halloween set and a Winter set, and switch between them. Plus includes
-        3 packs, Pro 5 and Max 10, and your current emoji are always backed up first.
+        Save your emojis as packs, such as a Halloween set and a Winter set, and switch between them. Plus includes
+        3 packs, Pro 5 and Max 10, and your current emojis are always backed up first.
       </p>
       <Link to={`/pricing?guild=${guildId}`} className="btn primary">Compare plans <ArrowRight aria-hidden="true" /></Link>
     </div>
@@ -227,7 +227,7 @@ const EnableCard: React.FC<{ data: EmojiPacksOverview; busy: boolean; onEnable: 
         <span className="server-images-kicker">Emoji packs</span>
         <h2 id="emoji-packs-enable-title">Turn on emoji packs</h2>
         <p>
-          Acosmibot will first save all {count} of this server's custom emoji as an <strong>Original</strong> pack.
+          Acosmibot will first save all {count} of this server's custom emojis as an <strong>Original</strong> pack.
           It's your backup and doesn't count toward your plan. Nothing in Discord changes until you apply a pack.
         </p>
         <p className="emoji-packs-slots-line">
@@ -235,7 +235,7 @@ const EnableCard: React.FC<{ data: EmojiPacksOverview; busy: boolean; onEnable: 
         </p>
         {status?.tone === 'error' && <p className="server-images-status server-images-status--error" role="alert">{status.text}</p>}
         <button type="button" className="btn primary" disabled={busy} onClick={onEnable}>
-          {busy ? 'Starting…' : 'Turn on and save my emoji'}
+          {busy ? 'Starting…' : 'Turn on and save my emojis'}
         </button>
       </div>
     </section>
@@ -256,7 +256,7 @@ const JobBanner: React.FC<{ job: EmojiPackJob; packs: EmojiPack[] }> = ({ job, p
         </div>
         <div className="emoji-packs-progress" aria-hidden="true"><span style={{ width: `${pct}%` }} /></div>
         <p>
-          {job.message ?? 'Working…'} Discord limits how fast emoji can be uploaded, so large packs can take a while.
+          {job.message ?? 'Working…'} Discord limits how fast emojis can be uploaded, so large packs can take a while.
           You can leave this page.
         </p>
       </section>
@@ -284,18 +284,18 @@ const LiveCard: React.FC<{
     <section className="server-images-current emoji-packs-live" aria-labelledby="emoji-packs-live-title">
       <div className="emoji-packs-live__body">
         <span className="server-images-kicker">Live in Discord</span>
-        <h2 id="emoji-packs-live-title">{livePack ? livePack.name : 'Current emoji'}</h2>
+        <h2 id="emoji-packs-live-title">{livePack ? livePack.name : 'Current emojis'}</h2>
         <div className="emoji-packs-meters">
           <SlotMeter label="Static" used={live.static} limit={live.limit} />
           <SlotMeter label="Animated" used={live.animated} limit={live.limit} />
         </div>
         <p>
-          Pin an emoji to <strong>always keep</strong> it whichever pack is live. Emoji used by reaction roles and
-          integration emoji are always kept automatically. Kept emoji still use slots.
+          Pin an emoji to <strong>always keep</strong> it whichever pack is live. Emojis used by reaction roles and
+          integration emojis are always kept automatically. Kept emojis still use slots.
         </p>
       </div>
       {live.emojis.length === 0 ? (
-        <p className="server-images-empty">This server has no custom emoji right now.</p>
+        <p className="server-images-empty">This server has no custom emojis right now.</p>
       ) : (
         <ul className="emoji-grid emoji-grid--live">
           {live.emojis.map((emoji) => {
@@ -420,7 +420,7 @@ const PackCard: React.FC<{
         <div className="server-images-confirm">
           <span>
             {confirming === 'apply'
-              ? 'Apply this pack? Only emoji that differ change, and anything unsaved is backed up first.'
+              ? 'Apply this pack? Only emojis that differ change, and anything unsaved is backed up first.'
               : 'Delete this pack? Emoji in Discord are not affected.'}
           </span>
           <button type="button" className={`btn ${confirming === 'apply' ? 'primary' : 'danger'}`} disabled={busy}
@@ -432,7 +432,7 @@ const PackCard: React.FC<{
       ) : (
         <div className="server-images-actions">
           <button type="button" className="btn primary" disabled={busy || !pack.usable || overflow}
-            title={overflow ? 'This pack has more emoji than the server has slots' : undefined}
+            title={overflow ? 'This pack has more emojis than the server has slots' : undefined}
             onClick={() => onConfirm('apply')}>
             {pack.live ? 'Re-apply' : 'Apply'}
           </button>
@@ -497,7 +497,7 @@ const PackEditor: React.FC<{
           400,
         );
       }
-    }, `Added ${files.length} emoji to ${pack.name}.`);
+    }, `Added ${files.length} ${files.length === 1 ? 'emoji' : 'emojis'} to ${pack.name}.`);
   };
 
   return (
@@ -529,11 +529,11 @@ const PackEditor: React.FC<{
           <div className="emoji-pack-editor__tools">
             <input ref={fileInput} type="file" multiple accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange={onFiles} />
             <button type="button" className="btn primary" disabled={busy} onClick={() => fileInput.current?.click()}>
-              <Upload aria-hidden="true" /> {hooks.addItems.isPending ? 'Uploading…' : 'Add emoji'}
+              <Upload aria-hidden="true" /> {hooks.addItems.isPending ? 'Uploading…' : 'Add emojis'}
             </button>
             <button type="button" className="btn secondary" disabled={busy || working}
-              onClick={() => void run(() => hooks.capture.mutateAsync(pack.id), `Saving the live emoji into ${pack.name}…`)}>
-              <Copy aria-hidden="true" /> Replace with live emoji
+              onClick={() => void run(() => hooks.capture.mutateAsync(pack.id), `Saving the live emojis into ${pack.name}…`)}>
+              <Copy aria-hidden="true" /> Replace with live emojis
             </button>
           </div>
           <p>
@@ -551,7 +551,7 @@ const PackEditor: React.FC<{
       )}
 
       {pack.items.length === 0 ? (
-        <p className="server-images-empty">No emoji in this pack yet.</p>
+        <p className="server-images-empty">No emojis in this pack yet.</p>
       ) : (
         <ul className="emoji-grid">
           {items.map((item) => (
