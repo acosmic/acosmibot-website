@@ -250,6 +250,36 @@ button.emoji-tile__flag:hover:not(:disabled) {
   transform: none;
 }
 
+.emoji-tile__remove {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.emoji-tile__remove:hover:not(:disabled) {
+  background: var(--bg-overlay-hover);
+  color: #ffb3b3;
+}
+
+.emoji-tile__remove svg {
+  width: 14px;
+  height: 14px;
+}
+
+.emoji-packs-remove {
+  grid-column: 1 / -1;
+}
+
+.emoji-pack-card__preview img.is-draggable {
+  cursor: grab;
+}
+
 .emoji-pack-card.is-drop-target {
   border-color: var(--primary-color);
   border-style: dashed;
