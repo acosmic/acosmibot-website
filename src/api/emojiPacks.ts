@@ -1,5 +1,6 @@
-import { apiBase } from '@/lib/runtimeConfig';
 import { request } from './serverImages';
+
+const apiBase = (): string => window.AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
 
 export interface EmojiPackItem {
   id: number;
