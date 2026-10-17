@@ -38,6 +38,10 @@ export function useEmojiPacks(guildId: string) {
     mutationFn: (input: { packId: number; files: File[] }) => emojiPacksApi.addItems(guildId, input.packId, input.files),
     onSuccess: invalidate,
   });
+  const addLive = useMutation({
+    mutationFn: (input: { packId: number; emojiIds: string[] }) => emojiPacksApi.addLive(guildId, input.packId, input.emojiIds),
+    onSuccess: invalidate,
+  });
   const renameItem = useMutation({
     mutationFn: (input: { packId: number; itemId: number; name: string }) =>
       emojiPacksApi.renameItem(guildId, input.packId, input.itemId, input.name),
@@ -78,7 +82,7 @@ export function useEmojiPacks(guildId: string) {
   });
 
   return {
-    query, enable, createPack, renamePack, deletePack, addItems, renameItem, deleteItem, apply, capture, setKeep,
+    query, enable, createPack, renamePack, deletePack, addItems, addLive, renameItem, deleteItem, apply, capture, setKeep,
     addSevenTv, addSevenTvToServer,
   };
 }

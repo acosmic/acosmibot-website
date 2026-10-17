@@ -208,6 +208,54 @@ button.emoji-tile__flag:hover:not(:disabled) {
   height: 14px;
 }
 
+.emoji-tile.is-unsaved {
+  border-style: dashed;
+  border-color: var(--border-medium);
+}
+
+.emoji-tile.is-draggable {
+  cursor: grab;
+}
+
+.emoji-tile.is-draggable:active {
+  cursor: grabbing;
+}
+
+.emoji-tile__add {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+
+.emoji-tile__add > .server-images-icon-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.emoji-tile__add > .server-images-icon-btn:hover:not(:disabled) {
+  background: var(--bg-overlay-hover);
+  color: var(--primary-color);
+}
+
+.emoji-tile__add svg {
+  width: 14px;
+  height: 14px;
+}
+
+.emoji-tile__add .pack-picker__list {
+  left: 0;
+  transform: none;
+}
+
+.emoji-pack-card.is-drop-target {
+  border-color: var(--primary-color);
+  border-style: dashed;
+  background: var(--bg-overlay-hover);
+}
+
 .emoji-tile__actions {
   display: flex;
   gap: 4px;
@@ -486,12 +534,12 @@ button.emoji-tile__flag:hover:not(:disabled) {
   height: 36px;
 }
 
-.seventv__menu {
+.pack-picker {
   position: relative;
   display: inline-flex;
 }
 
-.seventv__menu-list {
+.pack-picker__list {
   position: absolute;
   z-index: 20;
   top: calc(100% + 6px);
@@ -508,20 +556,20 @@ button.emoji-tile__flag:hover:not(:disabled) {
   transform: translateX(-50%);
 }
 
-.seventv__menu-title,
-.seventv__menu-empty {
+.pack-picker__title,
+.pack-picker__empty {
   padding: 6px 8px;
   color: var(--text-muted);
   font-size: 12px;
 }
 
-.seventv__menu-title {
+.pack-picker__title {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.seventv__menu-list button {
+.pack-picker__list button {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -536,19 +584,19 @@ button.emoji-tile__flag:hover:not(:disabled) {
   text-align: left;
 }
 
-.seventv__menu-list button:hover,
-.seventv__menu-list button:focus-visible {
+.pack-picker__list button:hover,
+.pack-picker__list button:focus-visible {
   background: var(--bg-overlay-hover);
   outline: none;
 }
 
-.seventv__menu-list button span {
+.pack-picker__list button span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.seventv__menu-list small {
+.pack-picker__list small {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }

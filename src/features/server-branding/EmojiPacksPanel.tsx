@@ -19,6 +19,7 @@ import type { EmojiPack, EmojiPackJob, EmojiPacksOverview, LiveEmoji, NewPackSou
 import { emojiPacksApi } from '@/api/emojiPacks';
 import { ServerImagesError } from '@/api/serverImages';
 import { LoadingSpinner } from '@/components/ui';
+import { PackPicker } from './PackPicker';
 import { SevenTvBrowser } from './SevenTvBrowser';
 import { useEmojiPacks } from './useEmojiPacks';
 import './EmojiPacksPanel.css';
@@ -32,6 +33,9 @@ const JOB_VERBS: Record<EmojiPackJob['kind'], string> = {
 };
 
 type Status = { tone: 'ok' | 'error'; text: string } | null;
+
+/** Drag payload for live Discord emojis dropped on a pack card. */
+const DRAG_TYPE = 'application/x-acosmibot-emoji';
 
 export const EmojiPacksPanel: React.FC = () => {
   const { guildId = '' } = useParams<{ guildId: string }>();
@@ -69,6 +73,13 @@ export const EmojiPacksPanel: React.FC = () => {
       setConfirm(null);
     }
   };
+
+  const addLiveTo = (pack: EmojiPack, emojis: LiveEmoji[]) => void run(async () => {
+    const result = await packs.addLive.mutateAsync({ packId: pack.id, emojiIds: emojis.map((emoji) => emoji.id) });
+    if (!result.added.length) {
+      throw new ServerImagesError(result.errors.map((error) => `${error.file} ${error.message}`).join(' '), 409);
+    }
+  }, emojis.length === 1 ? `Saved :${emojis[0].name}: to ${pack.name}.` : `Saved ${emojis.length} emojis to ${pack.name}.`);
 
   if (!data.enabled) {
     return readOnly
@@ -108,6 +119,11 @@ export const EmojiPacksPanel: React.FC = () => {
         data={data}
         livePack={livePack}
         busy={readOnly || packs.setKeep.isPending}
+        readOnly={readOnly}
+        targets={data.packs.filter((pack) => pack.usable)}
+        savedIds={new Set(data.packs.flatMap((pack) => pack.items.map((item) => item.discord_emoji_id ?? '')))}
+        adding={packs.addLive.isPending}
+        onAddToPack={(emoji, pack) => addLiveTo(pack, [emoji])}
         onToggleKeep={(emoji) => {
           const kept = new Set(data.live.emojis.filter((item) => item.kept).map((item) => item.id));
           if (kept.has(emoji.id)) kept.delete(emoji.id); else kept.add(emoji.id);
@@ -146,6 +162,10 @@ export const EmojiPacksPanel: React.FC = () => {
               confirming={confirm?.packId === pack.id ? confirm.action : null}
               busy={readOnly || working || packs.apply.isPending || packs.deletePack.isPending}
               liveLimit={data.live.limit}
+              onDropEmojis={readOnly || !pack.usable ? undefined : (ids) => {
+                const dropped = data.live.emojis.filter((emoji) => ids.includes(emoji.id));
+                if (dropped.length) addLiveTo(pack, dropped);
+              }}
               onSelect={() => setSelectedId(pack.id === selectedId ? null : pack.id)}
               onConfirm={(action) => setConfirm({ packId: pack.id, action })}
               onCancel={() => setConfirm(null)}
@@ -277,9 +297,15 @@ const LiveCard: React.FC<{
   data: EmojiPacksOverview;
   livePack: EmojiPack | null;
   busy: boolean;
+  readOnly: boolean;
+  targets: EmojiPack[];
+  savedIds: Set<string>;
+  adding: boolean;
   onToggleKeep: (emoji: LiveEmoji) => void;
-}> = ({ data, livePack, busy, onToggleKeep }) => {
+  onAddToPack: (emoji: LiveEmoji, pack: EmojiPack) => void;
+}> = ({ data, livePack, busy, readOnly, targets, savedIds, adding, onToggleKeep, onAddToPack }) => {
   const { live } = data;
+  const draggable = (emoji: LiveEmoji) => !readOnly && !emoji.managed;
   return (
     <section className="server-images-current emoji-packs-live" aria-labelledby="emoji-packs-live-title">
       <div className="emoji-packs-live__body">
@@ -293,6 +319,7 @@ const LiveCard: React.FC<{
           Pin an emoji to <strong>always keep</strong> it whichever pack is live. Emojis used by reaction roles and
           integration emojis are always kept automatically. Kept emojis still use slots.
         </p>
+        {!readOnly && <p>Drag an emoji onto a pack below, or use its <strong>+</strong>, to save it into that pack.</p>}
       </div>
       {live.emojis.length === 0 ? (
         <p className="server-images-empty">This server has no custom emojis right now.</p>
@@ -302,9 +329,20 @@ const LiveCard: React.FC<{
             const auto = emoji.managed || emoji.reaction_role;
             const title = emoji.managed ? 'Managed by an integration' : emoji.reaction_role ? 'Used by a reaction role' : emoji.kept ? 'Always kept' : undefined;
             return (
-              <li key={emoji.id} className={`emoji-tile${emoji.kept || auto ? ' is-kept' : ''}`} title={title}>
+              <li key={emoji.id}
+                className={`emoji-tile${emoji.kept || auto ? ' is-kept' : ''}${!emoji.managed && !savedIds.has(emoji.id) ? ' is-unsaved' : ''}${draggable(emoji) ? ' is-draggable' : ''}`}
+                title={title ?? (!emoji.managed && !savedIds.has(emoji.id) ? 'Not saved in any pack yet' : undefined)}
+                draggable={draggable(emoji)}
+                onDragStart={(event) => {
+                  event.dataTransfer.setData(DRAG_TYPE, JSON.stringify([emoji.id]));
+                  event.dataTransfer.effectAllowed = 'copy';
+                }}>
                 <img src={emoji.url} alt="" loading="lazy" />
                 <span className="emoji-tile__name">:{emoji.name}:</span>
+                {draggable(emoji) && (
+                  <PackPicker className="emoji-tile__add" label={`Save :${emoji.name}: to a pack`} packs={targets}
+                    disabled={adding} onPick={(pack) => onAddToPack(emoji, pack)} />
+                )}
                 {auto ? (
                   <span className="emoji-tile__flag"><LockKeyhole aria-label={title} /></span>
                 ) : (
@@ -390,16 +428,40 @@ const PackCard: React.FC<{
   confirming: 'apply' | 'delete' | null;
   busy: boolean;
   liveLimit: number;
+  /** Set when live emojis can be dropped on this pack. */
+  onDropEmojis?: (emojiIds: string[]) => void;
   onSelect: () => void;
   onConfirm: (action: 'apply' | 'delete') => void;
   onCancel: () => void;
   onApply: () => void;
   onDelete: () => void;
-}> = ({ pack, guildId, selected, confirming, busy, liveLimit, onSelect, onConfirm, onCancel, onApply, onDelete }) => {
+}> = ({ pack, guildId, selected, confirming, busy, liveLimit, onDropEmojis, onSelect, onConfirm, onCancel, onApply, onDelete }) => {
+  const [dropping, setDropping] = useState(false);
+  const accepts = (event: React.DragEvent) => Boolean(onDropEmojis) && event.dataTransfer.types.includes(DRAG_TYPE);
   const overflow = pack.counts.static > liveLimit || pack.counts.animated > liveLimit;
   const preview = pack.items.slice(0, PREVIEW_COUNT);
   return (
-    <li className={`emoji-pack-card${pack.live ? ' is-live' : ''}${selected ? ' is-selected' : ''}${pack.usable ? '' : ' is-locked'}`}>
+    <li className={`emoji-pack-card${pack.live ? ' is-live' : ''}${selected ? ' is-selected' : ''}${pack.usable ? '' : ' is-locked'}${dropping ? ' is-drop-target' : ''}`}
+      onDragOver={(event) => {
+        if (!accepts(event)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        setDropping(true);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropping(false);
+      }}
+      onDrop={(event) => {
+        setDropping(false);
+        if (!accepts(event)) return;
+        event.preventDefault();
+        try {
+          const ids = JSON.parse(event.dataTransfer.getData(DRAG_TYPE));
+          if (Array.isArray(ids)) onDropEmojis?.(ids.map(String));
+        } catch {
+          // Not our payload.
+        }
+      }}>
       <div className="emoji-pack-card__head">
         <h3>{pack.name}</h3>
         <div className="server-images-badges">
