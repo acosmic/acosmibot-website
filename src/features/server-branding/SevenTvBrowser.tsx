@@ -121,8 +121,7 @@ export const SevenTvBrowser: React.FC<{
         )}
 
       <p className="seventv__credit">
-        Emotes come from <a href="https://7tv.app" target="_blank" rel="noreferrer">7TV</a> and are made by its community;
-        each one keeps its creator's credit. Only add emotes you have the right to use in your server.
+        Emotes from <a href="https://7tv.app" target="_blank" rel="noreferrer">7TV</a>, made by its community.
         {!hasLive && ' Save your current emojis first to add emotes straight to the server.'}
       </p>
     </section>
