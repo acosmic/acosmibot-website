@@ -1,9 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowRight,
   CircleAlert,
-  Copy,
   Download,
   LockKeyhole,
   Pencil,
@@ -97,7 +96,7 @@ export const EmojiPacksPanel: React.FC = () => {
 
   /** Packs that would still hold a live emoji after removing it from Discord. */
   const keptIn = (emoji: LiveEmoji) => data.packs
-    .filter((pack) => (!pack.live || pack.kind === 'original') && pack.items.some((item) => item.discord_emoji_id === emoji.id))
+    .filter((pack) => !pack.live && pack.items.some((item) => item.discord_emoji_id === emoji.id))
     .map((pack) => pack.name);
 
   if (!data.enabled) {
@@ -119,7 +118,7 @@ export const EmojiPacksPanel: React.FC = () => {
         </p>
       )}
       {job && <JobBanner job={job} packs={data.packs} />}
-      {!working && !readOnly && !data.packs.some((pack) => pack.kind === 'original') && (
+      {!working && !readOnly && !data.packs.some((pack) => pack.live) && (
         <div className="server-images-confirm">
           <span>Your current emojis haven't been backed up yet.</span>
           <button type="button" className="btn primary" disabled={packs.enable.isPending}
@@ -162,7 +161,7 @@ export const EmojiPacksPanel: React.FC = () => {
         <div className="server-images-library__head">
           <h2 id="emoji-packs-title"><Smile aria-hidden="true" /> Packs</h2>
           <span>
-            {data.custom_pack_count} of {data.pack_limit} used on {TIER_NAMES[data.tier] ?? data.tier}. The Original backup is free.
+            {data.custom_pack_count} of {data.pack_limit} used on {TIER_NAMES[data.tier] ?? data.tier}. Original, saved when you turned packs on, is free.
           </span>
         </div>
 
@@ -219,6 +218,18 @@ export const EmojiPacksPanel: React.FC = () => {
         </ul>
       </section>
 
+      {selected && (
+        <PackEditor
+          key={selected.id}
+          pack={selected}
+          limit={data.live.limit}
+          readOnly={readOnly || !selected.usable}
+          hooks={packs}
+          onStatus={setStatus}
+          copyTargets={readOnly || !selected.usable ? [] : data.packs.filter((pack) => pack.usable && pack.id !== selected.id)}
+          onCopy={(item, pack) => copyTo(pack, [item.id])}
+        />
+      )}
       {data.seventv && !readOnly && (
         <SevenTvBrowser
           guildId={guildId}
@@ -236,19 +247,6 @@ export const EmojiPacksPanel: React.FC = () => {
         />
       )}
 
-      {selected && (
-        <PackEditor
-          key={selected.id}
-          pack={selected}
-          limit={data.live.limit}
-          readOnly={readOnly || !selected.usable || selected.kind === 'original'}
-          working={working}
-          hooks={packs}
-          onStatus={setStatus}
-          copyTargets={readOnly || !selected.usable ? [] : data.packs.filter((pack) => pack.usable && pack.id !== selected.id)}
-          onCopy={(item, pack) => copyTo(pack, [item.id])}
-        />
-      )}
     </div>
   );
 };
@@ -281,8 +279,8 @@ const EnableCard: React.FC<{ data: EmojiPacksOverview; busy: boolean; onEnable: 
         <span className="server-images-kicker">Emoji packs</span>
         <h2 id="emoji-packs-enable-title">Turn on emoji packs</h2>
         <p>
-          Acosmibot will first save all {count} of this server's custom emojis as an <strong>Original</strong> pack.
-          It's your backup and doesn't count toward your plan. Nothing in Discord changes until you apply a pack.
+          Acosmibot will first save all {count} of this server's custom emojis as a pack called{' '}
+          <strong>Original</strong>, which doesn't count toward your plan. Nothing in Discord changes until you apply a pack.
         </p>
         <p className="emoji-packs-slots-line">
           This server has {data.live.limit} static and {data.live.limit} animated emoji slots at its boost level.
@@ -540,7 +538,6 @@ const PackCard: React.FC<{
         <h3>{pack.name}</h3>
         <div className="server-images-badges">
           {pack.live && <span className="server-images-badge server-images-badge--current">Live</span>}
-          {pack.kind === 'original' && <span className="server-images-badge">Backup</span>}
           {!pack.usable && <span className="server-images-badge">Locked on this plan</span>}
         </div>
       </div>
@@ -577,18 +574,16 @@ const PackCard: React.FC<{
             {pack.live ? 'Re-apply' : 'Apply'}
           </button>
           <button type="button" className="btn secondary" aria-expanded={selected} onClick={onSelect}>
-            <Pencil aria-hidden="true" /> {pack.kind === 'original' || !pack.usable ? 'View' : 'Edit'}
+            <Pencil aria-hidden="true" /> {pack.usable ? 'Edit' : 'View'}
           </button>
           <a className="server-images-icon-btn" href={emojiPacksApi.downloadUrl(guildId, pack.id)} aria-label={`Download ${pack.name} as a zip`}>
             <Download aria-hidden="true" />
           </a>
-          {pack.kind !== 'original' && (
-            <button type="button" className="server-images-icon-btn" disabled={busy || pack.live}
-              aria-label={`Delete ${pack.name}`} title={pack.live ? 'Apply another pack before deleting this one' : undefined}
-              onClick={() => onConfirm('delete')}>
-              <Trash2 aria-hidden="true" />
-            </button>
-          )}
+          <button type="button" className="server-images-icon-btn" disabled={busy || pack.live}
+            aria-label={`Delete ${pack.name}`} title={pack.live ? 'Apply another pack before deleting this one' : undefined}
+            onClick={() => onConfirm('delete')}>
+            <Trash2 aria-hidden="true" />
+          </button>
         </div>
       )}
     </li>
@@ -601,12 +596,15 @@ const PackEditor: React.FC<{
   pack: EmojiPack;
   limit: number;
   readOnly: boolean;
-  working: boolean;
   hooks: ReturnType<typeof useEmojiPacks>;
   onStatus: (status: Status) => void;
   copyTargets: EmojiPack[];
   onCopy: (item: EmojiPackItem, pack: EmojiPack) => void;
-}> = ({ pack, limit, readOnly, working, hooks, onStatus, copyTargets, onCopy }) => {
+}> = ({ pack, limit, readOnly, hooks, onStatus, copyTargets, onCopy }) => {
+  const section = useRef<HTMLElement>(null);
+  useEffect(() => {
+    section.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [pack.id]);
   const canCopy = copyTargets.length > 0;
   const fileInput = useRef<HTMLInputElement>(null);
   const [packName, setPackName] = useState(pack.name);
@@ -644,18 +642,11 @@ const PackEditor: React.FC<{
   };
 
   return (
-    <section className="server-images-upload emoji-pack-editor" aria-labelledby="emoji-pack-editor-title">
+    <section ref={section} className="server-images-upload emoji-pack-editor" aria-labelledby="emoji-pack-editor-title">
       <div className="emoji-pack-editor__head">
         <h2 id="emoji-pack-editor-title">{readOnly ? <Smile aria-hidden="true" /> : <Pencil aria-hidden="true" />} {pack.name}</h2>
         <span>{pack.counts.static}/{limit} static · {pack.counts.animated}/{limit} animated</span>
       </div>
-
-      {pack.kind === 'original' && (
-        <p>
-          The Original pack is your backup. Drag emojis from it onto other packs, or copy the whole pack to make an
-          editable version.
-        </p>
-      )}
 
       {!readOnly && (
         <>
@@ -676,10 +667,6 @@ const PackEditor: React.FC<{
             <input ref={fileInput} type="file" multiple accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange={onFiles} />
             <button type="button" className="btn primary" disabled={busy} onClick={() => fileInput.current?.click()}>
               <Upload aria-hidden="true" /> {hooks.addItems.isPending ? 'Uploading…' : 'Add emojis'}
-            </button>
-            <button type="button" className="btn secondary" disabled={busy || working}
-              onClick={() => void run(() => hooks.capture.mutateAsync(pack.id), `Saving the live emojis into ${pack.name}…`)}>
-              <Copy aria-hidden="true" /> Replace with live emojis
             </button>
           </div>
           <p>
