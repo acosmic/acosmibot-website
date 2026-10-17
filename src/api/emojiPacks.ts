@@ -145,6 +145,9 @@ export const emojiPacksApi = {
     );
   },
 
+  addLive: (guildId: string, packId: number, emojiIds: string[]) =>
+    request<ImportResult>(`${base(guildId)}/packs/${packId}/live`, json('POST', { emoji_ids: emojiIds })),
+
   renameItem: (guildId: string, packId: number, itemId: number, name: string) =>
     request<{ item: EmojiPackItem }>(`${base(guildId)}/packs/${packId}/items/${itemId}`, json('PATCH', { name })),
 
