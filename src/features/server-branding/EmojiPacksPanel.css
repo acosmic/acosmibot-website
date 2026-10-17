@@ -428,8 +428,8 @@ button.emoji-tile__flag:hover:not(:disabled) {
 }
 
 .emoji-pack-card {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 16px;
   border: 1px solid var(--border-light);
@@ -449,12 +449,28 @@ button.emoji-tile__flag:hover:not(:disabled) {
   opacity: 0.75;
 }
 
+/* Title and badges share one row so every card's content lines up. */
 .emoji-pack-card__head {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 32px;
+}
+
+.emoji-pack-card__head .server-images-badges {
+  flex: none;
+  margin: 0;
+}
+
+/* Buttons sit on the bottom edge even when a neighbour card is taller. */
+.emoji-pack-card > .server-images-actions {
+  margin-top: auto;
 }
 
 .emoji-pack-card__head h3 {
+  flex: 1;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
 
