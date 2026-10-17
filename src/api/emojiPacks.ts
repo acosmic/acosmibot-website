@@ -11,6 +11,10 @@ export interface EmojiPackItem {
   byte_size: number;
   discord_emoji_id: string | null;
   created_at: string | null;
+  /** Set when the emoji was imported from a catalog ("7tv"); credits the creator. */
+  source: string | null;
+  source_id: string | null;
+  source_author: string | null;
 }
 
 export interface EmojiPack {
@@ -62,7 +66,53 @@ export interface EmojiPacksOverview {
   packs: EmojiPack[];
   live: { emojis: LiveEmoji[]; limit: number; static: number; animated: number };
   job: EmojiPackJob | null;
+  /** Whether the 7TV emote browser is offered. */
+  seventv: boolean;
 }
+
+export interface SevenTvEmote {
+  id: string;
+  name: string;
+  animated: boolean;
+  author: string | null;
+  preview_url: string;
+  page_url: string;
+}
+
+export interface SevenTvUser {
+  id: string;
+  name: string;
+  platform: string | null;
+  avatar_url: string | null;
+  emote_set_id: string;
+}
+
+export interface SevenTvSet {
+  id: string;
+  name: string;
+  owner: string | null;
+  total: number;
+  page: number;
+  per_page: number;
+  emotes: SevenTvEmote[];
+}
+
+export type SevenTvSort = 'trending' | 'top' | 'new';
+
+export interface SevenTvSearch {
+  total: number;
+  pages: number;
+  page: number;
+  emotes: SevenTvEmote[];
+}
+
+export interface ImportResult {
+  added: EmojiPackItem[];
+  errors: { file: string; message: string }[];
+}
+
+/** The API downloads 7TV emotes in the request, so imports go in small batches. */
+export const SEVENTV_BATCH = 12;
 
 export type NewPackSource = 'empty' | 'live' | 'duplicate';
 
@@ -109,6 +159,25 @@ export const emojiPacksApi = {
 
   setKeep: (guildId: string, emojiIds: string[]) =>
     request<{ keep_emoji_ids: string[] }>(`${base(guildId)}/keep`, json('PUT', { emoji_ids: emojiIds })),
+
+  searchSevenTv: (guildId: string, input: { q: string; sort: SevenTvSort; animated: '' | 'true' | 'false'; page: number }) => {
+    const params = new URLSearchParams({ q: input.q, sort: input.sort, page: String(input.page) });
+    if (input.animated) params.set('animated', input.animated);
+    return request<SevenTvSearch>(`${base(guildId)}/7tv/emotes?${params}`);
+  },
+
+  searchSevenTvUsers: (guildId: string, q: string) =>
+    request<{ users: SevenTvUser[] }>(`${base(guildId)}/7tv/users?${new URLSearchParams({ q })}`),
+
+  sevenTvSet: (guildId: string, setId: string, page: number) =>
+    request<{ set: SevenTvSet }>(`${base(guildId)}/7tv/sets/${encodeURIComponent(setId)}?page=${page}`),
+
+  addSevenTv: (guildId: string, packId: number, emotes: { id: string; name?: string }[]) =>
+    request<ImportResult>(`${base(guildId)}/packs/${packId}/7tv`, json('POST', { emotes })),
+
+  addSevenTvToServer: (guildId: string, emote: { id: string; name?: string }) =>
+    request<ImportResult & { job: EmojiPackJob }>(`${base(guildId)}/7tv/add-to-server`,
+      json('POST', { emote_id: emote.id, name: emote.name })),
 
   downloadUrl: (guildId: string, packId: number) => `${apiBase()}${base(guildId)}/packs/${packId}/download`,
 };

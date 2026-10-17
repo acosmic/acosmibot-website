@@ -19,6 +19,7 @@ import type { EmojiPack, EmojiPackJob, EmojiPacksOverview, LiveEmoji, NewPackSou
 import { emojiPacksApi } from '@/api/emojiPacks';
 import { ServerImagesError } from '@/api/serverImages';
 import { LoadingSpinner } from '@/components/ui';
+import { SevenTvBrowser } from './SevenTvBrowser';
 import { useEmojiPacks } from './useEmojiPacks';
 import './EmojiPacksPanel.css';
 
@@ -165,6 +166,23 @@ export const EmojiPacksPanel: React.FC = () => {
           )}
         </ul>
       </section>
+
+      {data.seventv && !readOnly && (
+        <SevenTvBrowser
+          guildId={guildId}
+          packs={data.packs}
+          preferredPackId={selectedId}
+          working={working}
+          hooks={packs}
+          onStatus={setStatus}
+          canCreatePack={!atLimit}
+          onCreatePack={async (name) => {
+            const result = await packs.createPack.mutateAsync({ name, source: 'empty' });
+            setSelectedId(result.pack.id);
+            return result.pack.id;
+          }}
+        />
+      )}
 
       {selected && (
         <PackEditor
@@ -537,7 +555,8 @@ const PackEditor: React.FC<{
       ) : (
         <ul className="emoji-grid">
           {items.map((item) => (
-            <li key={item.id} className="emoji-tile emoji-tile--editable">
+            <li key={item.id} className="emoji-tile emoji-tile--editable"
+              title={item.source === '7tv' ? `From 7TV${item.source_author ? ` · by ${item.source_author}` : ''}` : undefined}>
               <img src={item.url} alt="" loading="lazy" />
               {editing?.id === item.id ? (
                 <form className="emoji-tile__rename" onSubmit={(event) => {
