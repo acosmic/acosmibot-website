@@ -401,7 +401,7 @@ function pause() {
   if(mode!=='playing'&&mode!=='ready')return;
   mode='paused'; showOverlay('FLIGHT PAUSED','Take a breath. Your orbit is waiting.','Resume flight');
   $('results').hidden=true; $('instructions').hidden=false; $('retry').hidden=false;
-  $('leaderboard').hidden=true;$('back-title').hidden=false;
+  $('leaderboard').hidden=!!ticket?.casual;$('back-title').hidden=false;
 }
 function resume() {
   if(gpu?.lost)return;
