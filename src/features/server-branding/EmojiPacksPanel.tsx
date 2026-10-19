@@ -20,7 +20,7 @@ import { ServerImagesError } from '@/api/serverImages';
 import { LoadingSpinner } from '@/components/ui';
 import { ConfirmDialog } from './ConfirmDialog';
 import { PackPicker } from './PackPicker';
-import { SevenTvBrowser } from './SevenTvBrowser';
+import { SevenTvBrowser, SevenTvCommandNote } from './SevenTvBrowser';
 import { useEmojiPacks } from './useEmojiPacks';
 import './EmojiPacksPanel.css';
 
@@ -101,23 +101,23 @@ export const EmojiPacksPanel: React.FC = () => {
     .map((pack) => pack.name);
 
   const atLimit = data.custom_pack_count >= data.pack_limit;
-  // Adding 7TV emotes to the server is free on every plan; pack imports need packs on Plus or higher.
-  const sevenTv = data.seventv && (
+  // The 7TV browser is Plus and higher (pack imports also need packs on); Free servers use /7tv upload.
+  const sevenTv = data.seventv && (readOnly ? <SevenTvCommandNote guildId={guildId} /> : (
     <SevenTvBrowser
       guildId={guildId}
-      packs={data.enabled && !readOnly ? data.packs : []}
+      packs={data.enabled ? data.packs : []}
       preferredPackId={selectedId}
       working={working}
       hooks={packs}
       onStatus={setStatus}
-      canCreatePack={data.enabled && !readOnly && !atLimit}
+      canCreatePack={data.enabled && !atLimit}
       onCreatePack={async (name) => {
         const result = await packs.createPack.mutateAsync({ name, source: 'empty' });
         setSelectedId(result.pack.id);
         return result.pack.id;
       }}
     />
-  );
+  ));
 
   if (!data.enabled) {
     return (

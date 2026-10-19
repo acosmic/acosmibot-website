@@ -26,6 +26,7 @@
         <li>A confirmation card shows exactly what will be uploaded before anything changes</li>
         <li>Every image is archived, so you can always switch back to a previous one</li>
         <li>Emoji packs save your custom emoji as named sets you can swap in and out</li>
+        <li>Add 7TV emotes on every plan with <code>/7tv upload</code>, or browse 7TV on the website on Plus and higher</li>
       </ul>
     </div>
   </section>
@@ -51,6 +52,13 @@
       <div class="command-signature">/server invite-background</div>
       <div class="command-description">
         Set or remove the invite background. Discord unlocks it at Boost Level 1.
+      </div>
+    </div>
+
+    <div class="command-card">
+      <div class="command-signature">/7tv upload &lt;emote&gt; [name]</div>
+      <div class="command-description">
+        Add a 7TV emote to the server from its link or ID. Works on every plan; needs Manage Expressions.
       </div>
     </div>
 
@@ -123,6 +131,20 @@
         <li>Acosmibot needs Discord's <strong>Manage Expressions</strong> permission to apply a pack.</li>
         <li>If the server drops to a lower plan, extra packs are kept but locked until you are back under the limit.</li>
       </ul>
+    </div>
+  </section>
+
+  <section class="docs-section">
+    <h2>7TV Emotes</h2>
+    <p>
+      Any server can add an emote from <a href="https://7tv.app" target="_blank" rel="noopener noreferrer">7TV</a> with <code>/7tv upload</code>: paste the emote's link (like <code>https://7tv.app/emotes/...</code>) or its ID, and optionally a <code>name</code> to use instead of the 7TV one. Acosmibot fits it to Discord's 256 KB emoji limit and adds it right away. It works on every plan, one emote at a time, and needs Discord's <strong>Manage Expressions</strong> permission for you and for Acosmibot.
+    </p>
+    <p>
+      On Plus and higher, <strong>Server Branding → Emoji Packs</strong> also has a 7TV browser: search emotes or a streamer's emote set, then add emotes straight to the server or into a pack, including a whole set at once. Each emote links to its 7TV page and credits its creator.
+    </p>
+    <div class="info-card info-card-warning">
+      <h3>Use emotes you have the right to use</h3>
+      <p>7TV emotes are made by its community. Only add ones your server has the right to use.</p>
     </div>
   </section>
 
