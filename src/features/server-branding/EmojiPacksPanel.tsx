@@ -100,15 +100,43 @@ export const EmojiPacksPanel: React.FC = () => {
     .filter((pack) => !pack.live && pack.items.some((item) => item.discord_emoji_id === emoji.id))
     .map((pack) => pack.name);
 
+  const atLimit = data.custom_pack_count >= data.pack_limit;
+  // Adding 7TV emotes to the server is free on every plan; pack imports need packs on Plus or higher.
+  const sevenTv = data.seventv && (
+    <SevenTvBrowser
+      guildId={guildId}
+      packs={data.enabled && !readOnly ? data.packs : []}
+      preferredPackId={selectedId}
+      working={working}
+      hooks={packs}
+      onStatus={setStatus}
+      canCreatePack={data.enabled && !readOnly && !atLimit}
+      onCreatePack={async (name) => {
+        const result = await packs.createPack.mutateAsync({ name, source: 'empty' });
+        setSelectedId(result.pack.id);
+        return result.pack.id;
+      }}
+    />
+  );
+
   if (!data.enabled) {
-    return readOnly
-      ? <UpsellCard guildId={guildId} />
-      : <EnableCard data={data} busy={packs.enable.isPending} onEnable={() => void run(() => packs.enable.mutateAsync())} status={status} />;
+    return (
+      <div className="emoji-packs">
+        {readOnly
+          ? <UpsellCard guildId={guildId} />
+          : <EnableCard data={data} busy={packs.enable.isPending} onEnable={() => void run(() => packs.enable.mutateAsync())} status={sevenTv ? null : status} />}
+        {status && sevenTv && (
+          <p className={`server-images-status server-images-status--${status.tone}`} role={status.tone === 'error' ? 'alert' : 'status'}>
+            {status.text}
+          </p>
+        )}
+        {sevenTv}
+      </div>
+    );
   }
 
   const selected = data.packs.find((pack) => pack.id === selectedId) ?? null;
   const livePack = data.packs.find((pack) => pack.live) ?? null;
-  const atLimit = data.custom_pack_count >= data.pack_limit;
 
   return (
     <div className="emoji-packs">
@@ -231,22 +259,7 @@ export const EmojiPacksPanel: React.FC = () => {
           onCopy={(item, pack) => copyTo(pack, [item.id])}
         />
       )}
-      {data.seventv && !readOnly && (
-        <SevenTvBrowser
-          guildId={guildId}
-          packs={data.packs}
-          preferredPackId={selectedId}
-          working={working}
-          hooks={packs}
-          onStatus={setStatus}
-          canCreatePack={!atLimit}
-          onCreatePack={async (name) => {
-            const result = await packs.createPack.mutateAsync({ name, source: 'empty' });
-            setSelectedId(result.pack.id);
-            return result.pack.id;
-          }}
-        />
-      )}
+      {sevenTv}
 
     </div>
   );

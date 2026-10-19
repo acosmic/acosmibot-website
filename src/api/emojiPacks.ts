@@ -185,8 +185,9 @@ export const emojiPacksApi = {
   addSevenTv: (guildId: string, packId: number, emotes: { id: string; name?: string }[]) =>
     request<ImportResult>(`${base(guildId)}/packs/${packId}/7tv`, json('POST', { emotes })),
 
+  /** Free on every plan: through the live pack (with a job) when the server uses packs, otherwise straight to Discord. */
   addSevenTvToServer: (guildId: string, emote: { id: string; name?: string }) =>
-    request<ImportResult & { job: EmojiPackJob }>(`${base(guildId)}/7tv/add-to-server`,
+    request<Partial<ImportResult> & { job: EmojiPackJob | null; emoji?: { id: string; name: string } }>(`${base(guildId)}/7tv/add-to-server`,
       json('POST', { emote_id: emote.id, name: emote.name })),
 
   downloadUrl: (guildId: string, packId: number) => `${apiBase()}${base(guildId)}/packs/${packId}/download`,
