@@ -27,7 +27,10 @@ const describe = (result: { added: unknown[]; errors: { file: string; message: s
   };
 };
 
-/** Search 7TV and add emotes to a pack, or straight to the server through the live pack. */
+/**
+ * Search 7TV and add emotes straight to the server (any plan), or to a pack when the
+ * server uses packs. ``packs`` is empty when packs are off or locked on this plan.
+ */
 export const SevenTvBrowser: React.FC<{
   guildId: string;
   packs: EmojiPack[];
@@ -38,11 +41,11 @@ export const SevenTvBrowser: React.FC<{
   onCreatePack: (name: string) => Promise<number>;
   canCreatePack: boolean;
 }> = ({ guildId, packs, preferredPackId, working, hooks, onStatus, onCreatePack, canCreatePack }) => {
+  const packMode = packs.length > 0;
   const editable = packs.filter((pack) => pack.kind === 'custom' && pack.usable);
   const [mode, setMode] = useState<Mode>('emotes');
   const [targetId, setTargetId] = useState<number | null>(null);
   const target = editable.find((pack) => pack.id === (targetId ?? preferredPackId)) ?? editable[0] ?? null;
-  const hasLive = packs.some((pack) => pack.live);
 
   const addToPack = (emotes: SevenTvEmote[], packId = target?.id, packName = target?.name) => {
     if (!packId || !packName) return Promise.resolve();
@@ -57,14 +60,20 @@ export const SevenTvBrowser: React.FC<{
     onStatus(null);
     hooks.addSevenTvToServer
       .mutateAsync({ id: emote.id, name: emote.name })
-      .then(() => onStatus({ tone: 'ok', text: `Adding :${emote.name}: to your server. It also stays in the live pack.` }))
+      .then((result) => onStatus({
+        tone: 'ok',
+        text: result.job
+          ? `Adding :${emote.name}: to your server. It also stays in the live pack.`
+          : `Added :${result.emoji?.name ?? emote.name}: to your server.`,
+      }))
       .catch((caught: unknown) => onStatus({ tone: 'error', text: caught instanceof Error ? caught.message : 'Something went wrong.' }));
   };
 
   const busy = hooks.addSevenTv.isPending || hooks.addSevenTvToServer.isPending;
   const actions: TileActions = {
+    packMode,
     packs: editable,
-    serverDisabled: working || busy || !hasLive,
+    serverDisabled: working || busy,
     packDisabled: busy,
     onPack: (emote, pack) => void addToPack([emote], pack.id, pack.name),
     onServer: addToServer,
@@ -86,7 +95,7 @@ export const SevenTvBrowser: React.FC<{
         </div>
       </div>
 
-      {mode === 'sets' && (
+      {mode === 'sets' && packMode && (
         <label className="server-images-field seventv__target">
           <span>Add selected emotes to</span>
           {editable.length ? (
@@ -106,6 +115,7 @@ export const SevenTvBrowser: React.FC<{
             guildId={guildId}
             target={target}
             busy={busy}
+            canImport={packMode}
             canCreatePack={canCreatePack}
             actions={actions}
             onImport={async (emotes, newPackName) => {
@@ -125,7 +135,7 @@ export const SevenTvBrowser: React.FC<{
 
       <p className="seventv__credit">
         Emotes from <a href="https://7tv.app" target="_blank" rel="noreferrer">7TV</a>, made by its community.
-        {!hasLive && ' Save your current emojis first to add emotes straight to the server.'}
+        {!packMode && ' Adding emotes to your server is free on every plan.'}
       </p>
     </section>
   );
@@ -193,10 +203,11 @@ const SetImport: React.FC<{
   guildId: string;
   target: EmojiPack | null;
   busy: boolean;
+  canImport: boolean;
   canCreatePack: boolean;
   actions: TileActions;
   onImport: (emotes: SevenTvEmote[], newPackName?: string) => Promise<void>;
-}> = ({ guildId, target, busy, canCreatePack, actions, onImport }) => {
+}> = ({ guildId, target, busy, canImport, canCreatePack, actions, onImport }) => {
   const [text, setText] = useState('');
   const q = useDebounced(text.trim());
   const users = useSevenTvUsers(guildId, q);
@@ -271,7 +282,7 @@ const SetImport: React.FC<{
             <p className="server-images-empty">Loading set…</p>
           ) : (
             <>
-              <div className="seventv__set-tools">
+              {canImport && <div className="seventv__set-tools">
                 <button type="button" className="btn secondary" onClick={selectPage}>Select this page</button>
                 <button type="button" className="btn secondary" disabled={!picked.size} onClick={() => setPicked(new Map())}>Clear</button>
                 <span>{picked.size} selected</span>
@@ -283,10 +294,11 @@ const SetImport: React.FC<{
                     New pack from selection
                   </button>
                 )}
-              </div>
+              </div>}
               <ul className={`emoji-grid seventv__grid${set.isFetching ? ' is-fetching' : ''}`}>
                 {current.emotes.map((emote) => (
-                  <EmoteTile key={emote.id} emote={emote} actions={actions} picked={picked.has(emote.id)} onPick={() => toggle(emote)} />
+                  <EmoteTile key={emote.id} emote={emote} actions={actions} picked={picked.has(emote.id)}
+                    onPick={canImport ? () => toggle(emote) : undefined} />
                 ))}
               </ul>
               {pages > 1 && <Pager page={page} pages={pages} onPage={setPage} />}
@@ -301,6 +313,7 @@ const SetImport: React.FC<{
 /* ------------------------------------------------------------------ pieces */
 
 type TileActions = {
+  packMode: boolean;
   packs: EmojiPack[];
   packDisabled: boolean;
   serverDisabled: boolean;
@@ -321,8 +334,10 @@ const EmoteTile: React.FC<{ emote: SevenTvEmote; actions: TileActions; picked?: 
       {emote.author ? `by ${emote.author}` : '7TV'} <ExternalLink aria-hidden="true" />
     </a>
     <span className="emoji-tile__actions">
-      <PackPicker label={`Add :${emote.name}: to a pack`} packs={actions.packs} disabled={actions.packDisabled}
-        onPick={(pack) => actions.onPack(emote, pack)} />
+      {actions.packMode && (
+        <PackPicker label={`Add :${emote.name}: to a pack`} packs={actions.packs} disabled={actions.packDisabled}
+          onPick={(pack) => actions.onPack(emote, pack)} />
+      )}
       <button type="button" className="server-images-icon-btn" disabled={actions.serverDisabled}
         aria-label={`Add :${emote.name}: to the server`} title="Add to server now" onClick={() => actions.onServer(emote)}>
         <Send aria-hidden="true" />
