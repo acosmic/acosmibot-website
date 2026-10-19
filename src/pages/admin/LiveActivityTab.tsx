@@ -3,6 +3,7 @@ import { Activity, Bot, CircleAlert, Clock3, Cpu, Expand, FileJson2, Globe2, Pau
 import { adminApi, type AdminAiTraceDetail, type AdminAiTraceSpan } from '@/api/admin';
 import { apiBase as runtimeApiBase } from '@/lib/runtimeConfig';
 import { getLiveActivityPrompt, getLiveActivityOutputs } from '@/utils/liveActivityPrompt';
+import { compactTokens, percent } from './AiLoopHealthPanel';
 
 type Category = 'command' | 'ai' | 'website';
 type Outcome = 'running' | 'success' | 'error' | 'blocked' | 'cancelled';
@@ -100,10 +101,36 @@ function logMatchesActivityWindow(entry: RuntimeLogEntry, event: LiveEvent) {
 }
 
 function traceSpanSummary(span: AdminAiTraceSpan) {
-  const context = [span.span_type, span.provider !== 'internal' ? span.provider : null, span.model !== '-' ? span.model : null]
-    .filter(Boolean)
-    .join(' · ');
+  const round = span.metadata?.routing_step;
+  const tool = span.metadata?.tool_name;
+  const context = [
+    span.span_type,
+    span.provider !== 'internal' ? span.provider : null,
+    span.model !== '-' ? span.model : null,
+    typeof tool === 'string' ? tool : null,
+    round != null ? `round ${String(round)}` : null,
+    span.input_tokens ? `${percent((span.cached_input_tokens ?? 0) / span.input_tokens)} of ${compactTokens(span.input_tokens)} cached` : null,
+    span.error_code,
+  ].filter(Boolean).join(' · ');
   return `${context} · ${formatDurationMs(span.duration_ms)}`;
+}
+
+function traceLoopSummary(detail: AdminAiTraceDetail) {
+  let rounds = 0;
+  const ran: string[] = [];
+  let skipped = 0;
+  for (const span of detail.spans) {
+    const step = Number(span.metadata?.routing_step);
+    if (span.span_type === 'provider' && Number.isFinite(step)) rounds = Math.max(rounds, step);
+    if (span.span_type === 'tool' && span.name === 'skipped') skipped += 1;
+    else if (span.span_type === 'tool' && typeof span.metadata?.tool_name === 'string') ran.push(span.metadata.tool_name);
+  }
+  const { input_tokens: input, cached_input_tokens: cached } = detail.trace;
+  return {
+    cached: input ? `${percent((cached ?? 0) / input)} of ${compactTokens(input)}` : 'no input recorded',
+    rounds: rounds ? String(rounds) : '—',
+    tools: ran.length ? `${[...new Set(ran)].map(humanize).join(', ')}${skipped ? ` · ${skipped} skipped` : ''}` : skipped ? `${skipped} skipped` : 'none',
+  };
 }
 
 export const LiveActivityTab: React.FC = () => {
@@ -123,6 +150,7 @@ export const LiveActivityTab: React.FC = () => {
   const [traceDetail, setTraceDetail] = useState<AdminAiTraceDetail | null>(null);
   const finalOutputs = useMemo(() => getLiveActivityOutputs(traceDetail?.content || []), [traceDetail]);
   const userPrompt = useMemo(() => getLiveActivityPrompt(traceDetail?.content || []), [traceDetail]);
+  const loopSummary = useMemo(() => (traceDetail ? traceLoopSummary(traceDetail) : null), [traceDetail]);
   const [runtimeLogs, setRuntimeLogs] = useState<RuntimeLogEntry[]>([]);
   const [diagnosticsLoading, setDiagnosticsLoading] = useState(false);
   const [traceError, setTraceError] = useState<string | null>(null);
@@ -477,6 +505,9 @@ export const LiveActivityTab: React.FC = () => {
                   <div><dt>Cost</dt><dd>{formatCost(traceDetail.trace.cost_usd)}</dd></div>
                   <div><dt>Build</dt><dd><code>{traceDetail.trace.build_sha || 'not recorded'}</code></dd></div>
                   <div><dt>Delivery</dt><dd>{humanize(traceDetail.trace.delivery_outcome || 'not recorded')}</dd></div>
+                  <div><dt>Input cached</dt><dd>{loopSummary?.cached}</dd></div>
+                  <div><dt>Model rounds</dt><dd>{loopSummary?.rounds}</dd></div>
+                  <div><dt>Tools</dt><dd>{loopSummary?.tools}</dd></div>
                 </dl>
                 <div className="live-trace-content__heading">
                   <div>

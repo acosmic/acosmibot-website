@@ -85,6 +85,7 @@ export interface GlobalAiCallAggregate {
   error_count: number;
   input_tokens: number;
   cached_input_tokens: number;
+  cache_write_tokens?: number;
   visible_output_tokens: number;
   thought_tokens: number;
   tool_use_prompt_tokens: number;

@@ -1,6 +1,7 @@
 import { AiComparisonPanel } from './AiComparisonPanel';
 import { isTestEnvironment } from '@/lib/runtimeConfig';
 import { RoutingComparisonPanel } from './RoutingComparisonPanel';
+import { AiLoopHealthPanel, compactTokens, percent } from './AiLoopHealthPanel';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -71,6 +72,23 @@ function statusLabel(status: string): string {
   return status.replaceAll('_', ' ');
 }
 
+function cachedShare(input: number | null | undefined, cached: number | null | undefined): number | null {
+  return input ? (cached ?? 0) / input : null;
+}
+
+// Friendlier names for the content-free span metadata keys owners read most.
+const METADATA_LABELS: Record<string, string> = {
+  routing_step: 'round',
+  tool_name: 'tool',
+  finish_reason: 'finish',
+  tool_call_count: 'tool calls',
+  requested_tool_choice: 'tool choice',
+  parallel_tool_calls: 'parallel',
+  cache_write_tokens: 'cache write',
+  static_prefix_hash: 'prefix',
+  static_prefix_chars: 'prefix chars',
+};
+
 function TraceRow({
   trace,
   selected,
@@ -94,7 +112,7 @@ function TraceRow({
       </span>
       <span className="ai-trace-row__metrics">
         <strong>{formatDuration(trace.duration_ms)}</strong>
-        <span>{trace.span_count} spans · {formatCost(trace.cost_usd)}</span>
+        <span>{trace.span_count} spans · {formatCost(trace.cost_usd)}{trace.input_tokens ? ` · ${percent(cachedShare(trace.input_tokens, trace.cached_input_tokens))} cached` : ''}</span>
       </span>
       <ChevronRight aria-hidden="true" />
     </button>
@@ -132,10 +150,13 @@ function SpanRow({
       <div className="ai-span__details">
         {span.model !== '-' && <span>model <strong>{span.model}</strong></span>}
         {span.provider_total_tokens != null && <span>tokens <strong>{span.provider_total_tokens.toLocaleString()}</strong></span>}
+        {span.input_tokens ? <span>input <strong>{compactTokens(span.input_tokens)}</strong></span> : null}
+        {span.input_tokens ? <span>cached <strong>{percent(cachedShare(span.input_tokens, span.cached_input_tokens))}</strong></span> : null}
+        {span.visible_output_tokens ? <span>output <strong>{compactTokens(span.visible_output_tokens)}</strong></span> : null}
         {span.cost_usd != null && <span>cost <strong>{formatCost(span.cost_usd)}</strong></span>}
         {span.error_code && <span className="is-error">error <strong>{span.error_code}</strong></span>}
         {metadata.map(([key, value]) => (
-          <span key={key}>{key.replaceAll('_', ' ')} <strong>{Array.isArray(value) ? value.join(', ') : String(value)}</strong></span>
+          <span key={key}>{METADATA_LABELS[key] ?? key.replaceAll('_', ' ')} <strong>{Array.isArray(value) ? value.join(', ') : String(value)}</strong></span>
         ))}
       </div>
     </li>
@@ -220,6 +241,8 @@ export const AiTracesTab: React.FC = () => {
       </header>
 
       {isTestEnvironment() && <AiComparisonPanel days={days} onSelectTrace={id => { setSelectedId(id); document.querySelector('.ai-trace-detail')?.scrollIntoView({ behavior: 'auto', block: 'start' }); }} />}
+      <AiLoopHealthPanel days={days} />
+
       <RoutingComparisonPanel days={days} onSelectTrace={setSelectedId} />
 
       <div className="ai-traces__console">
@@ -257,6 +280,7 @@ export const AiTracesTab: React.FC = () => {
                 <div><dt>End to end</dt><dd>{formatDuration(trace.duration_ms)}</dd></div>
                 <div><dt>Provider calls</dt><dd>{trace.provider_call_count}</dd></div>
                 <div><dt>Total tokens</dt><dd>{trace.provider_total_tokens.toLocaleString()}</dd></div>
+                <div><dt>Input cached</dt><dd>{percent(cachedShare(trace.input_tokens, trace.cached_input_tokens))}</dd></div>
                 <div><dt>Estimated cost</dt><dd>{formatCost(trace.cost_usd)}</dd></div>
               </dl>
               <div className="ai-trace-scale"><span>Start</span><i /><span>{formatDuration(trace.duration_ms)}</span></div>
