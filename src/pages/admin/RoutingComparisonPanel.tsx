@@ -27,8 +27,8 @@ export function RoutingComparisonPanel({ days, onSelectTrace }: { days: number; 
       </ul>}
       {data.providers.length > 0 && <div className="routing-comparison__table" role="region" aria-label="Routing provider measurements" tabIndex={0}>
         <table><thead><tr><th scope="col">Mode / provider</th><th scope="col">Role</th><th scope="col">Calls</th><th scope="col">Mean time</th><th scope="col">Known cost</th><th scope="col">Failures</th></tr></thead>
-          <tbody>{data.providers.map(row => <tr key={`${row.mode}-${row.engine}-${row.role}-${row.provider}-${row.model}`}>
-            <th scope="row">{label(row.mode)}<small>{row.engine === 'jev' ? 'Jev' : 'LLM'} · {row.model}</small></th>
+          <tbody>{data.providers.map(row => <tr key={`${row.mode}-${row.engine}-${row.role}-${row.provider}-${row.model}-${row.experiment_version}-${row.entrypoint}`}>
+            <th scope="row">{label(row.mode)}<small>{row.engine === 'jev' ? 'Jev' : 'LLM'} · {row.model}{row.experiment_version && ` · ${row.experiment_version}`}{row.entrypoint && ` · ${row.entrypoint}`}</small></th>
             <td>{row.role}</td><td>{row.calls}</td><td>{Math.round(row.mean_ms)} ms</td>
             <td>{money(row.cost_usd)}{row.unknown_cost_calls > 0 && <small>{row.unknown_cost_calls} unpriced calls</small>}</td><td>{row.failed_calls}</td>
           </tr>)}</tbody>

@@ -736,7 +736,8 @@ export interface RoutingComparisonReport {
   days: number;
   scope: string;
   providers: { mode: AiRoutingMode; engine: string; role: string; provider: string; model: string;
-    calls: number; mean_ms: number; cost_usd: string; unknown_cost_calls: number; tokens: number; failed_calls: number }[];
+    calls: number; mean_ms: number; cost_usd: string; unknown_cost_calls: number; tokens: number; failed_calls: number;
+    experiment_version: string | null; entrypoint: string | null }[];
   comparisons: { mode: AiRoutingMode; agreement: string; count: number }[];
   recent_trace_ids: string[];
 }
