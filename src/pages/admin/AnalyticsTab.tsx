@@ -381,6 +381,7 @@ export const AnalyticsTab: React.FC = () => {
             <div style={row}><span style={{ color: 'var(--text-primary)' }}>Calls</span><span style={meta}>{aiCalls.data.call_count.toLocaleString()} · {aiCalls.data.success_count.toLocaleString()} succeeded</span></div>
             <div style={row}><span style={{ color: 'var(--text-primary)' }}>Spend</span><span style={meta}>{fmtCost(Number(aiCalls.data.cost_usd))}</span></div>
             <div style={row}><span style={{ color: 'var(--text-primary)' }}>Latency</span><span style={meta}>p50 {aiCalls.data.latency_ms.p50 ?? '—'} ms · p95 {aiCalls.data.latency_ms.p95 ?? '—'} ms</span></div>
+            <div style={row}><span style={{ color: 'var(--text-primary)' }}>Input cached</span><span style={meta}>{aiCalls.data.input_tokens ? `${((aiCalls.data.cached_input_tokens / aiCalls.data.input_tokens) * 100).toFixed(0)}%` : '—'} · {aiCalls.data.cached_input_tokens.toLocaleString()} of {aiCalls.data.input_tokens.toLocaleString()} tokens{aiCalls.data.cache_write_tokens ? ` · ${aiCalls.data.cache_write_tokens.toLocaleString()} written` : ''}</span></div>
             <div style={row}><span style={{ color: 'var(--text-primary)' }}>Cost quality</span><span style={meta}>{aiCalls.data.unknown_cost_count} unknown · {aiCalls.data.fallback_cost_count} fallback</span></div>
             <div style={{ marginTop: 12, color: 'var(--text-muted)', fontSize: 12 }}>Daily spend</div>
             {aiCalls.data.spend_by_day.slice(0, 5).map((day) => (

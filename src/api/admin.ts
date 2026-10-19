@@ -194,6 +194,8 @@ export interface AdminAiTraceSummary {
   provider_total_tokens: number;
   cost_usd: string;
   span_count: number;
+  input_tokens?: number | null;
+  cached_input_tokens?: number | null;
 }
 
 export interface AdminAiTraceSpan {
@@ -593,6 +595,8 @@ export const adminApi = {
 
   getRoutingComparison: (days = 7) => api.fetch<RoutingComparisonReport>(`/api/admin/ai-traces/routing-comparison?days=${days}`),
 
+  getAiLoopHealth: (days = 7) => api.fetch<AdminAiLoopHealth>(`/api/admin/ai-traces/loop-health?days=${days}`),
+
   getAiTraces: (days = 7, status?: AdminAiTraceStatus) => {
     const params = new URLSearchParams({ days: String(days), limit: '100' });
     if (status) params.set('status', status);
@@ -740,4 +744,49 @@ export interface RoutingComparisonReport {
     experiment_version: string | null; entrypoint: string | null }[];
   comparisons: { mode: AiRoutingMode; agreement: string; count: number }[];
   recent_trace_ids: string[];
+}
+
+export interface AdminAiLoopRound {
+  round: number;
+  calls: number;
+  input_tokens: number;
+  cached_input_tokens: number;
+  cache_write_tokens: number;
+  cached_share: number | null;
+  mean_ms: number;
+}
+
+export interface AdminAiLoopHealth {
+  success: boolean;
+  days: number;
+  cache: {
+    chat_calls: number;
+    input_tokens: number;
+    cached_input_tokens: number;
+    cache_write_tokens: number;
+    cached_share: number | null;
+    estimated_savings_usd: string;
+  };
+  rounds: AdminAiLoopRound[];
+  models: {
+    provider: string;
+    model: string;
+    calls: number;
+    input_tokens: number;
+    cached_input_tokens: number;
+    cache_write_tokens: number;
+    cached_share: number | null;
+    cost_usd: string;
+    estimated_savings_usd: string | null;
+  }[];
+  prefixes: {
+    distinct: number;
+    marked_calls: number;
+    chat_calls: number;
+    top: { hash: string; chars: number; calls: number; cached_share: number | null; last_seen: string | null }[];
+  };
+  finish_reasons: { reason: string; count: number }[];
+  turn_rounds: { rounds: number; turns: number }[];
+  tools: { tool: string; executed: number; failed: number; skipped: number; reused: number; mean_ms: number | null }[];
+  skip_reasons: { reason: string; count: number }[];
 }
