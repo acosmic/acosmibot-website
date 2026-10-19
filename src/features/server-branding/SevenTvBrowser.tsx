@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ExternalLink, Plus, Search, Send, Users } from 'lucide-react';
 import type { EmojiPack, SevenTvEmote, SevenTvSort } from '@/api/emojiPacks';
 import { PackPicker } from './PackPicker';
@@ -28,8 +29,8 @@ const describe = (result: { added: unknown[]; errors: { file: string; message: s
 };
 
 /**
- * Search 7TV and add emotes straight to the server (any plan), or to a pack when the
- * server uses packs. ``packs`` is empty when packs are off or locked on this plan.
+ * Search 7TV (Plus and higher) and add emotes straight to the server, or to a pack
+ * when the server uses packs. ``packs`` is empty when packs are off.
  */
 export const SevenTvBrowser: React.FC<{
   guildId: string;
@@ -135,11 +136,25 @@ export const SevenTvBrowser: React.FC<{
 
       <p className="seventv__credit">
         Emotes from <a href="https://7tv.app" target="_blank" rel="noreferrer">7TV</a>, made by its community.
-        {!packMode && ' Adding emotes to your server is free on every plan.'}
+        {!packMode && ' Turn on emoji packs to save emotes into packs too.'}
       </p>
     </section>
   );
 };
+
+/** Free servers add 7TV emotes with the bot's /7tv upload; the browser is Plus and higher. */
+export const SevenTvCommandNote: React.FC<{ guildId: string }> = ({ guildId }) => (
+  <section className="server-images-upload seventv" aria-labelledby="seventv-title">
+    <div className="seventv__head">
+      <h2 id="seventv-title"><Search aria-hidden="true" /> 7TV emotes</h2>
+    </div>
+    <p>
+      Add any 7TV emote on every plan with <code>/7tv upload</code> in Discord: paste the emote's link or ID.{' '}
+      <Link to={`/pricing?guild=${guildId}`}>Upgrade to Plus</Link> to browse 7TV here, add emotes in one click and
+      import whole streamer sets into packs.
+    </p>
+  </section>
+);
 
 /* ------------------------------------------------------------------ search */
 
