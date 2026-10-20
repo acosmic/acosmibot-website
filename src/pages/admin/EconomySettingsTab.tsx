@@ -152,6 +152,14 @@ export const EconomySettingsTab: React.FC = () => {
           <p className="text-muted small mt-2 mb-0">How often interest is applied.</p>
         </div>
 
+        <h5 className="mb-3 mt-4" style={{ color: 'var(--text-primary)' }}>Rewards</h5>
+        {numField(
+          'Top.gg vote reward',
+          'vote_reward',
+          'Acosmicoins deposited into the voter\'s bank per Top.gg vote. Weekend votes pay double; 0 turns vote rewards off.',
+          1000,
+        )}
+
         <div className="d-flex align-items-center gap-3 mt-4">
           <button
             type="submit"

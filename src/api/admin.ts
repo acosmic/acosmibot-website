@@ -272,6 +272,7 @@ export interface AdminEconomySettings {
   interest_enabled: boolean;
   interest_rate_percent: number;
   interest_interval: InterestInterval;
+  vote_reward: number;
   interest_intervals: InterestInterval[];
 }
 
