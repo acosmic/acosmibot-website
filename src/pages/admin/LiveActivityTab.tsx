@@ -81,6 +81,21 @@ function humanize(value: string) {
   return value.replaceAll('_', ' ');
 }
 
+// The bot reports a turn that ended on a confirmation card or a clarifying
+// question as blocked with its reason; that turn worked, so name the wait.
+const WAITING_LABELS: Record<string, string> = {
+  awaiting_confirmation: 'Awaiting confirmation',
+  awaiting_clarification: 'Awaiting reply',
+};
+
+function outcomeView(event: LiveEvent): { tone: string; label: string } {
+  const reason = event.metadata?.outcome;
+  if (event.outcome === 'blocked' && typeof reason === 'string' && WAITING_LABELS[reason]) {
+    return { tone: 'waiting', label: WAITING_LABELS[reason] };
+  }
+  return { tone: event.outcome, label: event.outcome === 'running' ? 'In progress' : event.outcome };
+}
+
 function formatDurationMs(value: number | null) {
   if (value == null) return 'In progress';
   return value < 1000 ? `${value}ms` : `${(value / 1000).toFixed(value < 10_000 ? 1 : 0)}s`;
@@ -422,10 +437,10 @@ export const LiveActivityTab: React.FC = () => {
                 <span>{errorsOnly ? 'No failed events are present in the loaded history.' : 'New commands, AI routes, and website actions will arrive here.'}</span>
               </div>
               : visibleEvents.map((event) => (
-                <button className={`live-event is-${event.outcome}`} type="button" key={event.activity_id} onClick={() => { selectedRef.current = event; setSelected(event); }}>
+                <button className={`live-event is-${outcomeView(event).tone}`} type="button" key={event.activity_id} onClick={() => { selectedRef.current = event; setSelected(event); }}>
                   <span className="live-event__pulse" aria-hidden="true" />
                   <span className="live-event__identity"><strong>{locationLabel(event)}</strong><span>{event.user_name || 'Acosmibot system'}</span></span>
-                  <span className="live-event__action"><strong>{event.action}</strong><span>{event.outcome === 'running' ? 'In progress' : event.outcome}</span></span>
+                  <span className="live-event__action"><strong>{event.action}</strong><span>{outcomeView(event).label}</span></span>
                   <span className="live-event__time"><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</time><span>{elapsed(event)}</span></span>
                 </button>
               ))}
@@ -442,7 +457,7 @@ export const LiveActivityTab: React.FC = () => {
               <button autoFocus type="button" onClick={closeDetail} aria-label="Close activity diagnostics"><X /></button>
             </div>
           </header>
-          <div className="live-detail__status"><i className={`is-${selected.outcome}`} /><strong>{selected.outcome}</strong><span>{new Date(selected.occurred_at).toLocaleString()}</span></div>
+          <div className="live-detail__status"><i className={`is-${outcomeView(selected).tone}`} /><strong>{outcomeView(selected).label}</strong><span>{new Date(selected.occurred_at).toLocaleString()}</span></div>
           <dl>
             <div><dt>Location</dt><dd>{locationLabel(selected)}</dd></div>
             <div><dt>User</dt><dd>{selected.user_name || 'Acosmibot system'}</dd></div>
