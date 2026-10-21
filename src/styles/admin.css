@@ -2557,6 +2557,7 @@
 .live-event.is-success .live-event__pulse, .live-event.is-success .live-event__action strong { color: #00ff88; }
 .live-event.is-error .live-event__pulse, .live-event.is-error .live-event__action strong { color: #ff4444; }
 .live-event.is-blocked .live-event__pulse, .live-event.is-cancelled .live-event__pulse, .live-event.is-blocked .live-event__action strong, .live-event.is-cancelled .live-event__action strong { color: #ffb800; }
+.live-event.is-waiting .live-event__action strong { color: #00d9ff; }
 .live-event.is-running .live-event__pulse { animation: activity-pulse 1.5s ease-in-out infinite; }
 .live-event__identity, .live-event__action, .live-event__time { min-width: 0; display: grid; gap: 2px; }
 .live-event__identity strong, .live-event__action strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
@@ -2584,7 +2585,7 @@
 .live-detail__header-actions button:disabled { opacity: .45; cursor: wait; }
 .live-detail__status { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 9px; padding: 16px 0; text-transform: capitalize; }
 .live-detail__status i { width: 9px; height: 9px; border-radius: 50%; background: #00d9ff; }
-.live-detail__status i.is-success { background: #00ff88; }.live-detail__status i.is-error { background: #ff4444; }.live-detail__status i.is-blocked,.live-detail__status i.is-cancelled { background: #ffb800; }
+.live-detail__status i.is-success { background: #00ff88; }.live-detail__status i.is-error { background: #ff4444; }.live-detail__status i.is-blocked,.live-detail__status i.is-cancelled { background: #ffb800; }.live-detail__status i.is-waiting { background: #00d9ff; }
 .live-detail__status span { color: #71808d; font-size: 11px; }
 .live-detail dl { margin: 0; border-top: 1px solid rgba(255,255,255,.08); }
 .live-detail dl div { display: grid; grid-template-columns: 100px 1fr; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
