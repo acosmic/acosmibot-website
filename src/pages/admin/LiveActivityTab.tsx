@@ -87,10 +87,21 @@ const WAITING_LABELS: Record<string, string> = {
   awaiting_clarification: 'Awaiting reply',
 };
 
+// Once the requester acts on the card, the bot republishes the same row.
+const RESOLUTION_LABELS: Record<string, string> = {
+  confirmed: 'Confirmed',
+  cancelled_by_requester: 'Cancelled',
+  withdrawn: 'Withdrawn',
+  confirmation_expired: 'Expired',
+};
+
 function outcomeView(event: LiveEvent): { tone: string; label: string } {
-  const reason = event.metadata?.outcome;
-  if (event.outcome === 'blocked' && typeof reason === 'string' && WAITING_LABELS[reason]) {
+  const reason = typeof event.metadata?.outcome === 'string' ? event.metadata.outcome : '';
+  if (event.outcome === 'blocked' && WAITING_LABELS[reason]) {
     return { tone: 'waiting', label: WAITING_LABELS[reason] };
+  }
+  if (event.metadata?.resolved === true && RESOLUTION_LABELS[reason]) {
+    return { tone: event.outcome, label: RESOLUTION_LABELS[reason] };
   }
   return { tone: event.outcome, label: event.outcome === 'running' ? 'In progress' : event.outcome };
 }
