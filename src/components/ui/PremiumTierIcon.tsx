@@ -10,9 +10,16 @@ export const PREMIUM_TIER_LABELS: Record<PremiumTier, string> = {
 
 export const PREMIUM_TIER_ICON_SRC: Record<PremiumTier, string> = {
   free: '/images/acosmibot-logo.png',
-  plus: '/images/pricing/tier-plus.png',
-  pro: '/images/pricing/tier-pro.png',
-  max: '/images/pricing/tier-max.png',
+  plus: '/images/pricing/tier-plus-icon-20261022.webp',
+  pro: '/images/pricing/tier-pro-icon-20261022.webp',
+  max: '/images/pricing/tier-max-icon-20261022.webp',
+};
+
+export const PREMIUM_TIER_ILLUSTRATION_SRC: Record<PremiumTier, string> = {
+  free: PREMIUM_TIER_ICON_SRC.free,
+  plus: '/images/pricing/tier-plus-illustration-20261022.webp',
+  pro: '/images/pricing/tier-pro-illustration-20261022.webp',
+  max: '/images/pricing/tier-max-illustration-20261022.webp',
 };
 
 export const normalizePremiumTier = (tier: unknown): PremiumTier => {
@@ -28,6 +35,7 @@ type PremiumTierIconProps = Omit<
 > & {
   tier: unknown;
   size?: number;
+  variant?: 'icon' | 'illustration';
   decorative?: boolean;
   alt?: string;
 };
@@ -35,6 +43,7 @@ type PremiumTierIconProps = Omit<
 export const PremiumTierIcon: React.FC<PremiumTierIconProps> = ({
   tier,
   size = 24,
+  variant = 'icon',
   decorative = true,
   alt,
   className,
@@ -51,7 +60,7 @@ export const PremiumTierIcon: React.FC<PremiumTierIconProps> = ({
   return (
     <img
       {...props}
-      src={PREMIUM_TIER_ICON_SRC[normalizedTier]}
+      src={(variant === 'illustration' ? PREMIUM_TIER_ILLUSTRATION_SRC : PREMIUM_TIER_ICON_SRC)[normalizedTier]}
       alt={decorative ? '' : alt ?? `${PREMIUM_TIER_LABELS[normalizedTier]} plan`}
       aria-hidden={decorative ? true : undefined}
       className={classes}
