@@ -12,7 +12,8 @@ import { useGuildStore } from '@/store/guild';
 import { guildApi } from '@/api/guilds';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { PremiumTierIcon, PREMIUM_TIER_LABELS, normalizePremiumTier } from '@/components/ui';
+import { PREMIUM_TIER_LABELS, normalizePremiumTier } from '@/components/ui';
+import { TierAura, TierAuraDefs } from '@/components/ui/TierAura';
 import type { Guild } from '@/types/guild';
 import '@/styles/servers.css';
 import { trackEvent } from '@/lib/analytics';
@@ -87,6 +88,7 @@ export const GuildSelectPage: React.FC = () => {
 
   return (
     <div className="servers-page">
+      <TierAuraDefs />
       <PublicNav variant="observatory" />
 
       <main className="servers-main">
@@ -247,32 +249,37 @@ const ServerCard: React.FC<{ guild: Guild; onOpen: () => void }> = ({ guild, onO
 
   return (
     <button type="button" className={`server-node${manageable ? ' can-manage' : ''}`} onClick={onOpen}>
-      <span className="server-node__line" aria-hidden="true" />
-      <span
-        className="server-node__avatar"
-        style={{
-          backgroundImage: guild.icon
-            ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128)`
-            : 'none',
-        }}
-        aria-hidden="true"
-      >
-        {!guild.icon && guild.name.charAt(0).toUpperCase()}
+      <span className="server-node__main">
+        <span className={`server-node__access server-node__access--${accessLabel(guild).toLowerCase()}`}>
+          {guild.owner && <Crown aria-hidden="true" />}
+          {accessLabel(guild)}
+        </span>
+        <span className="server-node__row">
+          <span
+            className="server-node__avatar"
+            style={{
+              backgroundImage: guild.icon
+                ? `url(https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128)`
+                : 'none',
+            }}
+            aria-hidden="true"
+          >
+            {!guild.icon && guild.name.charAt(0).toUpperCase()}
+          </span>
+          <span className="server-node__identity">
+            <strong>{guild.name}</strong>
+            <small>{guild.member_count?.toLocaleString() ?? '—'} members</small>
+            <span className="server-node__action">
+              {manageable ? 'Manage server' : 'Open server'} <ArrowRight aria-hidden="true" />
+            </span>
+          </span>
+        </span>
       </span>
-      <span className="server-node__identity">
-        <strong>{guild.name}</strong>
-        <small>{guild.member_count?.toLocaleString() ?? '—'} members</small>
-      </span>
-      <span className={`server-node__access server-node__access--${accessLabel(guild).toLowerCase()}`}>
-        {guild.owner && <Crown aria-hidden="true" />}
-        {accessLabel(guild)}
-      </span>
-      <span className={`server-node__tier server-node__tier--${tier}`} title={`${tierLabel} plan`}>
-        <PremiumTierIcon tier={tier} size={16} />
-        {tierLabel}
-      </span>
-      <span className="server-node__action">
-        {manageable ? 'Manage server' : 'Open server'} <ArrowRight aria-hidden="true" />
+      <span className={`server-node__stage server-node__stage--${tier}`}>
+        <TierAura tier={tier} />
+        <span className={`server-node__tier server-node__tier--${tier}`} title={`${tierLabel} plan`}>
+          {tierLabel}
+        </span>
       </span>
     </button>
   );
