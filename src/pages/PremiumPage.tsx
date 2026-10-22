@@ -462,10 +462,10 @@ const TierCard: React.FC<{
     {def.popular && !hasLaunchOffer && (
       <span className="pricing-tier__recommendation">Recommended orbit</span>
     )}
+    <div className="pricing-tier__art" aria-hidden="true">
+      <PremiumTierIcon tier={def.tier} variant="illustration" size={def.tier === 'free' ? 112 : 168} />
+    </div>
     <div className="pricing-tier__header">
-      <div className="pricing-tier__station" aria-hidden="true">
-        <PremiumTierIcon tier={def.tier} size={44} />
-      </div>
       <div>
         <span className="pricing-tier__sequence">Orbit {String(TIERS.findIndex((tier) => tier.tier === def.tier) + 1).padStart(2, '0')}</span>
         <h3>{TIER_LABELS[def.tier]}</h3>
