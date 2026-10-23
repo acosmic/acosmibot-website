@@ -1,0 +1,12 @@
+.saved-feature-upgrade {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--primary-color);
+  text-underline-offset: 0.2em;
+}
+
+.saved-feature-upgrade:hover,
+.saved-feature-upgrade:focus-visible {
+  color: var(--primary-hover);
+}

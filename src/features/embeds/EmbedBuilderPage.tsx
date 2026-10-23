@@ -174,6 +174,11 @@ export const EmbedBuilderPage: React.FC = () => {
       } else {
         const created = await embedsApi.create(guildId!, buildPayload());
         id = created.id;
+        if (!created.is_enabled) {
+          showToast('Embed saved and paused. Activate it from your saved list before sending.', 'success');
+          navigate(`/server/${guildId}/embeds`);
+          return;
+        }
       }
       await embedsApi.send(guildId!, id!);
       showToast('Embed sent to Discord!', 'success');
@@ -353,7 +358,10 @@ export const EmbedBuilderPage: React.FC = () => {
           </CollapsibleSection>
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button className="btn primary" disabled={saving} onClick={sendEmbed}>
+            {isEditing && !existingQuery.data?.is_enabled && (
+              <p className="text-muted">This embed is paused. Activate it from the saved embeds list before sending.</p>
+            )}
+            <button className="btn primary" disabled={saving || (isEditing && !existingQuery.data?.is_enabled)} onClick={sendEmbed}>
               {saving ? 'Working…' : 'Send to Discord'}
             </button>
             <button className="btn" disabled={saving} onClick={saveDraft}

@@ -1,3 +1,5 @@
+import type { SavedFeatureStats } from '@/components/ui/SavedFeaturePlan';
+import { showToast } from '@/utils/toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
 
@@ -11,6 +13,7 @@ export interface EmbedConfig {
 }
 
 export interface CustomCommand {
+  is_enabled: boolean;
   id: string;
   command: string;
   prefix: string;
@@ -83,9 +86,20 @@ export function useCustomCommands(guildId: string) {
     },
   });
 
+  const activeMutation = useMutation({
+    mutationFn: (command: CustomCommand) => api.fetch(`/api/guilds/${guildId}/custom-commands/${command.id}/active`, {
+      method: 'PUT', body: JSON.stringify({ active: !command.is_enabled }),
+    }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'custom-commands'] }); },
+    onError: (error) => showToast(error instanceof Error ? error.message : 'Could not change active selection', 'error'),
+  });
+
   return {
+    stats: statsQuery.data?.stats as SavedFeatureStats | undefined,
+    setActive: activeMutation.mutate,
+    isSelecting: activeMutation.isPending,
     commands: (commandsQuery.data?.commands || []) as CustomCommand[],
-    maxCommands: (statsQuery.data?.stats?.max_commands || 25) as number,
+    maxCommands: (statsQuery.data?.stats?.saved_limit ?? 0) as number,
     isLoading: commandsQuery.isLoading || statsQuery.isLoading,
     addCommand: addMutation.mutate,
     isAdding: addMutation.isPending,

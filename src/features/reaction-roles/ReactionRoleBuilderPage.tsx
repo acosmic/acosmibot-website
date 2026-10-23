@@ -248,6 +248,12 @@ export const ReactionRoleBuilderPage: React.FC = () => {
     try {
       const id = await persist();
       if (!id) throw new Error('Failed to save reaction role');
+      const saved = await reactionRolesApi.get(guildId!, id);
+      if (!saved.enabled) {
+        showToast('Reaction role saved and paused. Activate it from your saved list before sending.', 'success');
+        navigate(`/server/${guildId}/reaction-roles`);
+        return;
+      }
       const res = await reactionRolesApi.send(guildId!, id, suppressRolePings);
       if (!res.success) throw new Error(res.message || 'Failed to send to Discord');
       showToast('Sent to Discord successfully!', 'success');
@@ -489,14 +495,20 @@ export const ReactionRoleBuilderPage: React.FC = () => {
             Suppress role pings when sending
           </label>
 
+          {isEditing && !existingQuery.data?.enabled && (
+            <p className="text-muted">This reaction role is paused. Activate it from the saved list to update its Discord message.</p>
+          )}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {isSent ? (
-              <button className="btn primary" disabled={saving} onClick={updateMessage}>
-                {saving ? 'Working…' : 'Update Message'}
-              </button>
+              <>
+                <button className="btn primary" disabled={saving || !existingQuery.data?.enabled} onClick={updateMessage}>
+                  {saving ? 'Working…' : 'Update Message'}
+                </button>
+                {!existingQuery.data?.enabled && <button className="btn" disabled={saving} onClick={saveDraft}>Save settings</button>}
+              </>
             ) : (
               <>
-                <button className="btn primary" disabled={saving} onClick={sendToDiscord}>
+                <button className="btn primary" disabled={saving || (isEditing && !existingQuery.data?.enabled)} onClick={sendToDiscord}>
                   {saving ? 'Working…' : 'Send to Discord'}
                 </button>
                 <button className="btn" disabled={saving} onClick={saveDraft}

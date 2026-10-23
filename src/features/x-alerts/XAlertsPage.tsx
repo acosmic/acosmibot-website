@@ -115,7 +115,7 @@ export const XAlertsPage: React.FC = () => {
               </p>
             )}
             <Link to={`/pricing?guild=${guildId}`} className="btn primary">
-              Compare plans <ArrowRight aria-hidden="true" />
+              {form.accounts.length > 0 ? 'Upgrade to restore all' : 'Compare plans'} <ArrowRight aria-hidden="true" />
             </Link>
           </div>
         </section>

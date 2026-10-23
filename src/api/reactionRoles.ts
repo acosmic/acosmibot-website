@@ -1,3 +1,4 @@
+import type { SavedFeatureStats } from '@/components/ui/SavedFeaturePlan';
 import { api } from './client';
 
 export interface RRButtonConfig {
@@ -33,6 +34,7 @@ export interface RREmbedConfig {
 export type RRInteractionType = 'emoji' | 'button' | 'dropdown';
 
 export interface ReactionRole {
+  enabled?: boolean;
   id: number;
   name: string;
   /** Snowflake — always a string: as a JS number it would round and corrupt on save. */
@@ -48,7 +50,7 @@ export interface ReactionRole {
   is_sent: boolean;
 }
 
-export interface RRStats {
+export interface RRStats extends SavedFeatureStats {
   total: number;
   max: number;
   remaining: number;
@@ -63,6 +65,10 @@ const unwrap = <T>(p: Promise<{ success: boolean; data?: T; message?: string }>)
   });
 
 export const reactionRolesApi = {
+  setActive: (guildId: string, recordId: number, active: boolean) =>
+    api.fetch(`/api/guilds/${guildId}/reaction-roles/${recordId}/active`, {
+      method: 'PUT', body: JSON.stringify({ active }),
+    }),
   list: (guildId: string) =>
     unwrap<ReactionRole[]>(api.fetch(`/api/guilds/${guildId}/reaction-roles`)).then((d) => d ?? []),
 

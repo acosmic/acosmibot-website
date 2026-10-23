@@ -1,3 +1,4 @@
+import { SavedFeaturePlan, SavedFeatureToggle } from '@/components/ui/SavedFeaturePlan';
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -56,11 +57,17 @@ export const ReactionRolesListPage: React.FC = () => {
     onError: (e) => showToast(e instanceof Error ? e.message : 'Failed to delete', 'error'),
   });
 
+  const activeMutation = useMutation({
+    mutationFn: (item: { id: number; enabled?: boolean }) => reactionRolesApi.setActive(guildId!, item.id, !item.enabled),
+    onSuccess: () => { invalidate(); },
+    onError: (error) => showToast(error instanceof Error ? error.message : 'Could not change active selection', 'error'),
+  });
+
   if (listQuery.isLoading) return <LoadingSpinner />;
 
   const items = listQuery.data ?? [];
   const stats = statsQuery.data;
-  const busy = duplicateMutation.isPending || deleteMutation.isPending;
+  const busy = duplicateMutation.isPending || deleteMutation.isPending || activeMutation.isPending;
 
   return (
     <div className="feature-page">
@@ -75,7 +82,7 @@ export const ReactionRolesListPage: React.FC = () => {
               fontSize: 13, fontWeight: 600,
               color: stats.remaining <= 0 ? 'var(--error-color, #FF4444)' : 'var(--text-muted)',
             }}>
-              {stats.total} / {stats.max} messages
+              {stats.total} / {stats.saved_limit} saved messages
             </span>
           )}
           <button
@@ -87,6 +94,8 @@ export const ReactionRolesListPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {stats && <SavedFeaturePlan guildId={guildId!} saved={stats.total} stats={stats} noun="reaction roles" />}
 
       {items.length === 0 ? (
         <div className="dashboard-open-section text-center">
@@ -138,7 +147,10 @@ export const ReactionRolesListPage: React.FC = () => {
                   See Preview
                 </button>
 
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <SavedFeatureToggle name={rr.name} active={Boolean(rr.enabled)} busy={busy}
+                    full={!stats || (stats.active_limit > 1 && stats.active_count >= stats.active_limit)}
+                    onChange={() => activeMutation.mutate(rr)} />
                   <button className="btn btn-sm" disabled={busy}
                     style={{ border: '1px solid var(--border-light)', color: 'var(--text-primary)', background: 'transparent' }}
                     onClick={() => navigate(`/server/${guildId}/reaction-roles/edit/${rr.id}`)}>
