@@ -143,7 +143,7 @@ export const EmojiPacksPanel: React.FC = () => {
       {readOnly && (
         <p className="server-images-status server-images-status--error" role="status">
           This server is on the Free plan, so emoji packs are read-only. You can still download every pack.{' '}
-          <Link to={`/pricing?guild=${guildId}`}>Upgrade to Plus</Link> to apply or edit them.
+          <Link to={`/pricing?guild=${guildId}`}>Upgrade to restore all</Link>. Choose a plan with enough pack slots to apply or edit your saved packs.
         </p>
       )}
       {job && <JobBanner job={job} packs={data.packs} />}

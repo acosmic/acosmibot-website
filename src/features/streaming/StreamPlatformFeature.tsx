@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { UpgradeRestoreLink } from '@/components/ui/SavedFeaturePlan';
 import {
   Check,
   CircleAlert,
@@ -40,6 +41,7 @@ import {
   type StreamerValidationResult,
 } from '@/api/streaming';
 import type { Streamer } from '@/types/features';
+import { selectStreamer, MAX_SAVED_STREAMERS } from '@/utils/streamingSelection';
 
 interface StreamPlatformFeatureProps {
   platform: Platform;
@@ -172,7 +174,8 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
   const streamers = form.tracked_streamers ?? [];
   const maxStreamers = form.max_streamers ?? 1;
   const tier = form.premium_tier ?? 'free';
-  const atCapacity = streamers.length >= maxStreamers;
+  const atCapacity = streamers.length >= MAX_SAVED_STREAMERS;
+  const activeCount = streamers.filter((streamer) => streamer.enabled).length;
 
   const replaceStreamers = (tracked_streamers: Streamer[]) => {
     if (formRef.current) {
@@ -184,7 +187,9 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
   const updateStreamer = (index: number, updates: Partial<Streamer>) => {
     const currentStreamers = formRef.current?.tracked_streamers ?? [];
     if (!currentStreamers[index]) return;
-    const next = [...currentStreamers];
+    const next = updates.enabled === true
+      ? selectStreamer(currentStreamers, index, maxStreamers)
+      : [...currentStreamers];
     next[index] = { ...next[index], ...updates };
     replaceStreamers(next);
   };
@@ -209,7 +214,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
       return;
     }
     if (atCapacity) {
-      setAddError(`${TIER_LABELS[tier]} can save up to ${maxStreamers} ${maxStreamers === 1 ? meta.item : meta.items}.`);
+      setAddError(`Save up to ${MAX_SAVED_STREAMERS} ${meta.items}.`);
       return;
     }
     if (streamers.some((streamer) => streamer.username.toLowerCase() === candidate.toLowerCase())) {
@@ -241,8 +246,8 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
         setAddError(`${candidate} is already in this list.`);
         return;
       }
-      if (latestStreamers.length >= maxStreamers) {
-        setAddError(`${TIER_LABELS[tier]} capacity is full. Remove a saved ${meta.item} before adding another.`);
+      if (latestStreamers.length >= MAX_SAVED_STREAMERS) {
+        setAddError(`All ${MAX_SAVED_STREAMERS} saved slots are full. Remove a ${meta.item} before adding another.`);
         return;
       }
 
@@ -253,7 +258,7 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
           username: candidate,
           channel_id: platform === 'youtube' ? result.channel_id ?? null : null,
           isValid: true,
-          enabled: true,
+          enabled: latestStreamers.filter((streamer) => streamer.enabled).length < maxStreamers,
           mention_role_ids: [],
           mention_everyone: false,
           mention_here: false,
@@ -406,17 +411,24 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
         label={`${meta.title} delivery`}
         enabled={form.enabled}
         onChange={(enabled) => setForm({ enabled })}
-        description={`Enable or pause delivery for every saved ${meta.item}. Individual ${meta.items} can be paused below.`}
+        description={`Enable or pause delivery for the selected ${meta.items}. Your saved list stays available.`}
       />
 
       <SocialAlertsTelemetry
         ariaLabel={`${meta.title} Alerts plan status`}
         items={[
           { label: 'Current plan', value: TIER_LABELS[tier] },
-          { label: 'Saved capacity', value: `${streamers.length} / ${maxStreamers}` },
-          { label: 'Delivery filter', value: meta.deliveryFilter },
+          { label: 'Selected for delivery', value: `${activeCount} / ${maxStreamers}` },
+          { label: 'Saved capacity', value: `${streamers.length} / ${MAX_SAVED_STREAMERS}` },
         ]}
       />
+
+      {tier === 'free' && streamers.length > maxStreamers && (
+        <p className="mb-4">
+          <UpgradeRestoreLink guildId={guildId} />
+          {' — '}Plus lets you activate all five saved {meta.items} together.
+        </p>
+      )}
 
       <div className="social-alerts-grid">
         <SocialAlertsPanel
@@ -430,8 +442,8 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
             labelFor={`${platform}-alert-identifier`}
             isBusy={isAdding}
             hint={atCapacity
-              ? `${TIER_LABELS[tier]} capacity is full. Remove a saved ${meta.item} before adding another.`
-              : `${meta.validationHint} Your ${TIER_LABELS[tier]} plan can save ${maxStreamers}.`}
+              ? `All ${MAX_SAVED_STREAMERS} saved slots are full. Remove a ${meta.item} before adding another.`
+              : `${meta.validationHint} Save up to ${MAX_SAVED_STREAMERS}; ${TIER_LABELS[tier]} allows ${maxStreamers} active.`}
             error={addError}
           >
             <div className="social-alerts-add__control">
@@ -583,7 +595,9 @@ export const StreamPlatformFeature: React.FC<StreamPlatformFeatureProps> = ({ pl
           </SocialAlertsPanel>
 
           <SocialAlertsNotice icon={Radio} title="Saved pause controls" titleId={`${platform}-pause-note-title`}>
-            Pausing a {meta.item} keeps its routing and custom message saved. Discord delivery resumes after you re-enable it and save.
+            Save up to {MAX_SAVED_STREAMERS} {meta.items}. {maxStreamers === 1
+                ? `Selecting another ${meta.item} replaces your current selection.`
+                : `Select up to ${maxStreamers} for delivery.`} Changes take effect when you save.
           </SocialAlertsNotice>
         </div>
       </div>

@@ -70,7 +70,7 @@ test('legacy streaming records normalize to enabled and verified without losing 
 
 test('streaming validates new creators before adding and blocks incomplete saves', () => {
   assert.match(streaming, /await streamingApi\.validateStreamer\(platform, candidate\)/);
-  assert.match(streaming, /enabled: true/);
+  assert.match(streaming, /enabled: latestStreamers.filter/);
   assert.match(streaming, /Choose a Discord channel before enabling alerts/);
   assert.match(streaming, /Verify every saved/);
   assert.match(streaming, /saveDisabled=\{Boolean\(validationMessage\)\}/);

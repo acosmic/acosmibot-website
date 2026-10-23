@@ -1,7 +1,9 @@
+import type { SavedFeatureStats } from '@/components/ui/SavedFeaturePlan';
 import { api } from './client';
 import type { EmbedConfig, EmbedButton } from '@/components/ui/DiscordEmbedPreview';
 
 export interface GuildEmbed {
+  is_enabled?: boolean;
   id: number;
   name: string;
   message_text: string | null;
@@ -11,7 +13,7 @@ export interface GuildEmbed {
   is_sent: boolean;
 }
 
-export interface EmbedStats {
+export interface EmbedStats extends SavedFeatureStats {
   total: number;
   limit: number;
   can_create_more: boolean;
@@ -28,6 +30,10 @@ export interface EmbedPayload {
 export type UploadImageType = 'author_icon' | 'footer_icon' | 'thumbnail' | 'image';
 
 export const embedsApi = {
+  setActive: (guildId: string, recordId: number, active: boolean) =>
+    api.fetch(`/api/guilds/${guildId}/embeds/${recordId}/active`, {
+      method: 'PUT', body: JSON.stringify({ active }),
+    }),
   list: (guildId: string) =>
     api.fetch<{ success: boolean; embeds: GuildEmbed[] }>(`/api/guilds/${guildId}/embeds`)
       .then((r) => r.embeds ?? []),

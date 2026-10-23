@@ -1,3 +1,4 @@
+import { SavedFeaturePlan, SavedFeatureToggle } from '@/components/ui/SavedFeaturePlan';
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -39,11 +40,17 @@ export const EmbedsListPage: React.FC = () => {
     onError: (e) => showToast(e instanceof Error ? e.message : 'Failed to delete embed', 'error'),
   });
 
+  const activeMutation = useMutation({
+    mutationFn: (item: { id: number; is_enabled?: boolean }) => embedsApi.setActive(guildId!, item.id, !item.is_enabled),
+    onSuccess: () => { invalidate(); },
+    onError: (error) => showToast(error instanceof Error ? error.message : 'Could not change active selection', 'error'),
+  });
+
   if (embedsQuery.isLoading) return <LoadingSpinner />;
 
   const embeds = embedsQuery.data ?? [];
   const stats = statsQuery.data;
-  const busy = duplicateMutation.isPending || deleteMutation.isPending;
+  const busy = duplicateMutation.isPending || deleteMutation.isPending || activeMutation.isPending;
 
   return (
     <div className="feature-page">
@@ -56,9 +63,9 @@ export const EmbedsListPage: React.FC = () => {
           {stats && (
             <span style={{
               fontSize: 13, fontWeight: 600,
-              color: stats.total >= stats.limit ? 'var(--error-color, #FF4444)' : 'var(--text-muted)',
+              color: stats.total >= stats.saved_limit ? 'var(--error-color, #FF4444)' : 'var(--text-muted)',
             }}>
-              {stats.total} / {stats.limit} embeds
+              {stats.total} / {stats.saved_limit} saved embeds
             </span>
           )}
           <button
@@ -70,6 +77,8 @@ export const EmbedsListPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {stats && <SavedFeaturePlan guildId={guildId!} saved={stats.total} stats={stats} noun="embeds" />}
 
       {embeds.length === 0 ? (
         <div className="dashboard-open-section text-center">
@@ -110,7 +119,10 @@ export const EmbedsListPage: React.FC = () => {
                 See Preview
               </button>
 
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <SavedFeatureToggle name={embed.name} active={Boolean(embed.is_enabled)} busy={busy}
+                    full={!stats || (stats.active_limit > 1 && stats.active_count >= stats.active_limit)}
+                    onChange={() => activeMutation.mutate(embed)} />
                 <button className="btn btn-sm" disabled={busy}
                   style={{ border: '1px solid var(--border-light)', color: 'var(--text-primary)', background: 'transparent' }}
                   onClick={() => navigate(`/server/${guildId}/embeds/edit/${embed.id}`)}>

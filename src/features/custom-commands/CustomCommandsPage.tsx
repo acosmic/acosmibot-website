@@ -1,3 +1,4 @@
+import { SavedFeaturePlan, SavedFeatureToggle } from '@/components/ui/SavedFeaturePlan';
 import React, { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCustomCommands, CustomCommand, CommandPayload, EmbedConfig } from './useCustomCommands';
@@ -109,7 +110,7 @@ function buildPayload(form: FormState): CommandPayload {
 
 export const CustomCommandsPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
-  const { commands, maxCommands, isLoading, addCommand, isAdding, updateCommand, isUpdating, deleteCommand } =
+  const { commands, maxCommands, stats, setActive, isSelecting, isLoading, addCommand, isAdding, updateCommand, isUpdating, deleteCommand } =
     useCustomCommands(guildId!);
   const { data: guildRoles = [] } = useGuildRoles(guildId!);
 
@@ -217,6 +218,8 @@ export const CustomCommandsPage: React.FC = () => {
           {showForm && !editingId ? 'Cancel' : 'Add Command'}
         </button>
       </div>
+
+      {stats && <SavedFeaturePlan guildId={guildId!} saved={commands.length} stats={stats} noun="commands" />}
 
       {/* Create / Edit form */}
       {showForm && (
@@ -513,6 +516,9 @@ export const CustomCommandsPage: React.FC = () => {
                       </td>
                       <td className="p-3 align-middle text-end">
                         <div className="d-flex gap-2 justify-content-end">
+                          <SavedFeatureToggle name={`${cmd.prefix}${cmd.command}`} active={cmd.is_enabled} busy={isSelecting || isSaving}
+                            full={!stats || (stats.active_limit > 1 && stats.active_count >= stats.active_limit)}
+                            onChange={() => setActive(cmd)} />
                           <button
                             className="btn btn-sm btn-outline-primary"
                             style={{ minWidth: '50px' }}
@@ -562,6 +568,9 @@ export const CustomCommandsPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="d-flex gap-2 mt-2">
+                    <SavedFeatureToggle name={`${cmd.prefix}${cmd.command}`} active={cmd.is_enabled} busy={isSelecting || isSaving}
+                            full={!stats || (stats.active_limit > 1 && stats.active_count >= stats.active_limit)}
+                            onChange={() => setActive(cmd)} />
                     <button
                       className="btn btn-sm btn-outline-primary"
                       onClick={() => editingId === cmd.id ? closeForm() : openEdit(cmd)}
