@@ -1,5 +1,5 @@
 import { RoutingComparisonPanel } from './RoutingComparisonPanel';
-import { AiLoopHealthPanel, compactTokens, percent } from './AiLoopHealthPanel';
+import { AiLoopHealthPanel, ContextBreakdown, compactTokens, percent } from './AiLoopHealthPanel';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -24,6 +24,7 @@ import {
   type AdminAiTraceStatus,
   type AdminAiTraceSummary,
 } from '@/api/admin';
+import { contextLimitLabel, contextPartTokens, contextPercent, peakContextSpan } from '@/utils/aiContextUsage';
 
 const SPAN_ICONS: Record<string, LucideIcon> = {
   root: Activity,
@@ -85,6 +86,7 @@ const METADATA_LABELS: Record<string, string> = {
   cache_write_tokens: 'cache write',
   static_prefix_hash: 'prefix',
   static_prefix_chars: 'prefix chars',
+  result_tokens: 'returned tokens',
 };
 
 function TraceRow({
@@ -111,6 +113,7 @@ function TraceRow({
       <span className="ai-trace-row__metrics">
         <strong>{formatDuration(trace.duration_ms)}</strong>
         <span>{trace.span_count} spans · {formatCost(trace.cost_usd)}{trace.input_tokens ? ` · ${percent(cachedShare(trace.input_tokens, trace.cached_input_tokens))} cached` : ''}</span>
+        {trace.peak_context_share != null && <span>{contextPercent(trace.peak_context_share)} context</span>}
       </span>
       <ChevronRight aria-hidden="true" />
     </button>
@@ -130,7 +133,9 @@ function SpanRow({
   const offset = Math.max(0, parseUtc(span.started_at) - traceStart);
   const left = Math.min(98, (offset / traceDuration) * 100);
   const width = Math.max(1.5, Math.min(100 - left, ((span.duration_ms ?? 0) / traceDuration) * 100));
-  const metadata = Object.entries(span.metadata || {}).filter(([key]) => key !== 'trace_schema_version');
+  const metadata = Object.entries(span.metadata || {}).filter(([key]) => (
+    key !== 'trace_schema_version' && !key.startsWith('ctx_') && !key.startsWith('context_')
+  ));
 
   return (
     <li className={`ai-span is-${span.status}`}>
@@ -150,6 +155,7 @@ function SpanRow({
         {span.provider_total_tokens != null && <span>tokens <strong>{span.provider_total_tokens.toLocaleString()}</strong></span>}
         {span.input_tokens ? <span>input <strong>{compactTokens(span.input_tokens)}</strong></span> : null}
         {span.input_tokens ? <span>cached <strong>{percent(cachedShare(span.input_tokens, span.cached_input_tokens))}</strong></span> : null}
+        {span.context_share != null && span.context_limit != null && <span>context <strong>{contextPercent(span.context_share)}</strong> of {contextLimitLabel(span.context_limit)}</span>}
         {span.visible_output_tokens ? <span>output <strong>{compactTokens(span.visible_output_tokens)}</strong></span> : null}
         {span.cost_usd != null && <span>cost <strong>{formatCost(span.cost_usd)}</strong></span>}
         {span.error_code && <span className="is-error">error <strong>{span.error_code}</strong></span>}
@@ -157,6 +163,7 @@ function SpanRow({
           <span key={key}>{METADATA_LABELS[key] ?? key.replaceAll('_', ' ')} <strong>{Array.isArray(value) ? value.join(', ') : String(value)}</strong></span>
         ))}
       </div>
+      <div className="ai-span__context"><ContextBreakdown partTokens={contextPartTokens(span.metadata)} /></div>
     </li>
   );
 }
@@ -276,6 +283,7 @@ export const AiTracesTab: React.FC = () => {
                 <div><dt>Provider calls</dt><dd>{trace.provider_call_count}</dd></div>
                 <div><dt>Total tokens</dt><dd>{trace.provider_total_tokens.toLocaleString()}</dd></div>
                 <div><dt>Input cached</dt><dd>{percent(cachedShare(trace.input_tokens, trace.cached_input_tokens))}</dd></div>
+                <div><dt>Peak context</dt><dd>{contextPercent(peakContextSpan(spans)?.context_share)}</dd></div>
                 <div><dt>Estimated cost</dt><dd>{formatCost(trace.cost_usd)}</dd></div>
               </dl>
               <div className="ai-trace-scale"><span>Start</span><i /><span>{formatDuration(trace.duration_ms)}</span></div>

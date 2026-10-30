@@ -196,6 +196,8 @@ export interface AdminAiTraceSummary {
   span_count: number;
   input_tokens?: number | null;
   cached_input_tokens?: number | null;
+  peak_context_tokens?: number | null;
+  peak_context_share?: number | null;
 }
 
 export interface AdminAiTraceSpan {
@@ -229,6 +231,8 @@ export interface AdminAiTraceSpan {
   routing_policy_version: string | null;
   safety_policy_version: string | null;
   metadata: Record<string, unknown>;
+  context_limit?: number | null;
+  context_share?: number | null;
 }
 
 export interface AdminAiTraceContent {
@@ -788,6 +792,26 @@ export interface AdminAiLoopHealth {
   };
   finish_reasons: { reason: string; count: number }[];
   turn_rounds: { rounds: number; turns: number }[];
-  tools: { tool: string; executed: number; failed: number; skipped: number; reused: number; mean_ms: number | null }[];
+  tools: {
+    tool: string;
+    executed: number;
+    failed: number;
+    skipped: number;
+    reused: number;
+    mean_ms: number | null;
+    mean_result_tokens?: number | null;
+    max_result_tokens?: number | null;
+  }[];
   skip_reasons: { reason: string; count: number }[];
+  context?: {
+    calls: number;
+    tokens_p50: number | null;
+    tokens_p95: number | null;
+    tokens_max: number | null;
+    share_p50: number | null;
+    share_p95: number | null;
+    share_max: number | null;
+    measured_calls: number;
+    parts: { part: string; tokens: number; mean_tokens: number; share: number | null }[];
+  };
 }

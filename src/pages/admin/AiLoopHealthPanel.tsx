@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { adminApi, type AdminAiLoopHealth } from '@/api/admin';
+import { CONTEXT_PART_LABELS, contextGroups, contextPercent } from '@/utils/aiContextUsage';
 import './AiLoopHealthPanel.css';
 
 export const percent = (share: number | null | undefined) => (
@@ -25,6 +26,68 @@ function CacheBar({ share }: { share: number | null }) {
   return <span className="loop-health__bar" aria-hidden="true"><i style={{ width: `${width}%` }} /></span>;
 }
 
+export function ContextBreakdown({ partTokens }: { partTokens: Record<string, number> }) {
+  const groups = contextGroups(partTokens);
+  if (groups.length === 0) return null;
+  const summary = groups.map(group => `${group.label} ${percent(group.share)}`).join(', ');
+  return <div className="context-breakdown">
+    <div className="context-breakdown__bar" role="img" aria-label={`Context by source: ${summary}`}>
+      {groups.map(group => <i key={group.key} className={`is-${group.key}`} style={{ flexGrow: group.tokens }}
+        title={`${group.label}: ${compactTokens(group.tokens)} tokens, ${percent(group.share)}`} />)}
+    </div>
+    <ul className="context-breakdown__legend">
+      {groups.map(group => <li key={group.key}>
+        <i className={`is-${group.key}`} aria-hidden="true" />{group.label}
+        <strong>{compactTokens(group.tokens)}</strong><span>{percent(group.share)}</span>
+      </li>)}
+    </ul>
+  </div>;
+}
+
+function ContextBlocks({ context }: { context: NonNullable<AdminAiLoopHealth['context']> }) {
+  const parts = context.parts.filter(row => row.tokens > 0).sort((a, b) => b.tokens - a.tokens);
+  const window = [
+    { label: 'Median call', tokens: context.tokens_p50, share: context.share_p50 },
+    { label: '95th percentile', tokens: context.tokens_p95, share: context.share_p95 },
+    { label: 'Largest call', tokens: context.tokens_max, share: context.share_max },
+  ];
+  return <div className="loop-health__grid">
+    <div className="loop-health__block">
+      <h4>What fills a chat call</h4>
+      {context.measured_calls === 0
+        ? <p className="text-muted">No calls have recorded this yet. New chat calls appear here once the measuring build is live.</p>
+        : <>
+          <p className="text-muted">Mean tokens per call across {context.measured_calls.toLocaleString()} measured calls. Text is sized locally, then fitted to the provider's exact input count.</p>
+          <ContextBreakdown partTokens={Object.fromEntries(parts.map(row => [row.part, row.mean_tokens]))} />
+          <div className="loop-health__table" role="region" aria-label="Context by source" tabIndex={0}>
+            <table>
+              <thead><tr><th scope="col">Source</th><th scope="col">Mean tokens</th><th scope="col">Share</th></tr></thead>
+              <tbody>{parts.map(row => <tr key={row.part}>
+                <th scope="row">{CONTEXT_PART_LABELS[row.part] ?? humanize(row.part)}</th>
+                <td>{row.mean_tokens.toLocaleString()}</td>
+                <td>{percent(row.share)}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
+        </>}
+    </div>
+    <div className="loop-health__block">
+      <h4>Context window use</h4>
+      <p className="text-muted">Input, output and reasoning tokens of a chat call against that model's context window.</p>
+      <div className="loop-health__table" role="region" aria-label="Context window use" tabIndex={0}>
+        <table>
+          <thead><tr><th scope="col">Chat calls</th><th scope="col">Tokens</th><th scope="col">Of window</th></tr></thead>
+          <tbody>{window.map(row => <tr key={row.label}>
+            <th scope="row">{row.label}</th>
+            <td>{row.tokens == null ? '—' : row.tokens.toLocaleString()}</td>
+            <td>{contextPercent(row.share)}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>;
+}
+
 function Kpis({ data }: { data: AdminAiLoopHealth }) {
   const first = data.rounds.find(row => row.round === 1);
   const turns = data.turn_rounds.reduce((sum, row) => sum + row.turns, 0);
@@ -41,6 +104,8 @@ function Kpis({ data }: { data: AdminAiLoopHealth }) {
       <span>{multi.toLocaleString()} of {turns.toLocaleString()} turns used 2+ model rounds</span></div>
     <div><dt>Prompt prefixes</dt><dd>{data.prefixes.distinct.toLocaleString()}</dd>
       <span>{marked == null ? 'no chat calls' : `${percent(marked)} of chat calls marked`}</span></div>
+    <div><dt>Context used</dt><dd>{contextPercent(data.context?.share_p50)}</dd>
+      <span>median call · peak {contextPercent(data.context?.share_max)}</span></div>
   </dl>;
 }
 
@@ -66,15 +131,18 @@ export function AiLoopHealthPanel({ days }: { days: number }) {
     {data && (data.cache.chat_calls === 0 ? <p>No chat-layer calls in this window yet.</p> : <>
       <Kpis data={data} />
 
+      {data.context && <ContextBlocks context={data.context} />}
+
       <div className="loop-health__grid">
         <div className="loop-health__block">
           <h4>Cache hit rate by round</h4>
           <div className="loop-health__table" role="region" aria-label="Cache by loop round" tabIndex={0}>
             <table>
-              <thead><tr><th scope="col">Round</th><th scope="col">Calls</th><th scope="col">Cached input</th><th scope="col">Writes</th><th scope="col">Mean time</th></tr></thead>
+              <thead><tr><th scope="col">Round</th><th scope="col">Calls</th><th scope="col">Mean input</th><th scope="col">Cached input</th><th scope="col">Writes</th><th scope="col">Mean time</th></tr></thead>
               <tbody>{data.rounds.map(row => <tr key={row.round}>
                 <th scope="row">{row.round === 0 ? 'Unrecorded' : `Round ${row.round}`}</th>
                 <td>{row.calls.toLocaleString()}</td>
+                <td>{row.calls ? compactTokens(Math.round(row.input_tokens / row.calls)) : '—'}</td>
                 <td><span className="loop-health__share"><CacheBar share={row.cached_share} /><strong>{percent(row.cached_share)}</strong></span>
                   <small>{compactTokens(row.cached_input_tokens)} / {compactTokens(row.input_tokens)}</small></td>
                 <td>{compactTokens(row.cache_write_tokens)}</td>
@@ -110,7 +178,7 @@ export function AiLoopHealthPanel({ days }: { days: number }) {
           {toolsWithActivity.length === 0 ? <p className="text-muted">No tool spans in this window.</p> : <>
             <div className="loop-health__table" role="region" aria-label="Tool outcomes" tabIndex={0}>
               <table>
-                <thead><tr><th scope="col">Tool</th><th scope="col">Ran</th><th scope="col">Failed</th><th scope="col">Skipped</th><th scope="col">Reused</th><th scope="col">Mean time</th></tr></thead>
+                <thead><tr><th scope="col">Tool</th><th scope="col">Ran</th><th scope="col">Failed</th><th scope="col">Skipped</th><th scope="col">Reused</th><th scope="col">Mean time</th><th scope="col">Mean return</th></tr></thead>
                 <tbody>{toolsWithActivity.map(row => <tr key={row.tool}>
                   <th scope="row">{humanize(row.tool)}</th>
                   <td>{row.executed.toLocaleString()}</td>
@@ -118,6 +186,7 @@ export function AiLoopHealthPanel({ days }: { days: number }) {
                   <td>{row.skipped.toLocaleString()}</td>
                   <td>{row.reused.toLocaleString()}</td>
                   <td>{row.mean_ms == null ? '—' : `${Math.round(row.mean_ms).toLocaleString()} ms`}</td>
+                  <td>{row.mean_result_tokens == null ? '—' : <>{compactTokens(row.mean_result_tokens)}<small>max {compactTokens(row.max_result_tokens ?? 0)}</small></>}</td>
                 </tr>)}</tbody>
               </table>
             </div>
