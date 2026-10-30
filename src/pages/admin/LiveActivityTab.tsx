@@ -3,7 +3,8 @@ import { Activity, Bot, CircleAlert, Clock3, Cpu, Expand, FileJson2, Globe2, Pau
 import { adminApi, type AdminAiTraceDetail, type AdminAiTraceSpan } from '@/api/admin';
 import { apiBase as runtimeApiBase } from '@/lib/runtimeConfig';
 import { getLiveActivityPrompt, getLiveActivityOutputs } from '@/utils/liveActivityPrompt';
-import { compactTokens, percent } from './AiLoopHealthPanel';
+import { contextLimitLabel, contextPartTokens, contextPercent, peakContextSpan } from '@/utils/aiContextUsage';
+import { ContextBreakdown, compactTokens, percent } from './AiLoopHealthPanel';
 
 type Category = 'command' | 'ai' | 'website';
 type Outcome = 'running' | 'success' | 'error' | 'blocked' | 'cancelled';
@@ -136,6 +137,7 @@ function traceSpanSummary(span: AdminAiTraceSpan) {
     typeof tool === 'string' ? tool : null,
     round != null ? `round ${String(round)}` : null,
     span.input_tokens ? `${percent((span.cached_input_tokens ?? 0) / span.input_tokens)} of ${compactTokens(span.input_tokens)} cached` : null,
+    span.context_share != null ? `${contextPercent(span.context_share)} context` : null,
     span.error_code,
   ].filter(Boolean).join(' · ');
   return `${context} · ${formatDurationMs(span.duration_ms)}`;
@@ -152,8 +154,12 @@ function traceLoopSummary(detail: AdminAiTraceDetail) {
     else if (span.span_type === 'tool' && typeof span.metadata?.tool_name === 'string') ran.push(span.metadata.tool_name);
   }
   const { input_tokens: input, cached_input_tokens: cached } = detail.trace;
+  const peak = peakContextSpan(detail.spans);
   return {
     cached: input ? `${percent((cached ?? 0) / input)} of ${compactTokens(input)}` : 'no input recorded',
+    context: peak?.context_limit ? `${contextPercent(peak.context_share)} of ${contextLimitLabel(peak.context_limit)}` : 'not recorded',
+    largest: peak?.provider_total_tokens ? `${compactTokens(peak.provider_total_tokens)} tokens` : 'not recorded',
+    parts: contextPartTokens(peak?.metadata),
     rounds: rounds ? String(rounds) : '—',
     tools: ran.length ? `${[...new Set(ran)].map(humanize).join(', ')}${skipped ? ` · ${skipped} skipped` : ''}` : skipped ? `${skipped} skipped` : 'none',
   };
@@ -534,7 +540,11 @@ export const LiveActivityTab: React.FC = () => {
                   <div><dt>Input cached</dt><dd>{loopSummary?.cached}</dd></div>
                   <div><dt>Model rounds</dt><dd>{loopSummary?.rounds}</dd></div>
                   <div><dt>Tools</dt><dd>{loopSummary?.tools}</dd></div>
+                  <div><dt>Peak context</dt><dd>{loopSummary?.context}</dd></div>
+                  <div><dt>Largest call</dt><dd>{loopSummary?.largest}</dd></div>
+                  <div><dt>Output</dt><dd>{traceDetail.trace.visible_output_tokens.toLocaleString()} tokens</dd></div>
                 </dl>
+                {loopSummary && <div className="live-trace-context"><ContextBreakdown partTokens={loopSummary.parts} /></div>}
                 <div className="live-trace-content__heading">
                   <div>
                     <strong>Prompts & outputs</strong>
