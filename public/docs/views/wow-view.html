@@ -2,7 +2,7 @@
   <header class="docs-page-header">
     <h1>World of Warcraft Characters</h1>
     <p class="docs-page-description">
-      Look up Retail and Classic characters in Discord with Blizzard-grounded profile cards, combat stats, gear, talents, PvP records, raids, and available Mythic+ data.
+      Look up Retail, Classic, and WoW Forever characters in Discord with Blizzard-grounded profile cards, combat stats, gear, talents, PvP records, raids, and available Mythic+ data.
     </p>
   </header>
 
@@ -53,8 +53,16 @@
     </div>
 
     <p>
-      Retail/Live and US are the defaults. Character and realm are required. Choose the exact version and region whenever those defaults do not identify the character.
+      Retail/Live and US are the defaults. Character and realm are required for every product except WoW Forever. Choose the exact version and region whenever those defaults do not identify the character.
     </p>
+    <div class="info-card info-card-info">
+      <h3>WoW Forever characters</h3>
+      <p>
+        WoW Forever has no player-facing realms. Its characters have a first name and a surname that together are unique within a region, so use <code>surname</code> instead of <code>realm</code>:
+      </p>
+      <code>/wow profile character:Ana surname:Forever version:WoW Forever region:US</code>
+      <p>Typing the full name, such as <code>character:Ana Forever</code>, also works.</p>
+    </div>
   </section>
 
   <section class="docs-section">
@@ -67,6 +75,7 @@
       <code>@Acosmibot look up Biitti on Spineshatter EU Anniversary</code>
       <code>@Acosmibot show the PvP record for Acosmic on Illidan US Retail</code>
       <code>@Acosmibot what raid progress does this character have on Classic Era?</code>
+      <code>@Acosmibot look up Ana Forever on WoW Forever US</code>
     </div>
     <div class="info-card info-card-info">
       <h3>AI tool controls</h3>
@@ -103,6 +112,10 @@
           <td><strong>Classic Anniversary / TBC Anniversary</strong></td>
           <td>Anniversary realms and their Burning Crusade progression</td>
         </tr>
+        <tr>
+          <td><strong>WoW Forever</strong></td>
+          <td>The realmless WoW: Forever product, looked up by first name and surname within a region</td>
+        </tr>
       </tbody>
     </table>
     <p>Supported regions are US, EU, Korea, and Taiwan. If “Classic” could refer to more than one product, Acosmibot asks which one you mean.</p>
@@ -134,7 +147,7 @@
     </div>
     <div class="faq-item">
       <h4>Q: Why was my character not found?</h4>
-      <p>A: Verify the character name, realm, region, and exact game product. The same name and realm can resolve differently across Blizzard's product namespaces.</p>
+      <p>A: Verify the character name, realm (or WoW Forever surname), region, and exact game product. The same name and realm can resolve differently across Blizzard's product namespaces, and a character has no public profile until it has logged in at least once. If Acosmibot says Blizzard does not currently expose profiles for the selected version and region, Blizzard's API is not serving that product's character profiles there yet.</p>
     </div>
     <div class="faq-item">
       <h4>Q: Why is a page or statistic missing?</h4>

@@ -301,7 +301,7 @@ const SPECIAL_DOC_META: Partial<Record<(typeof DOC_ROUTES)[number][0], Pick<SeoM
   },
   wow: {
     title: 'WoW Character Lookup Bot for Discord | Acosmibot Docs',
-    description: 'Look up Retail and Classic World of Warcraft characters in Discord with full-body profile cards, combat stats, gear, talents, PvP, raids, and Retail Mythic+ data.',
+    description: 'Look up Retail, Classic, and WoW Forever World of Warcraft characters in Discord with full-body profile cards, combat stats, gear, talents, PvP, raids, and Retail Mythic+ data.',
   },
   lol: {
     title: 'League of Legends Profile & Match Lookup for Discord | Acosmibot Docs',
