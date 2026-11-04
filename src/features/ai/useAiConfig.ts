@@ -114,7 +114,7 @@ export const AI_TOOL_CATALOG: { name: AiToolName; label: string; description: st
   { name: 'image_search', label: 'Image Search', description: 'Find an existing image on the live web and attach it to the reply.' },
   { name: 'channel_summary', label: 'Channel Summaries', description: 'Summarize bounded recent history from the current Discord channel on Pro and Max servers.' },
   { name: 'weather', label: 'Weather', description: 'Fetch live forecasts and weather cards.' },
-  { name: 'wow_character', label: 'WoW Characters', description: 'Look up Retail and Classic Blizzard profiles with visual character cards, PvP records, and PvE progress.' },
+  { name: 'wow_character', label: 'WoW Characters', description: 'Look up Retail, Classic, and WoW Forever Blizzard profiles with visual character cards, PvP records, and PvE progress.' },
   { name: 'lol_lookup', label: 'League of Legends Lookups', description: 'Look up public League profiles and recent matches on request. Results can be delayed; custom and private matches are excluded.' },
   { name: 'docs_search', label: 'Acosmibot Help', description: 'Ground answers in official feature and command documentation.' },
   { name: 'server_stats', label: 'Server Stats', description: 'Read member, economy, leveling, and game statistics.' },
