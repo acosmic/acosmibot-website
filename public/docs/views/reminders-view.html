@@ -9,18 +9,19 @@
   <section class="docs-section">
     <h2>Overview</h2>
     <p>
-      The reminder system lets any server member schedule a personal message to be delivered at a future time. Reminders are sent as a direct message from the bot so they reach you wherever you are, even if you've left the server in the meantime.
+      The reminder system lets anyone schedule a personal message to be delivered at a future time. Set reminders with <code>/reminder</code> in any server channel where Acosmibot is active or in a DM with Acosmibot, or ask Acosmibot in a server. Reminders are sent as a direct message from the bot so they reach you wherever you are, even if you've left the server in the meantime.
     </p>
 
     <div class="info-card info-card-info">
       <h3>Key Features</h3>
       <ul>
         <li>Set reminders up to 5 years in the future</li>
-        <li>Flexible time format — combine units like <code>2h30m</code> or <code>1d12h</code></li>
-        <li>Create, view, and cancel reminders by asking Acosmibot in natural language</li>
-        <li>View and manage all your active reminders at any time</li>
+        <li>Use a duration like <code>2h30m</code> or a date and time like <code>tomorrow 9am</code> or <code>friday 3pm Budapest time</code></li>
+        <li>Works in server channels and in DMs with Acosmibot</li>
+        <li>Create, view, and cancel reminders by asking Acosmibot in natural language, in any language</li>
         <li>Cancel individual reminders by ID before they fire</li>
-        <li>Delivered as a DM so you never miss it</li>
+        <li>Delivered as a DM with a link back to where you set it</li>
+        <li>Available on every plan; <code>/reminder</code> has no usage limit</li>
       </ul>
     </div>
   </section>
@@ -28,13 +29,24 @@
   <section class="docs-section">
     <h2>Ask Acosmibot Naturally</h2>
     <p>
-      Mention Acosmibot and ask it to manage your reminders conversationally. AI-created reminders are saved in the same system as slash-command reminders, appear in <code>/reminder list</code>, and follow the same DM delivery process.
+      Mention Acosmibot in a server and ask it to manage your reminders conversationally, in English or any other language. AI-created reminders are saved in the same system as slash-command reminders, appear in <code>/reminder list</code>, and follow the same DM delivery process.
     </p>
     <div class="command-examples">
       <h4>Examples:</h4>
       <code>@Acosmibot remind me tomorrow at 9am to submit the report</code>
+      <code>@Acosmibot recuérdame en 30 minutos sacar la basura</code>
       <code>@Acosmibot what reminders do I have?</code>
       <code>@Acosmibot cancel my report reminder</code>
+    </div>
+
+    <div class="info-card info-card-info">
+      <h3>Where AI Reminders Work</h3>
+      <ul>
+        <li>Ask in a server channel where AI chat is on. Asking Acosmibot in a DM does not create reminders — use <code>/reminder set</code> there instead.</li>
+        <li>Each request counts as an AI chat reply toward the server's daily and monthly AI allowance (see <a href="/docs/subscription-plans" onclick="event.preventDefault(); window.DocsRouter.navigate('subscription-plans')">Subscription Plans</a>). <code>/reminder</code> commands never use that allowance.</li>
+        <li>Asked in a server, Acosmibot lists and cancels your reminders from that server.</li>
+        <li>Server admins can turn the reminder tool off in the server's AI settings.</li>
+      </ul>
     </div>
   </section>
 
@@ -45,21 +57,21 @@
       <div class="command-card">
         <div class="command-signature">/reminder set &lt;when&gt; &lt;message&gt;</div>
         <div class="command-description">
-          Set a reminder for a future time. The bot will DM you with your message when the time arrives. Time can use any supported format or a combination of units.
+          Set a reminder for a future time. <code>when</code> can be a duration or a date and time (see Time Format Reference below). Works in server channels and in DMs with Acosmibot. The bot will DM you with your message when the time arrives.
         </div>
         <div class="command-examples">
           <h4>Examples:</h4>
           <code>/reminder set 30m Check the oven</code>
           <code>/reminder set 2h30m Team meeting starts soon</code>
-          <code>/reminder set 1d Take out the trash</code>
-          <code>/reminder set 1w Server event this time next week</code>
+          <code>/reminder set tomorrow 9am Take out the trash</code>
+          <code>/reminder set friday 3pm Budapest time Raid night</code>
         </div>
       </div>
 
       <div class="command-card">
         <div class="command-signature">/reminder list</div>
         <div class="command-description">
-          View a list of all your active reminders, including each reminder's ID, message, and the time remaining until it fires.
+          View your active reminders, including each reminder's ID, message, and when it fires. In a server it shows the reminders you set in that server; in a DM with Acosmibot it shows all of your reminders.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -70,7 +82,7 @@
       <div class="command-card">
         <div class="command-signature">/reminder cancel &lt;id&gt;</div>
         <div class="command-description">
-          Cancel an active reminder before it fires. Use <code>/reminder list</code> to find the ID of the reminder you want to remove.
+          Cancel one of your active reminders before it fires, from any server or a DM. Use <code>/reminder list</code> to find the ID of the reminder you want to remove.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -83,55 +95,58 @@
   <section class="docs-section">
     <h2>Time Format Reference</h2>
     <p>
-      Time values are flexible and human-friendly. You can use shorthand abbreviations or write them out, and combine multiple units in a single value.
+      <code>when</code> is either a <strong>duration</strong> from now or a <strong>date and time</strong>. The English formats below are read directly. Anything else, including a time written in another language, is first rewritten into one of these formats by AI; check the time on the confirmation.
     </p>
 
-    <table class="docs-table">
-      <thead>
-        <tr>
-          <th>Unit</th>
-          <th>Accepted Formats</th>
-          <th>Example Input</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Seconds</td>
-          <td><code>s</code></td>
-          <td><code>30s</code></td>
-        </tr>
-        <tr>
-          <td>Minutes</td>
-          <td><code>m</code>, <code>min</code></td>
-          <td><code>5m</code>, <code>15min</code></td>
-        </tr>
-        <tr>
-          <td>Hours</td>
-          <td><code>h</code>, <code>hr</code></td>
-          <td><code>2h</code>, <code>3hr</code></td>
-        </tr>
-        <tr>
-          <td>Days</td>
-          <td><code>d</code></td>
-          <td><code>1d</code>, <code>7d</code></td>
-        </tr>
-        <tr>
-          <td>Weeks</td>
-          <td><code>w</code>, <code>week</code></td>
-          <td><code>2w</code>, <code>4week</code></td>
-        </tr>
-        <tr>
-          <td>Years</td>
-          <td><code>y</code>, <code>yr</code></td>
-          <td><code>1y</code>, <code>2yr</code></td>
-        </tr>
-        <tr>
-          <td>Combined</td>
-          <td>Multiple units chained</td>
-          <td><code>2h30m</code>, <code>1d12h</code></td>
-        </tr>
-      </tbody>
-    </table>
+    <h3>Durations</h3>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Unit</th>
+            <th>Accepted Formats</th>
+            <th>Example Input</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Seconds</td>
+            <td><code>s</code>, <code>sec</code>, <code>seconds</code></td>
+            <td><code>90s</code></td>
+          </tr>
+          <tr>
+            <td>Minutes</td>
+            <td><code>m</code>, <code>min</code>, <code>minutes</code></td>
+            <td><code>5m</code>, <code>15min</code></td>
+          </tr>
+          <tr>
+            <td>Hours</td>
+            <td><code>h</code>, <code>hr</code>, <code>hours</code></td>
+            <td><code>2h</code>, <code>3hr</code></td>
+          </tr>
+          <tr>
+            <td>Days</td>
+            <td><code>d</code>, <code>days</code></td>
+            <td><code>1d</code>, <code>7d</code></td>
+          </tr>
+          <tr>
+            <td>Weeks</td>
+            <td><code>w</code>, <code>week</code>, <code>weeks</code></td>
+            <td><code>2w</code>, <code>4week</code></td>
+          </tr>
+          <tr>
+            <td>Years (365 days)</td>
+            <td><code>y</code>, <code>yr</code>, <code>years</code></td>
+            <td><code>1y</code>, <code>2yr</code></td>
+          </tr>
+          <tr>
+            <td>Combined</td>
+            <td>Multiple units chained</td>
+            <td><code>2h30m</code>, <code>2 hours 30 minutes</code>, <code>in 45 minutes</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="info-card info-card-success">
       <h3>Combining Time Units</h3>
@@ -139,7 +154,63 @@
         <li><code>2h30m</code> — 2 hours and 30 minutes from now</li>
         <li><code>1d12h</code> — 1 day and 12 hours from now</li>
         <li><code>1w2d</code> — 1 week and 2 days from now</li>
-        <li><code>1y6m</code> — 1 year and 6 months from now</li>
+        <li><code>1y2w</code> — 1 year and 2 weeks from now</li>
+      </ul>
+    </div>
+
+    <div class="info-card info-card-warning">
+      <h3>No Months</h3>
+      <p><code>m</code> always means <strong>minutes</strong>, so <code>1y6m</code> is one year and six minutes. Months aren't a duration unit — use weeks or a date instead.</p>
+    </div>
+
+    <h3>Dates and Times</h3>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Kind</th>
+            <th>Example Input</th>
+            <th>Fires</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Time today</td>
+            <td><code>3:30pm</code>, <code>15:30</code>, <code>9pm</code></td>
+            <td>The next time the clock reads that time</td>
+          </tr>
+          <tr>
+            <td>Today, tonight, tomorrow, day after tomorrow</td>
+            <td><code>today 5pm</code>, <code>tonight</code>, <code>tomorrow 9am</code>, <code>day after tomorrow 8am</code></td>
+            <td><code>tonight</code> alone is 8 PM; <code>today</code>, <code>tomorrow</code>, or <code>day after tomorrow</code> alone is 9 AM</td>
+          </tr>
+          <tr>
+            <td>Weekday</td>
+            <td><code>friday 3pm</code>, <code>next friday</code>, <code>next week thursday 2pm</code></td>
+            <td>The next matching day; <code>next week</code> means the following Monday-to-Sunday week</td>
+          </tr>
+          <tr>
+            <td>Date</td>
+            <td><code>July 4</code>, <code>12/25 8pm</code>, <code>2026-12-25 8:00</code></td>
+            <td>A date with no year is the next time that date comes around; a date with no time fires at 9 AM</td>
+          </tr>
+          <tr>
+            <td>Exact instant</td>
+            <td><code>2026-12-01T14:00:00+02:00</code></td>
+            <td>That exact moment, regardless of time zone settings</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-card info-card-info">
+      <h3>Time Zones</h3>
+      <ul>
+        <li>Dates and times use the <strong>Personal timezone</strong> from <a href="https://acosmibot.com/settings">acosmibot.com/settings</a>. If you haven't set one, reminders use <strong>UTC</strong> — not the server's time zone.</li>
+        <li>Add a time zone to the end to use it instead: <code>tomorrow 9am Europe/London</code>, <code>friday 3pm Budapest time</code>, or <code>3pm New York time</code>. Use a full IANA name or a city name.</li>
+        <li>Daylight saving time is handled for you. A time that is skipped or repeated when the clocks change is rejected; use an exact instant with an offset instead.</li>
+        <li>Durations like <code>30m</code> don't depend on any time zone.</li>
+        <li>The confirmation shows the exact time and, for dates and times, the time zone used.</li>
       </ul>
     </div>
   </section>
@@ -152,7 +223,7 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h3>Set your reminder</h3>
-          <p>Run <code>/reminder set &lt;when&gt; &lt;message&gt;</code> in any channel where the bot is active. The bot confirms your reminder with a timestamp showing exactly when it will fire.</p>
+          <p>Run <code>/reminder set &lt;when&gt; &lt;message&gt;</code> in any channel where the bot is active or in a DM with Acosmibot, or mention Acosmibot in a server and ask. The bot confirms your reminder with a timestamp showing exactly when it will fire.</p>
         </div>
       </div>
       <div class="step">
@@ -166,7 +237,7 @@
         <div class="step-number">3</div>
         <div class="step-content">
           <h3>Receive your DM</h3>
-          <p>When the time arrives, Acosmibot sends you a direct message with your original reminder text so you know exactly what you asked to be reminded about.</p>
+          <p>When the time arrives, Acosmibot sends you a direct message with your original reminder text, where you set it, and a link back to that message.</p>
         </div>
       </div>
     </div>
@@ -179,8 +250,9 @@
       <h3>Things to Keep in Mind</h3>
       <ul>
         <li>Maximum reminder time is <strong>5 years</strong> in the future</li>
+        <li>Reminder messages can be up to 1,000 characters</li>
         <li>Reminders are personal — only you receive your own DMs</li>
-        <li>Make sure your DMs are open to receive the reminder message</li>
+        <li>Make sure your DMs are open: if Acosmibot can't DM you when a reminder fires, that reminder is not retried</li>
         <li>If the bot is offline when a reminder fires, it will be sent as soon as the bot comes back online</li>
       </ul>
     </div>
@@ -192,6 +264,21 @@
     <div class="faq-item">
       <h4>Q: I didn't receive my reminder DM</h4>
       <p>A: Check that your Discord privacy settings allow DMs from bot accounts. In User Settings → Privacy & Safety, ensure "Allow direct messages from server members" is enabled, or add Acosmibot as a friend to allow DMs directly.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: My reminder fired at the wrong hour</h4>
+      <p>A: Dates and times use your Personal timezone from <a href="https://acosmibot.com/settings">acosmibot.com/settings</a>, or UTC if you haven't set one. Set your time zone there, or add one to the reminder, such as <code>tomorrow 9am America/Chicago</code>.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I set reminders in a DM with Acosmibot?</h4>
+      <p>A: Yes. <code>/reminder set</code>, <code>/reminder list</code>, and <code>/reminder cancel</code> all work in a DM with Acosmibot, and <code>/reminder list</code> there shows all of your reminders. Asking Acosmibot in plain words only creates reminders in a server.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q: Can I ask in another language?</h4>
+      <p>A: Yes. When you mention Acosmibot in a server, you can ask in any language and your reminder keeps your own words. In <code>/reminder set</code>, a time in another language (such as <code>en 20 minutos</code>) is rewritten into English by AI before it is saved. That rewrite needs Acosmibot's AI to be available; English formats such as <code>20m</code> or <code>tomorrow 9am</code> always work.</p>
     </div>
 
     <div class="faq-item">
