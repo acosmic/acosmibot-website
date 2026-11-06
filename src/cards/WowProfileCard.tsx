@@ -216,7 +216,7 @@ export function WowProfileCard({ data }: { data: WowProfileCardData }) {
         >
           <span style={{ color: '#67ECFF' }}>ACOSMIBOT</span>
           <span style={{ margin: '0 10px', color: '#4B5B68' }}>//</span>
-          <span>ARMORY DOSSIER</span>
+          <span>ARMORY</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 8 }}>
