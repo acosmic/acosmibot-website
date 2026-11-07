@@ -1,14 +1,15 @@
 import { SEASONS, readSeason, saveSeason, seasonalCopy, seasonEnabled, seasonState, normalizeAvailability, seasonTheme, paintBackdrop, hazardRotation } from './seasonal.mjs';
 import { seasonBitCount } from './seasonal-art.mjs';
+import { seasonIcon } from './season-icons.mjs';
 import {drawDarkn1de,createDarkCues,POSE_NAMES} from './darkn1de-fx.mjs';
-import { createRun, step, DT, clamp, specialState, thrustActive, isInverted, resonanceReady } from './sim.mjs';
+import { createRun, step, DT, clamp, specialState, thrustActive, isInverted, resonanceReady, comboBonus, comboWindow } from './sim.mjs';
 import { createPhaseBackdrop, drawSpecial, phaseNames } from './phases-fx.mjs';
 import { flightCamera, rocketSize, obstacleSize } from './camera.mjs';
 import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-fx.mjs';
 import { riderArt } from './rocket-art.mjs';
 import { flightError, needsReconnect } from './errors.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
-import { api, refreshBoard, renderBoard, boardReady, currentBoard, setRankedAvailable, setSession, verifiedBest } from './leaderboard.mjs';
+import { api, refreshBoard, renderBoard, boardReady, currentBoard, setRankedAvailable, setSession, verifiedBest, dailyReset } from './leaderboard.mjs';
 import { createReactionUI } from './reaction-ui.mjs';
 import { predictPlacement, verifiedPlacement, placementCopy } from './placement.mjs';
 import './style.css';
@@ -56,10 +57,10 @@ let localDeathPending=false;
 function statsCopy(stats){return stats?`Attempt ${Number(stats.attempts).toLocaleString()} · Deaths ${Number(stats.deaths).toLocaleString()}`:'Attempt — · Deaths —';}
 function renderSeasonOptions(){
   document.querySelector('.season-options').replaceChildren(...SEASONS.filter(s=>seasonState(s,seasonAvailability)!=='hidden').map(s=>{
-    const button=document.createElement('button'),swatch=document.createElement('span'),name=document.createElement('span');
+    const button=document.createElement('button'),badge=document.createElement('span'),name=document.createElement('span');
     const enabled=seasonEnabled(s,seasonAvailability),[from,to]=seasonTheme(s.id).swatch;
-    button.type='button';button.disabled=!enabled;button.style.setProperty('--season',from);
-    swatch.className='season-swatch';swatch.style.background=`linear-gradient(135deg,${from},${to})`;name.textContent=s.name;button.append(swatch,name);
+    button.type='button';button.disabled=!enabled;button.style.setProperty('--season',from);button.style.setProperty('--season-to',to);
+    badge.className='season-swatch';badge.append(seasonIcon(s.id));name.textContent=s.name;button.append(badge,name);
     if(enabled){
       button.dataset.season=s.id;
       button.addEventListener('click',()=>{season=saveSeason(seasonalStorage,s.id,seasonAvailability);updateSeason();sound.setSeason(season);resize();});
@@ -90,7 +91,14 @@ let death=null, revealPending=false, revealAt=0, frameMs=16.7, shownScore=0, hud
 let finalTarget=0, finalAnim=0, bannerTimer=0;
 const particleCap=()=>reduced?240:600;
 let heatWarning = 0;
-let comboUntil = 0, comboText = '';
+let comboUntil = 0, comboText = '', comboTitle = 'CLOSE CALL', shownCombo = -1, comboTier = '';
+const ENGINE_VERSION='event-horizon-v11';
+// 'standard' or 'daily'. Fly again and R repeat the mode of the last flight.
+let flightMode='standard', runMaxCombo=0;
+// Crash replay re-simulates the verified inputs locally; it never reaches the server.
+let killcam=null;
+const KILLCAM_TICKS=180, KILLCAM_SPEED=.35;
+const COMBO_MILESTONES=[10,25,50,100];
 let ticket=null, replay=[], runGeneration=0, pendingSubmission=null;
 let particles = [], stars = [], backdrop;
 const keys = new Set(), pointers = new Set();
@@ -195,8 +203,17 @@ function abandonTicket(){
   if(old?.runId)void api(`/runs/${encodeURIComponent(old.runId)}/abandon`,{}).catch(()=>{});
 }
 
+// The Daily Challenge needs a ranked server board, so casual and watching modes never show it.
+function updateDailyButton(){
+  const show=rankedConnected&&!casualAvailable&&!watching&&['intro','dead'].includes(mode)&&!killcam;
+  setProp('daily-setting','hidden',!show);if(!show)return;
+  const again=mode==='dead'&&flightMode==='daily';
+  $('daily-launch').querySelector('strong').textContent=again?'Standard ranked run':'Daily Challenge';
+  setText('daily-note',again?'Back to a fresh random flight':`Same flight for everyone in this server today · ${dailyReset()}`);
+}
 function setConnectionState(state, detail = '') {
   $('install-bot').hidden=!['install','casual'].includes(state);
+  if(state!=='ready')$('daily-setting').hidden=true;
   $('connection-retry').textContent=['install','casual'].includes(state)?'Check again':'Retry Discord connection';
   if(state==='casual'){
     $('connection-note').textContent='Play for fun here. For server leaderboards, record posts, and live spectating, ask an admin to add Acosmibot. After installation, choose Check again.';
@@ -206,7 +223,7 @@ function setConnectionState(state, detail = '') {
     $('connection-note').textContent=detail;$('launch').disabled=true;$('launch').textContent='Add Acosmibot to play';
     $('connection-retry').hidden=false;$('leaderboard').hidden=true;return;
   }
-  if (state === 'ready') { $('leaderboard').hidden=false;$('connection-note').textContent=''; $('launch').disabled=false; $('launch').textContent='Launch ranked run ↗'; $('connection-retry').hidden=true; return; }
+  if (state === 'ready') { $('leaderboard').hidden=false;$('connection-note').textContent=''; $('launch').disabled=false; $('launch').textContent='Launch ranked run ↗'; $('connection-retry').hidden=true; updateDailyButton(); return; }
   if (state === 'external') { $('connection-note').textContent='Launch Event Horizon from Discord to start a flight.'; $('launch').disabled=true; $('launch').textContent='Launch from Discord'; $('connection-retry').hidden=true; return; }
   if (state === 'error') { $('connection-note').textContent=detail || 'Could not verify your Discord session. Retry the connection to rank flights.'; $('launch').disabled=true; $('launch').textContent='Ranked flight unavailable'; $('connection-retry').hidden=false; return; }
   $('connection-note').textContent='Verifying your Discord session and server standings…'; $('launch').disabled=true; $('launch').textContent='Connecting to Discord…';
@@ -325,6 +342,7 @@ function syncHUD() {
   $('heat-gauge').classList.toggle('hot',run.heat>=65);$('heat-gauge').classList.toggle('critical',run.heat>=80);
   setText('run-time',label('time',Math.floor(run.time),clockLabel));
   setText('multiplier',`${run.multiplier.toFixed(1)}×`);
+  syncCombo();
   setProp('heat','value',run.heat);setText('heat',`${Math.round(run.heat)}%`);
   setAttr('heat','aria-label',`Heat ${Math.round(run.heat)} percent`);
   const pulseReady=resonanceReady(run),dashReady=run.energy>=100||pulseReady;
@@ -345,13 +363,28 @@ function syncHUD() {
     heatWarning=1;message(isInverted(run)?'Release boost to climb and cool down':'Getting hot — boost outward to cool down',2);sound.play('warning');
   }
 }
-async function start() {
+function syncCombo(){
+  const combo=run.combo, block=$('combo-block'), active=combo>0;
+  if(combo!==shownCombo){
+    setText('combo-count',active?`${combo}×`:'—');
+    setText('combo-bonus',active?`+${Math.round(comboBonus(combo)*100)}% score`:'Skim hazards to chain');
+    setAttr('combo-block','data-active',String(active));
+    const tier=combo>=50?'blaze':combo>=13?'hot':'';
+    if(tier!==comboTier){comboTier=tier;if(tier)block.dataset.tier=tier;else delete block.dataset.tier;}
+    if(active&&combo>shownCombo&&!reduced)retrigger('combo-block','bump');
+    shownCombo=combo;
+  }
+  const remaining=active?clamp(run.comboClock/comboWindow(combo),0,1):0;
+  const width=`${(remaining*100).toFixed(1)}%`;
+  if($('combo-timer-fill').style.width!==width)$('combo-timer-fill').style.width=width;
+}
+async function start(nextMode=flightMode) {
   if(usePixi&&(!gpu||gpu.lost))return;
   if(profileBusy)return;
   if(mode==='preparing')return;
   if(watching)stopWatching();
   sound.unlock();
-  revealPending=false;death=null;hideBanner();
+  revealPending=false;death=null;hideBanner();endKillcam(false);
   $('pause').hidden=false;$('watch-controls').hidden=true;syncReactionBar();
   const generation=++runGeneration;clearInput();
   // Completed submissions keep their receipt; only abandon unfinished flights.
@@ -361,8 +394,9 @@ async function start() {
   $('launch').textContent='Preparing flight…';
   if(!rankedConnected&&!casualAvailable){mode='intro';setConnectionState('error','Reconnect to Discord before starting a flight.');return;}
   try{
-    if(casualAvailable)ticket={casual:true,seed:crypto.getRandomValues(new Uint32Array(1))[0]||1,version:'event-horizon-v10',maxTicks:36000};
-    else{await boardReady;ticket=await api('/runs',{version:'event-horizon-v10'});if(!ticket?.runId||ticket.version!=='event-horizon-v10')throw new Error('The game has updated. Close and reopen the Activity before flying.');}
+    flightMode=casualAvailable||nextMode!=='daily'?'standard':'daily';
+    if(casualAvailable)ticket={casual:true,seed:crypto.getRandomValues(new Uint32Array(1))[0]||1,version:ENGINE_VERSION,maxTicks:36000};
+    else{await boardReady;ticket=await api('/runs',{version:ENGINE_VERSION,...(flightMode==='daily'?{mode:'daily'}:{})});if(!ticket?.runId||ticket.version!==ENGINE_VERSION)throw new Error('The game has updated. Close and reopen the Activity before flying.');}
   }catch(error){
     abandonTicket();mode='intro';$('load-error').hidden=false;$('load-error').textContent=error.message||'Could not start a ranked flight.';
     if(needsReconnect(error)){rankedConnected=false;setConnectionState('error',$('load-error').textContent);}
@@ -373,10 +407,12 @@ async function start() {
   $('launch').disabled=false;$('retry').disabled=false;
   if(ticket.casual){casualStats.attempts++;pilotStats={...casualStats};}else pilotStats=ticket.stats||null;
   localDeathPending=false;
-  run=createRun(ticket.seed);
+  run=createRun(ticket.seed);runMaxCombo=0;shownCombo=-1;
+  setProp('mode-badge','hidden',flightMode!=='daily');
+  if(flightMode==='daily')setText('mode-badge',`DAILY CHALLENGE · ${ticket.challengeDate||new Date().toISOString().slice(0,10)}`);
   $('phase-status').textContent='';
   mode='ready'; accumulator=0; last=performance.now(); particles=[]; best=Math.max(best,ticket.casual?0:verifiedBest()); savedBest=best; shake=0; heatWarning=0; shownScore=0; hudTier='cool'; $('multiplier').dataset.tier='cool';
-  $('viewer-count').hidden=true;live?.setRun(ticket.runId);renderPilots();flightStartedAt=null;
+  $('viewer-count').hidden=true;live?.setRun(ticket.runId);renderPilots();flightStartedAt=null;updateDailyButton();
   $('resubmit').hidden=true;
   $('overlay').hidden=true; $('hud').hidden=false; $('flight-controls').hidden=false;
   $('pause').disabled=false; syncHUD();
@@ -414,19 +450,13 @@ function finish(immediate=false) {
   if(mode==='dead')return;
   if(ticket?.casual){casualStats.deaths++;pilotStats={...casualStats};}else localDeathPending=true;
   syncHUD();
-  mode='dead'; const p=point(run.radius); shake=reduced?0:12;
-  const fell=/event horizon/i.test(run.cause);
-  death={t0:visualTime,x:p.x,y:p.y,fell};
-  const fx=seasonTheme(season).fx;
-  burst(p.x,p.y,fx.death,fell?30:70,{speed:fell?120:260,sparks:.7,ring:fell?0:170,smoke:fell?0:8,bits:fell?0:12});
-  if(!fell)burst(p.x,p.y,fx.deathCore,24,{speed:360,sparks:1});
-  addTrauma(juice,fell?.5:.9);punch(juice,{flash:fell?.22:.55,color:fell?[1,.55,.3]:[1,.85,.7],chroma:1.2,zoom:.05});
-  shockwave(juice,p.x,p.y,1.2,visualTime);juice.slowUntil=reduced?0:visualTime+.9;
-  haptic([60,40,90],!reduced);sound.play('death');
+  mode='dead';crashFx();
+  haptic([60,40,90],!reduced);
   best=Math.max(best,Math.floor(run.score));
   clearInput();$('flight-controls').hidden=true;$('pause').disabled=true;
   $('final-score').textContent='0';finalTarget=run.score;
-  $('run-stats').textContent=`${run.time.toFixed(1)}s survived · ${run.nearMisses} near-misses · ${run.shards} shards`;
+  $('run-stats').textContent=`${run.time.toFixed(1)}s survived · ${run.nearMisses} near-misses · longest chain ${runMaxCombo}× · ${run.shards} shards`;
+  $('crash-replay').hidden=replay.length<2;
   $('record').textContent=Math.floor(run.score)>savedBest?'New personal best pending verification.':'Press R to fly again.';
   $('rank-result').textContent='Checking your flight replay…';
   placement=ticket?.casual?null:predictPlacement(currentBoard(),run.score);
@@ -436,7 +466,69 @@ function finish(immediate=false) {
     pendingSubmission=null;
   } else { pendingSubmission={ticket,inputs:replay.slice(),generation:runGeneration};void submitResult(pendingSubmission); }
   revealPending=true;revealAt=performance.now()+(reduced?200:1150);
+  updateDailyButton();
   if(immediate)revealResults();
+}
+// The crash burst for the live death and for the crash replay. Visual and audio only.
+function crashFx(){
+  const p=point(run.radius); shake=reduced?0:12;
+  const fell=/event horizon/i.test(run.cause);
+  death={t0:visualTime,x:p.x,y:p.y,fell};
+  const fx=seasonTheme(season).fx;
+  burst(p.x,p.y,fx.death,fell?30:70,{speed:fell?120:260,sparks:.7,ring:fell?0:170,smoke:fell?0:8,bits:fell?0:12});
+  if(!fell)burst(p.x,p.y,fx.deathCore,24,{speed:360,sparks:1});
+  addTrauma(juice,fell?.5:.9);punch(juice,{flash:fell?.22:.55,color:fell?[1,.55,.3]:[1,.85,.7],chroma:1.2,zoom:.05});
+  shockwave(juice,p.x,p.y,1.2,visualTime);juice.slowUntil=reduced?0:visualTime+.9;
+  sound.play('death');
+}
+// Near-miss, graze, and lost-combo presentation, shared by live flight and the crash replay.
+function comboEvent(e,live){
+  if(e.type==='near'||e.type==='graze'){
+    const razor=e.grade==='razor';
+    comboTitle=e.type==='graze'?'PHASE GRAZE':razor?'RAZOR CLOSE':'CLOSE CALL';
+    comboText=`${e.combo}× COMBO${razor?' · +2':''}`;comboUntil=visualTime+1.3;
+    if(e.type==='graze')sound.play('graze',{combo:e.combo});
+    else{sound.play('near',{combo:e.combo});if(razor)sound.play('razor',{combo:e.combo});}
+    const p=point(run.radius);burst(p.x,p.y,e.type==='graze'?'#b9a6ff':seasonTheme(season).fx.near,razor?16:10,{speed:razor?240:180,sparks:1,bits:2});
+    punch(juice,{chroma:razor?.8:.5,speedLines:razor?1:.7});if(live)haptic(razor?[12,20,12]:12,!reduced);
+  }
+  if(e.type==='combo-lost'&&e.combo>=3){
+    if(live)message(`COMBO LOST · ${e.combo}×`,1.3);
+    sound.play('comboLost',{combo:e.combo});if(!reduced)retrigger('combo-block','lost');
+  }
+}
+function beginKillcam(){
+  if(mode!=='dead'||killcam||revealPending||!ticket||replay.length<2)return;
+  const inputs=replay.slice(),start=Math.max(0,inputs.length-KILLCAM_TICKS),state=createRun(ticket.seed);
+  for(let i=0;i<start&&state.alive;i++){const bits=inputs[i];step(state,{boost:!!(bits&1),dash:!!(bits&2)});}
+  killcam={inputs,index:start,state,saved:run,savedDeath:death,acc:0,input:0,hold:0,ended:false};
+  run=state;death=null;particles=[];comboUntil=0;shownCombo=-1;
+  clearInput();$('overlay').hidden=true;$('hud').hidden=false;$('killcam-bar').hidden=false;$('toast').textContent='';
+  updateDailyButton();syncHUD();$('killcam-skip').focus({preventScroll:true});
+}
+function advanceKillcam(dt){
+  const k=killcam;
+  if(k.ended){k.hold-=dt;if(k.hold<=0)endKillcam(true);return;}
+  k.acc+=dt*KILLCAM_SPEED;
+  while(k.acc>=DT&&k.index<k.inputs.length&&k.state.alive){
+    const bits=k.inputs[k.index++];k.input=bits;k.acc-=DT;
+    step(k.state,{boost:!!(bits&1),dash:!!(bits&2)});
+    for(const e of k.state.events){
+      comboEvent(e,false);
+      if(e.type==='shard'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#7df4ff',12,{speed:120,sparks:.8,ring:46});}
+      if(e.type==='dash'){const p=point(run.radius);burst(p.x,p.y,'#b9a6ff',30,{speed:220,ring:140});sound.play('dash');}
+      if(e.type==='death')crashFx();
+    }
+  }
+  syncHUD();
+  if(!k.state.alive||k.index>=k.inputs.length){k.ended=true;k.hold=1.6;}
+}
+// restore=true returns to the results screen; otherwise the caller takes over the screen.
+function endKillcam(restore){
+  if(!killcam)return;
+  const k=killcam;killcam=null;$('killcam-bar').hidden=true;
+  run=k.saved;death=k.savedDeath;particles=[];comboUntil=0;shownCombo=-1;
+  if(restore){presentResults();$('final-score').textContent=format(finalTarget);$('crash-replay').focus({preventScroll:true});}
 }
 // A top-ten server placement replaces the ORBIT LOST headline; #1 gets the full treatment.
 function showPlacement(){
@@ -448,12 +540,16 @@ function showPlacement(){
   if(!reduced)retrigger('screen-title','placed-in');
   if(placement===1&&was!==1){sound.play('champion');haptic([40,30,40,30,160],!reduced);}
 }
-function revealResults(){
-  revealPending=false;
-  showOverlay(seasonTheme(season).lost,seasonalCopy(run.cause,season),'Fly again');
+function presentResults(){
+  showOverlay(seasonTheme(season).lost,seasonalCopy(run.cause,season),flightMode==='daily'?'Fly the Daily again':'Fly again');
   showPlacement();
   $('results').hidden=false; $('instructions').hidden=true; $('retry').hidden=true;
   $('leaderboard').hidden=!!ticket?.casual;$('back-title').hidden=false;
+  updateDailyButton();
+}
+function revealResults(){
+  revealPending=false;
+  presentResults();
   countUpFinal(finalTarget);
   const newBest=Math.floor(run.score)>savedBest&&run.score>0;
   $('best-badge').hidden=!newBest;$('results').classList.toggle('new-best',newBest);
@@ -478,8 +574,15 @@ async function submitResult(submission){
     if(result.rankChange>0&&!reduced){const you=$('standings').querySelector('li.is-you');if(you){you.style.setProperty('--climb',String(Math.min(result.rankChange,6)));you.classList.add('climbed');}}
     const movement=result.previousRank==null?'First placement':result.rankChange>0?`Up ${result.rankChange} place${result.rankChange===1?'':'s'}`:result.rankChange<0?`Down ${-result.rankChange} place${result.rankChange===-1?'':'s'}`:'Rank unchanged';
     finalTarget=result.score;if(!revealPending&&finalAnim%2===0)$('final-score').textContent=format(result.score);
-    $('run-stats').textContent=`${result.survival.toFixed(1)}s survived · ${result.nearMisses} near-misses · ${result.shards} shards`;
-    $('rank-result').textContent=`Replay verified · server #${result.rank} · ${movement}. ${result.personalBest?'New server personal best!':''}`;
+    const chain=Number.isInteger(result.maxCombo)?result.maxCombo:runMaxCombo;
+    $('run-stats').textContent=`${result.survival.toFixed(1)}s survived · ${result.nearMisses} near-misses · longest chain ${chain}× · ${result.shards} shards`;
+    const notes=[result.personalBest?'New server personal best!':'',result.comboRecord?`New server combo record: ${chain}×!`:result.comboPersonalBest&&chain>0?`Your longest chain yet: ${chain}×.`:''];
+    if(result.daily){
+      renderBoard(result.daily.leaderboard);
+      notes.unshift(`Daily #${result.daily.rank} of ${result.daily.leaderboard?.pilots??'—'}${result.daily.personalBest?' · new daily best':''}.`);
+    }
+    $('rank-result').textContent=`Replay verified · server #${result.rank} · ${movement}. ${notes.filter(Boolean).join(' ')}`;
+    if(result.comboRecord&&!reduced){sound.play('milestone',{combo:chain});haptic([30,30,60],!reduced);}
   }catch(error){
     if(submission.generation!==runGeneration)return;
     if(placement!=null){placement=null;if(!revealPending)showPlacement();}
@@ -488,11 +591,15 @@ async function submitResult(submission){
   }
 }
 $('resubmit').addEventListener('click',()=>{if(pendingSubmission)void submitResult(pendingSubmission);});
-$('launch').addEventListener('click',()=>mode==='paused'?resume():void start());
+$('launch').addEventListener('click',()=>mode==='paused'?resume():void start(mode==='dead'?flightMode:'standard'));
 $('retry').addEventListener('click',()=>void start());
+$('daily-launch').addEventListener('click',()=>void start(mode==='dead'&&flightMode==='daily'?'standard':'daily'));
+$('crash-replay').addEventListener('click',beginKillcam);
+$('killcam-skip').addEventListener('click',()=>endKillcam(true));
 $('back-title').addEventListener('click',()=>{
   if(mode==='preparing')return;
   if(watching)stopWatching();
+  endKillcam(false);
   revealPending=false;death=null;
   live?.setRun(null);$('pause').hidden=false;$('viewer-count').hidden=true;
   ++runGeneration;clearInput();if(mode==='paused')abandonTicket();mode='intro';ticket=null;replay=[];pendingSubmission=null;
@@ -503,7 +610,8 @@ $('back-title').addEventListener('click',()=>{
   $('results').hidden=true;$('instructions').hidden=false;$('retry').hidden=true;
   $('back-title').hidden=true;$('leaderboard').hidden=casualAvailable;
   $('toast').textContent='';$('launch').focus({preventScroll:true});void refreshBoard();
-  renderPilots();
+  setProp('mode-badge','hidden',true);
+  renderPilots();updateDailyButton();
 });
 $('pause').addEventListener('click',pause);
 // Master volume is remembered per device; storage can be unavailable in webviews.
@@ -538,7 +646,9 @@ canvas.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{
   if(e.target?.closest?.('input, textarea'))return;
   if(e.code==='Escape'||e.code==='KeyP') {e.preventDefault();if(!e.repeat){if(mode==='playing'||mode==='ready')pause();else if(mode==='paused')resume();}return;}
-  if(e.code==='KeyR'&&mode==='dead'&&!e.repeat){e.preventDefault();start();return;}
+  if(killcam&&['Escape','Space','Enter'].includes(e.code)){e.preventDefault();if(!e.repeat)endKillcam(true);return;}
+  if(e.code==='KeyR'&&(mode==='dead'||killcam)&&!e.repeat){e.preventDefault();start();return;}
+  if(e.code==='KeyC'&&mode==='dead'&&!revealPending&&!e.repeat&&!$('crash-replay').hidden){e.preventDefault();beginKillcam();return;}
   if(mode!=='playing'&&mode!=='ready')return;
   if(boostKeys.has(e.code)){e.preventDefault();keys.add(e.code);armFlight();}
   if(e.code==='ShiftLeft'||e.code==='ShiftRight'){e.preventDefault();if(!e.repeat)dash();}
@@ -620,7 +730,7 @@ function ship(t) {
   if(mode==='playing') {
     if(thrustActive(run,watching?!!(watchedInput&1):boosting())&&Math.random()<.7){particles.push({x:p.x-size*.28,y:p.y+size*.12,vx:-80-Math.random()*90,vy:25+Math.random()*30,life:.3,max:.3,color:'#53eaff',size:1.2+Math.random()*2});}
   }
-  if(mode==='dead'||(watching&&!run.alive))return;
+  if((mode==='dead'&&!(killcam&&!killcam.ended))||(watching&&!run.alive))return;
   ctx.save();ctx.translate(p.x,p.y);
   drawPhaseReady(ctx,size,resonanceReady(run)?100:run.energy,run.phase,t,reduced);
   if(run.heat>=65){
@@ -649,13 +759,13 @@ function renderPixi(rawDt){
   visualTime+=dt;updateJuice(juice,rawDt,visualTime);
   if(shake>0&&!reduced)shake=Math.max(0,shake-dt*25);
   if(mode==='intro')run.radius=.83+Math.sin(visualTime*.7)*.025;
-  const flying=mode==='playing'||(watching&&watchedStatus==='playing');
-  const boost=thrustActive(run,watching?!!(watchedInput&1):boosting());
+  const flying=mode==='playing'||!!killcam||(watching&&watchedStatus==='playing');
+  const boost=thrustActive(run,killcam?!!(killcam.input&1):watching?!!(watchedInput&1):boosting());
   if(flying&&boost&&!reduced&&Math.random()<.45){const p=point(run.radius),size=rocketSize(geo().r),[sx,sy]=riderArt(seasonTheme(season).rider).sparks;particles.push({x:p.x+size*sx,y:p.y+size*sy,vx:-110-Math.random()*90,vy:30+Math.random()*40,life:.3,max:.3,color:seasonTheme(season).exhaust,size:1+Math.random()*1.4,kind:'spark',drag:1});}
   for(const p of particles){p.life-=dt;if(p.drag){const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;}p.x+=p.vx*dt;p.y+=p.vy*dt;}
-  gpu.render({run,mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,rocket:pilotArt(),darkImages,juice,death,season});
+  gpu.render({run,mode:killcam?(killcam.ended?'dead':'playing'):mode,watching,boost,flying,t:visualTime,dt,frameMs,phase:specialState(run),particles,comboUntil,comboText,comboTitle,rocket:pilotArt(),darkImages,juice,death,season});
   compactParticles(particles,particleCap());
-  if(mode!=='playing')comboUntil=0;
+  if(mode!=='playing'&&!killcam)comboUntil=0;
   if(visualTime>toastUntil)setText('toast','');
 }
 function render(dt) {
@@ -672,18 +782,18 @@ function render(dt) {
   compactParticles(particles,particleCap());ctx.globalAlpha=1;
   if(mode==='playing'&&run.heat>65){ctx.strokeStyle=`rgba(255,117,86,${(run.heat-65)/90})`;ctx.lineWidth=6;ctx.strokeRect(3,3,width-6,height-6);}
   ctx.restore();
-  if (mode === 'playing' && visualTime < comboUntil) {
+  if ((mode === 'playing' || killcam) && visualTime < comboUntil) {
     const {cx, cy, r} = geo();
     ctx.save();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#9af3ff';
     const size=Math.min(28,r*.045),y=cy-r*.20;
     ctx.font = `700 ${size}px system-ui`;
-    ctx.fillText('CLOSE CALL', cx, y-size*.55, r*.48);
+    ctx.fillText(comboTitle, cx, y-size*.55, r*.48);
     ctx.fillStyle = '#f3f7fa';
     ctx.fillText(comboText, cx, y+size*.55, r*.48);
     ctx.restore();
-  } else if (mode !== 'playing') { comboUntil = 0; }
+  } else if (mode !== 'playing' && !killcam) { comboUntil = 0; }
   if(visualTime>toastUntil)setText('toast','');
 }
 function frame(now) {
@@ -708,6 +818,7 @@ function frame(now) {
     if(now-lastWatchFrame>3000&&['playing','ready','paused'].includes(watchedStatus)){$('watch-status').textContent='Live view delayed · reconnecting…';watchedStatus='reconnecting';}
   }
   if(revealPending&&mode==='dead'&&now>=revealAt)revealResults();
+  if(killcam)advanceKillcam(dt);
   // Darkn1de's sound follows the run itself, so spectators hear what the pilot hears.
   if(mode!=='intro'){const played=new Set();for(const [cue,index] of darkCues(run)){if(played.has(cue))continue;played.add(cue);sound.play(DARK_SOUNDS[cue],{index});if(DARK_HAPTICS[cue]&&!watching)haptic(DARK_HAPTICS[cue],!reduced);}}
   if(mode==='playing') {
@@ -723,6 +834,7 @@ function frame(now) {
       }
       replay.push((input.boost?1:0)|(input.dash?2:0));
       step(run,input);dashQueued=false;accumulator-=DT;
+      if(run.combo>runMaxCombo){for(const mark of COMBO_MILESTONES)if(runMaxCombo<mark&&run.combo>=mark){message(`${mark}× CHAIN · +${Math.round(comboBonus(run.combo)*100)}% SCORE`,1.8);sound.play('milestone',{combo:mark});haptic([20,20,40],!reduced);}runMaxCombo=run.combo;}
       for(const e of run.events){
         if(e.type==='phase-start'){
           const names=run.specials.map(p=>phaseNames[p.kind]);$('phase-status').textContent=names.join(' + ');
@@ -745,17 +857,13 @@ function frame(now) {
           punch(juice,{flash:.3,color:[.66,.55,1],chroma:.9,speedLines:1,zoom:.03});addTrauma(juice,.2);haptic(25,!reduced);
         }
         if(e.type==='shard'){const p=point(e.radius,e.angle);burst(p.x,p.y,'#7df4ff',12,{speed:120,sparks:.8,ring:46});sound.play('shard',{index:run.shards});}
-        if(e.type==='near'){
-          comboText=`+${e.combo} COMBO`;comboUntil=visualTime+1.3;sound.play('near',{combo:e.combo});
-          const p=point(run.radius);burst(p.x,p.y,seasonTheme(season).fx.near,10,{speed:180,sparks:1,bits:2});
-          punch(juice,{chroma:.5,speedLines:.7});haptic(12,!reduced);
-        }
+        comboEvent(e,true);
         if(e.type==='death')finish();
       }
     }
     syncHUD();
   }
-  if(live&&ticket&&['ready','playing','paused','dead'].includes(mode)&&now-lastBroadcast>=100){
+  if(live&&ticket&&!killcam&&['ready','playing','paused','dead'].includes(mode)&&now-lastBroadcast>=100){
     lastBroadcast=now;live.snapshot(run,mode,boosting()?1:0);
   }
   sound.update({music:watching||['preparing','ready','playing','dead'].includes(mode),active:mode==='playing'||(watching&&watchedStatus==='playing'),
@@ -793,6 +901,6 @@ async function bootRenderer(){
   }
 }
 // Local visual QA only; stripped from production builds.
-if(import.meta.env.DEV)window.__eventHorizonDev={connectLive(options){live?.stop();live=new LiveClient({...options,onMessage:liveMessage,onStatus:setLiveStatus});$('live-lobby').hidden=false;live.start();},fly(){casualAvailable=true;setConnectionState('casual');void start();},banner(){showBanner('NEW PHASE','GRAVITY TIDE','The hole surges · hold altitude','tide');},state:()=>({mode,score:run.score,heat:run.heat,frameMs,stats:gpu?.stats()})};
+if(import.meta.env.DEV)window.__eventHorizonDev={connectLive(options){live?.stop();live=new LiveClient({...options,onMessage:liveMessage,onStatus:setLiveStatus});$('live-lobby').hidden=false;live.start();},fly(){casualAvailable=true;setConnectionState('casual');void start();},banner(){showBanner('NEW PHASE','GRAVITY TIDE','The hole surges · hold altitude','tide');},state:()=>({mode,score:run.score,heat:run.heat,frameMs,stats:gpu?.stats()}),run:()=>run};
 window.addEventListener('pagehide',event=>{if(event.persisted)return;disposed=true;cancelAnimationFrame(animationFrame);resizeObserver.disconnect();gpu?.destroy();});
 void bootRenderer();

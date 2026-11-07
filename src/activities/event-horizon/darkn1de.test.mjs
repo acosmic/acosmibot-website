@@ -5,8 +5,8 @@ import {darkn1deView,SIGHTINGS,SIGHT_SECONDS,ARRIVAL,BREACH,holeTimeOffset,creat
 import {readFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-const verifier=new URL('../../../../acosmibot-api/api/game_engines/event_horizon_v10.mjs',import.meta.url);
-test('browser and v10 verifier are byte-identical',{skip:!existsSync(verifier)&&'API sibling checkout not present'},async()=>assert.equal(await readFile(new URL('./sim.mjs',import.meta.url),'utf8'),await readFile(verifier,'utf8')));
+const verifier=new URL('../../../../acosmibot-api/api/game_engines/event_horizon_v11.mjs',import.meta.url);
+test('browser and v11 verifier are byte-identical',{skip:!existsSync(verifier)&&'API sibling checkout not present'},async()=>assert.equal(await readFile(new URL('./sim.mjs',import.meta.url),'utf8'),await readFile(verifier,'utf8')));
 function at(seconds){const s=createRun(42);s.time=seconds-DT;s.tick=Math.round(seconds*60)-1;s.nextWave=s.nextCrosser=1e6;s.stormStarted=true;return s;}
 function safeTick(s,input={}){s.phase=1;s.heat=0;step(s,input);}
 test('sightings are short, silent, cosmetic and never consume RNG',()=>{
@@ -81,14 +81,23 @@ test('boss collision is swept and Shift protects',()=>{
   }
 });
 
-test('all gameplay before four minutes retains the v8 checkpoint',()=>{
- const a=createRun(42);
+const v10=new URL('../../../../acosmibot-api/api/game_engines/event_horizon_v10.mjs',import.meta.url);
+function checkpoint(engine){
+ const a=engine.createRun(42);
  for(let i=0;i<14399;i++){
-  a.radius=.82;a.velocity=0;a.heat=0;a.phase=1;step(a,{boost:i%2===0});
+  a.radius=.82;a.velocity=0;a.heat=0;a.phase=1;engine.step(a,{boost:i%2===0});
  }
  for(const key of ['darkStage','resonance','darkDefeatedAt','nextAttack','attackNumber','attacks'])delete a[key];
+ return a;
+}
+test('all v10 gameplay before four minutes retains the v8 checkpoint',{skip:!existsSync(v10)&&'API sibling checkout not present'},async()=>{
  // Frozen from the immutable v8 engine with this exact seed/input fixture.
- assert.equal(createHash('sha256').update(JSON.stringify(a)).digest('hex'),'ee8925fcdd592e48bb659de911619db5dedd23e6e39357ea850105f4d8a406d1');
+ assert.equal(createHash('sha256').update(JSON.stringify(checkpoint(await import(v10.href)))).digest('hex'),'ee8925fcdd592e48bb659de911619db5dedd23e6e39357ea850105f4d8a406d1');
+});
+test('v11 changes only scoring and combos before four minutes',{skip:!existsSync(v10)&&'API sibling checkout not present'},async()=>{
+ const scoring=['score','combo','comboClock','nearMisses','events'];
+ const strip=a=>{for(const key of scoring)delete a[key];return a;};
+ assert.deepEqual(strip(checkpoint({createRun,step})),strip(checkpoint(await import(v10.href))));
 });
 
 for(const radius of [.55,.65,.85,1.04])test('boss corridors can collect ten shards with normal physics from '+radius,()=>{

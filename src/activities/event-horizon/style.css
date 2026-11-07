@@ -264,7 +264,8 @@ h1 span{filter:none}
 .season-picker legend{font-size:14px;font-weight:700;margin-bottom:8px;color:#edf6ff}
 .season-options{display:flex;flex-wrap:wrap;gap:8px}
 .season-options button{min-height:44px;padding:8px 12px;font-size:13px;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left}
-.season-swatch{width:14px;height:14px;border-radius:50%;grid-row:1/span 2;box-shadow:0 0 0 1px #ffffff33}
+.season-swatch{width:28px;height:28px;border-radius:8px;grid-row:1/span 2;display:grid;place-items:center;color:var(--season,#67ecff);background:linear-gradient(135deg,color-mix(in srgb,var(--season,#67ecff) 22%,transparent),color-mix(in srgb,var(--season-to,#a98bff) 22%,transparent));box-shadow:0 0 0 1px color-mix(in srgb,var(--season,#67ecff) 45%,transparent)}
+.season-icon{width:18px;height:18px;display:block}
 .season-options small{grid-column:2}
 .season-options button[aria-pressed="true"]{background:#263b48;color:#f1f8fc;border-color:var(--season,#67ecff);box-shadow:0 0 0 1px var(--season,#67ecff) inset}
 .season-options button:disabled{opacity:1;color:#abb7c0;background:#18202a;border-color:#34404b;cursor:not-allowed}
@@ -277,3 +278,30 @@ h1 span{filter:none}
 .board-tabs button{min-height:44px;font-size:12px;padding:6px 8px}
 .board-tabs button[aria-pressed="true"]{color:#e6fcff;border-color:#67ecff;background:#203340}
 @media(max-width:600px){#pilot-counts{font-size:10px;max-width:165px}.season-options button{flex:1 0 42%}.board-heading{align-items:center;gap:8px}}
+
+/* Combo meter: always present so the HUD never jumps; brightens while a chain is live. */
+.combo-block{display:grid;align-content:start;gap:2px;padding:0 12px;width:max-content;min-width:110px;max-width:100%;justify-self:start;transition:opacity .2s}
+.combo-block strong{font-size:clamp(24px,2.6vw,34px);line-height:1.2;font-variant-numeric:tabular-nums;color:#7b8d9c}
+.combo-block small{font-size:11px;color:#8ea3b4;white-space:nowrap}
+.combo-timer{display:block;height:4px;border-radius:3px;background:#ffffff1f;overflow:hidden}
+#combo-timer-fill{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#ffb35c,#8ceaff)}
+.combo-block[data-active="true"] strong{color:#ffe1a8}
+.combo-block[data-active="true"] small{color:#ffd9b0}
+.combo-block[data-tier="hot"] strong{color:#ffb35c;text-shadow:0 0 14px #ff8a3d99}
+.combo-block[data-tier="blaze"] strong{color:#fff3c4;text-shadow:0 0 18px #ffb35ccc}
+.combo-block.bump strong{animation:combo-bump .28s ease-out}
+.combo-block.lost strong{animation:combo-lost .55s ease-out}
+@keyframes combo-bump{0%{transform:scale(1.28)}100%{transform:scale(1)}}
+@keyframes combo-lost{0%{color:#ff7a5c;transform:translateY(0)}100%{color:#7b8d9c;transform:translateY(3px)}}
+.reduced-fx .combo-block strong{animation:none!important}
+#mode-badge{color:#ffd28a!important;font-weight:700;letter-spacing:.06em}
+#daily-setting{width:min(390px,100%);margin:-8px 0 20px}
+.daily-button{width:100%;display:grid;gap:2px;text-align:left;background:linear-gradient(135deg,#2b1d0ccc,#1a1424cc);border-color:#ffb35c99}
+.daily-button:hover{background:linear-gradient(135deg,#3d2a12,#271d36)}
+.daily-button strong{font-size:15px;color:#ffd9a3}
+.daily-button small{font-size:11px;color:#d9c6b0}
+#crash-replay{margin-top:10px;font-size:13px;min-height:44px}
+#killcam-bar{position:absolute;left:50%;transform:translateX(-50%);bottom:max(24px,var(--activity-safe-bottom));display:flex;align-items:center;gap:14px;padding:8px 10px 8px 16px;border-radius:14px;background:#0b1a2ce6;border:1px solid #ff9b6b66;font-size:13px;color:#ffd9c4;white-space:nowrap}
+#killcam-bar strong{color:#ffb38f;letter-spacing:.08em}
+#killcam-bar button{min-height:44px;padding:6px 14px;font-size:13px}
+@media(max-width:600px){.combo-block{padding:0 9px;min-width:70px}.combo-block strong{font-size:20px}.combo-block small{font-size:9px}#killcam-bar{font-size:11px;left:14px;right:14px;transform:none;white-space:normal}}

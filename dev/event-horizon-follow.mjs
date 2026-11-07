@@ -3,7 +3,7 @@ import { createRun } from '../src/activities/event-horizon/sim.mjs';
 const realFetch=window.fetch.bind(window);
 window.fetch=async(input,options)=>{
   const url=String(input);
-  if(url==='/api/event-horizon/config')return new Response(JSON.stringify({enabled:true,watchEnabled:false,clientId:'preview',version:'event-horizon-v10'}),{headers:{'Content-Type':'application/json'}});
+  if(url==='/api/event-horizon/config')return new Response(JSON.stringify({enabled:true,watchEnabled:false,clientId:'preview',version:'event-horizon-v11'}),{headers:{'Content-Type':'application/json'}});
   if(url.startsWith('/api/event-horizon/'))return new Response('{}',{status:503});
   return realFetch(input,options);
 };

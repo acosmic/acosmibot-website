@@ -14,6 +14,10 @@ export const SCORES = {
   christmas: { notes: [261.63, 329.63, 392, 523.25, 587.33, 659.25, 783.99], pad: [130.81, 196, 261.63, 329.63, 392], lead: 'bell', bpm: 116, hatsAt: .2 },
 };
 
+// Near-miss pitch climbs a semitone per stack to 12, then a semitone every two
+// stacks up to 36 (two octaves), so long chains keep sounding higher.
+export const comboPitch = combo => 2 ** ((Math.min(combo, 12) + Math.max(0, Math.min(combo, 36) - 12) / 2) / 12);
+
 export function createAudio() {
   let ctx = null, master, musicBus, sfxBus, noise, music = null, boost = null, timer = 0, muted = false, volume = .8;
   let step = 0, nextNote = 0, state = { intensity: 0, boost: false, active: false };
@@ -133,7 +137,12 @@ export function createAudio() {
     launch() { voice({ type: 'sine', freq: 140, end: 620, duration: .5, gain: .08 }); hiss({ duration: .6, gain: .05, freq: 400, end: 3000 }); },
     arm() { voice({ type: 'triangle', freq: 330, end: 660, duration: .18, gain: .04 }); },
     dash() { voice({ type: 'sawtooth', freq: 160, end: 1200, duration: .28, gain: .06, filter: { type: 'lowpass', freq: 2600 } }); hiss({ duration: .35, gain: .09, freq: 3000, end: 500, q: 2 }); voice({ type: 'sine', freq: 880, end: 1760, duration: .25, gain: .03, when: .05 }); },
-    near({ combo = 1 } = {}) { const base = 520 * 2 ** (Math.min(combo, 12) / 12); voice({ type: 'triangle', freq: base, end: base * 1.5, duration: .14, gain: .05 }); voice({ type: 'sine', freq: base * 2, duration: .2, gain: .025, when: .04 }); hiss({ duration: .18, gain: .05, freq: 5000, end: 1500, q: 1.5 }); },
+    near({ combo = 1 } = {}) { const base = 520 * comboPitch(combo); voice({ type: 'triangle', freq: base, end: base * 1.5, duration: .14, gain: .05 }); voice({ type: 'sine', freq: base * 2, duration: .2, gain: .025, when: .04 }); hiss({ duration: .18, gain: .05, freq: 5000, end: 1500, q: 1.5 }); },
+    // A razor call layers a bright ping over the season's near-miss sound.
+    razor({ combo = 1 } = {}) { const f = 1040 * comboPitch(combo); voice({ type: 'sine', freq: f, end: f * 1.26, duration: .12, gain: .03, when: .06 }); },
+    graze({ combo = 1 } = {}) { const f = 330 * comboPitch(combo); voice({ type: 'triangle', freq: f, end: f * 2, duration: .22, gain: .035 }); hiss({ duration: .25, gain: .04, freq: 1500, end: 6000, q: 3 }); },
+    comboLost({ combo = 1 } = {}) { const f = 520 * comboPitch(combo); voice({ type: 'triangle', freq: f, end: f * .45, duration: .4, gain: .045 }); voice({ type: 'sine', freq: f / 2, end: f / 4, duration: .45, gain: .03, when: .05 }); },
+    milestone({ combo = 10 } = {}) { [0, 4, 7, 12].forEach((step, i) => voice({ type: 'triangle', freq: 523.25 * comboPitch(combo) / 2 * 2 ** (step / 12), duration: .25, gain: .04, when: i * .06 })); },
     shard({ index = 0 } = {}) { const f = score.notes[index % 5 + 2] * 2; voice({ type: 'sine', freq: f, duration: .22, gain: .045 }); voice({ type: 'sine', freq: f * 1.5, duration: .3, gain: .02, when: .03 }); },
     phase() { voice({ type: 'triangle', freq: 220, end: 330, duration: .6, gain: .05, attack: .15 }); voice({ type: 'triangle', freq: 277, end: 415, duration: .6, gain: .04, attack: .15 }); hiss({ duration: 1, gain: .06, freq: 300, end: 4000, q: 1.2 }); },
     storm() { voice({ type: 'sawtooth', freq: 110, end: 220, duration: .9, gain: .05, filter: { type: 'lowpass', freq: 900 } }); hiss({ duration: 1.1, gain: .05, freq: 200, end: 2400 }); },
@@ -160,21 +169,21 @@ export function createAudio() {
   const seasonal = {
     halloween: {
       storm() { for (const f of [220, 261.63, 311.13]) for (const m of [1, 2]) voice({ type: 'sawtooth', freq: f * m, end: f * m * .944, duration: 1.1, gain: .035 / m, attack: .02, filter: { type: 'lowpass', freq: 1400 } }); voice({ type: 'sine', freq: 55, end: 41, duration: 1.2, gain: .12 }); },
-      near({ combo = 1 } = {}) { const base = 440 * 2 ** (Math.min(combo, 12) / 12); voice({ type: 'sine', freq: base, end: base * 1.5, duration: .28, gain: .06, attack: .03, vibrato: { rate: 9, depth: 35 } }); hiss({ duration: .15, gain: .03, freq: 4000, end: 1500, q: 1.5 }); },
+      near({ combo = 1 } = {}) { const base = 440 * comboPitch(combo); voice({ type: 'sine', freq: base, end: base * 1.5, duration: .28, gain: .06, attack: .03, vibrato: { rate: 9, depth: 35 } }); hiss({ duration: .15, gain: .03, freq: 4000, end: 1500, q: 1.5 }); },
       shard({ index = 0 } = {}) { const f = score.notes[index % 5 + 2] * 4; voice({ type: 'sine', freq: f, duration: .35, gain: .05, attack: .002 }); voice({ type: 'sine', freq: f * 2.01, duration: .12, gain: .02, attack: .002 }); },
       death() { effects.death(); [466.16, 440, 415.3, 392].forEach((f, i) => voice({ type: 'sawtooth', freq: f, end: f * .5, duration: 1.3, gain: .03, when: i * .03, detune: i * 9, filter: { type: 'lowpass', freq: 1500 } })); },
       incoming() { for (const when of [0, .09, .16]) hiss({ duration: .05, gain: .05, type: 'highpass', freq: 5000, when }); },
     },
     thanksgiving: {
       storm() { gobble(); gobble(.3, 1.12); voice({ type: 'sine', freq: 80, end: 50, duration: .6, gain: .14 }); },
-      near({ combo = 1 } = {}) { const base = 392 * 2 ** (Math.min(combo, 12) / 12); voice({ type: 'triangle', freq: base, duration: .16, gain: .06, attack: .002 }); voice({ type: 'triangle', freq: base * 1.5, duration: .2, gain: .035, attack: .002, when: .05 }); },
+      near({ combo = 1 } = {}) { const base = 392 * comboPitch(combo); voice({ type: 'triangle', freq: base, duration: .16, gain: .06, attack: .002 }); voice({ type: 'triangle', freq: base * 1.5, duration: .2, gain: .035, attack: .002, when: .05 }); },
       shard({ index = 0 } = {}) { const f = score.notes[index % 5 + 2] * 2; voice({ type: 'sine', freq: f * 2, end: f * 1.4, duration: .07, gain: .06, attack: .001 }); voice({ type: 'triangle', freq: f, duration: .22, gain: .035 }); },
       death() { effects.death(); gobble(.15, .8); },
       incoming() { for (const when of [0, .12]) voice({ type: 'sine', freq: 180, end: 120, duration: .06, gain: .06, attack: .001, when }); },
     },
     christmas: {
       storm() { for (let i = 0; i < 6; i++) hiss({ duration: .05, gain: .05, type: 'highpass', freq: 8000, when: i * .07 }); for (const f of [523.25, 659.25, 783.99]) bell(f, { gain: .04, duration: 1.2, when: .05 }); },
-      near({ combo = 1 } = {}) { bell(523.25 * 2 ** (Math.min(combo, 12) / 12), { gain: .05, duration: .35 }); },
+      near({ combo = 1 } = {}) { bell(523.25 * comboPitch(combo), { gain: .05, duration: .35 }); },
       shard({ index = 0 } = {}) { bell(score.notes[index % 5 + 2] * 2, { gain: .04, duration: .4 }); hiss({ duration: .03, gain: .03, type: 'highpass', freq: 9000 }); },
       death() { effects.death(); [1046.5, 880, 698.46, 523.25].forEach((f, i) => bell(f, { gain: .04, duration: .7, when: i * .09 })); },
       incoming() { for (const when of [0, .13]) bell(880, { gain: .035, duration: .25, when }); },
