@@ -1,4 +1,4 @@
-// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v10 verifier.
+// Pure, seeded 60 Hz ranked simulation. Kept byte-identical to the API v11 verifier.
 export const DT = 1 / 60;
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export function createRun(seed = 1) {
@@ -12,6 +12,26 @@ export function createRun(seed = 1) {
 }
 function rand(s) { let x = s.rng; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; s.rng = x >>> 0; return s.rng / 4294967296; }
 export const isInverted = s => s.darkStage === 1;
+// Combos have no cap. The first 12 stacks keep the original +8% each; later
+// stacks add less and less, so a long chain matters without running away.
+export const comboBonus = combo => combo <= 12 ? combo * .08 : .96 + .3 * (Math.sqrt(combo) - Math.sqrt(12));
+// The chain window tightens as it grows: 6 seconds at zero, 3 seconds from 60 stacks.
+export const comboWindow = combo => Math.max(3, 6 - combo * .05);
+// Clearance between the pilot's hull and a hazard edge. Hulls touch below .028.
+export const RAZOR_GAP = .06, CLOSE_GAP = .085;
+function addCombo(s, stacks) { s.combo += stacks; s.comboClock = comboWindow(s.combo); }
+function nearMiss(s, gap, base) {
+  const razor = gap < RAZOR_GAP;
+  s.nearMisses++; addCombo(s, razor ? 2 : 1);
+  // The instant bonus grows with the chain it extends.
+  s.score += base * (razor ? 1.5 : 1) * s.multiplier * (1 + comboBonus(s.combo));
+  s.events.push({ type: 'near', combo: s.combo, grade: razor ? 'razor' : 'close' });
+}
+// Passing through a hazard with Phase Shift extends the chain by one stack.
+function graze(s, points) {
+  addCombo(s, 1); s.score += points;
+  s.events.push({ type: 'phase-through' }, { type: 'graze', combo: s.combo });
+}
 export const thrustActive = (s, held) => isInverted(s) ? !held : !!held;
 export const resonanceReady = s => s.darkStage === 2 && s.resonance >= 10;
 export function specialState(s) {
@@ -134,9 +154,9 @@ export function step(s, input = {}) {
   s.heat = clamp(s.heat + (s.radius < .66 ? ( .66 - s.radius) * 180 + 3 : -25) * DT, 0, 100);
   if (s.heat >= 100) { die(s, 'Your rocket overheated. Climb to the outer orbit to cool down.'); return s; }
   s.comboClock -= DT;
-  if (s.comboClock <= 0) s.combo = 0;
+  if (s.comboClock <= 0 && s.combo > 0) { s.events.push({ type: 'combo-lost', combo: s.combo }); s.combo = 0; }
   s.multiplier = 1 + clamp((.94 - s.radius) / .45, 0, 1) * 4;
-  s.score += DT * (32 + s.time * .10) * s.multiplier * (1 + s.combo * .08);
+  s.score += DT * (32 + s.time * .10) * s.multiplier * (1 + comboBonus(s.combo));
   if (s.time >= s.nextWave) spawn(s);
   if(s.time>=60&&!s.stormStarted){s.stormStarted=true;s.events.push({type:'storm-start'});}
   if(s.time>=60&&s.time>=s.nextCrosser&&s.crossers.length<2)spawnCrosser(s);
@@ -145,7 +165,7 @@ export function step(s, input = {}) {
     const before=previousRadius-priorBeam, after=s.radius-special.beam;
     if(Math.abs(after)<.046||Math.abs(before)<.046||before*after<0){
       if(s.phase<=0){die(s,'Caught by the pulsar sweep. Climb ahead of the expanding ring or Phase Shift through it.');return s;}
-      special.pulsar.beamChecked=special.cycle;
+      special.pulsar.beamChecked=special.cycle;graze(s,0);
     }
   }
   advanceBreach(s,previousRadius);
@@ -170,14 +190,12 @@ export function step(s, input = {}) {
       } else if (s.phase <= 0) {
         die(s, o.type === 'plasma' ? 'Hit by a plasma flare. Change orbit or Phase Shift through it.' : 'Hit by orbital debris. Watch the incoming arc and change your altitude.');
         return s;
-      } else { s.score += 80; s.events.push({ type: 'phase-through' }); }
+      } else graze(s, 80);
     }
     if (!o.checked && o.angle < -.11) {
       o.checked = true;
-      if (o.type !== 'shard' && o.type !== 'resonance' && Math.abs(o.radius - s.radius) < o.size + .115) {
-        s.nearMisses++; s.combo = Math.min(12, s.combo + 1); s.comboClock = 6;
-        s.score += 120 * s.multiplier; s.events.push({ type: 'near', combo: s.combo });
-      }
+      const gap = Math.abs(o.radius - s.radius) - o.size;
+      if (o.type !== 'shard' && o.type !== 'resonance' && gap < CLOSE_GAP) nearMiss(s, gap, 120);
     }
   }
   s.objects = s.objects.filter(o => o.angle > -2.7 && !o.collected);
@@ -197,12 +215,11 @@ export function step(s, input = {}) {
     if(!o.checked&&distance<o.size+.028){
       o.checked=true;
       if(s.phase<=0){die(s,'Hit by an incoming asteroid. Watch the warning line, change altitude, or Phase Shift.');return s;}
-      s.score+=100;s.events.push({type:'phase-through'});
+      graze(s,100);
     }
     if(!o.checked&&Math.sign(o.vx)*o.x>o.size+.13){
       o.checked=true;
-      if(o.minDistance<o.size+.13){s.nearMisses++;s.combo=Math.min(12,s.combo+1);s.comboClock=6;
-        s.score+=160*s.multiplier;s.events.push({type:'near',combo:s.combo});}
+      if(o.minDistance-o.size<CLOSE_GAP)nearMiss(s,o.minDistance-o.size,160);
     }
   }
   s.crossers=s.crossers.filter(o=>o.age<9&&Math.abs(o.x)<1.8&&Math.abs(o.y)<2&&(!o.tideCaptured||Math.hypot(o.x,o.y)>.35));
@@ -244,7 +261,7 @@ function advanceBreach(s,previousRadius){
     if(!o.checked&&distance<o.size+.028){
       o.checked=true;
       if(s.phase<=0){die(s,o.type==='claw'?'Caught by a rift claw. Fly through the open orbit or Phase Shift.':'Hit by a gravity spear. Move away from its marked path.');return;}
-      s.events.push({type:'phase-through'});
+      graze(s,0);
     }
   }
   s.attacks=s.attacks.filter(o=>o.age<7&&(o.type==='claw'?o.angle>-.7:Math.abs(o.x)<1.7));

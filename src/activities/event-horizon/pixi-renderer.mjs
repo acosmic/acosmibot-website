@@ -294,7 +294,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     }
     for(let i=particles.length;i<particlePool.length;i++)particlePool[i].visible=false;
   }
-  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,rocket,darkImages,juice,death,season='classic'}){
+  function render({run,mode,watching,boost,flying,t,dt,frameMs=16.7,phase,particles,comboUntil,comboText,comboTitle='CLOSE CALL',rocket,darkImages,juice,death,season='classic'}){
     if(season!==theme&&config&&!lost&&!destroyed)resize({...config,season});
     if(lost||destroyed||!scene)return;frame++;
     const {camera:g,width,height,reduced}=config;
@@ -364,7 +364,7 @@ export async function createFlightRenderer(canvas,{onLost=()=>{},onRestored=()=>
     if(flash.visible){flash.alpha=Math.max(darkFlash,juiceFlash);flash.tint=((flashColor[0]*255)<<16)|((flashColor[1]*255)<<8)|(flashColor[2]*255);}
     combo.visible=mode==='playing'&&t<comboUntil;
     if(combo.visible){const fontSize=Math.min(28,g.r*.045),cy=g.cy-g.r*.20,font=`700 ${fontSize}px ${FONT}`,age=t-(comboUntil-1.3);
-      text(combo.children[0],'CLOSE CALL',font,'#9af3ff',g.cx,cy-fontSize*.55,g.r*.48);text(combo.children[1],comboText,font,'#f3f7fa',g.cx,cy+fontSize*.55,g.r*.48);
+      text(combo.children[0],comboTitle,font,'#9af3ff',g.cx,cy-fontSize*.55,g.r*.48);text(combo.children[1],comboText,font,'#f3f7fa',g.cx,cy+fontSize*.55,g.r*.48);
       const s=reduced?1:popScale(age);for(const child of combo.children)child.scale.set(s);combo.alpha=Math.min(1,(comboUntil-t)/.25);}
     if(effective!=='low'){
       lens.update({cx:g.cx+offset.x*.25,cy:g.cy+offset.y*.25,einstein:g.r*.4,tide:reduced?0:tideStrength(run,reduced),time:t,ring:.3});
