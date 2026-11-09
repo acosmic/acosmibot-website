@@ -52,9 +52,9 @@ export function renderBoard(data) {
   if (kind !== boardKind) { if (kind === 'scores') void refreshBoard(); return; }
   const entries = Array.isArray(data.entries) ? data.entries : [];
   $('board-scope').textContent = data.scope || 'Discord server standings'; $('board-status').textContent = data.verification || 'Verified Discord flights'; $('standings').replaceChildren(...entries.map(entry => row(entry, data.self?.playerId || data.self?.userId, kind))); $('board-empty').hidden = entries.length > 0;
-  $('board-empty').textContent=failures?'No verified deaths yet. Every comeback starts somewhere.':averages?'No ranked attempts yet. Start a flight to join the board.':combos?'No chains yet. Skim hazards back to back to start one.':daily?'Nobody has flown today’s Daily Challenge yet. Be the first.':'An empty orbit. Be the first to put a score on the board.';
+  $('board-empty').textContent=failures?'No verified deaths yet. Every comeback starts somewhere.':averages?'No ranked attempts yet. Start a flight to join the board.':combos?'No chains yet. Skim hazards back to back to start one.':daily?'Nobody has flown today’s Daily Challenge yet. Start one with the Daily Challenge button; ranked flights do not count here.':'An empty orbit. Be the first to put a score on the board.';
   $('your-standing').textContent = failures?(data.self?`Your deaths ${number(data.self.deaths)} · #${data.self.rank}`:'You have no verified deaths yet.'):averages?(data.self?`Your average ${averageNumber(data.self.averageScore)} · #${data.self.rank}`:'No ranked attempts yet.'):combos?(data.self?`Your longest chain ${number(data.self.bestCombo)}× · #${data.self.rank}`:'No verified chain yet.'):daily?(data.self?`Your best today ${number(data.self.score)} · #${data.self.rank} of ${number(data.pilots)}`:'You have not flown today’s Daily Challenge yet.'): data.self ? `Your best ${number(data.self.score)} · #${data.self.rank}` : 'No verified flight yet. Finish a ranked run to set your mark.';
-  $('nearest-rival').textContent = failures?'Attempts count new ranked flights. Leaving a flight does not count as a death.':averages?'Total verified score ÷ all attempts. Unfinished attempts count as zero. Ties favor more attempts.':combos?'Longest verified combo in one flight. Chains of 13 or more can set a server combo record.':daily?`Same seed for everyone here. Unlimited attempts; your best counts. ${dailyReset()}`:data.nearest ? `${number(data.nearest.gap)} points to pass ${data.nearest.name}.` : data.self ? 'You lead this server. Set the next target.' : '';
+  $('nearest-rival').textContent = failures?'Attempts count new ranked flights. Leaving a flight does not count as a death.':averages?'Total verified score ÷ all attempts. Unfinished attempts count as zero. Ties favor more attempts.':combos?'Longest verified combo in one flight. Chains of 13 or more can set a server combo record.':daily?`Same seed for everyone here. Unlimited attempts; your best counts. ${dailyPrizeRules()} ${dailyReset()}`.replace(/  +/g,' '):data.nearest ? `${number(data.nearest.gap)} points to pass ${data.nearest.name}.` : data.self ? 'You lead this server. Set the next target.' : '';
   $('board-expand').hidden = entries.length <= 3;
 }
 export async function refreshBoard() {
@@ -72,6 +72,14 @@ export function dailyReset(now = Date.now()) {
   const minutes = Math.max(1, Math.ceil((next - now) / 60000));
   return `New flight in ${minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`}.`;
 }
+// Daily Challenge prizes come from the API config: {amounts:[#1..#5], fullPilots}.
+let dailyPrizes = null;
+export function setDailyPrizes(prizes) {
+  const amounts = Array.isArray(prizes?.amounts) ? prizes.amounts.map(Number).filter(n => Number.isInteger(n) && n > 0) : [];
+  dailyPrizes = amounts.length ? { amounts, fullPilots: Math.max(1, Number(prizes.fullPilots) || amounts.length) } : null;
+}
+export const dailyPrizeHeadline = () => dailyPrizes ? `Own leaderboard · top ${dailyPrizes.amounts.length} win up to ${number(dailyPrizes.amounts[0])} Acosmicoins` : 'Own leaderboard, separate from ranked flights';
+export const dailyPrizeRules = () => dailyPrizes ? `At 00:00 UTC the top ${dailyPrizes.amounts.length} are paid to their bank: ${dailyPrizes.amounts.map(number).join(' / ')} Acosmicoins. With fewer than ${dailyPrizes.fullPilots} pilots, every prize is cut in proportion.` : '';
 // The pilot's verified server best; local session bests must never claim to beat it.
 export const currentBoard = () => board;
 export const verifiedBest = () => Number(board?.self?.score) || 0;

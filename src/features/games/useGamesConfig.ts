@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { configApi } from '@/api/config';
 import { GuildEmoji } from '@/hooks/useGuildEmojis';
 import { GamesConfig, GoodDeedsConfig, HeistConfig } from '@/types/features';
+import { channelIdOrNull } from './eventHorizonSettings';
 import { buildSlotsConfig } from './slotSets';
 
 // Mirrors the bot's heist fallback_config (Cogs/Heist.py) and the API defaults.
@@ -57,6 +58,7 @@ export function useGamesConfig(guildId: string) {
     const g = settings?.games ?? {};
     const heist = settings?.heist ?? {};
     const goodDeeds = settings?.good_deeds ?? {};
+    const eventHorizon = settings?.event_horizon ?? {};
     return {
       enabled: g.enabled !== false,
       slots: buildSlotsConfig(g['slots-config']),
@@ -74,6 +76,10 @@ export function useGamesConfig(guildId: string) {
         channel_ids: Array.isArray(goodDeeds.channel_ids)
           ? goodDeeds.channel_ids.map(String)
           : [],
+      },
+      event_horizon: {
+        daily_results_enabled: eventHorizon.daily_results_enabled === true,
+        daily_results_channel_id: channelIdOrNull(eventHorizon.daily_results_channel_id),
       },
     };
   }, [query.data, settings]);
@@ -98,6 +104,7 @@ export function useGamesConfig(guildId: string) {
         games,
         heist: cfg.heist,
         good_deeds: cfg.good_deeds,
+        event_horizon: cfg.event_horizon,
       });
     },
     onSuccess: () => {

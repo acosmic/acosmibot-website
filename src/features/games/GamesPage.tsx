@@ -10,6 +10,7 @@ import { HeistSection } from './HeistSection';
 import { SimpleGameSection } from './SimpleGameSection';
 import { BlackjackSection } from './BlackjackSection';
 import { GoodDeedsSection, validateGoodDeeds } from './GoodDeedsSection';
+import { EventHorizonSection, validateEventHorizon } from './EventHorizonSection';
 import { validateSlotsConfig } from './slotSets';
 import '@/styles/games.css';
 
@@ -25,7 +26,7 @@ export const GamesPage: React.FC = () => {
   const masterOff = !form.enabled;
   const goodDeedsErrors = validateGoodDeeds(form.good_deeds);
   const slotErrors = validateSlotsConfig(form.slots);
-  const validationErrors = [...slotErrors, ...goodDeedsErrors];
+  const validationErrors = [...slotErrors, ...goodDeedsErrors, ...validateEventHorizon(form.event_horizon)];
 
   return (
     <div className="feature-page">
@@ -130,6 +131,15 @@ export const GamesPage: React.FC = () => {
           />
         </CollapsibleSection>
       </div>
+
+      {/* Event Horizon is a Discord Activity, not a /games command, so the Games master switch does not gate it. */}
+      <CollapsibleSection title="Event Horizon">
+        <EventHorizonSection
+          guildId={guildId!}
+          value={form.event_horizon}
+          onChange={(updates) => setForm({ event_horizon: { ...form.event_horizon, ...updates } })}
+        />
+      </CollapsibleSection>
 
       <SaveBar
         isDirty={isDirty}
