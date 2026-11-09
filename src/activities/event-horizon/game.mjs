@@ -9,7 +9,7 @@ import { drawNoseHeat, drawPhaseReady, visualHeat, rocketTremble } from './heat-
 import { riderArt } from './rocket-art.mjs';
 import { flightError, needsReconnect } from './errors.mjs';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
-import { api, refreshBoard, renderBoard, boardReady, currentBoard, setRankedAvailable, setSession, verifiedBest, dailyReset } from './leaderboard.mjs';
+import { api, refreshBoard, renderBoard, boardReady, currentBoard, setRankedAvailable, setSession, verifiedBest, dailyReset, setDailyPrizes, dailyPrizeHeadline } from './leaderboard.mjs';
 import { createReactionUI } from './reaction-ui.mjs';
 import { predictPlacement, verifiedPlacement, placementCopy } from './placement.mjs';
 import './style.css';
@@ -208,8 +208,10 @@ function updateDailyButton(){
   const show=rankedConnected&&!casualAvailable&&!watching&&['intro','dead'].includes(mode)&&!killcam;
   setProp('daily-setting','hidden',!show);if(!show)return;
   const again=mode==='dead'&&flightMode==='daily';
-  $('daily-launch').querySelector('strong').textContent=again?'Standard ranked run':'Daily Challenge';
-  setText('daily-note',again?'Back to a fresh random flight':`Same flight for everyone in this server today · ${dailyReset()}`);
+  $('daily-launch').classList.toggle('back',again);
+  setText('daily-title',again?'Standard ranked run':'Daily Challenge');
+  setText('daily-note',again?'Back to a fresh random flight on the ranked board':`Same course for everyone in this server today · ${dailyReset()}`);
+  setText('daily-prize',dailyPrizeHeadline());setProp('daily-prize','hidden',again);
 }
 function setConnectionState(state, detail = '') {
   $('install-bot').hidden=!['install','casual'].includes(state);
@@ -238,7 +240,7 @@ async function connectDiscord(approvedAuthorization=null) {
   $('connection-retry').disabled=true;
   setConnectionState('loading'); setSession(null); setRankedAvailable(false); rankedConnected=false;casualAvailable=false;
   try {
-    const config=await fetchConfig(); applySeasonAvailability(config.seasons); if(!config?.enabled)throw new Error('Event Horizon is not available right now. Please try again later.');
+    const config=await fetchConfig(); applySeasonAvailability(config.seasons); setDailyPrizes(config.dailyPrizes); if(!config?.enabled)throw new Error('Event Horizon is not available right now. Please try again later.');
     const clientId=config.clientId || import.meta.env.VITE_DISCORD_CLIENT_ID; if(!clientId)throw new Error('This Activity is missing its public Discord client ID.');
     discordClientId=clientId;
     if(!approvedAuthorization){
@@ -579,8 +581,8 @@ async function submitResult(submission){
     const notes=[result.personalBest?'New server personal best!':'',result.comboRecord?`New server combo record: ${chain}×!`:result.comboPersonalBest&&chain>0?`Your longest chain yet: ${chain}×.`:''];
     if(result.daily){
       renderBoard(result.daily.leaderboard);
-      notes.unshift(`Daily #${result.daily.rank} of ${result.daily.leaderboard?.pilots??'—'}${result.daily.personalBest?' · new daily best':''}.`);
-    }
+      notes.unshift(result.daily.closed?`The ${result.daily.challengeDate} Daily closed and paid out before this flight landed.`:`Daily #${result.daily.rank} of ${result.daily.leaderboard?.pilots??'—'}${result.daily.personalBest?' · new daily best':''}.`);
+    }else notes.push('Ranked flight: it does not count toward today’s Daily Challenge.');
     $('rank-result').textContent=`Replay verified · server #${result.rank} · ${movement}. ${notes.filter(Boolean).join(' ')}`;
     if(result.comboRecord&&!reduced){sound.play('milestone',{combo:chain});haptic([30,30,60],!reduced);}
   }catch(error){

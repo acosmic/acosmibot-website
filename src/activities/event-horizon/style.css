@@ -296,10 +296,22 @@ h1 span{filter:none}
 .reduced-fx .combo-block strong{animation:none!important}
 #mode-badge{color:#ffd28a!important;font-weight:700;letter-spacing:.06em}
 #daily-setting{width:min(390px,100%);margin:-8px 0 20px}
-.daily-button{width:100%;display:grid;gap:2px;text-align:left;background:linear-gradient(135deg,#2b1d0ccc,#1a1424cc);border-color:#ffb35c99}
-.daily-button:hover{background:linear-gradient(135deg,#3d2a12,#271d36)}
-.daily-button strong{font-size:15px;color:#ffd9a3}
-.daily-button small{font-size:11px;color:#d9c6b0}
+.mode-divider{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#e4c08f}
+.mode-divider::before,.mode-divider::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,#ffb35c88,transparent)}
+/* The Daily is its own mode: warm gold to the ranked button's cyan, with a sheen that sweeps between the launch button's. */
+.daily-button{position:relative;overflow:hidden;width:100%;display:grid;gap:4px;padding:14px 18px;text-align:left;background:linear-gradient(120deg,#4a2c0c,#2c1834 55%,#4a2e0e);border:1px solid #ffc06b;box-shadow:0 0 0 1px #ffb35c44,0 8px 20px #02050b88;animation:daily-glow 3.2s ease-in-out infinite}
+.daily-button:hover{background:linear-gradient(120deg,#5c3810,#3a2045 55%,#5c3a12);box-shadow:0 0 0 1px #ffe0ad,0 10px 26px #ff9d2e44}
+.daily-button::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,#ffe6b8a8,transparent);transform:skewX(-20deg);animation:shine 3.2s 2.8s ease-in-out infinite;pointer-events:none}
+.daily-head{display:flex;align-items:center;gap:8px}
+.daily-icon{width:20px;height:20px;flex:none;color:#ffc86b;filter:drop-shadow(0 0 6px #ffb34a88)}
+.daily-button strong{font-size:17px;letter-spacing:.02em;background:linear-gradient(100deg,#ffd08a,#fff4dc 45%,#ffc66e);-webkit-background-clip:text;background-clip:text;color:transparent}
+.daily-chip{margin-left:auto;padding:3px 8px;border-radius:999px;background:#ffb84d;color:#2a1608;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.daily-button small{font-size:12px;color:#ead6bc}
+#daily-prize{font-weight:700;color:#ffd28a}
+.daily-button.back{animation:none;background:#0d1a2a;border-color:#4fd8ff66;box-shadow:none}
+.daily-button.back::after,.daily-button.back .daily-chip,.daily-button.back .daily-icon{display:none}
+.daily-button.back strong{background:none;color:#cfefff}
+@keyframes daily-glow{50%{box-shadow:0 0 0 1px #ffd28a,0 8px 24px #ff9d2e40}}
 #crash-replay{margin-top:10px;font-size:13px;min-height:44px}
 #killcam-bar{position:absolute;left:50%;transform:translateX(-50%);bottom:max(24px,var(--activity-safe-bottom));display:flex;align-items:center;gap:14px;padding:8px 10px 8px 16px;border-radius:14px;background:#0b1a2ce6;border:1px solid #ff9b6b66;font-size:13px;color:#ffd9c4;white-space:nowrap}
 #killcam-bar strong{color:#ffb38f;letter-spacing:.08em}

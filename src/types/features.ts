@@ -187,6 +187,12 @@ export interface GamesConfig {
   rps: SimpleGameConfig;
   heist: HeistConfig;
   good_deeds: GoodDeedsConfig;
+  event_horizon: EventHorizonSettings;
+}
+
+export interface EventHorizonSettings {
+  daily_results_enabled: boolean;
+  daily_results_channel_id: string | null;
 }
 
 export interface GoodDeedsConfig {
