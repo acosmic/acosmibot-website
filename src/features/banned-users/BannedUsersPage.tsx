@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useBannedUsersConfig } from './useBannedUsersConfig';
 import { MemberSearchInput } from '@/components/ui/MemberSearchInput';
-import { FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection } from '@/components/ui';
+import { FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection, LoadFailed } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { BannedUsersConfig, BannedUserEntry, MemberSearchResult } from '@/api/bannedUsers';
 
@@ -12,7 +12,7 @@ export const BannedUsersPage: React.FC = () => {
   const { form, setForm, isDirty, resetForm } = useDirtyState<BannedUsersConfig>(data);
 
   if (isLoading) return <LoadingSpinner />;
-  if (!form) return <div>No data found.</div>;
+  if (!form) return <LoadFailed title="Banned users didn't load" />;
 
   const handleSelectMember = (member: MemberSearchResult) => {
     if (form.users.some((u) => u.user_id === member.user_id)) return;

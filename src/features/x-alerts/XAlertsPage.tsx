@@ -31,6 +31,7 @@ import {
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useXAlertsConfig } from './useXAlertsConfig';
 import './XAlertsPage.css';
+import { upgradePath } from '@/lib/plans';
 
 const TIER_LABELS = {
   free: 'Free',
@@ -114,7 +115,7 @@ export const XAlertsPage: React.FC = () => {
                 {form.accounts.length} saved account{form.accounts.length === 1 ? '' : 's'} retained for this server.
               </p>
             )}
-            <Link to={`/pricing?guild=${guildId}`} className="btn primary">
+            <Link to={upgradePath(guildId)} className="btn primary">
               {form.accounts.length > 0 ? 'Upgrade to restore all' : 'Compare plans'} <ArrowRight aria-hidden="true" />
             </Link>
           </div>

@@ -38,6 +38,7 @@ import { useGuildStore } from '@/store/guild';
 import { useRecapConfig, type RecapConfig } from './useRecapConfig';
 import { getGuildTier, hasGuildAnalyticsAccess } from './entitlement';
 import { MemberFlowChart } from './charts';
+import { upgradePath } from '@/lib/plans';
 
 const RANGE_OPTIONS = [7, 30, 90] as const;
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -167,7 +168,7 @@ const AnalyticsUpgrade: React.FC<{ guildId: string; tier: string }> = ({ guildId
         <li><Link2 aria-hidden="true" /><span><strong>Better Social Embeds reporting</strong> by network and delivery health</span></li>
         <li><ShieldCheck aria-hidden="true" /><span><strong>Privacy-safe AI counts</strong> without model, token, or spend telemetry</span></li>
       </ul>
-      <Link to={`/pricing?guild=${guildId}`} className="btn primary">
+      <Link to={upgradePath(guildId)} className="btn primary">
         View Plus plans <ArrowRight aria-hidden="true" />
       </Link>
     </div>

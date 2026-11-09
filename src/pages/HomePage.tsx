@@ -914,7 +914,7 @@ export const HomePage: React.FC = () => {
                 <span>at your server’s command.</span>
               </h1>
               <p>
-                Acosmibot connects engagement, economy, games, and agentic AI-powered interactions in one
+                Acosmibot is a Discord bot that connects engagement, economy, games, and agentic AI in one
                 living system—built to keep your server active and entertained.
               </p>
               <div className="home-hero__actions">

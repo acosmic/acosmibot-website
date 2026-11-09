@@ -1,10 +1,14 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import './ConfirmDialog.css';
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** A centered confirmation dialog for emoji pack actions (same pattern as the billing cancel dialog). */
+/**
+ * Shared accessible confirmation dialog: alertdialog semantics, focus moves to
+ * Cancel, Tab is trapped, Escape closes, and focus returns on close.
+ */
 export const ConfirmDialog: React.FC<{
   kicker: string;
   title: string;
@@ -59,26 +63,26 @@ export const ConfirmDialog: React.FC<{
   }, []);
 
   return createPortal(
-    <div className="emoji-confirm-backdrop" role="presentation"
+    <div className="confirm-dialog-backdrop" role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !pending) onClose();
       }}>
-      <div ref={dialog} className="emoji-confirm" role="alertdialog" aria-modal="true"
+      <div ref={dialog} className="confirm-dialog" role="alertdialog" aria-modal="true"
         aria-labelledby={titleId} aria-describedby={bodyId} tabIndex={-1}>
-        <button type="button" className="emoji-confirm__close" onClick={onClose} disabled={pending} aria-label="Close">
+        <button type="button" className="confirm-dialog__close" onClick={onClose} disabled={pending} aria-label="Close">
           <X aria-hidden="true" />
         </button>
-        <div className="emoji-confirm__heading">
-          {imageUrl && <img src={imageUrl} alt="" className="emoji-confirm__image" />}
+        <div className="confirm-dialog__heading">
+          {imageUrl && <img src={imageUrl} alt="" className="confirm-dialog__image" />}
           <div>
             <span>{kicker}</span>
             <h2 id={titleId}>{title}</h2>
           </div>
         </div>
-        <div id={bodyId} className="emoji-confirm__body">{children}</div>
-        <div className="emoji-confirm__actions">
+        <div id={bodyId} className="confirm-dialog__body">{children}</div>
+        <div className="confirm-dialog__actions">
           <button ref={cancel} type="button" className="btn secondary" onClick={onClose} disabled={pending}>Cancel</button>
-          <button type="button" className={`btn ${tone === 'danger' ? 'emoji-confirm__danger' : 'primary'}`}
+          <button type="button" className={`btn ${tone === 'danger' ? 'confirm-dialog__danger' : 'primary'}`}
             onClick={onConfirm} disabled={pending} aria-busy={pending}>
             {pending ? 'Working…' : confirmLabel}
           </button>

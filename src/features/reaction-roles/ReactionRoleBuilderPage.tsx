@@ -12,6 +12,8 @@ import { useGuildChannels } from '@/hooks/useGuildChannels';
 import { useGuildEmojis } from '@/hooks/useGuildEmojis';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
 import { showToast } from '@/utils/toast';
+import { useSnapshotDirty } from '@/hooks/useSnapshotDirty';
+import { allowNextNavigation } from '@/store/unsavedChanges';
 import { RRPreview } from './RRPreview';
 
 const DEFAULT_COLOR = '#5865F2';
@@ -131,6 +133,17 @@ export const ReactionRoleBuilderPage: React.FC = () => {
     }
   }, [existingQuery.data, seeded]);
 
+  // Unsaved-change tracking: leaving with edits asks for confirmation.
+  const stripKey = <T extends { key: string }>({ key: _key, ...rest }: T) => rest;
+  const formSnapshot = JSON.stringify({
+    name, channelId, messageText, allowRemoval, suppressRolePings, embedTitle, embedDescription,
+    embedColor, thumbnailUrl, imageUrl, footerText, interactionType, dropdownPlaceholder,
+    emojiMappings: emojiMappings.map(stripKey),
+    buttons: buttons.map(stripKey),
+    dropdownOptions: dropdownOptions.map(stripKey),
+  });
+  const isDirty = useSnapshotDirty(formSnapshot, !isEditing || seeded);
+
   if (isEditing && existingQuery.isLoading) return <LoadingSpinner />;
   if (isEditing && existingQuery.isError) {
     return (
@@ -234,6 +247,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
     try {
       await persist();
       showToast(isEditing ? 'Draft updated!' : 'Draft saved!', 'success');
+      allowNextNavigation();
       navigate(`/server/${guildId}/reaction-roles`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Failed to save draft', 'error');
@@ -250,13 +264,15 @@ export const ReactionRoleBuilderPage: React.FC = () => {
       if (!id) throw new Error('Failed to save reaction role');
       const saved = await reactionRolesApi.get(guildId!, id);
       if (!saved.enabled) {
-        showToast('Reaction role saved and paused. Activate it from your saved list before sending.', 'success');
+        showToast('Saved but not sent: this server is at its active reaction role limit, so it was saved paused. Activate it from your saved list, then send it.', 'info');
+        allowNextNavigation();
         navigate(`/server/${guildId}/reaction-roles`);
         return;
       }
       const res = await reactionRolesApi.send(guildId!, id, suppressRolePings);
       if (!res.success) throw new Error(res.message || 'Failed to send to Discord');
       showToast('Sent to Discord successfully!', 'success');
+      allowNextNavigation();
       navigate(`/server/${guildId}/reaction-roles`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Failed to send to Discord', 'error');
@@ -275,6 +291,7 @@ export const ReactionRoleBuilderPage: React.FC = () => {
       } else {
         showToast('Message updated successfully!', 'success');
       }
+      allowNextNavigation();
       navigate(`/server/${guildId}/reaction-roles`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Failed to update message', 'error');
@@ -520,6 +537,9 @@ export const ReactionRoleBuilderPage: React.FC = () => {
             <button className="btn" disabled={saving} onClick={() => navigate(`/server/${guildId}/reaction-roles`)}>
               Cancel
             </button>
+            {isDirty && (
+              <p className="text-muted small mb-0" role="status">Unsaved changes. Save a draft or send before leaving.</p>
+            )}
           </div>
         </div>
 

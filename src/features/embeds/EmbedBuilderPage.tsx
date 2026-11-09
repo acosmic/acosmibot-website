@@ -12,6 +12,8 @@ import { EmojiPicker } from '@/features/slots/EmojiPicker';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
 import { useGuildEmojis } from '@/hooks/useGuildEmojis';
 import { showToast } from '@/utils/toast';
+import { useSnapshotDirty } from '@/hooks/useSnapshotDirty';
+import { allowNextNavigation } from '@/store/unsavedChanges';
 
 interface FieldDraft extends EmbedField { key: string }
 interface ButtonDraft extends EmbedButton { key: string }
@@ -87,6 +89,15 @@ export const EmbedBuilderPage: React.FC = () => {
     setButtons((embed.buttons ?? []).map((b) => ({ ...b, key: crypto.randomUUID() })));
   }, [existingQuery.data, seeded]);
 
+  // Unsaved-change tracking: leaving with edits asks for confirmation.
+  const formSnapshot = JSON.stringify({
+    name, messageText, channelId, authorName, authorUrl, authorIcon, title, description, url,
+    color, thumbnailUrl, imageUrl, footerText, footerIcon, includeTimestamp,
+    fields: fields.map(({ key: _key, ...field }) => field),
+    buttons: buttons.map(({ key: _key, ...button }) => button),
+  });
+  const isDirty = useSnapshotDirty(formSnapshot, !isEditing || seeded);
+
   if (isEditing && existingQuery.isLoading) return <LoadingSpinner />;
   if (isEditing && existingQuery.isError) {
     return (
@@ -156,6 +167,7 @@ export const EmbedBuilderPage: React.FC = () => {
         await embedsApi.create(guildId!, buildPayload());
         showToast('Embed saved!', 'success');
       }
+      allowNextNavigation();
       navigate(`/server/${guildId}/embeds`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Failed to save embed', 'error');
@@ -175,13 +187,15 @@ export const EmbedBuilderPage: React.FC = () => {
         const created = await embedsApi.create(guildId!, buildPayload());
         id = created.id;
         if (!created.is_enabled) {
-          showToast('Embed saved and paused. Activate it from your saved list before sending.', 'success');
+          showToast('Saved but not sent: this server is at its active embed limit, so the embed was saved paused. Activate it from your saved list, then send it.', 'info');
+          allowNextNavigation();
           navigate(`/server/${guildId}/embeds`);
           return;
         }
       }
       await embedsApi.send(guildId!, id!);
       showToast('Embed sent to Discord!', 'success');
+      allowNextNavigation();
       navigate(`/server/${guildId}/embeds`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Failed to send embed', 'error');
@@ -371,6 +385,9 @@ export const EmbedBuilderPage: React.FC = () => {
             <button className="btn" disabled={saving} onClick={() => navigate(`/server/${guildId}/embeds`)}>
               Cancel
             </button>
+            {isDirty && (
+              <p className="text-muted small mb-0" role="status">Unsaved changes. Save a draft or send before leaving.</p>
+            )}
           </div>
         </div>
 

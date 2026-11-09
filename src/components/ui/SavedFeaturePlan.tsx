@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
+import { upgradePath } from '@/lib/plans';
 import './SavedFeaturePlan.css';
 
 export function UpgradeRestoreLink({ guildId }: { guildId: string }) {
-  return <Link className="saved-feature-upgrade" to={`/server/${guildId}/billing`}>Upgrade to restore all</Link>;
+  return <Link className="saved-feature-upgrade" to={upgradePath(guildId)}>Upgrade to restore all</Link>;
 }
 
 export interface SavedFeatureStats {

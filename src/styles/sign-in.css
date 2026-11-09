@@ -1,0 +1,120 @@
+/* Signed-out prompt for protected pages (pages/SignInRequiredPage.tsx). */
+.sign-in-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(0, 217, 255, 0.08), transparent 30rem),
+    #05080d;
+  color: #f4fbff;
+}
+
+.sign-in-main {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 48px 16px 64px;
+}
+
+.sign-in-card {
+  width: min(480px, 100%);
+  padding: 32px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(13, 21, 29, 0.92);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.sign-in-card__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(0, 217, 255, 0.4);
+  border-radius: 50%;
+  color: #67ecff;
+}
+
+.sign-in-card__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sign-in-card h1 {
+  margin: 0 0 10px;
+  font-size: clamp(26px, 4vw, 32px);
+  line-height: 1.15;
+}
+
+.sign-in-card p {
+  margin: 0 auto;
+  max-width: 36ch;
+  color: #a9bac7;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.sign-in-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.sign-in-action {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  background: transparent;
+  color: #f4fbff;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sign-in-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sign-in-action:hover,
+.sign-in-action:focus-visible {
+  border-color: rgba(0, 217, 255, 0.4);
+  background: rgba(0, 217, 255, 0.08);
+  color: #f4fbff;
+  outline: none;
+}
+
+.sign-in-action--primary {
+  border-color: #67ecff;
+  background: #67ecff;
+  color: #05080d;
+}
+
+.sign-in-action--primary:hover,
+.sign-in-action--primary:focus-visible {
+  border-color: #f4fbff;
+  background: #f4fbff;
+  color: #05080d;
+}
+
+.sign-in-card small {
+  display: block;
+  margin-top: 20px;
+  color: #8293a0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .sign-in-action { width: 100%; }
+}

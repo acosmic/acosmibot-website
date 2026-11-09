@@ -29,7 +29,7 @@ import { aiCreditsApi, type CreditPack, type CreditUserPolicy } from '@/api/aiCr
 import { guildApi } from '@/api/guilds';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { CreditCheckoutDialog } from '@/components/CreditCheckoutDialog';
-import { LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner, LoadFailed } from '@/components/ui';
 import { showToast } from '@/utils/toast';
 import '@/styles/ai-credits.css';
 
@@ -565,7 +565,14 @@ export const AICreditsPage: React.FC = () => {
             <div><span className="credits-section__label">Audit trail</span><h2 id="credits-ledger-title">Recent wallet activity.</h2></div>
             <span className="credits-ledger__updated">Updated {formatDate(personal.wallet.updated_at)}</span>
           </div>
-          {ledgerQuery.isLoading ? <LoadingSpinner /> : ledger.length === 0 ? (
+          {ledgerQuery.isLoading ? <LoadingSpinner /> : ledgerQuery.isError ? (
+            <LoadFailed
+              compact
+              title="Wallet activity didn't load"
+              message="Your balance above is unaffected. Try again to load recent activity."
+              onRetry={() => ledgerQuery.refetch()}
+            />
+          ) : ledger.length === 0 ? (
             <div className="credits-empty"><History aria-hidden="true" /><strong>No wallet activity yet.</strong><span>Your first fulfilled pack or AI charge will appear here.</span></div>
           ) : (
             <div className="credits-ledger-list">

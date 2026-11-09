@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 // SPOTIFY OAUTH DEFERRED — Check/Minus were only used by the commented-out TierCard comparison.
 import { Music, Users, Eye, Shield, type LucideIcon } from 'lucide-react';
-import { FeatureToggle, SaveBar, LoadingSpinner } from '@/components/ui';
+import { FeatureToggle, SaveBar, LoadingSpinner, LoadFailed } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useMusicGuildConfig, type MusicGuildConfig } from './useMusicGuildConfig';
 
@@ -19,7 +19,7 @@ export const MusicPage: React.FC = () => {
   const { form, setForm, isDirty, resetForm } = useDirtyState<MusicGuildConfig>(data);
 
   if (isLoading) return <LoadingSpinner />;
-  if (!form) return <div>No data found.</div>;
+  if (!form) return <LoadFailed title="Music settings didn't load" />;
 
   return (
     <div className="feature-page">

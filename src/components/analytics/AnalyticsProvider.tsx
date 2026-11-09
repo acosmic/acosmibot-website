@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Cookie, ShieldCheck, X } from 'lucide-react';
+import { ShieldCheck, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   ANALYTICS_PREFERENCES_EVENT,
@@ -97,24 +97,19 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         >
           {!preferencesOpen ? (
             <>
-              <div className="analytics-consent__signal" aria-hidden="true">
-                <Cookie />
-              </div>
               <div className="analytics-consent__copy">
-                <span><ShieldCheck aria-hidden="true" /> Cookie choices</span>
-                <h2 id="analytics-consent-title">Your privacy, your choice</h2>
+                <h2 id="analytics-consent-title">Cookie choices</h2>
                 <p>
-                  Required cookies keep Acosmibot secure. With your permission, optional analytics
-                  cookies help us understand which sanitized page categories and product actions are useful.
+                  Required cookies keep Acosmibot secure. Optional analytics cookies are only used if you allow them.{' '}
+                  <Link to="/privacy-policy">Privacy and cookie policy</Link>
                 </p>
-                <Link to="/privacy-policy">Privacy and cookie policy</Link>
               </div>
               <div className="analytics-consent__actions" aria-label="Cookie consent choices">
                 <button type="button" className="analytics-consent__choice" onClick={() => decide('denied')}>
-                  Reject non-essential
+                  Reject optional
                 </button>
                 <button type="button" className="analytics-consent__manage" onClick={openPreferences}>
-                  Manage choices
+                  Manage
                 </button>
                 <button type="button" className="analytics-consent__choice" onClick={() => decide('granted')}>
                   Accept all

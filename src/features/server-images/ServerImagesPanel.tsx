@@ -22,6 +22,7 @@ import {
 import { LoadingSpinner } from '@/components/ui';
 import { useServerImages } from './useServerImages';
 import './ServerImagesPage.css';
+import { upgradePath } from '@/lib/plans';
 
 export const IMAGE_KINDS: { kind: ServerImageKind; label: string; shape: 'square' | 'wide'; spec: string }[] = [
   { kind: 'icon', label: 'Server Icon', shape: 'square', spec: 'Cropped to a 1024×1024 square' },
@@ -96,7 +97,7 @@ export const ServerImagesPanel: React.FC<{ kind: ServerImageKind }> = ({ kind })
               On Plus and higher, Acosmibot can set your server images from this page, and archives
               the old one first so you can always switch back.
             </p>
-            <Link to={`/pricing?guild=${guildId}`} className="btn primary">
+            <Link to={upgradePath(guildId)} className="btn primary">
               Compare plans <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -155,7 +156,7 @@ export const ServerImagesPanel: React.FC<{ kind: ServerImageKind }> = ({ kind })
       {readOnly && (
         <p className="server-images-status server-images-status--error" role="status">
           This server is on the Free plan, so the library is read-only. You can still open and download every
-          image. <Link to={`/pricing?guild=${guildId}`}>Upgrade to Plus</Link> to switch or add images.
+          image. <Link to={upgradePath(guildId)}>Upgrade to Plus</Link> to switch or add images.
         </p>
       )}
 

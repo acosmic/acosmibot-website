@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLevelingConfig, LevelingConfig, RolesConfig, XP_RATE_BOUNDS } from './useLevelingConfig';
-import { ChannelSelect, FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput } from '@/components/ui';
+import { ChannelSelect, FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, LoadFailed } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
+import { LevelMappingRow } from './LevelMappingRow';
 
 export const LevelingPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -14,13 +15,26 @@ export const LevelingPage: React.FC = () => {
 
   const isDirty = levelDirty || roleDirty;
 
+  // Stable React keys for mapping rows. Rows are stored by level, so keying by
+  // level would remount a row whenever its level changes.
+  const rowKeys = useRef(new Map<string, number>());
+  const nextRowKey = useRef(0);
+  const rowKeyFor = (level: string): number => {
+    let key = rowKeys.current.get(level);
+    if (key === undefined) {
+      key = nextRowKey.current++;
+      rowKeys.current.set(level, key);
+    }
+    return key;
+  };
+
   const filteredRoles = useMemo(
     () => (availableRoles ?? []).filter(r => r.name !== '@everyone' && !r.managed),
     [availableRoles],
   );
 
   if (isLoading) return <LoadingSpinner />;
-  if (!levelForm || !roleForm) return <div>No data found.</div>;
+  if (!levelForm || !roleForm) return <LoadFailed title="Leveling settings didn't load" />;
 
   const handleSave = () => {
     save({ leveling: levelForm, roles: roleForm });
@@ -45,12 +59,21 @@ export const LevelingPage: React.FC = () => {
     setRoleForm({ role_mappings: mappings });
   };
 
-  const updateMappingLevel = (oldLevel: string, newLevel: string) => {
-    if (oldLevel === newLevel) return;
+  const updateMappingLevel = (oldLevel: string, newLevel: string): string | null => {
+    if (oldLevel === newLevel) return null;
+    if (roleForm.role_mappings[newLevel]) {
+      return `Level ${newLevel} already has a role mapping. Edit that row instead.`;
+    }
     const mappings = { ...roleForm.role_mappings };
     mappings[newLevel] = mappings[oldLevel];
     delete mappings[oldLevel];
+    const key = rowKeys.current.get(oldLevel);
+    if (key !== undefined) {
+      rowKeys.current.delete(oldLevel);
+      rowKeys.current.set(newLevel, key);
+    }
     setRoleForm({ role_mappings: mappings });
+    return null;
   };
 
   const updateMappingRole = (level: string, roleId: string) => {
@@ -325,38 +348,17 @@ export const LevelingPage: React.FC = () => {
           {sortedLevels.length === 0 && (
             <p className="text-muted small">No role mappings configured. Add one below.</p>
           )}
-          {sortedLevels.map(level => {
-            const mapping = roleForm.role_mappings[level];
-            return (
-              <div key={level} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
-                <NumberInput
-                  className="form-control"
-                  style={{ width: '100px', flexShrink: 0 }}
-                  value={Number(level)}
-                  min={0}
-                  onValueChange={(value) => updateMappingLevel(level, String(value))}
-                  placeholder="Level"
-                />
-                <select
-                  className="form-control"
-                  value={mapping.role_ids?.[0] || ''}
-                  onChange={(e) => updateMappingRole(level, e.target.value)}
-                >
-                  <option value="">Select Role...</option>
-                  {filteredRoles.map(role => (
-                    <option key={role.id} value={role.id}>{role.name}</option>
-                  ))}
-                </select>
-                <button
-                  className="btn"
-                  style={{ flexShrink: 0, padding: '8px 14px', color: 'var(--error-color)', borderColor: 'var(--error-color)' }}
-                  onClick={() => removeMapping(level)}
-                >
-                  ×
-                </button>
-              </div>
-            );
-          })}
+          {sortedLevels.map(level => (
+            <LevelMappingRow
+              key={rowKeyFor(level)}
+              level={level}
+              roleId={roleForm.role_mappings[level].role_ids?.[0] || ''}
+              roles={filteredRoles}
+              onCommitLevel={(next) => updateMappingLevel(level, next)}
+              onRoleChange={(roleId) => updateMappingRole(level, roleId)}
+              onRemove={() => removeMapping(level)}
+            />
+          ))}
           <button className="btn primary mt-2" onClick={addMapping}>
             + Add Level Mapping
           </button>

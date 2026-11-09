@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { FeatureToggle, LoadingSpinner, NumberInput, SaveBar } from '@/components/ui';
+import { FeatureToggle, LoadingSpinner, NumberInput, SaveBar, LoadFailed } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { PolymorphConfig } from '@/types/features';
 import { usePolymorphConfig } from './usePolymorphConfig';
@@ -11,7 +11,7 @@ export const PolymorphPage: React.FC = () => {
   const { form, setForm, isDirty, resetForm } = useDirtyState<PolymorphConfig>(data);
 
   if (isLoading) return <LoadingSpinner />;
-  if (!form) return <div>No data found.</div>;
+  if (!form) return <LoadFailed title="Polymorph settings didn't load" />;
 
   const updateNumber = (field: 'cost' | 'duration_minutes', value: number) =>
     setForm({ [field]: Math.trunc(value) });

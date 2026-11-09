@@ -8,6 +8,7 @@ import { refreshSession } from './lib/auth';
 import { CenteredMessage } from './components/ui/CenteredMessage';
 import { RouteErrorBoundary } from './components/ui/RouteErrorBoundary';
 import { lazyRoute } from './lib/versionSkew';
+import { upgradePath } from './lib/plans';
 
 const DashboardShell = lazyRoute(() => import('./components/layout/DashboardShell').then(module => ({ default: module.DashboardShell })));
 const GiveawayPage = lazyRoute(() => import('./features/giveaway/GiveawayPage').then(module => ({ default: module.GiveawayPage })));
@@ -48,6 +49,7 @@ const TermsOfServicePage = lazyRoute(() => import('./pages/legal/TermsOfServiceP
 const PrivacyPolicyPage = lazyRoute(() => import('./pages/legal/PrivacyPolicyPage').then(module => ({ default: module.PrivacyPolicyPage })));
 const StatusPage = lazyRoute(() => import('./pages/StatusPage').then(module => ({ default: module.StatusPage })));
 const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
+const SignInRequiredPage = lazyRoute(() => import('./pages/SignInRequiredPage').then(module => ({ default: module.SignInRequiredPage })));
 const AdminPage = lazyRoute(() => import('./pages/admin/AdminPage').then(module => ({ default: module.AdminPage })));
 
 /** Completes the cookie-backed OAuth redirect and returns the user to where
@@ -80,7 +82,9 @@ const RequireAuth = () => {
   if (!isAuthReady) {
     return <CenteredMessage icon={<LoaderCircle aria-hidden="true" />} title="Checking your session…" />;
   }
-  return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
+  // Signed-out visitors get a login prompt on the page they asked for; login
+  // remembers the path so they return here instead of landing on the homepage.
+  return isAuthenticated ? <Outlet /> : <SignInRequiredPage />;
 };
 
 /** /me → redirect to the logged-in user's public profile (/u/<username>). */
@@ -113,7 +117,7 @@ const FeatureOutlet = () => {
   // Pricing lives at the top-level /pricing page; carry the guild over so the
   // server picker preselects it.
   if (feature === 'premium') {
-    return <Navigate to={`/pricing?guild=${guildId}`} replace />;
+    return <Navigate to={upgradePath(guildId)} replace />;
   }
 
   if (feature === 'overview') {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useUnsavedChanges } from '@/store/unsavedChanges';
 
 export function useDirtyState<T>(initialState: T | undefined) {
   const [form, setFormState] = useState<T | undefined>(initialState);
@@ -21,16 +22,9 @@ export function useDirtyState<T>(initialState: T | undefined) {
     setFormState(prev => prev ? { ...prev, ...updates } : prev);
   }, []);
 
-  // Warn before the tab is closed/reloaded while there are unsaved changes.
-  useEffect(() => {
-    if (!isDirty) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
-    };
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, [isDirty]);
+  // Registers with the app-wide NavigationGuard, which blocks in-app
+  // navigation and warns before the tab is closed while this form is dirty.
+  useUnsavedChanges(isDirty);
 
   const resetForm = useCallback(() => {
     setFormState(initialState);

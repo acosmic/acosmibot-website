@@ -8,6 +8,7 @@ import { useBetterEmbedsConfig } from './useBetterEmbedsConfig';
 import { BetterEmbedsUsagePanel } from './BetterEmbedsUsagePanel';
 import { useGuildStore } from '@/store/guild';
 import { getGuildTier, hasGuildAnalyticsAccess } from '@/features/analytics/entitlement';
+import { upgradePath } from '@/lib/plans';
 
 export const BetterEmbedsPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
@@ -36,7 +37,7 @@ export const BetterEmbedsPage: React.FC = () => {
             <h2 id="better-embeds-reporting-title">Replacement reporting starts with Plus</h2>
             <p>Unlock forward-only platform activity, delivery health, and weekly recap reporting. Better Social Embeds themselves remain available on Free.</p>
           </div>
-          <Link to={`/pricing?guild=${guildId}`} className="btn">
+          <Link to={upgradePath(guildId)} className="btn">
             View Plus <ArrowRight aria-hidden="true" />
           </Link>
         </section>

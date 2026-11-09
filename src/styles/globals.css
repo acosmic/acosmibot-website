@@ -987,3 +987,63 @@ h1, h2, h3, h4, h5, h6 {
         padding-right: 16px;
     }
 }
+
+/* Shared failed-load state (components/ui/LoadFailed.tsx). */
+.load-failed {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 640px;
+    margin: 48px auto;
+    padding: 20px 22px;
+    border: 1px solid rgba(255, 68, 68, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 68, 68, 0.06);
+    color: var(--text-primary);
+}
+.load-failed--compact {
+    max-width: none;
+    margin: 0;
+    padding: 16px 18px;
+}
+.load-failed__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--error-color);
+}
+.load-failed__copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.load-failed__copy span {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+.load-failed .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-height: 44px;
+}
+.load-failed__spin {
+    animation: load-failed-spin 0.9s linear infinite;
+}
+@keyframes load-failed-spin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .load-failed__spin { animation: none; }
+}
+@media (max-width: 560px) {
+    .load-failed {
+        flex-wrap: wrap;
+        margin: 24px 0;
+    }
+    .load-failed .btn { width: 100%; justify-content: center; }
+}

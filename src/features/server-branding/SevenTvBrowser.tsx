@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ExternalLink, Plus, Search, Send, Users } fr
 import type { EmojiPack, SevenTvEmote, SevenTvSort } from '@/api/emojiPacks';
 import { PackPicker } from './PackPicker';
 import { useEmojiPacks, useSevenTvSearch, useSevenTvSet, useSevenTvUsers } from './useEmojiPacks';
+import { upgradePath } from '@/lib/plans';
 
 type Status = { tone: 'ok' | 'error'; text: string } | null;
 type Mode = 'emotes' | 'sets';
@@ -150,7 +151,7 @@ export const SevenTvCommandNote: React.FC<{ guildId: string }> = ({ guildId }) =
     </div>
     <p>
       Add any 7TV emote on every plan with <code>/7tv upload</code> in Discord: paste the emote's link or ID.{' '}
-      <Link to={`/pricing?guild=${guildId}`}>Upgrade to Plus</Link> to browse 7TV here, add emotes in one click and
+      <Link to={upgradePath(guildId)}>Upgrade to Plus</Link> to browse 7TV here, add emotes in one click and
       import whole streamer sets into packs.
     </p>
   </section>

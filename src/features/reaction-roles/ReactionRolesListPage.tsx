@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Hash, List, MousePointerClick, Plus, Smile, Sparkles, Target } from 'lucide-react';
-import { LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner, LoadFailed } from '@/components/ui';
 import { InlineIcon } from '@/components/ui/InlineIcon';
 import { reactionRolesApi, type ReactionRole } from '@/api/reactionRoles';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
@@ -64,6 +64,17 @@ export const ReactionRolesListPage: React.FC = () => {
   });
 
   if (listQuery.isLoading) return <LoadingSpinner />;
+  if (listQuery.isError) {
+    return (
+      <div className="feature-page">
+        <LoadFailed
+          title="Your reaction roles didn't load"
+          message="We couldn't reach your saved reaction role messages. They haven't been changed. Try again in a moment."
+          onRetry={() => Promise.all([listQuery.refetch(), statsQuery.refetch()])}
+        />
+      </div>
+    );
+  }
 
   const items = listQuery.data ?? [];
   const stats = statsQuery.data;

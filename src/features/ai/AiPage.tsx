@@ -10,10 +10,11 @@ import { PersonalitySettings } from './PersonalitySettings';
 import { AiMemorySection } from './AiMemorySection';
 import { AiServerMemorySection } from './AiServerMemorySection';
 import { AiMemoryChannelsSection } from './AiMemoryChannelsSection';
-import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, TimezoneSelect } from '@/components/ui';
+import { FeatureToggle, SaveBar, CollapsibleSection, LoadingSpinner, NumberInput, TimezoneSelect, LoadFailed } from '@/components/ui';
 import { detectBrowserTimezone } from '@/components/ui/TimezoneSelect';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { useGuildChannels } from '@/hooks/useGuildChannels';
+import { upgradePath } from '@/lib/plans';
 
 // Ambient chat bounds — must mirror acosmibot-core ai_personalities.
 const AMBIENT_MIN_COOLDOWN_MIN = 2;     // 120s
@@ -53,7 +54,7 @@ export const AiPage: React.FC = () => {
 
   if (isLoading) return <LoadingSpinner />;
 
-  if (!form) return <div>No data found.</div>;
+  if (!form) return <LoadFailed title="AI settings didn't load" />;
 
   if (!hasAccess) {
     return (
@@ -97,7 +98,7 @@ export const AiPage: React.FC = () => {
               <li>Ambient chat</li>
               <li>AI media tools</li>
             </ul>
-            <Link to={`/pricing?guild=${guildId}`} className="btn primary">
+            <Link to={upgradePath(guildId)} className="btn primary">
               View Pro and Max plans
             </Link>
           </div>

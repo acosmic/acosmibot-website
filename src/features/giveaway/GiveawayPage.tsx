@@ -5,7 +5,7 @@ import { InlineIcon } from '@/components/ui/InlineIcon';
 import { useGiveawayConfig } from './useGiveawayConfig';
 import { RecentGiveaways } from './RecentGiveaways';
 import { useQuery } from '@tanstack/react-query';
-import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection, NumberInput } from '@/components/ui';
+import { ChannelSelect, RoleMultiSelect, FeatureToggle, SaveBar, LoadingSpinner, CollapsibleSection, NumberInput, LoadFailed } from '@/components/ui';
 import { useDirtyState } from '@/hooks/useDirtyState';
 import { giveawayApi } from '@/api/giveaway';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
@@ -36,7 +36,7 @@ export const GiveawayPage: React.FC = () => {
   });
 
   if (isLoading) return <LoadingSpinner />;
-  if (!form) return <div>No data found.</div>;
+  if (!form) return <LoadFailed title="Giveaway settings didn't load" />;
 
   const addRoleMultiplier = () => {
     if (!roleMulRoleId) return;

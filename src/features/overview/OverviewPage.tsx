@@ -14,6 +14,7 @@ import {
 import { analyticsApi } from '@/api/analytics';
 import { subscriptionsApi } from '@/api/subscriptions';
 import { MemberFlowChart } from '@/features/analytics/charts';
+import { upgradePath } from '@/lib/plans';
 
 const formatStat = (value: number | null | undefined) => value?.toLocaleString() ?? '—';
 
@@ -108,7 +109,7 @@ export const OverviewPage: React.FC = () => {
               <button type="button" className="btn" onClick={() => navigate(`/server/${guildId}`)}>
                 <Eye aria-hidden="true" /> View member page
               </button>
-              <button type="button" className="btn btn-primary" onClick={() => navigate(`/server/${guildId}/billing`)}>
+              <button type="button" className="btn btn-primary" onClick={() => navigate(tier === 'free' ? upgradePath(guildId) : `/server/${guildId}/billing`)}>
                 {manageLabel}
               </button>
             </div>

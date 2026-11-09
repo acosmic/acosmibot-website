@@ -18,11 +18,12 @@ import type { EmojiPack, EmojiPackItem, EmojiPackJob, EmojiPacksOverview, LiveEm
 import { emojiPacksApi } from '@/api/emojiPacks';
 import { ServerImagesError } from '@/api/serverImages';
 import { LoadingSpinner } from '@/components/ui';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PackPicker } from './PackPicker';
 import { SevenTvBrowser, SevenTvCommandNote } from './SevenTvBrowser';
 import { useEmojiPacks } from './useEmojiPacks';
 import './EmojiPacksPanel.css';
+import { upgradePath } from '@/lib/plans';
 
 const PREVIEW_COUNT = 14;
 const TIER_NAMES: Record<string, string> = { free: 'Free', plus: 'Plus', pro: 'Pro', max: 'Max' };
@@ -143,7 +144,7 @@ export const EmojiPacksPanel: React.FC = () => {
       {readOnly && (
         <p className="server-images-status server-images-status--error" role="status">
           This server is on the Free plan, so emoji packs are read-only. You can still download every pack.{' '}
-          <Link to={`/pricing?guild=${guildId}`}>Upgrade to restore all</Link>. Choose a plan with enough pack slots to apply or edit your saved packs.
+          <Link to={upgradePath(guildId)}>Upgrade to restore all</Link>. Choose a plan with enough pack slots to apply or edit your saved packs.
         </p>
       )}
       {job && <JobBanner job={job} packs={data.packs} />}
@@ -241,7 +242,7 @@ export const EmojiPacksPanel: React.FC = () => {
               <LockKeyhole aria-hidden="true" />
               <strong>Need more packs?</strong>
               <span>Pro includes 5 packs and Max includes 10.</span>
-              <Link to={`/pricing?guild=${guildId}`} className="btn secondary">Compare plans <ArrowRight aria-hidden="true" /></Link>
+              <Link to={upgradePath(guildId)} className="btn secondary">Compare plans <ArrowRight aria-hidden="true" /></Link>
             </li>
           )}
         </ul>
@@ -277,7 +278,7 @@ const UpsellCard: React.FC<{ guildId: string }> = ({ guildId }) => (
         Save your emojis as packs, such as a Halloween set and a Winter set, and switch between them. Plus includes
         3 packs, Pro 5 and Max 10, and your current emojis are always backed up first.
       </p>
-      <Link to={`/pricing?guild=${guildId}`} className="btn primary">Compare plans <ArrowRight aria-hidden="true" /></Link>
+      <Link to={upgradePath(guildId)} className="btn primary">Compare plans <ArrowRight aria-hidden="true" /></Link>
     </div>
   </section>
 );
@@ -383,7 +384,7 @@ const LiveCard: React.FC<{
           {keptIn(removing).length ? (
             <p>It stays saved in <strong>{keptIn(removing).join(', ')}</strong>, so you can bring it back later.</p>
           ) : (
-            <p className="emoji-confirm__warn">
+            <p className="confirm-dialog__warn">
               It isn’t saved in any other pack, so it will be gone for good. Cancel and drag it onto a pack first to
               keep a copy.
             </p>

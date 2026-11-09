@@ -35,6 +35,7 @@ import {
 } from '@/components/ui';
 import { showToast } from '@/utils/toast';
 import './BillingPage.css';
+import { LoadFailed } from '@/components/ui/LoadFailed';
 
 type PaidTier = Exclude<PremiumTier, 'free'>;
 
@@ -699,6 +700,17 @@ export const BillingPage: React.FC = () => {
   }, [guildId, navigate, queryClient]);
 
   if (subscription.isLoading) return <LoadingSpinner />;
+  if (subscription.isError) {
+    return (
+      <div className="feature-page">
+        <LoadFailed
+          title="Billing details didn't load"
+          message="We couldn't confirm this server's plan, so plan changes are paused. Nothing was changed. Try again in a moment."
+          onRetry={() => subscription.refetch()}
+        />
+      </div>
+    );
+  }
 
   const status = subscription.data?.status ?? 'active';
   const record = subscription.data?.subscription ?? null;

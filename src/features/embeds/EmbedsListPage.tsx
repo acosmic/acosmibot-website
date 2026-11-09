@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, Plus } from 'lucide-react';
-import { LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner, LoadFailed } from '@/components/ui';
 import { DiscordEmbedPreview } from '@/components/ui/DiscordEmbedPreview';
 import { embedsApi, type GuildEmbed } from '@/api/embeds';
 import { showToast } from '@/utils/toast';
@@ -47,6 +47,17 @@ export const EmbedsListPage: React.FC = () => {
   });
 
   if (embedsQuery.isLoading) return <LoadingSpinner />;
+  if (embedsQuery.isError) {
+    return (
+      <div className="feature-page">
+        <LoadFailed
+          title="Your embeds didn't load"
+          message="We couldn't reach your saved embeds. They haven't been changed. Try again in a moment."
+          onRetry={() => Promise.all([embedsQuery.refetch(), statsQuery.refetch()])}
+        />
+      </div>
+    );
+  }
 
   const embeds = embedsQuery.data ?? [];
   const stats = statsQuery.data;

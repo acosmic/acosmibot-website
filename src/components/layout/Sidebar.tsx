@@ -31,6 +31,7 @@ import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useGuildStore } from '@/store/guild';
 import { useGuildPermissions } from '@/hooks/useGuildPermissions';
 import { getGuildTier } from '@/features/analytics/entitlement';
+import { PLAN_LABEL, lockedPlanFor, type FeaturePlanRequirement } from '@/lib/plans';
 
 interface NavItemProps {
   to: string;
@@ -38,17 +39,25 @@ interface NavItemProps {
   assetIcon?: 'twitch' | 'youtube' | 'kick' | 'x';
   label: string;
   end?: boolean;
-  status?: 'soon' | 'plus';
+  status?: 'soon';
+  /** Plan needed on this server's current tier (from lib/plans). */
+  plan?: FeaturePlanRequirement | null;
   onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, assetIcon, label, end, status, onClick }) => (
+const planAriaLabel = (label: string, plan: FeaturePlanRequirement): string =>
+  plan.scope === 'feature'
+    ? `${label}, needs the ${PLAN_LABEL[plan.tier]} plan`
+    : `${label}, advanced settings need the ${PLAN_LABEL[plan.tier]} plan`;
+
+const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, assetIcon, label, end, status, plan, onClick }) => (
   <NavLink
     to={to}
     end={end}
-    className={({ isActive }) => `nav-item${isActive ? ' active' : ''}${status ? ` is-${status}` : ''}`}
+    className={({ isActive }) => `nav-item${isActive ? ' active' : ''}${status ? ` is-${status}` : ''}${plan ? ' is-plus' : ''}`}
     onClick={onClick}
-    aria-label={status === 'soon' ? `${label}, coming soon` : status === 'plus' ? `${label}, Plus plan feature` : undefined}
+    aria-label={status === 'soon' ? `${label}, coming soon` : plan ? planAriaLabel(label, plan) : undefined}
+    title={plan ? planAriaLabel(label, plan) : undefined}
   >
     {({ isActive }) => (
       <>
@@ -66,8 +75,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, assetIcon, label, end
         </span>
         <span className="nav-text">{label}</span>
         {status
-          ? <span className={`nav-status nav-status--${status}`} aria-hidden="true">{status === 'soon' ? 'Soon' : 'Plus'}</span>
-          : <span className="nav-signal" aria-hidden="true" />}
+          ? <span className="nav-status nav-status--soon" aria-hidden="true">Soon</span>
+          : plan
+            ? <span className="nav-status nav-status--plus" aria-hidden="true">{PLAN_LABEL[plan.tier]}</span>
+            : <span className="nav-signal" aria-hidden="true" />}
       </>
     )}
   </NavLink>
@@ -193,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 to={`/server/${guildId}/server-branding`}
                 icon={Palette}
                 label="Server Branding"
-                status={guildTier === 'free' ? 'plus' : undefined}
+                plan={lockedPlanFor('server-branding', guildTier)}
                 onClick={onClose}
               />
             )}
@@ -202,14 +213,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {canManage && (
             <>
               <NavSection title="Systems">
-                <NavItem to={`/server/${guildId}/analytics`} icon={BarChart3} label="Analytics" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/analytics`} icon={BarChart3} label="Analytics" plan={lockedPlanFor('analytics', guildTier)} onClick={onClose} />
                 <NavItem to={`/server/${guildId}/leveling`} icon={Trophy} label="Leveling" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/music`} icon={Music2} label="Music" onClick={onClose} />
               </NavSection>
 
               <NavSection title="Utilities">
                 <NavItem to={`/server/${guildId}/activity-monitor`} icon={Radar} label="Activity Monitor" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/ai`} icon={Bot} label="AI Customization" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/ai`} icon={Bot} label="AI Customization" plan={lockedPlanFor('ai', guildTier)} onClick={onClose} />
                 <NavItem to={`/server/${guildId}/banned-users`} icon={UserRoundX} label="Banned Users" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/better-embeds`} icon={MessageSquareHeart} label="Better Social Embeds" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/custom-commands`} icon={Command} label="Custom Commands" onClick={onClose} />
@@ -221,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <NavSection title="Social alerts">
                 <NavItem to={`/server/${guildId}/kick`} assetIcon="kick" label="Kick" onClick={onClose} />
                 <NavItem to={`/server/${guildId}/twitch`} assetIcon="twitch" label="Twitch" onClick={onClose} />
-                <NavItem to={`/server/${guildId}/x-alerts`} assetIcon="x" label="X Posts" onClick={onClose} />
+                <NavItem to={`/server/${guildId}/x-alerts`} assetIcon="x" label="X Posts" plan={lockedPlanFor('x-alerts', guildTier)} onClick={onClose} />
                 <NavItem to={`/server/${guildId}/youtube`} assetIcon="youtube" label="YouTube" onClick={onClose} />
               </NavSection>
 

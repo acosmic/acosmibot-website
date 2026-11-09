@@ -372,3 +372,59 @@
     border: 1px solid CanvasText;
   }
 }
+
+/* Compact consent bar (2026-11-08 UX audit): the banner no longer covers the
+ * hero call to action. One line of copy plus three equal-weight choices. */
+.analytics-consent:not(.analytics-consent--preferences) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 18px;
+  width: min(1040px, calc(100vw - 24px));
+  max-width: 1040px;
+  padding: 10px 12px 10px 18px;
+}
+
+.analytics-consent:not(.analytics-consent--preferences) .analytics-consent__copy h2 {
+  display: inline;
+  margin: 0 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.analytics-consent:not(.analytics-consent--preferences) .analytics-consent__copy p {
+  display: inline;
+  max-width: none;
+}
+
+.analytics-consent:not(.analytics-consent--preferences) .analytics-consent__copy a {
+  display: inline;
+  margin-top: 0;
+}
+
+.analytics-consent:not(.analytics-consent--preferences) .analytics-consent__actions {
+  grid-column: auto;
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 860px) {
+  .analytics-consent:not(.analytics-consent--preferences) {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .analytics-consent:not(.analytics-consent--preferences) .analytics-consent__actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .analytics-consent:not(.analytics-consent--preferences) .analytics-consent__actions button,
+  .analytics-consent:not(.analytics-consent--preferences) .analytics-consent__actions button:last-child {
+    grid-column: auto;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 6px;
+    white-space: normal;
+  }
+}

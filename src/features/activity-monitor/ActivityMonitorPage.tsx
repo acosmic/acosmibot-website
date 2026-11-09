@@ -5,7 +5,7 @@ import {
   Pencil, Plus, Trash2, TriangleAlert, Trophy, TvMinimalPlay,
   type LucideIcon,
 } from 'lucide-react';
-import { FeatureToggle, LoadingSpinner } from '@/components/ui';
+import { FeatureToggle, LoadingSpinner, LoadFailed } from '@/components/ui';
 import { useGuildRoles } from '@/hooks/useGuildRoles';
 import { showToast } from '@/utils/toast';
 import type { ActivityRule } from '@/api/activityMonitor';
@@ -33,7 +33,7 @@ export const ActivityMonitorPage: React.FC = () => {
   const [deleting, setDeleting] = useState<ActivityRule | null>(null);
 
   if (isLoading) return <LoadingSpinner />;
-  if (!config) return <div>No data found.</div>;
+  if (!config) return <LoadFailed title="Activity monitoring settings didn't load" />;
 
   const roleChangeLoggingEnabled = Boolean(
     moderationConfig?.enabled &&

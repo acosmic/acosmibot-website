@@ -78,7 +78,7 @@
     min-height: calc(100svh - var(--public-nav-height));
     display: flex;
     align-items: center;
-    padding: 64px 0 92px;
+    padding: 40px 0 72px;
 }
 
 .home-hero::after {
@@ -138,10 +138,12 @@
 }
 
 .home-hero h1 {
-    max-width: 10ch;
+    max-width: 12ch;
     margin: 0;
     color: var(--home-white);
-    font-size: clamp(3.2rem, 6.3vw, 5.9rem);
+    /* Sized so the hero call to action sits inside a 768px-tall laptop
+       viewport (DESIGN.md display range is 3–5rem). */
+    font-size: clamp(2.75rem, 4.5vw, 4.6rem);
     font-weight: 800;
     line-height: 1.04;
     letter-spacing: -0.035em;
@@ -1767,7 +1769,7 @@ button.feature-inspector__link {
     }
 
     .home-hero h1 {
-        font-size: clamp(3.2rem, 7.3vw, 5rem);
+        font-size: clamp(2.6rem, 5.6vw, 4.2rem);
     }
 
     .feature-explorer {
@@ -1806,7 +1808,7 @@ button.feature-inspector__link {
 
     .home-hero h1 {
         max-width: 11ch;
-        font-size: clamp(3rem, 11vw, 5.3rem);
+        font-size: clamp(2.5rem, 9vw, 4rem);
     }
 
     .hero-constellation {
@@ -1910,7 +1912,7 @@ button.feature-inspector__link {
     .home-hero h1 {
         width: 100%;
         max-width: 100%;
-        font-size: clamp(2.85rem, 12.8vw, 4.1rem);
+        font-size: clamp(2.3rem, 10.5vw, 3.4rem);
         text-wrap: pretty;
     }
 
