@@ -175,6 +175,47 @@ export interface WowProfileCardData {
   footer: string;
 }
 
+/** Blizzard equipment slot types the gear card lays out. */
+export type WowGearSlot =
+  | 'HEAD' | 'NECK' | 'SHOULDER' | 'BACK' | 'CHEST' | 'SHIRT' | 'TABARD' | 'WRIST'
+  | 'HANDS' | 'WAIST' | 'LEGS' | 'FEET' | 'FINGER_1' | 'FINGER_2' | 'TRINKET_1' | 'TRINKET_2'
+  | 'MAIN_HAND' | 'OFF_HAND' | 'RANGED';
+
+export interface WowGearItem {
+  slot: WowGearSlot;
+  name: string;
+  /** Blizzard quality type, e.g. UNCOMMON, RARE, EPIC. */
+  quality: string;
+  itemLevel: number;
+  /** Blizzard's 56px icon on render.worldofwarcraft.com; inlined server-side. '' draws a blank tile. */
+  iconUrl: string;
+}
+
+export interface WowGearCardData {
+  /** Selects <WowGearCard> in the shared render function. */
+  card: 'wow-gear';
+  /** In-game display name: "Txn Lr" for WoW Forever, otherwise the character name. */
+  characterName: string;
+  /** Realm display name; empty for realmless WoW Forever. */
+  realmName: string;
+  region: string;
+  versionLabel: string;
+  level: number;
+  race: string;
+  characterClass: string;
+  faction: string;
+  guildName: string;
+  /** WoW Forever ruleset (e.g. "PvP"); empty elsewhere. */
+  ruleset: string;
+  itemLevel: number;
+  /** Classic-era products keep a ranged/relic slot beside the two hands. */
+  showRangedSlot: boolean;
+  /** Blizzard's HTTPS `main-raw` render, or '' to leave the center empty. */
+  characterImageUrl: string;
+  items: WowGearItem[];
+  footer: string;
+}
+
 export interface WowProfileStat {
   label: string;
   value: string;
