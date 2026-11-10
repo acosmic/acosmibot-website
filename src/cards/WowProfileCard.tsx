@@ -1,4 +1,5 @@
 import type { WowProfileCardData, WowProfileTalent } from './types';
+import { statStyle } from './wowStatIcons';
 
 /**
  * THESIS: A Blizzard character render becomes the subject of a legible armory
@@ -298,7 +299,7 @@ export function WowProfileCard({ data }: { data: WowProfileCardData }) {
             letterSpacing: 1.5,
           }}
         >
-          <span>FIELD READOUT</span>
+          <span>STATS</span>
           <span>LIVE CHARACTER PROFILE</span>
         </div>
 
@@ -312,46 +313,57 @@ export function WowProfileCard({ data }: { data: WowProfileCardData }) {
             borderLeft: '1px solid rgba(255,255,255,0.08)',
           }}
         >
-          {stats.map((stat, index) => (
-            <div
-              key={`${stat.label}-${index}`}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                width: 210,
-                height: 90,
-                paddingLeft: 17,
-                boxSizing: 'border-box',
-                borderRight: '1px solid rgba(255,255,255,0.08)',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: index % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(255,255,255,0.012)',
-              }}
-            >
+          {stats.map((stat, index) => {
+            const { color, iconUrl } = statStyle(stat.label);
+            return (
               <div
+                key={`${stat.label}-${index}`}
                 style={{
-                  color: '#8293A0',
-                  fontSize: 15,
-                  fontWeight: 700,
-                  lineHeight: 1.1,
-                  letterSpacing: 0.8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: 210,
+                  height: 90,
+                  paddingLeft: 14,
+                  boxSizing: 'border-box',
+                  borderRight: '1px solid rgba(255,255,255,0.08)',
+                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  backgroundColor: index % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(255,255,255,0.012)',
                 }}
               >
-                {compact(stat.label.toUpperCase(), 18)}
+                <img
+                  src={iconUrl}
+                  width={48}
+                  height={48}
+                  style={{ width: 48, height: 48, marginRight: 12 }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <div
+                    style={{
+                      color,
+                      fontSize: 30,
+                      fontWeight: 700,
+                      lineHeight: 1.05,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div
+                    style={{
+                      color: '#F4FBFF',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      lineHeight: 1.2,
+                      letterSpacing: 0.8,
+                      marginTop: 3,
+                    }}
+                  >
+                    {compact(stat.label.toUpperCase(), 16)}
+                  </div>
+                </div>
               </div>
-              <div
-                style={{
-                  color: '#F4FBFF',
-                  fontSize: 34,
-                  fontWeight: 700,
-                  lineHeight: 1.05,
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {stat.value}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div

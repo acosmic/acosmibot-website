@@ -530,3 +530,115 @@ test('WoW gear card renders at 1200x820 and retries a missing product icon once'
     global.fetch = originalFetch;
   }
 });
+
+function wowIdentity() {
+  return {
+    characterName: 'Txn Lr',
+    realmName: '',
+    region: 'EU',
+    versionLabel: 'WoW Forever',
+    level: 31,
+    race: 'Orc',
+    characterClass: 'Warlock',
+    faction: 'Horde',
+    footer: 'Blizzard profile data · updates after logout',
+  };
+}
+
+function wowTalentsPayload(overrides = {}) {
+  return {
+    card: 'wow-talents',
+    ...wowIdentity(),
+    specName: 'Affliction',
+    specIconUrl: 'https://render.worldofwarcraft.com/forever-eu/icons/56/136145.jpg',
+    pointsSpent: 17,
+    heroTree: '',
+    sections: [
+      {
+        title: 'Affliction',
+        points: 17,
+        talents: [
+          { name: 'Suppression', rank: 2, iconUrl: 'https://render.worldofwarcraft.com/forever-eu/icons/56/136230.jpg' },
+          { name: 'Improved Corruption', rank: 5, iconUrl: '' },
+        ],
+      },
+    ],
+    ...overrides,
+  };
+}
+
+function wowProfessionsPayload(overrides = {}) {
+  return {
+    card: 'wow-professions',
+    ...wowIdentity(),
+    primaries: [
+      { name: 'Mining', tier: '', skill: 130, maxSkill: 225, iconUrl: 'https://render.worldofwarcraft.com/forever-eu/icons/56/136248.jpg' },
+    ],
+    secondaries: [
+      { name: 'Cooking', tier: '', skill: 134, maxSkill: 150, iconUrl: '' },
+    ],
+    ...overrides,
+  };
+}
+
+async function withJpegFetch(fn) {
+  const originalFetch = global.fetch;
+  const requested = [];
+  global.fetch = async (url) => {
+    requested.push(String(url));
+    return new Response(TINY_JPEG, { headers: { 'content-type': 'image/jpeg' } });
+  };
+  try {
+    return await fn(requested);
+  } finally {
+    global.fetch = originalFetch;
+  }
+}
+
+test('WoW talents card renders at least 1200x675 and grows with many talents', async () => {
+  await withJpegFetch(async (requested) => {
+    const small = await render(wowTalentsPayload());
+    assert.equal(small.status, 200);
+    assert.deepEqual(pngDimensions(small.body), { width: 1200, height: 675 });
+    assert.equal(requested.length, 2, 'spec icon plus one talent icon; blank icons are not fetched');
+
+    const many = Array.from({ length: 80 }, (_, index) => ({ name: `Talent ${index}`, rank: 1, iconUrl: '' }));
+    const large = await render(wowTalentsPayload({
+      sections: [
+        { title: 'Unholy', points: 30, talents: many.slice(0, 30) },
+        { title: "San'layn", points: 14, talents: many.slice(30, 44) },
+        { title: 'Death Knight', points: 36, talents: many.slice(44) },
+      ],
+    }));
+    assert.equal(large.status, 200);
+    const { width, height } = pngDimensions(large.body);
+    assert.equal(width, 1200);
+    assert.ok(height > 675 && height <= 2000, `height ${height}`);
+  });
+});
+
+test('WoW talents card rejects untrusted icons and oversized builds', async () => {
+  assert.equal((await render(wowTalentsPayload({ specIconUrl: 'https://example.com/a.jpg' }))).status, 400);
+  const tooMany = Array.from({ length: 91 }, (_, index) => ({ name: `T${index}`, rank: 1, iconUrl: '' }));
+  assert.equal(
+    (await render(wowTalentsPayload({ sections: [{ title: 'X', points: 1, talents: tooMany }] }))).status,
+    400,
+  );
+});
+
+test('WoW professions card renders and validates its lists', async () => {
+  await withJpegFetch(async () => {
+    const res = await render(wowProfessionsPayload());
+    assert.equal(res.status, 200);
+    const { width, height } = pngDimensions(res.body);
+    assert.equal(width, 1200);
+    assert.ok(height >= 420 && height < 675, `height ${height}`);
+  });
+  assert.equal(
+    (await render(wowProfessionsPayload({
+      primaries: [{ name: 'Mining', tier: '', skill: 1, maxSkill: 2, iconUrl: 'https://evil.example.com/x.jpg' }],
+    }))).status,
+    400,
+  );
+  assert.equal((await render(wowProfessionsPayload({ secondaries: 'nope' }))).status, 400);
+});
