@@ -216,6 +216,58 @@ export interface WowGearCardData {
   footer: string;
 }
 
+/** Identity block shared by the gear-page family of WoW cards. */
+export interface WowCardIdentity {
+  characterName: string;
+  realmName: string;
+  region: string;
+  versionLabel: string;
+  level: number;
+  race: string;
+  characterClass: string;
+  faction: string;
+  footer: string;
+}
+
+export interface WowTalentEntry {
+  name: string;
+  rank: number;
+  /** Blizzard 56px spell icon, or '' (Classic products expose no spell media). */
+  iconUrl: string;
+}
+
+export interface WowTalentSection {
+  /** Talent tree (Classic) or Retail group: spec, hero tree, or class. */
+  title: string;
+  points: number;
+  talents: WowTalentEntry[];
+}
+
+export interface WowTalentsCardData extends WowCardIdentity {
+  card: 'wow-talents';
+  specName: string;
+  specIconUrl: string;
+  pointsSpent: number;
+  /** Retail hero talent tree name, or ''. */
+  heroTree: string;
+  sections: WowTalentSection[];
+}
+
+export interface WowProfessionEntry {
+  name: string;
+  /** Retail expansion tier such as "Khaz Algar Mining", or ''. */
+  tier: string;
+  skill: number;
+  maxSkill: number;
+  iconUrl: string;
+}
+
+export interface WowProfessionsCardData extends WowCardIdentity {
+  card: 'wow-professions';
+  primaries: WowProfessionEntry[];
+  secondaries: WowProfessionEntry[];
+}
+
 export interface WowProfileStat {
   label: string;
   value: string;

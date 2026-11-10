@@ -1,4 +1,15 @@
 import type { WowGearCardData, WowGearItem, WowGearSlot } from './types';
+import {
+  ACOSMIBOT_CYAN,
+  ARMORY_GOLD as GOLD,
+  ARMORY_GREY as ITEM_LEVEL_GREY,
+  EMBER_BACKGROUND,
+  QUALITY_COLORS,
+  WOW_FONT_STACK as FONT_STACK,
+  classColor,
+  compact,
+  factionColor,
+} from './wowTheme';
 
 /**
  * THESIS: The Gear page reads like Blizzard's own Armory character sheet so a
@@ -14,8 +25,6 @@ import type { WowGearCardData, WowGearItem, WowGearSlot } from './types';
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 820;
-
-const FONT_STACK = 'Urbanist, sans-serif';
 
 const LEFT_SLOTS: WowGearSlot[] = [
   'HEAD', 'NECK', 'SHOULDER', 'BACK', 'CHEST', 'SHIRT', 'TABARD', 'WRIST',
@@ -46,51 +55,12 @@ const SLOT_LABELS: Record<WowGearSlot, string> = {
   RANGED: 'RANGED',
 };
 
-/** Blizzard item-quality colors as the Armory draws them on black. */
-const QUALITY_COLORS: Record<string, string> = {
-  POOR: '#9D9D9D',
-  COMMON: '#FFFFFF',
-  UNCOMMON: '#1EFF00',
-  RARE: '#0080FF',
-  EPIC: '#A335EE',
-  LEGENDARY: '#FF8000',
-  ARTIFACT: '#E6CC80',
-  HEIRLOOM: '#00CCFF',
-  WOW_TOKEN: '#00CCFF',
-};
-
-const CLASS_COLORS: Record<string, string> = {
-  'death knight': '#C41E3A',
-  'demon hunter': '#A330C9',
-  druid: '#FF7C0A',
-  evoker: '#33937F',
-  hunter: '#AAD372',
-  mage: '#3FC7EB',
-  monk: '#00FF98',
-  paladin: '#F48CBA',
-  priest: '#F4FBFF',
-  rogue: '#FFF468',
-  shaman: '#0070DD',
-  warlock: '#8788EE',
-  warrior: '#C69B6D',
-};
-
-const FACTION_COLORS: Record<string, string> = {
-  alliance: '#4A8BFF',
-  horde: '#E44A4A',
-};
-
-const GOLD = '#F8B400';
-const ITEM_LEVEL_GREY = '#B4B4B4';
 
 const ICON = 56;
 const ROW_TOP = 152;
 const ROW_STEP = 66;
 const SIDE = 44;
 const WEAPON_TOP = 700;
-
-const compact = (value: string, max: number): string =>
-  value.length > max ? `${value.slice(0, Math.max(1, max - 1))}…` : value;
 
 const qualityColor = (quality: string): string =>
   QUALITY_COLORS[quality.toUpperCase()] || '#FFFFFF';
@@ -321,8 +291,8 @@ function WeaponRow({
 }
 
 export function WowGearCard({ data }: { data: WowGearCardData }) {
-  const classAccent = CLASS_COLORS[data.characterClass.toLowerCase()] || '#9F8BFF';
-  const factionAccent = FACTION_COLORS[data.faction.toLowerCase()] || GOLD;
+  const classAccent = classColor(data.characterClass);
+  const factionAccent = factionColor(data.faction);
   const bySlot = new Map<WowGearSlot, WowGearItem>();
   for (const item of data.items || []) {
     if (!bySlot.has(item.slot)) bySlot.set(item.slot, item);
@@ -340,8 +310,7 @@ export function WowGearCard({ data }: { data: WowGearCardData }) {
         overflow: 'hidden',
         color: '#FFFFFF',
         fontFamily: FONT_STACK,
-        background:
-          'radial-gradient(ellipse at 50% 42%, #3A1A0C 0%, #1C0B05 42%, #0A0402 72%, #050201 100%)',
+        background: EMBER_BACKGROUND,
       }}
     >
       {/* Faint faction wash from the top edge. */}
@@ -470,7 +439,7 @@ export function WowGearCard({ data }: { data: WowGearCardData }) {
         }}
       >
         <div style={{ display: 'flex' }}>
-          <span style={{ color: '#67ECFF' }}>ACOSMIBOT</span>
+          <span style={{ color: ACOSMIBOT_CYAN }}>ACOSMIBOT</span>
           <span style={{ color: '#6B5A4E', margin: '0 9px' }}>//</span>
           <span style={{ color: GOLD }}>GEAR</span>
         </div>

@@ -6,7 +6,8 @@
  * -> resvg-wasm (PNG). This is the canonical image the Discord bot fetches.
  *
  * One endpoint serves every card type: `card: 'weather'`, `card: 'wow-profile'`,
- * `card: 'wow-gear'` and `card: 'ai-status'` select their components, while
+ * `card: 'wow-gear'`, `card: 'wow-talents'`, `card: 'wow-professions'` and
+ * `card: 'ai-status'` select their components, while
  * anything else falls through to the rank card. That keeps a single
  * CARD_RENDER_URL / RENDER_SHARED_SECRET pair in production.
  *
@@ -41,6 +42,16 @@ import {
   CARD_HEIGHT as WOW_GEAR_HEIGHT,
 } from '../../src/cards/WowGearCard';
 import {
+  WowTalentsCard,
+  CARD_WIDTH as WOW_TALENTS_WIDTH,
+  talentCardHeight,
+} from '../../src/cards/WowTalentsCard';
+import {
+  WowProfessionsCard,
+  CARD_WIDTH as WOW_PROFESSIONS_WIDTH,
+  professionsCardHeight,
+} from '../../src/cards/WowProfessionsCard';
+import {
   AIStatusCard,
   CARD_WIDTH as AI_STATUS_WIDTH,
   CARD_HEIGHT as AI_STATUS_HEIGHT,
@@ -55,6 +66,8 @@ import type {
   WeatherCardData,
   WowGearCardData,
   WowGearSlot,
+  WowProfessionsCardData,
+  WowTalentsCardData,
   WowProfileCardData,
 } from '../../src/cards/types';
 
@@ -311,6 +324,72 @@ async function wowIconToDataUri(url: string): Promise<string> {
   }
 }
 
+/** Fetch allowlisted icons (deduplicated, a few at a time) as data URIs. */
+async function inlineWowIcons(urls: string[]): Promise<Map<string, string>> {
+  const sources = [...new Set(urls.filter((url) => url && isAllowedWowIconUrl(url)))];
+  const inlined = new Map<string, string>();
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(WOW_GEAR_ICON_CONCURRENCY, sources.length) }, async () => {
+      while (next < sources.length) {
+        const url = sources[next++];
+        inlined.set(url, await wowIconToDataUri(url));
+      }
+    }),
+  );
+  return inlined;
+}
+
+async function svgToPng(svg: string, width: number): Promise<Buffer> {
+  await ensureWasm();
+  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: width } });
+  return Buffer.from(resvg.render().asPng());
+}
+
+async function renderWowTalentsPng(data: WowTalentsCardData): Promise<Buffer> {
+  const inlined = await inlineWowIcons([
+    data.specIconUrl,
+    ...data.sections.flatMap((section) => section.talents.map((talent) => talent.iconUrl)),
+  ]);
+  const resolved: WowTalentsCardData = {
+    ...data,
+    specIconUrl: inlined.get(data.specIconUrl) || '',
+    sections: data.sections.map((section) => ({
+      ...section,
+      talents: section.talents.map((talent) => ({
+        ...talent,
+        iconUrl: inlined.get(talent.iconUrl) || '',
+      })),
+    })),
+  };
+  const fonts = await loadFonts();
+  const svg = await satori(<WowTalentsCard data={resolved} />, {
+    width: WOW_TALENTS_WIDTH,
+    height: talentCardHeight(resolved),
+    fonts,
+  });
+  return svgToPng(svg, WOW_TALENTS_WIDTH);
+}
+
+async function renderWowProfessionsPng(data: WowProfessionsCardData): Promise<Buffer> {
+  const inlined = await inlineWowIcons(
+    [...data.primaries, ...data.secondaries].map((profession) => profession.iconUrl),
+  );
+  const resolve = (professions: WowProfessionsCardData['primaries']) =>
+    professions.map((profession) => ({
+      ...profession,
+      iconUrl: inlined.get(profession.iconUrl) || '',
+    }));
+  const resolved = { ...data, primaries: resolve(data.primaries), secondaries: resolve(data.secondaries) };
+  const fonts = await loadFonts();
+  const svg = await satori(<WowProfessionsCard data={resolved} />, {
+    width: WOW_PROFESSIONS_WIDTH,
+    height: professionsCardHeight(resolved),
+    fonts,
+  });
+  return svgToPng(svg, WOW_PROFESSIONS_WIDTH);
+}
+
 async function renderWowGearPng(data: WowGearCardData): Promise<Buffer> {
   // The character render is optional here: a gear sheet without the center
   // figure is still useful. Icons are deduplicated and fetched a few at a
@@ -322,19 +401,7 @@ async function renderWowGearPng(data: WowGearCardData): Promise<Buffer> {
     ? imageToDataUri(data.characterImageUrl).catch(() => '')
     : Promise.resolve('');
 
-  const iconSources = [...new Set(
-    data.items.map((item) => item.iconUrl).filter((url) => url && isAllowedWowIconUrl(url)),
-  )];
-  const inlined = new Map<string, string>();
-  let next = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(WOW_GEAR_ICON_CONCURRENCY, iconSources.length) }, async () => {
-      while (next < iconSources.length) {
-        const url = iconSources[next++];
-        inlined.set(url, await wowIconToDataUri(url));
-      }
-    }),
-  );
+  const inlined = await inlineWowIcons(data.items.map((item) => item.iconUrl));
   const characterImageUrl = await characterPromise;
   const items = data.items.map((item) => ({
     ...item,
@@ -543,6 +610,90 @@ function isValidWowGear(data: unknown): data is WowGearCardData {
   );
 }
 
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+const isOptionalWowIcon = (value: unknown): boolean =>
+  isBoundedString(value, 256) && (value === '' || isAllowedWowIconUrl(value));
+
+function isValidWowCardIdentity(d: Record<string, unknown>): boolean {
+  return (
+    isBoundedString(d.characterName, 64) &&
+    isBoundedString(d.realmName, 64) &&
+    isBoundedString(d.region, 8) &&
+    isBoundedString(d.versionLabel, 96) &&
+    isFiniteNumber(d.level) &&
+    isBoundedString(d.race, 48) &&
+    isBoundedString(d.characterClass, 48) &&
+    isBoundedString(d.faction, 32) &&
+    isBoundedString(d.footer, 120)
+  );
+}
+
+const WOW_TALENTS_MAX = 90;
+
+function isValidWowTalents(data: unknown): data is WowTalentsCardData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  if (
+    d.card !== 'wow-talents' ||
+    !isValidWowCardIdentity(d) ||
+    !isBoundedString(d.specName, 48) ||
+    !isOptionalWowIcon(d.specIconUrl) ||
+    !isFiniteNumber(d.pointsSpent) ||
+    !isBoundedString(d.heroTree, 48) ||
+    !Array.isArray(d.sections) ||
+    d.sections.length > 4
+  ) return false;
+  let total = 0;
+  for (const entry of d.sections) {
+    if (!entry || typeof entry !== 'object') return false;
+    const section = entry as Record<string, unknown>;
+    if (
+      !isBoundedString(section.title, 48) ||
+      !isFiniteNumber(section.points) ||
+      !Array.isArray(section.talents)
+    ) return false;
+    total += section.talents.length;
+    if (total > WOW_TALENTS_MAX) return false;
+    for (const raw of section.talents) {
+      if (!raw || typeof raw !== 'object') return false;
+      const talent = raw as Record<string, unknown>;
+      if (
+        !isBoundedString(talent.name, 64) ||
+        !isFiniteNumber(talent.rank) ||
+        !isOptionalWowIcon(talent.iconUrl)
+      ) return false;
+    }
+  }
+  return true;
+}
+
+function isValidWowProfessions(data: unknown): data is WowProfessionsCardData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  const validList = (value: unknown, max: number) =>
+    Array.isArray(value) &&
+    value.length <= max &&
+    value.every((raw) => {
+      if (!raw || typeof raw !== 'object') return false;
+      const p = raw as Record<string, unknown>;
+      return (
+        isBoundedString(p.name, 48) &&
+        isBoundedString(p.tier, 64) &&
+        isFiniteNumber(p.skill) &&
+        isFiniteNumber(p.maxSkill) &&
+        isOptionalWowIcon(p.iconUrl)
+      );
+    });
+  return (
+    d.card === 'wow-professions' &&
+    isValidWowCardIdentity(d) &&
+    validList(d.primaries, 4) &&
+    validList(d.secondaries, 5)
+  );
+}
+
 function isValidAIStatus(data: unknown): data is AIStatusCardData {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
@@ -626,6 +777,8 @@ export async function run(context: any, req: any): Promise<void> {
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'wow-profile';
   const wantsWowGear =
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'wow-gear';
+  const wowCard =
+    !!data && typeof data === 'object' ? (data as Record<string, unknown>).card : undefined;
   const wantsAIStatus =
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'ai-status';
   const wantsLeagueCard =
@@ -691,6 +844,33 @@ export async function run(context: any, req: any): Promise<void> {
       };
     } catch (err) {
       context.log?.error?.('WoW profile card render failed', err);
+      context.res = { status: 500, body: 'Render failed' };
+    }
+    return;
+  }
+
+  if (wowCard === 'wow-talents' || wowCard === 'wow-professions') {
+    const talents = wowCard === 'wow-talents';
+    const valid = talents ? isValidWowTalents(data) : isValidWowProfessions(data);
+    if (!valid) {
+      context.res = {
+        status: 400,
+        body: talents ? 'Invalid WoW talents card payload' : 'Invalid WoW professions card payload',
+      };
+      return;
+    }
+    try {
+      const png = talents
+        ? await renderWowTalentsPng(data as WowTalentsCardData)
+        : await renderWowProfessionsPng(data as WowProfessionsCardData);
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
+        body: png,
+        isRaw: true,
+      };
+    } catch (err) {
+      context.log?.error?.(`${String(wowCard)} card render failed`, err);
       context.res = { status: 500, body: 'Render failed' };
     }
     return;
