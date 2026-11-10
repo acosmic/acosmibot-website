@@ -5,8 +5,8 @@
  * components the website renders live) -> Satori (SVG, fonts embedded as paths)
  * -> resvg-wasm (PNG). This is the canonical image the Discord bot fetches.
  *
- * One endpoint serves every card type: `card: 'weather'` and
- * `card: 'wow-profile'` and `card: 'ai-status'` select their components, while
+ * One endpoint serves every card type: `card: 'weather'`, `card: 'wow-profile'`,
+ * `card: 'wow-gear'` and `card: 'ai-status'` select their components, while
  * anything else falls through to the rank card. That keeps a single
  * CARD_RENDER_URL / RENDER_SHARED_SECRET pair in production.
  *
@@ -36,6 +36,11 @@ import {
   CARD_HEIGHT as WOW_PROFILE_HEIGHT,
 } from '../../src/cards/WowProfileCard';
 import {
+  WowGearCard,
+  CARD_WIDTH as WOW_GEAR_WIDTH,
+  CARD_HEIGHT as WOW_GEAR_HEIGHT,
+} from '../../src/cards/WowGearCard';
+import {
   AIStatusCard,
   CARD_WIDTH as AI_STATUS_WIDTH,
   CARD_HEIGHT as AI_STATUS_HEIGHT,
@@ -48,6 +53,8 @@ import type {
   LolCardData,
   RankCardData,
   WeatherCardData,
+  WowGearCardData,
+  WowGearSlot,
   WowProfileCardData,
 } from '../../src/cards/types';
 
@@ -109,6 +116,34 @@ const ALLOWED_WOW_RENDER_HOSTS = new Set(['render.worldofwarcraft.com']);
 const RANK_BACKGROUND_HOST = 'cdn.acosmibot.com';
 const RANK_BACKGROUND_PATH_PREFIX = '/embed-images/rank-card-backgrounds/';
 const MAX_REMOTE_IMAGE_BYTES = 8 * 1024 * 1024;
+
+// Blizzard's 56px item icon path, e.g. /forever-eu/icons/56/133149.jpg or
+// /classicann-eu/icons/56/inv_helmet_30.jpg. Nothing else on the host is an icon.
+const WOW_ICON_PATH_RE = /^\/[a-z0-9-]{1,32}\/icons\/56\/[A-Za-z0-9_-]{1,96}\.jpg$/;
+const WOW_GEAR_SLOTS = new Set<WowGearSlot>([
+  'HEAD', 'NECK', 'SHOULDER', 'BACK', 'CHEST', 'SHIRT', 'TABARD', 'WRIST',
+  'HANDS', 'WAIST', 'LEGS', 'FEET', 'FINGER_1', 'FINGER_2', 'TRINKET_1', 'TRINKET_2',
+  'MAIN_HAND', 'OFF_HAND', 'RANGED',
+]);
+const WOW_GEAR_ICON_CONCURRENCY = 6;
+
+export function isAllowedWowIconUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    return (
+      u.protocol === 'https:' &&
+      ALLOWED_WOW_RENDER_HOSTS.has(u.hostname) &&
+      u.port === '' &&
+      u.username === '' &&
+      u.password === '' &&
+      u.search === '' &&
+      u.hash === '' &&
+      WOW_ICON_PATH_RE.test(u.pathname)
+    );
+  } catch {
+    return false;
+  }
+}
 
 function isAllowedImageUrl(raw: string, allowedHosts: Set<string>): boolean {
   try {
@@ -244,6 +279,81 @@ async function renderWowProfilePng(data: WowProfileCardData): Promise<Buffer> {
   await ensureWasm();
   const resvg = new Resvg(svg, {
     fitTo: { mode: 'width', value: WOW_PROFILE_WIDTH },
+  });
+  return Buffer.from(resvg.render().asPng());
+}
+
+/**
+ * Blizzard's per-product icon folders are not always complete (a live Forever
+ * EU wand icon returned 403 while the same file id served under the Retail
+ * folder). Icons are global file ids or texture names, so retry once under the
+ * same region's Retail folder on the same host.
+ */
+export function wowIconFallbackUrl(raw: string): string {
+  try {
+    const u = new URL(raw);
+    const [, folder, ...rest] = u.pathname.split('/');
+    const region = folder.slice(folder.lastIndexOf('-') + 1);
+    if (!folder.includes('-') || !['us', 'eu', 'kr', 'tw'].includes(region)) return '';
+    const fallback = `https://${u.hostname}/${region}/${rest.join('/')}`;
+    return isAllowedWowIconUrl(fallback) ? fallback : '';
+  } catch {
+    return '';
+  }
+}
+
+async function wowIconToDataUri(url: string): Promise<string> {
+  try {
+    return await imageToDataUri(url, 'image/jpeg');
+  } catch {
+    const fallback = wowIconFallbackUrl(url);
+    return fallback ? imageToDataUri(fallback, 'image/jpeg').catch(() => '') : '';
+  }
+}
+
+async function renderWowGearPng(data: WowGearCardData): Promise<Buffer> {
+  // The character render is optional here: a gear sheet without the center
+  // figure is still useful. Icons are deduplicated and fetched a few at a
+  // time; a failed icon leaves its quality-framed tile empty.
+  const characterPromise = (
+    data.characterImageUrl &&
+    isAllowedImageUrl(data.characterImageUrl, ALLOWED_WOW_RENDER_HOSTS)
+  )
+    ? imageToDataUri(data.characterImageUrl).catch(() => '')
+    : Promise.resolve('');
+
+  const iconSources = [...new Set(
+    data.items.map((item) => item.iconUrl).filter((url) => url && isAllowedWowIconUrl(url)),
+  )];
+  const inlined = new Map<string, string>();
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(WOW_GEAR_ICON_CONCURRENCY, iconSources.length) }, async () => {
+      while (next < iconSources.length) {
+        const url = iconSources[next++];
+        inlined.set(url, await wowIconToDataUri(url));
+      }
+    }),
+  );
+  const characterImageUrl = await characterPromise;
+  const items = data.items.map((item) => ({
+    ...item,
+    iconUrl: inlined.get(item.iconUrl) || '',
+  }));
+
+  const fonts = await loadFonts();
+  const svg = await satori(
+    <WowGearCard data={{ ...data, characterImageUrl, items }} />,
+    {
+      width: WOW_GEAR_WIDTH,
+      height: WOW_GEAR_HEIGHT,
+      fonts,
+    },
+  );
+
+  await ensureWasm();
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: 'width', value: WOW_GEAR_WIDTH },
   });
   return Buffer.from(resvg.render().asPng());
 }
@@ -388,6 +498,51 @@ function isValidWowProfile(data: unknown): data is WowProfileCardData {
   );
 }
 
+const isBoundedString = (value: unknown, max: number): value is string =>
+  typeof value === 'string' && value.length <= max;
+
+function isValidWowGear(data: unknown): data is WowGearCardData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    d.card === 'wow-gear' &&
+    isBoundedString(d.characterName, 64) &&
+    isBoundedString(d.realmName, 64) &&
+    isBoundedString(d.region, 8) &&
+    isBoundedString(d.versionLabel, 96) &&
+    typeof d.level === 'number' &&
+    Number.isFinite(d.level) &&
+    isBoundedString(d.race, 48) &&
+    isBoundedString(d.characterClass, 48) &&
+    isBoundedString(d.faction, 32) &&
+    isBoundedString(d.guildName, 64) &&
+    isBoundedString(d.ruleset, 32) &&
+    typeof d.itemLevel === 'number' &&
+    Number.isFinite(d.itemLevel) &&
+    typeof d.showRangedSlot === 'boolean' &&
+    isBoundedString(d.characterImageUrl, 512) &&
+    (d.characterImageUrl === '' ||
+      isAllowedImageUrl(d.characterImageUrl, ALLOWED_WOW_RENDER_HOSTS)) &&
+    Array.isArray(d.items) &&
+    d.items.length <= WOW_GEAR_SLOTS.size &&
+    d.items.every((entry) => {
+      if (!entry || typeof entry !== 'object') return false;
+      const item = entry as Record<string, unknown>;
+      return (
+        typeof item.slot === 'string' &&
+        WOW_GEAR_SLOTS.has(item.slot as WowGearSlot) &&
+        isBoundedString(item.name, 96) &&
+        isBoundedString(item.quality, 24) &&
+        typeof item.itemLevel === 'number' &&
+        Number.isFinite(item.itemLevel) &&
+        isBoundedString(item.iconUrl, 256) &&
+        (item.iconUrl === '' || isAllowedWowIconUrl(item.iconUrl))
+      );
+    }) &&
+    isBoundedString(d.footer, 120)
+  );
+}
+
 function isValidAIStatus(data: unknown): data is AIStatusCardData {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
@@ -469,6 +624,8 @@ export async function run(context: any, req: any): Promise<void> {
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'weather';
   const wantsWowProfile =
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'wow-profile';
+  const wantsWowGear =
+    !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'wow-gear';
   const wantsAIStatus =
     !!data && typeof data === 'object' && (data as Record<string, unknown>).card === 'ai-status';
   const wantsLeagueCard =
@@ -534,6 +691,26 @@ export async function run(context: any, req: any): Promise<void> {
       };
     } catch (err) {
       context.log?.error?.('WoW profile card render failed', err);
+      context.res = { status: 500, body: 'Render failed' };
+    }
+    return;
+  }
+
+  if (wantsWowGear) {
+    if (!isValidWowGear(data)) {
+      context.res = { status: 400, body: 'Invalid WoW gear card payload' };
+      return;
+    }
+    try {
+      const png = await renderWowGearPng(data);
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
+        body: png,
+        isRaw: true,
+      };
+    } catch (err) {
+      context.log?.error?.('WoW gear card render failed', err);
       context.res = { status: 500, body: 'Render failed' };
     }
     return;

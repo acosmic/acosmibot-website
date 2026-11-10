@@ -4,7 +4,14 @@ const { inflateSync } = require('node:zlib');
 
 process.env.RENDER_SHARED_SECRET = 'render-card-test-secret';
 
-const { run, isAllowedDataDragonAssetUrl, LOL_RENDER_LIMITS, compactLolText } = require('./index.js');
+const {
+  run,
+  isAllowedDataDragonAssetUrl,
+  LOL_RENDER_LIMITS,
+  compactLolText,
+  isAllowedWowIconUrl,
+  wowIconFallbackUrl,
+} = require('./index.js');
 
 function aiStatusPayload(overrides = {}) {
   return {
@@ -431,6 +438,94 @@ test('counts warm cached images against the per-render aggregate byte cap', asyn
     await render(cacheFixture);
     assert.equal(afterSecondRender, 10, 'only the ninth image remains uncached after the warm-cache render');
     assert.equal(assetRequests, 11, 'the warm cache cannot bypass the 3 MiB per-render cap');
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+const TINY_JPEG = Buffer.from(
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
+  'base64',
+);
+
+function wowGearPayload(overrides = {}) {
+  return {
+    card: 'wow-gear',
+    characterName: 'Txn Lr',
+    realmName: '',
+    region: 'EU',
+    versionLabel: 'WoW Forever',
+    level: 31,
+    race: 'Orc',
+    characterClass: 'Warlock',
+    faction: 'Horde',
+    guildName: 'Happy Cafeteria',
+    ruleset: 'PvP',
+    itemLevel: 26,
+    showRangedSlot: true,
+    characterImageUrl: '',
+    items: [
+      { slot: 'HEAD', name: 'Shadow Goggles', quality: 'UNCOMMON', itemLevel: 24, iconUrl: 'https://render.worldofwarcraft.com/forever-eu/icons/56/133149.jpg' },
+      { slot: 'RANGED', name: 'Gravestone Scepter', quality: 'RARE', itemLevel: 29, iconUrl: 'https://render.worldofwarcraft.com/forever-eu/icons/56/135466.jpg' },
+      { slot: 'CHEST', name: 'Dreadweave Robe', quality: 'EPIC', itemLevel: 115, iconUrl: 'https://render.worldofwarcraft.com/classicann-eu/icons/56/inv_chest_cloth_43.jpg' },
+    ],
+    footer: 'Blizzard profile data · updates after logout',
+    ...overrides,
+  };
+}
+
+test('WoW icon URLs must be Blizzard 56px icon paths', () => {
+  assert.ok(isAllowedWowIconUrl('https://render.worldofwarcraft.com/forever-eu/icons/56/133149.jpg'));
+  assert.ok(isAllowedWowIconUrl('https://render.worldofwarcraft.com/classicann-eu/icons/56/inv_helmet_30.jpg'));
+  for (const url of [
+    'http://render.worldofwarcraft.com/us/icons/56/1.jpg',
+    'https://evil.example.com/us/icons/56/1.jpg',
+    'https://render.worldofwarcraft.com/us/character/147/1-main-raw.png',
+    'https://render.worldofwarcraft.com/us/icons/56/1.jpg?x=1',
+    'https://render.worldofwarcraft.com:8443/us/icons/56/1.jpg',
+    'https://render.worldofwarcraft.com/us/icons/56/../../x.jpg',
+  ]) {
+    assert.equal(isAllowedWowIconUrl(url), false, url);
+  }
+});
+
+test('a product icon folder falls back to the same region Retail folder', () => {
+  assert.equal(
+    wowIconFallbackUrl('https://render.worldofwarcraft.com/forever-eu/icons/56/135466.jpg'),
+    'https://render.worldofwarcraft.com/eu/icons/56/135466.jpg',
+  );
+  assert.equal(wowIconFallbackUrl('https://render.worldofwarcraft.com/us/icons/56/1.jpg'), '');
+});
+
+test('WoW gear card rejects untrusted icons and unknown slots', async () => {
+  const badIcon = wowGearPayload({
+    items: [{ slot: 'HEAD', name: 'x', quality: 'RARE', itemLevel: 1, iconUrl: 'https://169.254.169.254/us/icons/56/1.jpg' }],
+  });
+  assert.equal((await render(badIcon)).status, 400);
+  const badSlot = wowGearPayload({
+    items: [{ slot: 'BAG_1', name: 'x', quality: 'RARE', itemLevel: 1, iconUrl: '' }],
+  });
+  assert.equal((await render(badSlot)).status, 400);
+  const badCharacter = wowGearPayload({ characterImageUrl: 'https://example.com/x.png' });
+  assert.equal((await render(badCharacter)).status, 400);
+});
+
+test('WoW gear card renders at 1200x820 and retries a missing product icon once', async () => {
+  const originalFetch = global.fetch;
+  const requested = [];
+  global.fetch = async (url) => {
+    requested.push(String(url));
+    if (String(url).includes('/forever-eu/icons/56/135466.jpg')) {
+      return new Response('denied', { status: 403, headers: { 'content-type': 'application/xml' } });
+    }
+    return new Response(TINY_JPEG, { headers: { 'content-type': 'image/jpeg' } });
+  };
+  try {
+    const res = await render(wowGearPayload());
+    assert.equal(res.status, 200);
+    assert.deepEqual(pngDimensions(res.body), { width: 1200, height: 820 });
+    assert.ok(requested.includes('https://render.worldofwarcraft.com/eu/icons/56/135466.jpg'));
+    assert.equal(requested.length, 4);
   } finally {
     global.fetch = originalFetch;
   }
