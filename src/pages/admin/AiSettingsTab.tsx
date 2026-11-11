@@ -29,8 +29,8 @@ const CHANNEL_SUMMARY_DEFAULTS: Record<AdminAiTier, number> = {
 const WEB_SEARCH_DEFAULTS: Record<AdminAiTier, number> = {
   free: 10,
   plus: 30,
-  pro: 50,
-  max: 100,
+  pro: 200,
+  max: 500,
 };
 const FREE_TIER_DAILY_SPEND_DEFAULT = 5;
 
