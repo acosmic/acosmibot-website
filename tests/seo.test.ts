@@ -55,7 +55,7 @@ test('documentation reflects current commercial and product contracts', () => {
   assert.match(plans, /Max.*emote awareness/is);
   assert.match(plans, /Basic AI chat.*10\/day.*200\/month.*30\/day.*600\/month/is);
   assert.match(plans, /Fresh channel summaries.*3\/month.*10\/month.*100\/month.*300\/month/is);
-  assert.match(plans, /AI web searches.*10\/month.*30\/month.*50\/month.*100\/month/is);
+  assert.match(plans, /AI web searches.*10\/month.*30\/month.*200\/month.*500\/month/is);
   assert.match(plans, /Web image searches.*10\/month.*30\/month.*50\/month.*100\/month/is);
   assert.match(plans, /Medium AI image generation.*3\/month.*10\/month.*50\/month.*100\/month/is);
   assert.match(plans, /AI vision analyses.*10\/month.*30\/month.*100\/month.*200\/month/is);

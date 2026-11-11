@@ -20,7 +20,7 @@ test('channel summary is present in the website AI catalog and limit contracts',
 test('owner summary limits normalize legacy API responses and explain the monthly quota', () => {
   // Fallbacks for older API payloads must match core TIER_LIMITS (2026-11-11).
   assert.match(adminSettings, /CHANNEL_SUMMARY_DEFAULTS[\s\S]*free: 3,[\s\S]*plus: 10,[\s\S]*pro: 100,[\s\S]*max: 300/);
-  assert.match(adminSettings, /WEB_SEARCH_DEFAULTS[\s\S]*free: 10,[\s\S]*plus: 30,[\s\S]*pro: 50,[\s\S]*max: 100/);
+  assert.match(adminSettings, /WEB_SEARCH_DEFAULTS[\s\S]*free: 10,[\s\S]*plus: 30,[\s\S]*pro: 200,[\s\S]*max: 500/);
   assert.match(adminSettings, /free_tier_daily_spend_usd/);
   assert.match(adminSettings, /normalizeChannelSummaryLimit/);
   assert.match(adminSettings, /Fresh channel summaries per month/);
