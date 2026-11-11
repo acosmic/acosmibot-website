@@ -8,7 +8,7 @@ export const PrivacyPolicyPage: React.FC = () => (
     kind="privacy"
     title="Privacy Policy"
     subtitle="Your privacy is important to us. Learn how we collect and protect your data."
-    lastUpdated="October 13, 2026"
+    lastUpdated="November 11, 2026"
   >
     <LegalSection title="1. Introduction">
       <p>This Privacy Policy explains how Acosmibot collects, uses, stores, and protects your personal information when you use our Discord bot and related services.</p>
@@ -40,7 +40,9 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Owner Activity Feed:</strong> Command names, AI route and tool labels, completed website actions, outcome, timing, Discord display name, and server name may appear for up to 24 hours in an owner-only operational feed. Command arguments, message content, AI prompts and output, tool payloads, and configuration values are excluded.</li>
       </ul>
 
-      <p>Owner-only installation analytics record the invitation source (such as Top.gg or our website), invitation and authorization timestamps, server ID, bot join/removal timestamps, and completed command or AI feature outcomes. These records contain no message content, command arguments, member identity, IP address, or OAuth credential. Invitation and feature records expire after 90 days; installation records persist while the bot is installed and expire 90 days after removal. This data stays in our operational database and is not sent to Google Analytics. Top.gg receives only aggregate server and shard counts for the public listing.</p>
+      <p>Owner-only installation analytics record the invitation source (such as Top.gg or our website), invitation and authorization timestamps, server ID, bot join/removal timestamps, the permissions the bot was granted when it joined, whether the member who added the bot was identified (yes or no), and completed command or AI feature outcomes. These records contain no message content, command arguments, member identity, IP address, or OAuth credential. Invitation and feature records expire after 90 days; installation records persist while the bot is installed and expire 90 days after removal. This data stays in our operational database and is not sent to Google Analytics. Top.gg receives only aggregate server and shard counts for the public listing. The operator may receive a private Discord post when the bot is added to or removed from a server, showing only the member count, how long the bot was installed, the invitation source, its permissions, and the bot&apos;s total server count, never the server&apos;s name, ID, or owner.</p>
+
+      <p>Separately, when the bot is added to a server and can read that server&apos;s audit log, we store the Discord user ID of the member who added it. We use it only to send that member a welcome message with getting-started help and, if the bot is removed, a goodbye message. We keep it for the current installation and for 30 days after the bot is removed, then erase it. If the bot is added again, the new installation&apos;s member replaces it.</p>
 
       <LegalSubheading>2.3 Economy &amp; Game Data</LegalSubheading>
       <ul>
@@ -178,11 +180,12 @@ export const PrivacyPolicyPage: React.FC = () => (
         <li><strong>Billing Records:</strong> Subscription and transaction records are retained for at least seven years to satisfy tax, accounting, and legal obligations, even after an account deletion request</li>
         <li><strong>AI Credit Accounting:</strong> Wallet, purchase, ledger, reservation, refund, and dispute records may be retained for at least seven years for tax, accounting, fraud, and service-liability obligations</li>
         <li><strong>AI Provider Telemetry:</strong> Structured provider/cost/latency records are retained for up to 90 days for operations and reconciliation; prompts and generated content are not retained in those telemetry records</li>
+        <li><strong>Installing Member:</strong> The Discord user ID of the member who added the bot is kept for the current installation and erased 30 days after the bot is removed from that server</li>
         <li><strong>Owner Activity Feed:</strong> Content-safe activity summaries are retained for up to 24 hours</li>
         <li><strong>Local AI Traces:</strong> Content-free routing, provider, tool, safety, delivery, and settlement spans are retained for up to 90 days</li>
         <li><strong>AI Image Content:</strong> Stored generation prompts, revised prompts, analysis text, and result URLs are erased after 30 days; non-content quota and accounting fields may remain under the applicable operational or billing retention period</li>
         <li><strong>Error Monitoring:</strong> Scrubbed Sentry events are retained for no longer than 90 days and may be retained for a shorter period under the active project settings</li>
-        <li><strong>Local Runtime Diagnostics:</strong> Local system journals, including raw Discord identifiers attached only to error and critical records, are capped at 14 days and are accessible only to authorized operators</li>
+        <li><strong>Local Runtime Diagnostics:</strong> Local system journals, including raw Discord identifiers attached only to error and critical records, are capped at 30 days and are accessible only to authorized operators</li>
         <li><strong>Better Social Embeds Aggregates:</strong> Content-free daily server, outcome, platform, and provider-resolution counts are retained for up to 400 days</li>
         <li><strong>Optional Website Analytics:</strong> Event-level analytics data is retained for no longer than 14 months</li>
       </ul>
