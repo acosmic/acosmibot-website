@@ -25,9 +25,9 @@
         <li>Neutral, safety-screened answers with structured personas on Pro or Max</li>
         <li>Saved personalities — switch the bot's persona with <code>/ai-admin personality</code> or from the dashboard (Pro or Max)</li>
         <li>Per-user memories extracted from screened conversation and recalled in any channel of the server, with private review and clear controls and per-channel learning opt-outs for managers</li>
-        <li>Permission-checked Channel Summaries for the current or one selected same-server channel (Pro or Max)</li>
+        <li>Permission-checked Channel Summaries for the current or one selected same-server channel (monthly allowance on every plan)</li>
         <li>Native tools for live Discord facts, statistics, reminders, weather, Acosmibot help, web results, and World of Warcraft</li>
-        <li>Moderated web-image search that uploads a real Discord attachment (Pro or Max)</li>
+        <li>Moderated web-image search that uploads a real Discord attachment (monthly allowance on every plan)</li>
         <li>Ambient replies — the AI can occasionally chime into conversation unprompted (Pro or Max)</li>
         <li>Restrict AI responses to specific channels</li>
         <li>Provider-neutral chat, image, and vision support selected through Acosmibot's owner configuration</li>
@@ -46,13 +46,13 @@
       <h3>Role permission answers</h3>
       <p>Explicit questions about a role's permissions or which roles grant a permission read the live base server-role flags. Results include <code>@everyone</code> and managed roles and distinguish a direct permission grant from effective access through <strong>Administrator</strong>. Channel overwrites and a member's other roles can change that member's final permissions, so this is not presented as a complete member permission audit.</p>
     </div>
-    <p>Pro and Max managers can independently enable or disable each model-facing tool in AI settings. A tool switch affects natural-language AI use only and does not disable the corresponding slash command. Final text still crosses Acosmibot's output-screening, trusted-link, and Discord-mention boundaries before delivery.</p>
+    <p>Managers can independently enable or disable model-facing tools in AI settings: every plan controls image generation, image analysis, web search, image search, and channel summaries, and Pro and Max control every tool. A tool switch affects natural-language AI use only and does not disable the corresponding slash command. Final text still crosses Acosmibot's output-screening, trusted-link, and Discord-mention boundaries before delivery.</p>
   </section>
 
   <section class="docs-section">
     <h2>Channel Summaries</h2>
     <p>
-      On Pro and Max, use <code>/ai summary</code> or mention Acosmibot and ask for a TL;DR, catch-up, or summary. The request can read the current channel or one explicitly selected same-server message channel. Both the requester and Acosmibot must be able to view that target and read its message history before any history is loaded.
+      On any plan with summary allowance left, use <code>/ai summary</code> or mention Acosmibot and ask for a TL;DR, catch-up, or summary. The request can read the current channel or one explicitly selected same-server message channel. Both the requester and Acosmibot must be able to view that target and read its message history before any history is loaded.
     </p>
     <ul>
       <li>Choose today, yesterday, the last 1, 3, 6, 12, or 24 hours, the last 7 days, the previous calendar week, or one recent calendar date.</li>
@@ -86,7 +86,7 @@
   <section class="docs-section">
     <h2>Web Image Search</h2>
     <p>
-      On Pro and Max servers with image search enabled, ask Acosmibot to find, show, or post an existing picture. Pro includes 50 and Max 100 successfully delivered web-image searches per allowance month. Each picture requested uses one image-search unit, and the containing mention also uses its normal single chat request.
+      On servers with image search enabled, ask Acosmibot to find, show, or post an existing picture. Free includes 10, Plus 30, Pro 50, and Max 100 successfully delivered web-image searches per allowance month. Each picture requested uses one image-search unit, and the containing mention also uses its normal single chat request.
     </p>
     <p>Acosmibot searches with Exa, filters obvious placeholders, checks that the requested subject is visibly present and usable, moderates the candidate, and uploads one normalized image as a real Discord attachment. Failed candidates do not consume delivered-use quota. Ask for the source explicitly if you also want the source-page link. Requests to create new artwork use image generation; questions about an attachment or supported Discord sticker use image analysis.</p>
   </section>
@@ -188,7 +188,7 @@
       <div class="command-card">
         <div class="command-signature">/ai summary [period] [date] [channel]</div>
         <div class="command-description">
-          Create a bounded summary of the current channel or one selected same-server channel after requester and bot permission checks. <strong>Pro or Max feature</strong>.
+          Create a bounded summary of the current channel or one selected same-server channel after requester and bot permission checks. Uses the server's monthly summary allowance (every plan).
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -254,7 +254,7 @@
       <div class="command-card">
         <div class="command-signature">/ai image &lt;prompt&gt;</div>
         <div class="command-description">
-          Generate an image using the configured AI image provider based on your text prompt. <strong>Pro or Max feature</strong> — image generation uses the server's current quota and any enabled paid-overage policy.
+          Generate an image using the configured AI image provider based on your text prompt. Available on every plan — image generation uses the server's current quota and any enabled paid-overage policy.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -265,7 +265,7 @@
       <div class="command-card">
         <div class="command-signature">/ai analyze &lt;image-url&gt;</div>
         <div class="command-description">
-          Analyze an attached image using the configured AI vision provider and receive a detailed description or answer questions about it. <strong>Pro or Max feature</strong>.
+          Analyze an attached image using the configured AI vision provider and receive a detailed description or answer questions about it. Uses the server's monthly vision allowance (every plan).
         </div>
         <div class="command-examples">
           <h4>Example:</h4>

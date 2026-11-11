@@ -5,24 +5,34 @@ import { TimezoneSelect, detectBrowserTimezone } from '@/components/ui/TimezoneS
 import './AiSettingsTab.css';
 import { ROUTING_MODES } from './RoutingComparisonPanel';
 
-type FormState = Pick<AdminAiSettings, 'enabled' | 'response_notice' | 'response_trace' | 'routing_mode' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits' | 'provider_layers'>;
+type FormState = Pick<AdminAiSettings, 'enabled' | 'response_notice' | 'response_trace' | 'routing_mode' | 'model' | 'polymorph_model' | 'timezone' | 'web_search_provider' | 'tier_limits' | 'provider_layers'> & {
+  free_tier_daily_spend_usd: number;
+};
 
 const PLAN_LIMITS: Array<{ tier: AdminAiTier; label: string; description: string }> = [
-  { tier: 'free', label: 'Free', description: 'Basic AI chat' },
-  { tier: 'plus', label: 'Plus', description: 'Basic AI chat' },
-  { tier: 'pro', label: 'Pro', description: 'AI tools, memory, and personalities' },
+  { tier: 'free', label: 'Free', description: 'AI chat and starter tool allowances' },
+  { tier: 'plus', label: 'Plus', description: 'Larger AI chat and tool allowances' },
+  { tier: 'pro', label: 'Pro', description: 'Memory, personalities, and ambient chat' },
   { tier: 'max', label: 'Max', description: 'Higher-volume AI workflows' },
 ];
 
-const DAILY_LIMIT_OPTIONS = [1, 3, 5, 10, 25, 50, 100, 200, 300, 500, 1000];
-const MONTHLY_LIMIT_OPTIONS = [30, 90, 100, 250, 500, 1000, 2000, 3000, 6000, 10000, 20000];
-const IMAGE_LIMIT_OPTIONS = [0, 5, 10, 25, 50, 75, 100, 200, 300, 500, 1000];
+const DAILY_LIMIT_OPTIONS = [1, 3, 5, 10, 25, 30, 50, 100, 200, 300, 500, 1000];
+const MONTHLY_LIMIT_OPTIONS = [30, 90, 100, 200, 250, 500, 600, 1000, 1500, 2000, 3000, 6000, 10000, 20000];
+const IMAGE_LIMIT_OPTIONS = [0, 3, 5, 10, 25, 30, 50, 75, 100, 200, 300, 500, 1000];
+// Fallbacks for older API payloads; must match core TIER_LIMITS.
 const CHANNEL_SUMMARY_DEFAULTS: Record<AdminAiTier, number> = {
-  free: 0,
-  plus: 0,
+  free: 3,
+  plus: 10,
   pro: 100,
   max: 300,
 };
+const WEB_SEARCH_DEFAULTS: Record<AdminAiTier, number> = {
+  free: 10,
+  plus: 30,
+  pro: 50,
+  max: 100,
+};
+const FREE_TIER_DAILY_SPEND_DEFAULT = 5;
 
 const normalizeChannelSummaryLimit = (value: unknown, fallback: number) => {
   if (value === null || value === undefined || value === '') return fallback;
@@ -40,6 +50,10 @@ const normalizeTierLimits = (limits: AdminAiTierLimits): AdminAiTierLimits => ({
         channel_summary_monthly_limit: normalizeChannelSummaryLimit(
           limits[tier]?.channel_summary_monthly_limit,
           CHANNEL_SUMMARY_DEFAULTS[tier],
+        ),
+        web_search_monthly_limit: normalizeChannelSummaryLimit(
+          limits[tier]?.web_search_monthly_limit,
+          WEB_SEARCH_DEFAULTS[tier],
         ),
       },
     ]),
@@ -61,7 +75,8 @@ export const AiSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (query.data?.data) {
-      const { enabled, response_notice, response_trace, routing_mode, model, polymorph_model, timezone, web_search_provider, tier_limits, provider_layers } = query.data.data;
+      const { enabled, response_notice, response_trace, routing_mode, model, polymorph_model, timezone, web_search_provider, tier_limits, provider_layers, free_tier_daily_spend_usd } = query.data.data;
+      const spendCeiling = Number(free_tier_daily_spend_usd);
       setForm({
         enabled,
         response_notice: response_notice ?? true,
@@ -73,6 +88,9 @@ export const AiSettingsTab: React.FC = () => {
         web_search_provider: web_search_provider || 'tavily',
         tier_limits: normalizeTierLimits(tier_limits),
         provider_layers,
+        free_tier_daily_spend_usd: Number.isFinite(spendCeiling) && spendCeiling >= 0
+          ? spendCeiling
+          : FREE_TIER_DAILY_SPEND_DEFAULT,
       });
     }
   }, [query.data]);
@@ -274,7 +292,7 @@ export const AiSettingsTab: React.FC = () => {
         <div className="mb-4">
           <label className="form-label mb-2 d-block">AI usage limits by plan</label>
           <p className="text-muted small mt-0 mb-3">
-            Limits apply per server. Fresh channel summaries count toward a separate monthly allowance. Defaults match the limits shown on the pricing page.
+            Limits apply per server. A capability is offered to a plan only when its limit is above zero. Fresh channel summaries count toward a separate monthly allowance. Defaults match the limits shown on the pricing page.
           </p>
           <div style={{ display: 'grid', gap: 12 }}>
             {PLAN_LIMITS.map(({ tier, label, description }) => {
@@ -356,6 +374,19 @@ export const AiSettingsTab: React.FC = () => {
                       </select>
                     </label>
                     <label className="small">
+                      Web search monthly
+                      <select
+                        className="form-control mt-1"
+                        value={limits.web_search_monthly_limit ?? WEB_SEARCH_DEFAULTS[tier]}
+                        onChange={(e) => setTierLimit(tier, 'web_search_monthly_limit', Number(e.target.value))}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+                      >
+                        {limitOptions(limits.web_search_monthly_limit ?? WEB_SEARCH_DEFAULTS[tier], IMAGE_LIMIT_OPTIONS).map((value) => (
+                          <option key={value} value={value}>{value === 0 ? 'Not included' : `${value.toLocaleString()} / month`}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="small">
                       Fresh channel summaries per month
                       <select
                         className="form-control mt-1"
@@ -373,6 +404,33 @@ export const AiSettingsTab: React.FC = () => {
               );
             })}
           </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="form-label mb-2 d-block" htmlFor="free-tier-daily-spend">
+            Free-plan daily AI spend ceiling (USD)
+          </label>
+          <input
+            id="free-tier-daily-spend"
+            type="number"
+            min={0}
+            max={10000}
+            step={0.5}
+            className="form-control"
+            value={form.free_tier_daily_spend_usd}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              setForm({
+                ...form,
+                free_tier_daily_spend_usd: Number.isFinite(value) && value >= 0 ? value : 0,
+              });
+            }}
+            style={{ maxWidth: 200, background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}
+          />
+          <p className="text-muted small mt-1 mb-0">
+            Total model spend by all Free-plan servers per UTC day. When reached, Free servers get a short
+            "AI is busy" reply until the next UTC day; paid plans are unaffected. 0 pauses Free-plan AI.
+          </p>
         </div>
 
         <div className="d-flex align-items-center gap-3">
