@@ -31,9 +31,9 @@
     <h2>Commands</h2>
     <div class="command-list">
       <div class="command-card">
-        <div class="command-signature">/wow profile &lt;character&gt; &lt;realm&gt; [version] [region]</div>
+        <div class="command-signature">/wow profile [character] [realm] [version] [region]</div>
         <div class="command-description">
-          Show the character overview. The card uses Blizzard's full-body render when available, while requester-only buttons open an Armory-style gear card and ranked talents and can restore the original card without another lookup. The Armory button links to the official Blizzard Armory page.
+          Show the character overview. The card uses Blizzard's full-body render when available, while requester-only buttons open an Armory-style gear card, ranked talents, and professions and can restore the original card without another lookup. The Armory button links to the official Blizzard Armory page. Leave <code>character</code> empty to show your saved main.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -42,14 +42,14 @@
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/wow pvp &lt;character&gt; &lt;realm&gt; [version] [region]</div>
+        <div class="command-signature">/wow pvp [character] [realm] [version] [region]</div>
         <div class="command-description">
           Show the PvP summary and any 2v2, 3v3, or rated-battleground brackets Blizzard exposes for that character and product.
         </div>
       </div>
 
       <div class="command-card">
-        <div class="command-signature">/wow pve &lt;character&gt; &lt;realm&gt; [version] [region]</div>
+        <div class="command-signature">/wow pve [character] [realm] [version] [region]</div>
         <div class="command-description">
           Show available equipment and raid progress. Retail also requests the character's Mythic+ profile index.
         </div>
@@ -57,7 +57,7 @@
     </div>
 
     <p>
-      Retail/Live and US are the defaults. Character and realm are required for every product except WoW Forever. Choose the exact version and region whenever those defaults do not identify the character.
+      Retail/Live and US are the defaults when you name a character. Leave <code>character</code> empty to use your saved main, or pick one of your saved characters from the option's suggestions. To look up anyone else, give the character and realm (every product except WoW Forever), and choose the exact version and region whenever the defaults do not identify the character.
     </p>
     <div class="info-card info-card-info">
       <h3>WoW Forever characters</h3>
@@ -70,9 +70,51 @@
   </section>
 
   <section class="docs-section">
+    <h2>Save Your Own Characters</h2>
+    <p>
+      Save the characters you play so <code>/wow</code> and Acosmibot know who you mean by &ldquo;my character&rdquo;. Saved characters belong to your Discord account, work in every server, and only you can list or change them.
+    </p>
+    <div class="command-list">
+      <div class="command-card">
+        <div class="command-signature">/wow characters add &lt;character&gt; [realm] [surname] [version] [region] [nickname] [main]</div>
+        <div class="command-description">
+          Checks the character with Blizzard, then saves it with Blizzard's spelling. Saving the same character again updates it. An optional nickname, such as <code>priest</code> or <code>alt</code>, lets you ask for it by that name.
+        </div>
+        <div class="command-examples">
+          <h4>Example:</h4>
+          <code>/wow characters add character:Acosmic realm:Illidan nickname:rogue</code>
+        </div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">/wow characters list</div>
+        <div class="command-description">Show your saved characters (only you can see it). &#9733; marks your main for each version.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">/wow characters main &lt;saved character&gt;</div>
+        <div class="command-description">Make a saved character your main for its version.</div>
+      </div>
+      <div class="command-card">
+        <div class="command-signature">/wow characters remove &lt;saved character&gt;</div>
+        <div class="command-description">Delete a saved character. If it was your main, your oldest remaining character in that version becomes the main.</div>
+      </div>
+    </div>
+    <div class="info-card info-card-info">
+      <h3>How &ldquo;my character&rdquo; is chosen</h3>
+      <ul>
+        <li>Up to 25 saved characters, with one main per game version; your first character in a version becomes its main automatically</li>
+        <li>Acosmibot uses the saved character in the version you asked for, the one whose name or nickname you used, or your main</li>
+        <li>If that still leaves more than one (for example mains in both Retail and WoW Forever), it asks which one you mean</li>
+      </ul>
+      <code>/wow profile version:WoW Forever</code>
+      <code>@Acosmibot show me my wow character</code>
+      <code>@Acosmibot how's my priest's gear?</code>
+    </div>
+  </section>
+
+  <section class="docs-section">
     <h2>Ask Acosmibot Naturally</h2>
     <p>
-      Mention Acosmibot with the same identity details you would provide to the slash command. Natural-language profile requests receive the same visual card and interactive pages.
+      Ask about your own saved character, or mention Acosmibot with the same identity details you would provide to the slash command. Natural-language profile requests receive the same visual card and interactive pages.
     </p>
     <div class="command-examples">
       <h4>Examples:</h4>
