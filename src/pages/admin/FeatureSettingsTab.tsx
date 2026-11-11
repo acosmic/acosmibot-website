@@ -8,7 +8,10 @@ type FormState = Pick<
   'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' |
   'ai_credit_sales_enabled' | 'ai_credit_spending_enabled' | 'ai_credit_dm_enabled' |
   'stripe_mode'
->;
+> & { lifecycle_post_channel_id: string };
+
+// Discord channel IDs are 17-20 digit snowflakes; empty turns the posts off.
+const isValidChannelId = (value: string) => value.trim() === '' || /^\d{17,20}$/.test(value.trim());
 
 const readableReadinessReason = (reason: string) => reason.replaceAll('_', ' ');
 
@@ -49,13 +52,17 @@ export const FeatureSettingsTab: React.FC = () => {
         ai_credit_sales_enabled: query.data.data.ai_credit_sales_enabled ?? false,
         ai_credit_spending_enabled: query.data.data.ai_credit_spending_enabled ?? false,
         ai_credit_dm_enabled: query.data.data.ai_credit_dm_enabled ?? false,
+        lifecycle_post_channel_id: query.data.data.lifecycle_post_channel_id ?? '',
         stripe_mode: query.data.data.stripe_mode,
       });
     }
   }, [query.data]);
 
   const mutation = useMutation({
-    mutationFn: (payload: FormState) => adminApi.updateFeatureSettings(payload),
+    mutationFn: (payload: FormState) => adminApi.updateFeatureSettings({
+      ...payload,
+      lifecycle_post_channel_id: payload.lifecycle_post_channel_id.trim(),
+    }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin', 'feature-settings'] });
       setSavedAt(Date.now());
@@ -77,6 +84,7 @@ export const FeatureSettingsTab: React.FC = () => {
   const targetMode: StripeMode = form.stripe_mode === 'live' ? 'test' : 'live';
   const targetConfigured = targetMode === 'live' ? liveConfigured : testConfigured;
   const pendingModeLabel = form.stripe_mode === 'live' ? 'Live' : 'Test';
+  const channelIdValid = isValidChannelId(form.lifecycle_post_channel_id);
 
   const handleModeChange = (checked: boolean) => {
     const nextMode: StripeMode = checked ? 'live' : 'test';
@@ -125,6 +133,41 @@ export const FeatureSettingsTab: React.FC = () => {
             Render <code>/rank</code> cards via the Satori Azure service. When off (or if the
             render fails), the bot falls back to the legacy PIL renderer.
           </p>
+        </div>
+
+        <div className="mb-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: 20 }}>
+          <label htmlFor="lifecycle-post-channel" style={{ fontWeight: 600, display: 'block' }}>
+            Join/leave post channel
+          </label>
+          <p className="text-muted small mb-2 mt-1">
+            Channel ID that gets a short post whenever the bot is added to or removed from a
+            server: member count, time installed, install source, permissions, and server
+            count. Server names, server IDs, and owners are never included. Leave empty to turn
+            the posts off.
+          </p>
+          <input
+            id="lifecycle-post-channel"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            className="form-control"
+            placeholder="Channel ID (empty = off)"
+            value={form.lifecycle_post_channel_id}
+            disabled={mutation.isPending}
+            aria-invalid={!channelIdValid}
+            aria-describedby={channelIdValid ? undefined : 'lifecycle-post-channel-error'}
+            onChange={(e) => {
+              mutation.reset();
+              setSavedAt(null);
+              setForm({ ...form, lifecycle_post_channel_id: e.target.value });
+            }}
+            style={{ maxWidth: 320 }}
+          />
+          {!channelIdValid && (
+            <p id="lifecycle-post-channel-error" className="small mt-1 mb-0" style={{ color: 'var(--error-color)' }}>
+              Enter a Discord channel ID (17-20 digits) or leave it empty.
+            </p>
+          )}
         </div>
 
         <div className="mb-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: 20 }}>
@@ -266,7 +309,7 @@ export const FeatureSettingsTab: React.FC = () => {
         </div>
 
         <div className="d-flex align-items-center gap-3">
-          <button type="submit" className="btn primary" disabled={mutation.isPending}>
+          <button type="submit" className="btn primary" disabled={mutation.isPending || !channelIdValid}>
             {mutation.isPending
               ? 'Saving...'
               : modeChangePending

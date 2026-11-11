@@ -294,6 +294,8 @@ export interface AdminFeatureSettings {
   ai_credit_sales_enabled: boolean;
   ai_credit_spending_enabled: boolean;
   ai_credit_dm_enabled: boolean;
+  /** Discord channel ID (string) for owner join/leave posts; empty = off. */
+  lifecycle_post_channel_id?: string;
   stripe_mode: StripeMode;
   stripe_test_configured: boolean;
   stripe_live_configured: boolean;
@@ -548,7 +550,7 @@ export const adminApi = {
   updateFeatureSettings: (payload: Partial<Pick<AdminFeatureSettings,
     'use_satori_rank_card' | 'use_satori_weather_card' | 'billing_enabled' |
     'ai_credit_sales_enabled' | 'ai_credit_spending_enabled' | 'ai_credit_dm_enabled' |
-    'stripe_mode'>>) =>
+    'lifecycle_post_channel_id' | 'stripe_mode'>>) =>
     api.fetch<{
       success: boolean;
       message: string;
