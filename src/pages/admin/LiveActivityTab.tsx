@@ -341,8 +341,16 @@ export const LiveActivityTab: React.FC = () => {
   useEffect(() => {
     if (!selectedActivityId) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // On desktop the drawer sits inside the Live Activity panel, so the page
+    // must keep scrolling. Only the phone layout (a fixed, viewport-covering
+    // sheet; see admin.css max-width: 640px) locks the page behind it.
+    const sheetQuery = window.matchMedia('(max-width: 640px)');
     const previousBodyOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const applyScrollLock = () => {
+      document.body.style.overflow = sheetQuery.matches ? 'hidden' : previousBodyOverflow;
+    };
+    applyScrollLock();
+    sheetQuery.addEventListener('change', applyScrollLock);
     const close = (event: KeyboardEvent) => {
       if (event.key === 'Escape') closeDetail();
       if (event.key !== 'Tab' || !detailRef.current) return;
@@ -361,6 +369,7 @@ export const LiveActivityTab: React.FC = () => {
     document.addEventListener('keydown', close);
     return () => {
       document.removeEventListener('keydown', close);
+      sheetQuery.removeEventListener('change', applyScrollLock);
       document.body.style.overflow = previousBodyOverflow;
       previousFocus?.focus();
     };
