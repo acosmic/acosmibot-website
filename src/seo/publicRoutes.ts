@@ -58,7 +58,7 @@ export const FEATURE_LANDINGS: Record<string, FeatureLandingDefinition> = {
     description: 'Acosmibot combines natural Discord conversations with native tool use, live server context, member memory, web and documentation search, reminders, image understanding, and creative actions.',
     shortDescription: 'Agentic AI for Discord with live server context, native tools, member memory, reminders, search, and image capabilities.',
     promise: 'More than a chat wrapper: Acosmibot can select trusted tools, retrieve current community data, complete authorized actions, and screen every model-authored response before it reaches Discord.',
-    availability: 'Basic AI chat is available on every plan. AI tools, member memory, saved personalities, and ambient replies are available on Pro and Max.',
+    availability: 'AI chat, image generation, image analysis, web search, and channel summaries are available on every plan within monthly allowances. Member memory, saved personalities, and ambient replies are available on Pro and Max.',
     documentationPath: '/docs/ai',
     highlights: ['Native function calling', 'Live Discord context', 'Screened output', 'Server-controlled access'],
     capabilities: [

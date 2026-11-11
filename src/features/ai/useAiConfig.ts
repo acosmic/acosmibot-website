@@ -112,7 +112,7 @@ export type AiToolName = 'ai_credit_settings' | 'image_analysis' | 'image_genera
 export const AI_TOOL_CATALOG: { name: AiToolName; label: string; description: string }[] = [
   { name: 'web_search', label: 'Web Search', description: 'Look up current information on the public web.' },
   { name: 'image_search', label: 'Image Search', description: 'Find an existing image on the live web and attach it to the reply.' },
-  { name: 'channel_summary', label: 'Channel Summaries', description: 'Summarize bounded recent history from the current Discord channel on Pro and Max servers.' },
+  { name: 'channel_summary', label: 'Channel Summaries', description: 'Summarize bounded recent history from the current Discord channel within the monthly summary allowance.' },
   { name: 'weather', label: 'Weather', description: 'Fetch live forecasts and weather cards.' },
   { name: 'wow_character', label: 'WoW Characters', description: 'Look up Retail, Classic, and WoW Forever Blizzard profiles with visual character cards, PvP records, and PvE progress.' },
   { name: 'lol_lookup', label: 'League of Legends Lookups', description: 'Look up public League profiles and recent matches on request. Results can be delayed; custom and private matches are excluded.' },
@@ -175,12 +175,20 @@ export const BUILT_IN_TRAITS: AiTrait[] = [
   member_enabled: false, price_acosmicoins: 0, duration_minutes: 10,
 }));
 
+// Every tool defaults on (web and image search too since 2026-11-11);
+// must mirror acosmibot-core AI_TOOL_DEFAULTS.
 const DEFAULT_TOOLS = Object.fromEntries(
-  AI_TOOL_CATALOG.map(tool => [
-    tool.name,
-    tool.name !== 'web_search' && tool.name !== 'image_search',
-  ]),
+  AI_TOOL_CATALOG.map(tool => [tool.name, true]),
 ) as Record<AiToolName, boolean>;
+
+/** Tool switches every plan may change (metered capabilities on every plan). */
+export const BASIC_AI_TOOLS: AiToolName[] = [
+  'image_generation',
+  'image_analysis',
+  'web_search',
+  'image_search',
+  'channel_summary',
+];
 
 const DEFAULT_AI: AiConfig = {
   enabled: true,
@@ -191,7 +199,7 @@ const DEFAULT_AI: AiConfig = {
   channel_mode: 'all',
   excluded_channels: [],
   allowed_channels: [],
-  web_search: false,
+  web_search: true,
   tools: DEFAULT_TOOLS,
   memory_enabled: true,
   memory_excluded_channels: [],
@@ -284,11 +292,11 @@ function normalizeAiConfig(raw?: Partial<AiConfig>, tier = 'free'): AiConfig {
     traits,
     tools: {
       ...DEFAULT_TOOLS,
-      web_search: Boolean(raw?.tools?.web_search ?? raw?.web_search ?? false),
-      image_search: Boolean(raw?.tools?.image_search ?? raw?.tools?.web_search ?? raw?.web_search ?? false),
+      web_search: Boolean(raw?.tools?.web_search ?? raw?.web_search ?? true),
+      image_search: Boolean(raw?.tools?.image_search ?? raw?.tools?.web_search ?? raw?.web_search ?? true),
       ...(raw?.tools || {}),
     },
-    web_search: Boolean(raw?.tools?.web_search ?? raw?.web_search ?? false),
+    web_search: Boolean(raw?.tools?.web_search ?? raw?.web_search ?? true),
     memory_excluded_channels: normalizeMemoryExcludedChannels(merged.memory_excluded_channels),
     image_moderation: merged.image_moderation === 'low' ? 'low' : 'auto',
     personality_marketplace_enabled: Boolean(merged.personality_marketplace_enabled),

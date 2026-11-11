@@ -59,7 +59,7 @@ const TIERS: TierCardDef[] = [
       { text: '1 custom command' },
       { text: '1 reaction role message' },
       { text: '5 custom embeds' },
-      { text: 'No AI tools, memories, or custom personalities', disabled: true },
+      { text: 'No AI memory, custom personalities, or ambient replies', disabled: true },
     ],
   },
   {
@@ -81,12 +81,12 @@ const TIERS: TierCardDef[] = [
       { text: '10 reaction role messages' },
       { text: '100 custom embeds' },
       { text: 'Priority support' },
-      { text: 'No AI tools, memories, or custom personalities', disabled: true },
+      { text: 'No AI memory, custom personalities, or ambient replies', disabled: true },
     ],
   },
   {
     tier: 'pro',
-    description: 'Plus limits with AI tools, memory, and clear usage caps.',
+    description: 'Plus limits with larger AI allowances, memory, and personalities.',
     fit: 'For servers that want AI built in',
     popular: true,
     ctaLabel: 'Select Server',
@@ -96,7 +96,6 @@ const TIERS: TierCardDef[] = [
       { text: '3 X accounts for post alerts' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
-      { text: 'AI web search' },
       { text: 'Ambient AI replies' },
     ],
   },
@@ -111,7 +110,6 @@ const TIERS: TierCardDef[] = [
       { text: '3 X accounts for post alerts' },
       { text: 'Custom AI personalities & instructions' },
       { text: 'Per-user AI memory' },
-      { text: 'AI web search' },
       { text: 'Ambient AI replies' },
     ],
   },
@@ -149,26 +147,25 @@ const buildCatalogFeatures = (def: TierCardDef, catalog: SubscriptionCatalogRow[
   const dailyAiActions = formatQuotaValue(quotas.daily_ai_actions);
   const monthlyAiActions = formatQuotaValue(quotas.monthly_ai_actions);
 
+  // Every plan includes AI chat and the metered AI tools within these
+  // allowances (2026-11-11); values come from core TIER_LIMITS.
+  const aiFeatures: TierCardDef['features'] = [];
   if (dailyAiActions !== null && monthlyAiActions !== null) {
-    const aiChatFeature = {
-      text: `AI chat - ${dailyAiActions}/day and ${monthlyAiActions}/month`,
-    };
-    if (firstUnavailableFeature >= 0) features.splice(firstUnavailableFeature, 0, aiChatFeature);
-    else features.push(aiChatFeature);
+    aiFeatures.push({ text: `AI chat - ${dailyAiActions}/day and ${monthlyAiActions}/month` });
   }
-
-  if (def.tier === 'pro' || def.tier === 'max') {
-    const aiQuotaFeatures = [
-      ['image_monthly_limit', 'medium images/month'],
-      ['image_analysis_monthly_limit', 'vision analyses/month'],
-      ['image_search_monthly_limit', 'web image searches/month'],
-      ['channel_summary_monthly_limit', 'fresh channel summaries/month'],
-    ] as const;
-    aiQuotaFeatures.forEach(([field, label]) => {
-      const value = formatQuotaValue(quotas[field]);
-      if (value !== null) features.push({ text: `${value} ${label}` });
-    });
-  }
+  const aiQuotaFeatures = [
+    ['image_monthly_limit', 'medium images/month'],
+    ['image_analysis_monthly_limit', 'vision analyses/month'],
+    ['web_search_monthly_limit', 'web searches/month'],
+    ['image_search_monthly_limit', 'web image searches/month'],
+    ['channel_summary_monthly_limit', 'fresh channel summaries/month'],
+  ] as const;
+  aiQuotaFeatures.forEach(([field, label]) => {
+    const value = formatQuotaValue(quotas[field]);
+    if (value !== null && value !== '0') aiFeatures.push({ text: `${value} ${label}` });
+  });
+  if (firstUnavailableFeature >= 0) features.splice(firstUnavailableFeature, 0, ...aiFeatures);
+  else features.push(...aiFeatures);
   return features;
 };
 
@@ -339,7 +336,7 @@ export const PricingPage: React.FC = () => {
           <div className="pricing-briefing__signals">
             <PremiumNote icon={<Radio />} title="Creator growth" text="Plus expands Twitch, YouTube, and Kick tracking to five per platform and adds one X account. Pro and Max raise X tracking to three." />
             <PremiumNote icon={<ShieldCheck />} title="Community operations" text="Plus adds 7, 30, and 90-day analytics, configurable weekly recaps, Better Social Embeds reporting, and higher automation limits." />
-            <PremiumNote icon={<Sparkles />} title="AI systems" text="Pro adds tools, memory, personalities, web search, ambient replies, images, and vision. Max raises the usage ceilings." />
+            <PremiumNote icon={<Sparkles />} title="AI systems" text="Every plan can try AI images, vision, web search, and channel summaries within monthly allowances. Pro adds memory, personalities, and ambient replies; Max raises the usage ceilings." />
             <PremiumNote
               icon={<BarChart3 />}
               title="Billing control"

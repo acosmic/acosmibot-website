@@ -5,6 +5,7 @@ import {
   useAiConfig,
   AiConfig,
   AI_TOOL_CATALOG,
+  BASIC_AI_TOOLS,
 } from './useAiConfig';
 import { PersonalitySettings } from './PersonalitySettings';
 import { AiMemorySection } from './AiMemorySection';
@@ -61,15 +62,38 @@ export const AiPage: React.FC = () => {
       <div className="feature-page">
         <div className="page-header text-start mt-0 mb-4">
           <h1>AI Customization</h1>
-          <p>Control whether members can mention Acosmibot for AI replies.</p>
+          <p>Control AI chat and the AI tools included with your plan.</p>
         </div>
 
         <FeatureToggle
           label="AI Chat"
           enabled={form.enabled}
           onChange={(enabled) => setForm({ enabled })}
-          description="Allow members to mention Acosmibot for basic AI chat. This is enabled by default and uses your plan's daily and monthly reply limits."
+          description="Allow members to mention Acosmibot for AI chat. This is enabled by default and uses your plan's daily and monthly reply limits."
         />
+
+        <CollapsibleSection title="AI Tools" defaultOpen={true}>
+          <p className="text-muted small mt-0 mb-3">
+            Your plan includes a monthly allowance for each of these tools. Turn any of them off to keep
+            the AI from using it; slash commands are not affected.
+          </p>
+          <div className="ai-tool-matrix">
+            {AI_TOOL_CATALOG.filter(tool => BASIC_AI_TOOLS.includes(tool.name)).map(tool => (
+              <label key={tool.name} className="ai-tool-row">
+                <span><strong>{tool.label}</strong><small>{tool.description}</small></span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={form.tools[tool.name]}
+                  onChange={(event) => setForm({
+                    tools: { ...form.tools, [tool.name]: event.target.checked },
+                    ...(tool.name === 'web_search' ? { web_search: event.target.checked } : {}),
+                  })}
+                />
+              </label>
+            ))}
+          </div>
+        </CollapsibleSection>
 
         <AIPaidOveragePanel guildId={guildId!} />
 
@@ -88,15 +112,14 @@ export const AiPage: React.FC = () => {
               </span>
             </div>
             <p>
-              Upgrade to shape how your server's AI behaves and give it richer
-              ways to join the conversation.
+              Upgrade to shape how your server's AI behaves, give it richer
+              ways to join the conversation, and raise every AI allowance.
             </p>
             <ul className="ai-upgrade-panel__features" aria-label="Advanced AI features">
               <li>Custom personalities</li>
               <li>Memory</li>
-              <li>Web search</li>
               <li>Ambient chat</li>
-              <li>AI media tools</li>
+              <li>Larger AI allowances</li>
             </ul>
             <Link to={upgradePath(guildId)} className="btn primary">
               View Pro and Max plans
@@ -106,7 +129,11 @@ export const AiPage: React.FC = () => {
 
         <SaveBar
           isDirty={isDirty}
-          onSave={() => save({ enabled: form.enabled })}
+          onSave={() => save({
+            enabled: form.enabled,
+            tools: form.tools,
+            web_search: form.tools.web_search,
+          })}
           onDiscard={resetForm}
           isSaving={isSaving}
           saveError={saveError}

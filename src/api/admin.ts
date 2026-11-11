@@ -102,6 +102,8 @@ export type AdminAiTierLimits = Record<AdminAiTier, {
   image_monthly_limit: number;
   image_analysis_monthly_limit: number;
   image_search_monthly_limit: number;
+  /** Omitted by admin API payloads before the 2026-11-11 plan table. */
+  web_search_monthly_limit?: number;
   /** Omitted by older admin API payloads during the summary rollout. */
   channel_summary_monthly_limit?: number;
 }>;
@@ -129,6 +131,8 @@ export interface AdminAiSettings {
   timezone: string;
   web_search_provider: string;
   tier_limits: AdminAiTierLimits;
+  /** Global UTC-day ceiling (USD) on AI spend by Free-plan servers; 0 pauses Free AI. */
+  free_tier_daily_spend_usd?: number;
   provider_layers: Record<string, AdminAiProviderLayer>;
   available_models: string[];
   available_web_search_providers: string[];
