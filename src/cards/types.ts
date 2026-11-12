@@ -243,6 +243,29 @@ export interface WowTalentSection {
   talents: WowTalentEntry[];
 }
 
+/** One talent at its Blizzard grid position in a classic-style tree. */
+export interface WowTalentTreeNode {
+  /** 1-based grid row and column within the tree. */
+  row: number;
+  column: number;
+  /** Ranks learned (0 = not learned) out of maxRank. */
+  rank: number;
+  maxRank: number;
+  name: string;
+  /** Blizzard 56px spell icon, or '' to draw a lettered tile. */
+  iconUrl: string;
+  /** Indexes of prerequisite nodes in the same tree, drawn as arrows. */
+  requires: number[];
+}
+
+export interface WowTalentTree {
+  title: string;
+  points: number;
+  /** Specialization icon, or ''. */
+  iconUrl: string;
+  nodes: WowTalentTreeNode[];
+}
+
 export interface WowTalentsCardData extends WowCardIdentity {
   card: 'wow-talents';
   specName: string;
@@ -251,6 +274,12 @@ export interface WowTalentsCardData extends WowCardIdentity {
   /** Retail hero talent tree name, or ''. */
   heroTree: string;
   sections: WowTalentSection[];
+  /**
+   * Classic-style tree grids (WoW Forever, where Blizzard publishes the
+   * layout). When present the card draws the trees side by side instead of
+   * the ranked list in `sections`.
+   */
+  trees?: WowTalentTree[];
 }
 
 export interface WowProfessionEntry {
