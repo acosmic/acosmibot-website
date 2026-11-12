@@ -64,6 +64,13 @@ export const ModerationPage: React.FC = () => {
         description="Enable moderation logging and automated monitoring."
       />
 
+      <FeatureToggle
+        label="Blocked-words filter"
+        enabled={form.word_filter_enabled ?? false}
+        onChange={(v) => setForm({ word_filter_enabled: v })}
+        description="Deletes messages containing blocked words from Acosmibot's built-in list. Separate from moderation logs and from leveling. Acosmibot needs the Manage Messages permission to delete them."
+      />
+
       <section className="dashboard-open-section">
         <h3 className="mb-4">Global Logging</h3>
         <ChannelSelect

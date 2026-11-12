@@ -3,7 +3,8 @@ import type { GiveawayConfig, UpdateGiveawayConfigRequest } from '@/types/featur
 
 function fromSettings(raw: any): GiveawayConfig {
   return {
-    enabled: raw?.enabled ?? false,
+    // On by default (2026-11-11): matches the bot's GiveawaySettings default.
+    enabled: raw?.enabled ?? true,
     defaultEmoji: raw?.default_emoji ?? '🎉',
     winnerLogChannelId: raw?.winner_log_channel_id ?? null,
     eventLogChannelId: raw?.event_log_channel_id ?? null,
