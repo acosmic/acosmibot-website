@@ -53,7 +53,9 @@ const SignInRequiredPage = lazyRoute(() => import('./pages/SignInRequiredPage').
 const AdminPage = lazyRoute(() => import('./pages/admin/AdminPage').then(module => ({ default: module.AdminPage })));
 
 /** Completes the cookie-backed OAuth redirect and returns the user to where
- * they started login, falling back to the server selector. */
+ * they started login, falling back to the server selector. After a bot
+ * install the API adds ?guild=<id>, and the installer lands on that server's
+ * dashboard instead. */
 const AuthCallback = () => {
   const navigate = useNavigate();
 
@@ -67,6 +69,10 @@ const AuthCallback = () => {
         }
         localStorage.removeItem('postLoginRedirect');
       } catch { /* ignore storage errors */ }
+      const installedGuild = new URLSearchParams(window.location.search).get('guild');
+      if (authenticated && installedGuild && /^\d{1,20}$/.test(installedGuild)) {
+        dest = `/server/${installedGuild}/overview`;
+      }
       if (authenticated) {
         try { sessionStorage.setItem('acosmibot_login_complete', '1'); } catch { /* optional */ }
       }
