@@ -83,6 +83,8 @@ export interface UpdateStreamPlatformConfigRequest {
 
 export interface ModerationConfig {
   enabled: boolean;
+  /** Deletes messages containing blocked words. Its own switch, not tied to leveling. */
+  word_filter_enabled?: boolean;
   mod_log_channel_id: string | null;
   member_activity_channel_id: string | null;
   events: {

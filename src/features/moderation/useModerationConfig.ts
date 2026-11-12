@@ -5,6 +5,7 @@ import { ModerationConfig } from '@/types/features';
 
 const DEFAULT_MODERATION: ModerationConfig = {
   enabled: false,
+  word_filter_enabled: false,
   mod_log_channel_id: null,
   member_activity_channel_id: null,
   events: {},
