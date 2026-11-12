@@ -33,3 +33,12 @@ test('giveaways read as on when a server has no stored giveaway settings', async
   const api = await read('src/api/giveaway.ts');
   assert.match(api, /enabled: raw\?\.enabled \?\? true/);
 });
+
+test('Live Activity names why an AI turn was blocked', async () => {
+  const tab = await read('src/pages/admin/LiveActivityTab.tsx');
+  for (const reason of ['ai_disabled_guild', 'ai_disabled_global', 'channel_out_of_scope', 'daily_limit', 'monthly_limit', 'free_spend_ceiling', 'cooldown']) {
+    assert.match(tab, new RegExp(`${reason}: '`));
+  }
+  assert.match(tab, /label: `Blocked · \$\{blocked\}`/);
+  assert.match(tab, /<dt>Blocked reason<\/dt>/);
+});
