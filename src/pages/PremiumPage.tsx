@@ -296,7 +296,7 @@ export const PricingPage: React.FC = () => {
           <div>
             <span>Prepaid AI capacity</span>
             <h2 id="pricing-credits-title">Keep the core free. Add AI Credits only when you need them.</h2>
-            <p>One-time packs cover explicit AI overage after included quota. Personal wallets work in DMs and only fall back in guilds with administrator consent.</p>
+            <p>One-time packs keep AI going after the included allowance runs out. Buy them for a server, or for yourself and choose which servers may use them.</p>
           </div>
           <Link to="/credits" className="pricing-credits-bridge__action">Open AI Credits <ArrowRight aria-hidden="true" /></Link>
         </section>

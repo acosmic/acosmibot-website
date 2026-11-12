@@ -2,8 +2,6 @@ import { api } from './client';
 
 export type CreditTarget = 'personal' | 'guild';
 export type CreditPolicyKey =
-  | 'allow_dm_spending'
-  | 'allow_guild_spending'
   | 'low_balance_notifications'
   | 'personal_daily_credit_cap'
   | 'personal_monthly_credit_cap'
@@ -65,8 +63,6 @@ export interface CreditWalletSummary {
 
 export interface CreditUserPolicy {
   user_id: string;
-  allow_dm_spending: boolean;
-  allow_guild_spending: boolean;
   personal_daily_credit_cap: number;
   personal_monthly_credit_cap: number;
   low_balance_threshold: number;
@@ -181,6 +177,8 @@ export interface PersonalCreditsResponse {
   policy: CreditUserPolicy;
   sales_enabled: boolean;
   spending_enabled: boolean;
+  /** Platform switch for spending personal credits in Discord DMs. */
+  dm_enabled?: boolean;
   terms_version: string;
 }
 

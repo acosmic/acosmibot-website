@@ -116,13 +116,15 @@ const creditPolicyDefaults = (policy?: {
   member_contributions_enabled: boolean;
   public_contribution_log_enabled: boolean;
 }) => ({
-  server_pool_enabled: policyBoolean(policy?.server_pool_enabled),
-  personal_fallback_allowed: policyBoolean(policy?.personal_fallback_allowed),
+  // A server with nothing saved spends its own credits and lets members use
+  // theirs; an operation counts as on unless it was explicitly switched off.
+  server_pool_enabled: policyBoolean(policy?.server_pool_enabled, true),
+  personal_fallback_allowed: policyBoolean(policy?.personal_fallback_allowed, true),
   allowed_operations: {
-    chat: policyBoolean(policy?.allowed_operations?.chat),
-    tool_chat: policyBoolean(policy?.allowed_operations?.tool_chat),
-    image_generation: policyBoolean(policy?.allowed_operations?.image_generation),
-    image_analysis: policyBoolean(policy?.allowed_operations?.image_analysis),
+    chat: policyBoolean(policy?.allowed_operations?.chat, true),
+    tool_chat: policyBoolean(policy?.allowed_operations?.tool_chat, true),
+    image_generation: policyBoolean(policy?.allowed_operations?.image_generation, true),
+    image_analysis: policyBoolean(policy?.allowed_operations?.image_analysis, true),
   },
   guild_daily_credit_cap: policy?.guild_daily_credit_cap ?? 0,
   member_daily_credit_cap: policy?.member_daily_credit_cap ?? 0,
@@ -361,11 +363,11 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
       expected_version: creditsQuery.data?.policy.version,
     } as Parameters<typeof aiCreditsApi.updateGuildPolicy>[1] & { expected_version?: number }),
     onSuccess: async () => {
-      showToast('Guild AI Credits policy saved.', 'success');
+      showToast('Server credit settings saved.', 'success');
       await queryClient.invalidateQueries({ queryKey: ['guild', guildId, 'ai-credits'] });
     },
     onError: (error) => {
-      showToast(error instanceof Error ? error.message : 'Could not save guild AI Credits policy.', 'error');
+      showToast(error instanceof Error ? error.message : 'Could not save server credit settings.', 'error');
     },
   });
 
@@ -380,7 +382,7 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
       window.location.assign(result.checkout_url);
     },
     onError: (error) => {
-      showToast(error instanceof Error ? error.message : 'Could not open guild AI Credits Checkout.', 'error');
+      showToast(error instanceof Error ? error.message : 'Could not open AI Credits checkout.', 'error');
     },
   });
 
@@ -392,7 +394,7 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
     return (
       <section className="billing-ai-credits card p-4 mb-4" aria-live="polite">
         <div className="billing-ai-credits__heading">
-          <div><WalletCards aria-hidden="true" /><div><span>AI Credits</span><h3>Guild wallet unavailable</h3></div></div>
+          <div><WalletCards aria-hidden="true" /><div><span>AI Credits</span><h3>Server credits unavailable</h3></div></div>
         </div>
         <p className="billing-ai-credits__muted">The wallet could not be read safely right now. Subscription billing remains available.</p>
       </section>
@@ -418,7 +420,7 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
         <div>
           <div className="billing-ai-credits__title"><WalletCards aria-hidden="true" /><span>Usage wallet</span></div>
           <h3 id="billing-ai-credits-title">AI Credits for {guildName}</h3>
-          <p>Fund the guild pool for explicit AI requests after included quota.</p>
+          <p>Credits pay for AI requests in this server once its included allowance runs out.</p>
         </div>
         <Link to="/credits" className="billing-ai-credits__link">Personal wallet <ArrowRight aria-hidden="true" /></Link>
       </div>
@@ -432,7 +434,7 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
       {purchase && (
         <div className={`billing-ai-credits__purchase-status is-${purchase.status}`} role="status" aria-live="polite">
           <div>
-            <strong>{purchase.status === 'fulfilled' ? 'Guild credits are ready.' : `Checkout ${purchase.status.replace(/_/g, ' ')}.`}</strong>
+            <strong>{purchase.status === 'fulfilled' ? 'Server credits are ready.' : `Checkout ${purchase.status.replace(/_/g, ' ')}.`}</strong>
             <span>{purchase.status === 'fulfilled' ? `${formatCredits(purchase.granted_credits)} credits were added to ${guildName}.` : 'This page will update while Stripe fulfillment completes.'}</span>
           </div>
           <button
@@ -448,7 +450,7 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
       )}
 
       <div className="billing-ai-credits__purchase">
-        <div><strong>Add to guild wallet</strong><span>Only guild owners and administrators can purchase.</span></div>
+        <div><strong>Buy credits for this server</strong><span>Only server owners and administrators can buy.</span></div>
         <div className="billing-ai-credits__packs">
           {(catalog?.packs ?? []).map((pack) => (
             <button
@@ -468,24 +470,25 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
 
       <div className="billing-ai-credits__policy">
         <div className="billing-ai-credits__policy-heading">
-          <div><strong>Guild spending policy</strong><span>Included quota is always evaluated first. These switches control paid fallback.</span></div>
+          <div><strong>How this server uses credits</strong><span>The server’s included AI allowance is always used first. Nothing is spent until someone buys credits.</span></div>
           <ShieldCheck aria-hidden="true" />
         </div>
         <div className="billing-ai-credits__switches">
-          <label><input type="checkbox" role="switch" checked={policyDraft.server_pool_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, server_pool_enabled: event.target.checked }))} /><span>Enable server pool</span></label>
-          <label><input type="checkbox" role="switch" checked={policyDraft.personal_fallback_allowed} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, personal_fallback_allowed: event.target.checked }))} /><span>Allow member personal fallback</span></label>
+          <label><input type="checkbox" role="switch" checked={policyDraft.server_pool_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, server_pool_enabled: event.target.checked }))} /><span>Use the server’s credits</span></label>
+          <label><input type="checkbox" role="switch" checked={policyDraft.personal_fallback_allowed} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, personal_fallback_allowed: event.target.checked }))} /><span>Members may use their own credits here</span></label>
         </div>
         <div className="billing-ai-credits__switches">
           <label><input type="checkbox" role="switch" checked={policyDraft.member_contributions_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, member_contributions_enabled: event.target.checked }))} /><span>Allow member Fuel Cell contributions</span></label>
           <label><input type="checkbox" role="switch" checked={policyDraft.public_contribution_log_enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, public_contribution_log_enabled: event.target.checked }))} /><span>Show the public Server Boost Log</span></label>
         </div>
-        <div className="billing-ai-credits__operations" aria-label="Allowed paid operations">
+        <p className="billing-ai-credits__muted">Credits can pay for every AI feature below. Switch one off to keep credits from paying for it.</p>
+        <div className="billing-ai-credits__operations" aria-label="AI features credits can pay for">
           {Object.entries(policyDraft.allowed_operations).map(([operation, enabled]) => (
             <label key={operation}><input type="checkbox" checked={enabled} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, allowed_operations: { ...draft.allowed_operations, [operation]: event.target.checked } }))} /><span>{operationLabels[operation] ?? operation}</span></label>
           ))}
         </div>
         <div className="billing-ai-credits__caps">
-          <label><span>Guild daily cap</span><input type="number" min="0" max="10000000" value={policyDraft.guild_daily_credit_cap} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, guild_daily_credit_cap: Math.max(0, Number(event.target.value) || 0) }))} /></label>
+          <label><span>Server daily cap</span><input type="number" min="0" max="10000000" value={policyDraft.guild_daily_credit_cap} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, guild_daily_credit_cap: Math.max(0, Number(event.target.value) || 0) }))} /></label>
           <label><span>Member daily cap</span><input type="number" min="0" max="10000000" value={policyDraft.member_daily_credit_cap} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, member_daily_credit_cap: Math.max(0, Number(event.target.value) || 0) }))} /></label>
           <label><span>Max per request</span><input type="number" min="0" max="10000000" value={policyDraft.maximum_credits_per_request} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, maximum_credits_per_request: Math.max(0, Number(event.target.value) || 0) }))} /></label>
         </div>
@@ -521,17 +524,17 @@ const GuildAICreditsPanel: React.FC<{ guildId: string; guildName: string }> = ({
           )}
         </div>
         <button type="button" className="btn billing-ai-credits__save" disabled={policyMutation.isPending} onClick={() => policyMutation.mutate()}>
-          {policyMutation.isPending ? 'Saving…' : 'Save paid-overage policy'}
+          {policyMutation.isPending ? 'Saving…' : 'Save credit settings'}
           {!policyMutation.isPending && <Check aria-hidden="true" />}
         </button>
-        <small className="billing-ai-credits__version">Policy version {policy.version} · mode {wallet.stripe_mode}</small>
+        <small className="billing-ai-credits__version">Settings version {policy.version} · mode {wallet.stripe_mode}</small>
       </div>
       <div className="billing-ai-credits__ledger">
         <div className="billing-ai-credits__ledger-heading"><strong>Recent wallet activity</strong><span>Charges and reservations never expose member personal-wallet details.</span></div>
         {ledgerQuery.isLoading ? <LoadingSpinner /> : ledgerQuery.error ? (
           <p className="billing-ai-credits__muted">Wallet history could not be loaded. Refresh to try again.</p>
         ) : ledger.length === 0 ? (
-          <p className="billing-ai-credits__muted">No guild wallet activity yet.</p>
+          <p className="billing-ai-credits__muted">No server credit activity yet.</p>
         ) : (
           <div className="billing-ai-credits__ledger-list">
             {ledger.slice(0, 8).map((entry) => (

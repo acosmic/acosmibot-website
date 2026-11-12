@@ -31,11 +31,11 @@ const AIPaidOveragePanel: React.FC<{ guildId: string }> = ({ guildId }) => (
   <section className="ai-paid-overage-panel" aria-labelledby="ai-paid-overage-heading">
     <div className="ai-paid-overage-panel__signal" aria-hidden="true"><WalletCards /></div>
     <div>
-      <span className="ai-paid-overage-panel__kicker">Included quota first</span>
-      <h2 id="ai-paid-overage-heading">AI Credits are controlled overage.</h2>
-      <p>Server administrators can enable a guild wallet and choose eligible operations after the plan quota. Personal fallback needs member consent too; credits never unlock Pro/Max configuration or ambient spending.</p>
+      <span className="ai-paid-overage-panel__kicker">Included allowance first</span>
+      <h2 id="ai-paid-overage-heading">AI Credits keep AI going.</h2>
+      <p>When this server’s included allowance runs out, the server’s credits are used, then a member’s own credits if they switched them on for this server. Nothing is spent until someone buys credits, and credits never unlock Pro/Max configuration or background replies.</p>
       <div className="ai-paid-overage-panel__actions">
-        <Link to={`/server/${guildId}/billing`} className="btn primary">Open Billing policy <ArrowRight aria-hidden="true" /></Link>
+        <Link to={`/server/${guildId}/billing`} className="btn primary">Open server credits <ArrowRight aria-hidden="true" /></Link>
         <Link to="/credits" className="ai-paid-overage-panel__link">Personal wallet <ArrowRight aria-hidden="true" /></Link>
       </div>
     </div>

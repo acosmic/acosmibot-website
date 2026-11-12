@@ -31,8 +31,8 @@
         <li>Ambient replies — the AI can occasionally chime into conversation unprompted (Pro or Max)</li>
         <li>Restrict AI responses to specific channels</li>
         <li>Provider-neutral chat, image, and vision support selected through Acosmibot's owner configuration</li>
-        <li>Policy-gated prepaid AI Credits for eligible foreground overage after included quota</li>
-        <li>Explicit personal text chat in Discord DMs when DM spending is enabled and opted in</li>
+        <li>Prepaid AI Credits that keep AI requests going after the included allowance runs out</li>
+        <li>Personal text chat in Discord DMs, paid with your own credits when Acosmibot has credits in DMs turned on</li>
       </ul>
     </div>
   </section>
@@ -94,7 +94,7 @@
   <section class="docs-section">
     <h2>AI Credits and DMs</h2>
     <p>
-      Included daily and monthly quota is always checked first. If the server enables paid overage, a request may use the guild wallet and then a member's personal wallet only when the server policy, member policy, and per-guild consent all allow it. A request uses one complete wallet; credits are never split between wallets.
+      The server's included daily and monthly allowance is always used first. When it runs out, the server's credits are used, then your own credits if you switched on <strong>Use my credits in &lt;server&gt;</strong> for that server. Nothing is spent until someone buys credits. A request is paid from one balance and is never split.
     </p>
     <div class="info-card info-card-info">
       <h3>Controlled spending</h3>
@@ -102,11 +102,11 @@
         <li>AI Credits are prepaid service capacity, separate from the Acosmicoins economy currency.</li>
         <li>Purchased credits do not expire under current terms and cannot be transferred; promotional credits may have a stated expiry.</li>
         <li>Ambient and autonomous replies never spend AI Credits.</li>
-        <li>Manage personal balance, consent, and guardrails at <a href="/credits" target="_blank">AI Credits</a>; server administrators manage the guild pool in the server Billing page.</li>
+        <li>Manage your balance, caps, and which servers may use your credits at <a href="/credits" target="_blank">AI Credits</a>; server administrators manage the server's credits in the server Billing page.</li>
       </ul>
     </div>
     <p>
-      Explicit text messages sent to Acosmibot in a Discord DM use a personal-only context. DMs do not load a guild's memory, personality, roster, tools, subscription quota, or guild wallet. DM chat spending is independently controlled and uses the personal wallet; paid DM image and vision funding are not currently live.
+      Explicit text messages sent to Acosmibot in a Discord DM use a personal-only context. DMs do not load a server's memory, personality, roster, tools, subscription quota, or credits. When Acosmibot has credits in DMs turned on, DM chat uses your own credits with no setting to change; paid DM image and vision requests are not currently live.
     </p>
   </section>
 
@@ -254,7 +254,7 @@
       <div class="command-card">
         <div class="command-signature">/ai image &lt;prompt&gt;</div>
         <div class="command-description">
-          Generate an image using the configured AI image provider based on your text prompt. Available on every plan — image generation uses the server's current quota and any enabled paid-overage policy.
+          Generate an image using the configured AI image provider based on your text prompt. Available on every plan — image generation uses the server's included allowance first, then AI Credits if available.
         </div>
         <div class="command-examples">
           <h4>Example:</h4>
@@ -353,12 +353,12 @@
 
     <div class="faq-item">
       <h4>Q: The bot says the daily limit has been reached</h4>
-      <p>A: The daily interaction counter resets at midnight UTC. Basic daily and monthly limits come from the active subscription tier and Acosmibot's global configuration; server managers cannot raise or remove them. If paid overage is enabled, the request still needs an allowed operation, a full wallet reservation, and any required member consent. Use <code>/ai status</code> to see the monthly renewal time.</p>
+      <p>A: The daily interaction counter resets at midnight UTC. Basic daily and monthly limits come from the active subscription tier and Acosmibot's global configuration; server managers cannot raise or remove them. Once the allowance runs out, AI Credits can keep requests going if the server or you have credits and the server hasn't switched that AI feature off. Use <code>/ai status</code> to see the monthly renewal time.</p>
     </div>
 
     <div class="faq-item">
-      <h4>Q: Why did a paid AI request not use my personal balance?</h4>
-      <p>A: Personal guild fallback requires all three keys: the server must allow personal fallback, your global guild-spending switch must be on, and you must opt in for that guild. The request also has to fit your caps and the server's operation policy. Check <a href="/credits" target="_blank">AI Credits</a> for your guardrails.</p>
+      <h4>Q: Why didn't a request use my own credits?</h4>
+      <p>A: Your credits are used in a server only after you switch on <strong>Use my credits in &lt;server&gt;</strong> for it, and only if that server's admins haven't turned off members using their own credits. The request also has to fit your caps. Check <a href="/credits" target="_blank">AI Credits</a> for your settings.</p>
     </div>
 
   </section>
