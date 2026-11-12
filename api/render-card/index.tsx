@@ -347,9 +347,13 @@ async function svgToPng(svg: string, width: number): Promise<Buffer> {
 }
 
 async function renderWowTalentsPng(data: WowTalentsCardData): Promise<Buffer> {
+  const trees = data.trees?.length ? data.trees : undefined;
+  // The tree grid replaces the list, so only the icons it draws are fetched.
   const inlined = await inlineWowIcons([
     data.specIconUrl,
-    ...data.sections.flatMap((section) => section.talents.map((talent) => talent.iconUrl)),
+    ...(trees
+      ? trees.flatMap((tree) => [tree.iconUrl, ...tree.nodes.map((node) => node.iconUrl)])
+      : data.sections.flatMap((section) => section.talents.map((talent) => talent.iconUrl))),
   ]);
   const resolved: WowTalentsCardData = {
     ...data,
@@ -360,6 +364,11 @@ async function renderWowTalentsPng(data: WowTalentsCardData): Promise<Buffer> {
         ...talent,
         iconUrl: inlined.get(talent.iconUrl) || '',
       })),
+    })),
+    trees: trees?.map((tree) => ({
+      ...tree,
+      iconUrl: inlined.get(tree.iconUrl) || '',
+      nodes: tree.nodes.map((node) => ({ ...node, iconUrl: inlined.get(node.iconUrl) || '' })),
     })),
   };
   const fonts = await loadFonts();
@@ -666,7 +675,47 @@ function isValidWowTalents(data: unknown): data is WowTalentsCardData {
       ) return false;
     }
   }
-  return true;
+  return d.trees === undefined || isValidWowTalentTrees(d.trees);
+}
+
+const WOW_TALENT_TREES_MAX = 4;
+const WOW_TALENT_TREE_NODES_MAX = 40;
+
+const isGridIndex = (value: unknown, max: number): boolean =>
+  isFiniteNumber(value) && Number.isInteger(value) && value >= 1 && value <= max;
+
+function isValidWowTalentTrees(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length > WOW_TALENT_TREES_MAX) return false;
+  return value.every((entry) => {
+    if (!entry || typeof entry !== 'object') return false;
+    const tree = entry as Record<string, unknown>;
+    if (
+      !isBoundedString(tree.title, 48) ||
+      !isFiniteNumber(tree.points) ||
+      !isOptionalWowIcon(tree.iconUrl) ||
+      !Array.isArray(tree.nodes) ||
+      tree.nodes.length > WOW_TALENT_TREE_NODES_MAX
+    ) return false;
+    const count = tree.nodes.length;
+    return tree.nodes.every((raw) => {
+      if (!raw || typeof raw !== 'object') return false;
+      const node = raw as Record<string, unknown>;
+      return (
+        isGridIndex(node.row, 12) &&
+        isGridIndex(node.column, 6) &&
+        isFiniteNumber(node.rank) &&
+        node.rank >= 0 &&
+        isGridIndex(node.maxRank, 10) &&
+        isBoundedString(node.name, 64) &&
+        isOptionalWowIcon(node.iconUrl) &&
+        Array.isArray(node.requires) &&
+        node.requires.length <= 2 &&
+        node.requires.every(
+          (index) => isFiniteNumber(index) && Number.isInteger(index) && index >= 0 && index < count,
+        )
+      );
+    });
+  });
 }
 
 function isValidWowProfessions(data: unknown): data is WowProfessionsCardData {

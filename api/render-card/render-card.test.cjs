@@ -626,6 +626,49 @@ test('WoW talents card rejects untrusted icons and oversized builds', async () =
   );
 });
 
+function wowTalentTrees(overrides = {}) {
+  const node = (row, column, rank, maxRank, requires = []) => ({
+    row, column, rank, maxRank, name: `Talent ${row}-${column}`,
+    iconUrl: 'https://render.worldofwarcraft.com/forever-us/icons/56/132366.jpg', requires,
+  });
+  return [
+    { title: 'Assassination', points: 0, iconUrl: '', nodes: [node(1, 1, 0, 3), node(2, 1, 0, 2, [0])] },
+    { title: 'Combat', points: 21, iconUrl: '', nodes: [node(1, 2, 5, 5), node(3, 2, 1, 1, [0]), node(3, 4, 0, 2)] },
+    { title: 'Subtlety', points: 10, iconUrl: '', nodes: [node(1, 3, 2, 3), node(7, 2, 0, 1)], ...overrides },
+  ];
+}
+
+test('WoW talents card draws classic-style tree grids when trees are sent', async () => {
+  await withJpegFetch(async (requested) => {
+    const res = await render(wowTalentsPayload({ trees: wowTalentTrees() }));
+    assert.equal(res.status, 200);
+    const { width, height } = pngDimensions(res.body);
+    assert.equal(width, 1200);
+    assert.ok(height > 675 && height <= 2000, `height ${height}`);
+    assert.equal(
+      new Set(requested).size,
+      2,
+      'spec icon plus the one shared tree icon; the hidden list icons are not fetched',
+    );
+  });
+});
+
+test('WoW talents card rejects malformed trees', async () => {
+  const bad = [
+    wowTalentTrees({ iconUrl: 'https://example.com/a.jpg' }),
+    wowTalentTrees({ nodes: [{ row: 0, column: 1, rank: 0, maxRank: 1, name: 'X', iconUrl: '', requires: [] }] }),
+    wowTalentTrees({ nodes: [{ row: 1, column: 7, rank: 0, maxRank: 1, name: 'X', iconUrl: '', requires: [] }] }),
+    wowTalentTrees({ nodes: [{ row: 1, column: 1, rank: 0, maxRank: 1, name: 'X', iconUrl: '', requires: [3] }] }),
+    wowTalentTrees({
+      nodes: Array.from({ length: 41 }, () => ({ row: 1, column: 1, rank: 0, maxRank: 1, name: 'X', iconUrl: '', requires: [] })),
+    }),
+    [...wowTalentTrees(), ...wowTalentTrees()],
+  ];
+  for (const trees of bad) {
+    assert.equal((await render(wowTalentsPayload({ trees }))).status, 400);
+  }
+});
+
 test('WoW professions card renders and validates its lists', async () => {
   await withJpegFetch(async () => {
     const res = await render(wowProfessionsPayload());
