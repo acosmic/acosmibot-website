@@ -59,7 +59,7 @@ test('documentation reflects current commercial and product contracts', () => {
   assert.match(plans, /Web image searches.*10\/month.*30\/month.*50\/month.*100\/month/is);
   assert.match(plans, /Medium AI image generation.*3\/month.*10\/month.*50\/month.*100\/month/is);
   assert.match(plans, /AI vision analyses.*10\/month.*30\/month.*100\/month.*200\/month/is);
-  assert.match(plans, /owner-only.*not a subscription benefit/i);
+  assert.doesNotMatch(plans, /\/ai clip/i);
 
   const credits = readDoc('ai-credits');
   assert.match(credits, /Fuel Cell 25K/);
