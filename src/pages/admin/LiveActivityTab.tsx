@@ -97,6 +97,30 @@ const RESOLUTION_LABELS: Record<string, string> = {
   confirmation_expired: 'Expired',
 };
 
+// An AI turn stopped before the model ran: the bot reports blocked plus one of
+// these code-owned reasons (Cogs/AIControls BLOCK_*). Unknown reasons are
+// shown humanized.
+const BLOCK_REASON_LABELS: Record<string, string> = {
+  ai_disabled_guild: 'AI off in server',
+  ai_disabled_global: 'AI off globally',
+  ai_chat_unavailable: 'AI chat not on plan',
+  channel_out_of_scope: 'Channel out of scope',
+  daily_limit: 'Daily limit reached',
+  monthly_limit: 'Monthly limit reached',
+  image_generation_limit: 'Image limit reached',
+  image_analysis_limit: 'Image analysis limit reached',
+  free_spend_ceiling: 'Free-tier spend ceiling',
+  free_tier_spend_ceiling: 'Free-tier spend ceiling',
+  cooldown: 'Cooldown',
+  capability_unavailable: 'Capability unavailable',
+};
+
+function blockReason(event: LiveEvent): string {
+  const reason = typeof event.metadata?.outcome === 'string' ? event.metadata.outcome : '';
+  if (event.outcome !== 'blocked' || !reason || WAITING_LABELS[reason]) return '';
+  return BLOCK_REASON_LABELS[reason] || humanize(reason);
+}
+
 function outcomeView(event: LiveEvent): { tone: string; label: string } {
   const reason = typeof event.metadata?.outcome === 'string' ? event.metadata.outcome : '';
   if (event.outcome === 'blocked' && WAITING_LABELS[reason]) {
@@ -105,6 +129,8 @@ function outcomeView(event: LiveEvent): { tone: string; label: string } {
   if (event.metadata?.resolved === true && RESOLUTION_LABELS[reason]) {
     return { tone: event.outcome, label: RESOLUTION_LABELS[reason] };
   }
+  const blocked = blockReason(event);
+  if (blocked) return { tone: event.outcome, label: `Blocked · ${blocked}` };
   return { tone: event.outcome, label: event.outcome === 'running' ? 'In progress' : event.outcome };
 }
 
@@ -490,6 +516,7 @@ export const LiveActivityTab: React.FC = () => {
             <div><dt>Duration</dt><dd>{elapsed(selected)}</dd></div>
             <div><dt>Category</dt><dd>{selected.category}</dd></div>
             {typeof selected.metadata?.error_code === 'string' && <div><dt>Error reason</dt><dd><code>{selected.metadata.error_code}</code></dd></div>}
+            {blockReason(selected) && <div><dt>Blocked reason</dt><dd>{blockReason(selected)} <code>{String(selected.metadata?.outcome)}</code></dd></div>}
             {selected.user_id && <div><dt>User ID</dt><dd><code>{selected.user_id}</code></dd></div>}
             {selected.guild_id && <div><dt>Server ID</dt><dd><code>{selected.guild_id}</code></dd></div>}
             {selected.parent_activity_id && <div><dt>Parent event</dt><dd><code>{selected.parent_activity_id}</code></dd></div>}
