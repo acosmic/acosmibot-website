@@ -2,7 +2,7 @@
   <header class="docs-page-header">
     <h1>AI Credits</h1>
     <p class="docs-page-description">
-      Fund paid AI overage without changing your subscription tier. AI Credits are a separate wallet with explicit rates, spending controls, and member contribution options.
+      Keep AI going after the included allowance runs out, without changing your subscription tier. AI Credits are a separate prepaid balance with clear rates, simple on/off controls, and member contribution options.
     </p>
   </header>
 
@@ -41,24 +41,29 @@
   </section>
 
   <section class="docs-section">
-    <h2>How a request is funded</h2>
+    <h2>How a request is paid for</h2>
     <ol>
-      <li>The included monthly allowance is used first when the operation is eligible.</li>
-      <li>If paid overage is enabled, Acosmibot checks the server wallet.</li>
-      <li>Personal guild fallback is considered only when the server allows it and the member has enabled both global guild spending and that guild.</li>
-      <li>The full maximum charge is reserved before the request starts. The actual charge settles only after screened content is delivered, and any unused reservation is released.</li>
+      <li>The server's included AI allowance is used first.</li>
+      <li>When that runs out, the server's credits are used.</li>
+      <li>When the server has no credits left, your own credits are used, but only if you switched on <strong>Use my credits in &lt;server&gt;</strong> for that server at <a href="/credits">/credits</a>. Each server starts off.</li>
+      <li>The most a request can cost is set aside before it starts. You are charged only after the reply is delivered, and anything not used goes straight back to the balance.</li>
     </ol>
-    <p>A request uses one complete wallet and is never split. Role, channel, operation, per-request, and daily caps can still block spending. Ambient and autonomous replies never spend AI Credits.</p>
+    <p>Nothing is spent until someone buys credits. A server with no credits and members who have not switched on their own credits simply stop at the included allowance.</p>
+    <p>A request is paid from one balance and is never split. Server admins can limit spending by role, channel, AI feature, per-request maximum, and daily caps, and your own daily and monthly caps always apply. Background and automatic replies never spend AI Credits.</p>
+    <h3>Server settings</h3>
+    <p>For a server, using the server's credits and letting members use their own credits are both on unless an admin turns them off in the server Billing page. Every AI feature (chat, tool chat, images, vision) can use credits unless an admin switches it off there.</p>
+    <h3>Direct messages</h3>
+    <p>When Acosmibot turns on credits in direct messages, text chat with Acosmibot in a Discord DM uses your own credits. There is no setting for you to change. Credits in DMs may not be turned on yet; the <a href="/credits">/credits</a> page shows whether they are available right now.</p>
     <div class="info-card info-card-warning">
       <h3>Images require confirmation</h3>
-      <p><code>/ai image</code> and mention-based image requests show an editable confirmation before included quota or a paid charge of 350 AI Credits. Canceling or letting the five-minute confirmation expire spends nothing. Confirming rechecks the live allowance, policy, and balance; if the included unit disappeared while the confirmation was open, Acosmibot asks for a fresh confirmation instead of charging silently.</p>
+      <p><code>/ai image</code> and mention-based image requests show an editable confirmation before included quota or a paid charge of 350 AI Credits. Canceling or letting the five-minute confirmation expire spends nothing. Confirming rechecks the live allowance, server settings, and balance; if the included unit disappeared while the confirmation was open, Acosmibot asks for a fresh confirmation instead of charging silently.</p>
     </div>
   </section>
 
   <section class="docs-section">
     <h2>Wallet controls and contributions</h2>
     <p>
-      Use private <code>/ai credits</code> for personal balance, reserved amount, mode, DM spending, guild fallback, current-server consent, and chat scope. Open <a href="/credits">AI Credits</a> to buy personal Fuel Cells and manage caps, low-balance notifications, DM spending, and per-server consent. Server owners and administrators manage the shared wallet, eligible operations, role and channel access, personal fallback, contributions, caps, and notifications from the server Billing page.
+      Use private <code>/ai credits</code> to check your balance and whether your own credits can be used in the current server. Open <a href="/credits">AI Credits</a> to buy Fuel Cells for yourself, set your daily and monthly caps and low-balance alerts, and switch <strong>Use my credits in &lt;server&gt;</strong> on or off for each server. Server owners and administrators manage the server's credits, which AI features they pay for, role and channel access, whether members may use their own credits there, contributions, caps, and alerts from the server Billing page.
     </p>
     <p>
       Any current server member can open the authenticated member hub at <code>/server/&lt;server-id&gt;</code>. When contributions and sales are enabled, a member can buy a Fuel Cell directly for the server wallet and choose a named or anonymous contribution. The optional Server Boost Log shows the display choice, Fuel Cell, amount, status, and time—never personal balances, prompts, individual consumption, payment identifiers, or DM activity. Refunds and disputes remain visible as reversed entries instead of disappearing.
@@ -73,8 +78,8 @@
 
   <section class="docs-section">
     <h2>Common funding problems</h2>
-    <div class="faq-item"><h4>Why did the request stop instead of spending AI Credits?</h4><p>A platform spending pause, disabled server pool, disallowed operation, insufficient full-wallet balance, role or channel restriction, personal cap, disabled global guild fallback, or missing current-server consent can all block a paid request.</p></div>
-    <div class="faq-item"><h4>Why was my personal balance skipped?</h4><p>Personal fallback needs all three keys: server permission, your global guild-spending switch, and your opt-in for that server. Your caps and the server's live operation policy must also allow the full reservation.</p></div>
+    <div class="faq-item"><h4>Why did the request stop instead of spending AI Credits?</h4><p>Usually nobody has bought credits yet, or the balance is too low for the most the request could cost. A request can also stop if Acosmibot has paused spending, an admin switched off the server's credits or that AI feature, a role or channel limit applies, or a cap was reached.</p></div>
+    <div class="faq-item"><h4>Why weren't my own credits used?</h4><p>Your credits are used in a server only after you switch on <strong>Use my credits in &lt;server&gt;</strong> for it at <a href="/credits">/credits</a>, and only if that server's admins haven't turned off members using their own credits. Your daily and monthly caps must also leave room for the request.</p></div>
     <div class="faq-item"><h4>Where can I see usage?</h4><p>Use public <code>/ai status</code> for server allowance and renewal details. Server managers can review the shared wallet and ledger in Billing; members can privately review personal balances and controls with <code>/ai credits</code> or at <a href="/credits">/credits</a>.</p></div>
   </section>
 

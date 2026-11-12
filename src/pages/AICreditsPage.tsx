@@ -1,13 +1,13 @@
 /**
  * THESIS: AI Credits are a controlled wallet, so the page leads with spendable balance and consent—not a generic pricing grid.
  * OWN-WORLD: Observatory void, graphite ledger surfaces, cyan wallet signals, and restrained warning/success states.
- * STORY: See what is available, choose a prepaid pack, set personal guardrails, and verify fulfillment in one place.
+ * STORY: See what is available, choose a prepaid pack, set personal limits, pick the servers that may use your credits, and verify fulfillment in one place.
  * FIRST VIEWPORT: A wallet readout occupies the left rail while the right side presents the three server-owned packs and their action.
  * FORM: Wallet-first operational dashboard extension of the established observatory; no new visual world or route-local shell.
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -76,8 +76,6 @@ const policyBoolean = (value: unknown, fallback = false) => {
 };
 
 const policyDefaults = (policy?: CreditUserPolicy) => ({
-  allow_dm_spending: policyBoolean(policy?.allow_dm_spending),
-  allow_guild_spending: policyBoolean(policy?.allow_guild_spending),
   personal_daily_credit_cap: policy?.personal_daily_credit_cap ?? 0,
   personal_monthly_credit_cap: policy?.personal_monthly_credit_cap ?? 0,
   low_balance_threshold: policy?.low_balance_threshold ?? 0,
@@ -131,31 +129,24 @@ const CreditPackCard: React.FC<{
 );
 
 const PolicySwitch: React.FC<{
-  id?: string;
   label: string;
   description: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: (checked: boolean) => void;
-  attentionMessage?: string;
-}> = ({ id, label, description, checked, onChange, attentionMessage }) => (
-  <label className={`credits-policy-switch${checked ? ' is-enabled' : ''}${attentionMessage ? ' needs-attention' : ''}`}>
+}> = ({ label, description, checked, disabled, onChange }) => (
+  <label className={`credits-policy-switch${checked ? ' is-enabled' : ''}`}>
     <span>
       <strong>{label}</strong>
       <small>{description}</small>
-      {attentionMessage && (
-        <span className="credits-policy-switch__attention" id={id ? `${id}-attention` : undefined}>
-          <AlertTriangle aria-hidden="true" /> {attentionMessage}
-        </span>
-      )}
     </span>
     <input
-      id={id}
       type="checkbox"
       role="switch"
       checked={checked}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.checked)}
       aria-label={label}
-      aria-describedby={attentionMessage && id ? `${id}-attention` : undefined}
     />
   </label>
 );
@@ -203,29 +194,18 @@ export const AICreditsPage: React.FC = () => {
   });
 
   const [policyDraft, setPolicyDraft] = useState(policyDefaults());
-  const [consentGuildId, setConsentGuildId] = useState('');
-  const [consentEnabled, setConsentEnabled] = useState(false);
   const guilds = useMemo(() => guildsQuery.data ?? [], [guildsQuery.data]);
-  const selectedConsentGuild = useMemo(
-    () => guilds.find((guild) => guild.id === consentGuildId),
-    [consentGuildId, guilds],
-  );
-  const consentQuery = useQuery({
-    queryKey: ['ai-credits', 'consent', consentGuildId],
-    queryFn: () => aiCreditsApi.getGuildConsent(consentGuildId),
-    enabled: Boolean(consentGuildId),
-    retry: false,
+  // One "Use my credits in <server>" switch per server. Each switch is the
+  // member's only setting for spending their own credits in that server.
+  const consentQueries = useQueries({
+    queries: guilds.map((guild) => ({
+      queryKey: ['ai-credits', 'consent', guild.id],
+      queryFn: () => aiCreditsApi.getGuildConsent(guild.id),
+      staleTime: 60_000,
+      retry: false,
+    })),
   });
 
-  useEffect(() => {
-    if (!consentGuildId && guilds[0]) setConsentGuildId(guilds[0].id);
-  }, [consentGuildId, guilds]);
-
-  useEffect(() => {
-    if (consentQuery.data?.consent.guild_id === consentGuildId) {
-      setConsentEnabled(consentQuery.data.consent.enabled);
-    }
-  }, [consentGuildId, consentQuery.data?.consent]);
   useEffect(() => {
     if (personalQuery.data?.policy) setPolicyDraft(policyDefaults(personalQuery.data.policy));
   }, [personalQuery.data?.policy]);
@@ -267,22 +247,27 @@ export const AICreditsPage: React.FC = () => {
       expected_version: personalQuery.data?.policy.version,
     } as Partial<CreditUserPolicy> & { expected_version?: number }),
     onSuccess: async () => {
-      showToast('AI Credits guardrails saved.', 'success');
+      showToast('Your limits were saved.', 'success');
       await queryClient.invalidateQueries({ queryKey: ['ai-credits', 'personal'] });
     },
     onError: (error) => {
-      showToast(error instanceof Error ? error.message : 'Could not save AI Credits guardrails.', 'error');
+      showToast(error instanceof Error ? error.message : 'Could not save your limits.', 'error');
     },
   });
 
   const consentMutation = useMutation({
-    mutationFn: () => aiCreditsApi.updateGuildConsent(consentGuildId, { enabled: consentEnabled }),
-    onSuccess: async () => {
-      showToast('Guild spending consent saved.', 'success');
-      await queryClient.invalidateQueries({ queryKey: ['ai-credits', 'consent', consentGuildId] });
+    mutationFn: ({ guildId, enabled }: { guildId: string; guildName: string; enabled: boolean }) => (
+      aiCreditsApi.updateGuildConsent(guildId, { enabled })
+    ),
+    onSuccess: (result, { guildId, guildName, enabled }) => {
+      queryClient.setQueryData(['ai-credits', 'consent', guildId], result);
+      showToast(
+        enabled ? `Your credits can now be used in ${guildName}.` : `Your credits will no longer be used in ${guildName}.`,
+        'success',
+      );
     },
     onError: (error) => {
-      showToast(error instanceof Error ? error.message : 'Could not save guild consent.', 'error');
+      showToast(error instanceof Error ? error.message : 'Could not save this server setting.', 'error');
     },
   });
 
@@ -294,26 +279,14 @@ export const AICreditsPage: React.FC = () => {
     [catalogQuery.data?.rate_card.rows],
   );
   const purchase = purchaseQuery.data?.purchase;
-  const savedConsentEnabled = consentQuery.data?.consent.guild_id === consentGuildId
-    ? consentQuery.data.consent.enabled
-    : undefined;
-  const consentHasChanges = savedConsentEnabled !== undefined && consentEnabled !== savedConsentEnabled;
-  const savedGuildFallbackEnabled = policyBoolean(personal?.policy.allow_guild_spending);
-  const guildFallbackRequired = consentEnabled && !savedGuildFallbackEnabled;
-  const guildFallbackAttention = guildFallbackRequired
-    ? policyDraft.allow_guild_spending
-      ? 'Save this guardrail before “Use my credits” can take effect.'
-      : 'Required by the selected “Use my credits” server permission below.'
-    : undefined;
+  // Older APIs only reported the DM platform switch on the catalog.
+  const dmSpendingAvailable = Boolean(
+    (personal?.spending_enabled ?? catalogQuery.data?.spending_enabled)
+    && (personal?.dm_enabled ?? catalogQuery.data?.dm_enabled),
+  );
   const purchaseIsPending = purchaseAwaitingFulfillment(purchase?.status);
   const pageLoading = catalogQuery.isLoading || personalQuery.isLoading;
   const pageError = catalogQuery.error || personalQuery.error;
-
-  const enableGuildFallback = () => {
-    const nextDraft = { ...policyDraft, allow_guild_spending: true };
-    setPolicyDraft(nextDraft);
-    policyMutation.mutate(nextDraft);
-  };
 
   if (pageLoading) {
     return <div className="credits-page"><PublicNav variant="observatory" /><LoadingSpinner /></div>;
@@ -397,11 +370,11 @@ export const AICreditsPage: React.FC = () => {
           <div className="credits-overview__briefing">
             <div className="credits-briefing-line">
               <ShieldCheck aria-hidden="true" />
-              <div><strong>Included quota comes first</strong><span>Credits only cover eligible, explicitly allowed overage.</span></div>
+              <div><strong>Included allowance comes first</strong><span>Credits only pay once a server’s included AI allowance runs out.</span></div>
             </div>
             <div className="credits-briefing-line">
               <LockKeyhole aria-hidden="true" />
-              <div><strong>No ambient spending</strong><span>Every paid action is bounded by your wallet policy and request cap.</span></div>
+              <div><strong>Only when you ask</strong><span>Credits pay for AI requests you make, never for background activity, and stay within your limits.</span></div>
             </div>
             <div className="credits-briefing-line">
               <History aria-hidden="true" />
@@ -441,34 +414,22 @@ export const AICreditsPage: React.FC = () => {
         <div className="credits-workspace">
           <section className="credits-panel credits-policy-panel" aria-labelledby="credits-policy-title">
             <div className="credits-panel__heading">
-              <div><span className="credits-section__label">Guardrails</span><h2 id="credits-policy-title">Set your spending boundary.</h2></div>
+              <div><span className="credits-section__label">Your limits</span><h2 id="credits-policy-title">Decide how much you spend.</h2></div>
               <ShieldCheck aria-hidden="true" />
             </div>
-            <p className="credits-panel__intro">These controls are personal. A guild administrator must separately enable server policy and consent before your personal wallet can be used in that guild.</p>
+            <p className="credits-panel__intro">In a server, its included AI allowance is used first, then the server’s credits, then your own credits if you switched them on for that server below. {dmSpendingAvailable
+              ? 'In your Discord DMs, AI requests use your own credits.'
+              : 'Your own credits can’t be used in Discord DMs yet.'}</p>
             {!personal.spending_enabled && (
               <div className="credits-notice credits-notice--warning" role="status">
                 <AlertTriangle aria-hidden="true" />
-                <span><strong>AI Credit spending is currently paused.</strong> You can configure permissions now, but no wallet will be charged until Acosmibot enables spending.</span>
+                <span><strong>AI Credit spending is currently paused.</strong> You can change these settings now, but no credits will be spent until Acosmibot turns spending back on.</span>
               </div>
             )}
             <div className="credits-policy-list">
               <PolicySwitch
-                label="Allow DM spending"
-                description="Permit explicit AI requests in your Discord DMs to use this wallet."
-                checked={policyDraft.allow_dm_spending}
-                onChange={(checked) => setPolicyDraft((draft) => ({ ...draft, allow_dm_spending: checked }))}
-              />
-              <PolicySwitch
-                id="allow-guild-fallback"
-                label="Allow guild fallback"
-                description="Permit eligible server requests to use your wallet after included quota and any available server credits."
-                checked={policyDraft.allow_guild_spending}
-                onChange={(checked) => setPolicyDraft((draft) => ({ ...draft, allow_guild_spending: checked }))}
-                attentionMessage={guildFallbackAttention}
-              />
-              <PolicySwitch
                 label="Low-balance notifications"
-                description="Notify you when available credits cross the configured personal threshold."
+                description="Notify you when your available credits drop to the alert amount below."
                 checked={policyDraft.low_balance_notifications}
                 onChange={(checked) => setPolicyDraft((draft) => ({ ...draft, low_balance_notifications: checked }))}
               />
@@ -479,7 +440,7 @@ export const AICreditsPage: React.FC = () => {
               <label><span>Low-balance alert</span><input type="number" min="0" max="10000000" value={policyDraft.low_balance_threshold} onChange={(event) => setPolicyDraft((draft) => ({ ...draft, low_balance_threshold: Math.max(0, Number(event.target.value) || 0) }))} /><small>Notify at or below this balance</small></label>
             </div>
             <button type="button" className="credits-button credits-button--secondary" disabled={policyMutation.isPending} onClick={() => policyMutation.mutate(policyDraft)}>
-              {policyMutation.isPending ? 'Saving…' : 'Save guardrails'}
+              {policyMutation.isPending ? 'Saving…' : 'Save limits'}
               {!policyMutation.isPending && <Check aria-hidden="true" />}
             </button>
           </section>
@@ -505,57 +466,37 @@ export const AICreditsPage: React.FC = () => {
         {guilds.length > 0 && (
           <section className="credits-panel credits-consent-panel" aria-labelledby="credits-consent-title">
             <div className="credits-panel__heading">
-              <div><span className="credits-section__label">Server permissions</span><h2 id="credits-consent-title">Let a server use your personal credits.</h2></div>
+              <div><span className="credits-section__label">Your servers</span><h2 id="credits-consent-title">Choose where your own credits can be used.</h2></div>
               <ShieldCheck aria-hidden="true" />
             </div>
-            <p className="credits-panel__intro" id="credits-consent-description">Choose whether your eligible AI requests in a server may use your personal credits after that server’s credits run out.</p>
-            <div className="credits-consent-controls">
-              <label className="credits-consent-server">
-                <span>Discord server</span>
-                <select value={consentGuildId} onChange={(event) => {
-                  setConsentGuildId(event.target.value);
-                  setConsentEnabled(false);
-                }}>
-                  {guilds.map((guild) => <option key={guild.id} value={guild.id}>{guild.name}</option>)}
-                </select>
-              </label>
-              <fieldset className="credits-consent-choice" disabled={consentQuery.isLoading} aria-describedby="credits-consent-description credits-consent-requirements">
-                <legend>Personal credit access</legend>
-                {consentQuery.isLoading ? (
-                  <div className="credits-consent-loading" role="status">Loading permission for {selectedConsentGuild?.name ?? 'this server'}…</div>
-                ) : (
-                  <div className="credits-consent-options">
-                    <label className={!consentEnabled ? 'is-selected' : undefined}>
-                      <input type="radio" name="guild-credit-consent" checked={!consentEnabled} onChange={() => setConsentEnabled(false)} />
-                      <span><strong>Don’t use my credits</strong><small>Requests stop when the server has no credits available.</small></span>
-                    </label>
-                    <label className={consentEnabled ? 'is-selected' : undefined}>
-                      <input type="radio" name="guild-credit-consent" checked={consentEnabled} onChange={() => setConsentEnabled(true)} />
-                      <span><strong>Use my credits</strong><small>My eligible requests may continue using my personal balance.</small></span>
-                    </label>
-                  </div>
-                )}
-              </fieldset>
+            <p className="credits-panel__intro">Switch a server on to keep your AI requests there going with your own credits after the server’s included allowance and the server’s credits run out. Each server starts off.</p>
+            <div className="credits-policy-list">
+              {guilds.map((guild, index) => {
+                const consentQuery = consentQueries[index];
+                const saving = consentMutation.isPending && consentMutation.variables?.guildId === guild.id;
+                const enabled = saving
+                  ? Boolean(consentMutation.variables?.enabled)
+                  : Boolean(consentQuery?.data?.consent.enabled);
+                return (
+                  <PolicySwitch
+                    key={guild.id}
+                    label={`Use my credits in ${guild.name}`}
+                    description={consentQuery?.isLoading
+                      ? 'Loading…'
+                      : consentQuery?.error
+                        ? 'Could not load this setting. Refresh to try again.'
+                        : enabled
+                          ? 'Your AI requests here can use your own credits.'
+                          : 'Your AI requests here stop when the server has no credits left.'}
+                    checked={enabled}
+                    disabled={!consentQuery?.data || consentMutation.isPending}
+                    onChange={(checked) => consentMutation.mutate({ guildId: guild.id, guildName: guild.name, enabled: checked })}
+                  />
+                );
+              })}
             </div>
             <div className="credits-consent-footer">
-              {guildFallbackRequired ? (
-                <div className="credits-consent-prerequisite" id="credits-consent-requirements" role="alert">
-                  <AlertTriangle aria-hidden="true" />
-                  <span>
-                    <strong>Allow guild fallback is required.</strong>
-                    This server permission cannot use your wallet while the master guardrail is off. Enabling it also activates any other server you explicitly set to “Use my credits.”
-                  </span>
-                  <button type="button" className="credits-button credits-button--secondary" disabled={policyMutation.isPending} onClick={enableGuildFallback}>
-                    {policyMutation.isPending ? 'Enabling…' : 'Enable guild fallback'}
-                  </button>
-                </div>
-              ) : (
-                <p id="credits-consent-requirements"><Info aria-hidden="true" /> The server’s administrators must also permit personal fallback. They cannot see your personal balance.</p>
-              )}
-              <button type="button" className="credits-button credits-button--primary" disabled={!consentGuildId || !consentHasChanges || consentMutation.isPending || consentQuery.isLoading || guildFallbackRequired} onClick={() => consentMutation.mutate()}>
-                {consentMutation.isPending ? 'Saving permission…' : 'Save server permission'}
-                {!consentMutation.isPending && <Check aria-hidden="true" />}
-              </button>
+              <p><Info aria-hidden="true" /> Server admins never see your balance. They can turn off members using their own credits in their server; if they do, that server’s switch has no effect.</p>
             </div>
           </section>
         )}
