@@ -64,7 +64,7 @@ test('documentation reflects current commercial and product contracts', () => {
   const credits = readDoc('ai-credits');
   assert.match(credits, /Fuel Cell 25K/);
   assert.match(credits, /350/);
-  assert.match(credits, /full maximum charge is reserved/i);
+  assert.match(credits, /set aside before it starts/i);
   assert.match(credits, /separate from Acosmicoins/i);
   assert.match(credits, /Server Boost Log/i);
 
