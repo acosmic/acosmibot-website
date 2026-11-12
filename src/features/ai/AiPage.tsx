@@ -41,6 +41,99 @@ const AIPaidOveragePanel: React.FC<{ guildId: string }> = ({ guildId }) => (
   </section>
 );
 
+type ChannelScopeForm = Pick<AiConfig, 'channel_mode' | 'allowed_channels' | 'excluded_channels'>;
+
+/** Where AI chat replies. Available on every plan (2026-11-11). */
+const AiChannelScopeSection: React.FC<{
+  form: ChannelScopeForm;
+  setForm: (changes: Partial<AiConfig>) => void;
+  textChannels: { id: string; name: string }[];
+}> = ({ form, setForm, textChannels }) => {
+  const toggleChannel = (channelId: string, listKey: 'excluded_channels' | 'allowed_channels') => {
+    const current = form[listKey] || [];
+    const next = current.includes(channelId)
+      ? current.filter(id => id !== channelId)
+      : [...current, channelId];
+    setForm({ [listKey]: next });
+  };
+
+  return (
+    <CollapsibleSection title="Channel Restrictions" defaultOpen={false}>
+      <label className="form-label mb-2 d-block">Channel Mode</label>
+      <div className="d-flex gap-3 mb-3">
+        {(['all', 'exclude', 'specific'] as const).map(mode => (
+          <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="channel_mode"
+              checked={form.channel_mode === mode}
+              onChange={() => setForm({ channel_mode: mode })}
+              style={{ accentColor: 'var(--primary-color)' }}
+            />
+            <span style={{ color: 'var(--text-primary)', fontSize: '14px', textTransform: 'capitalize' }}>
+              {mode === 'all' ? 'All Channels' : mode === 'exclude' ? 'Exclude Specific' : 'Include Only'}
+            </span>
+          </label>
+        ))}
+      </div>
+
+      {form.channel_mode === 'exclude' && (
+        <div>
+          <p className="text-muted small mb-3">The AI will respond in all channels <strong>except</strong> the ones selected below.</p>
+          <div style={{ maxHeight: '240px', overflowY: 'auto', borderRadius: '8px', border: '1px solid var(--border-light)', padding: '8px' }}>
+            {textChannels.map(ch => (
+              <label key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', transition: 'background 0.15s' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <input
+                  type="checkbox"
+                  checked={(form.excluded_channels || []).includes(ch.id)}
+                  onChange={() => toggleChannel(ch.id, 'excluded_channels')}
+                  style={{ accentColor: 'var(--primary-color)', width: '16px', height: '16px' }}
+                />
+                <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}># {ch.name}</span>
+              </label>
+            ))}
+            {textChannels.length === 0 && (
+              <p className="text-muted small p-2 mb-0">No channels available.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {form.channel_mode === 'specific' && (
+        <div>
+          <p className="text-muted small mb-3">The AI will <strong>only</strong> respond in the channels selected below.</p>
+          <div style={{ maxHeight: '240px', overflowY: 'auto', borderRadius: '8px', border: '1px solid var(--border-light)', padding: '8px' }}>
+            {textChannels.map(ch => (
+              <label key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', transition: 'background 0.15s' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <input
+                  type="checkbox"
+                  checked={(form.allowed_channels || []).includes(ch.id)}
+                  onChange={() => toggleChannel(ch.id, 'allowed_channels')}
+                  style={{ accentColor: 'var(--primary-color)', width: '16px', height: '16px' }}
+                />
+                <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}># {ch.name}</span>
+              </label>
+            ))}
+            {textChannels.length === 0 && (
+              <p className="text-muted small p-2 mb-0">No channels available.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {form.channel_mode === 'all' && (
+        <p className="text-muted small mb-0">The AI will respond in all channels where it has access.</p>
+      )}
+    </CollapsibleSection>
+  );
+};
+
 export const AiPage: React.FC = () => {
   const { guildId } = useParams<{ guildId: string }>();
   const { data, hasAccess, tier, isLoading, save, isSaving, saveError, endEffect } = useAiConfig(guildId!);
@@ -61,7 +154,7 @@ export const AiPage: React.FC = () => {
       <div className="feature-page">
         <div className="page-header text-start mt-0 mb-4">
           <h1>AI Customization</h1>
-          <p>Control AI chat and the AI tools included with your plan.</p>
+          <p>Control AI chat, where it replies, and the AI tools included with your plan.</p>
         </div>
 
         <FeatureToggle
@@ -93,6 +186,8 @@ export const AiPage: React.FC = () => {
             ))}
           </div>
         </CollapsibleSection>
+
+        <AiChannelScopeSection form={form} setForm={setForm} textChannels={textChannels} />
 
         <AIPaidOveragePanel guildId={guildId!} />
 
@@ -132,6 +227,9 @@ export const AiPage: React.FC = () => {
             enabled: form.enabled,
             tools: form.tools,
             web_search: form.tools.web_search,
+            channel_mode: form.channel_mode,
+            allowed_channels: form.allowed_channels,
+            excluded_channels: form.excluded_channels,
           })}
           onDiscard={resetForm}
           isSaving={isSaving}
@@ -177,14 +275,6 @@ export const AiPage: React.FC = () => {
       instructions: activePersonality.built_in ? activePersonality.instructions : '',
       web_search: form.tools.web_search,
     });
-  };
-
-  const toggleChannel = (channelId: string, listKey: 'excluded_channels' | 'allowed_channels') => {
-    const current = form[listKey] || [];
-    const next = current.includes(channelId)
-      ? current.filter(id => id !== channelId)
-      : [...current, channelId];
-    setForm({ [listKey]: next });
   };
 
   return (
@@ -495,80 +585,7 @@ export const AiPage: React.FC = () => {
         </div>
       </CollapsibleSection>
 
-      {/* Channel Restrictions */}
-      <CollapsibleSection title="Channel Restrictions" defaultOpen={false}>
-        <label className="form-label mb-2 d-block">Channel Mode</label>
-        <div className="d-flex gap-3 mb-3">
-          {(['all', 'exclude', 'specific'] as const).map(mode => (
-            <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="channel_mode"
-                checked={form.channel_mode === mode}
-                onChange={() => setForm({ channel_mode: mode })}
-                style={{ accentColor: 'var(--primary-color)' }}
-              />
-              <span style={{ color: 'var(--text-primary)', fontSize: '14px', textTransform: 'capitalize' }}>
-                {mode === 'all' ? 'All Channels' : mode === 'exclude' ? 'Exclude Specific' : 'Include Only'}
-              </span>
-            </label>
-          ))}
-        </div>
-
-        {form.channel_mode === 'exclude' && (
-          <div>
-            <p className="text-muted small mb-3">The AI will respond in all channels <strong>except</strong> the ones selected below.</p>
-            <div style={{ maxHeight: '240px', overflowY: 'auto', borderRadius: '8px', border: '1px solid var(--border-light)', padding: '8px' }}>
-              {textChannels.map(ch => (
-                <label key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', transition: 'background 0.15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <input
-                    type="checkbox"
-                    checked={(form.excluded_channels || []).includes(ch.id)}
-                    onChange={() => toggleChannel(ch.id, 'excluded_channels')}
-                    style={{ accentColor: 'var(--primary-color)', width: '16px', height: '16px' }}
-                  />
-                  <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}># {ch.name}</span>
-                </label>
-              ))}
-              {textChannels.length === 0 && (
-                <p className="text-muted small p-2 mb-0">No channels available.</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {form.channel_mode === 'specific' && (
-          <div>
-            <p className="text-muted small mb-3">The AI will <strong>only</strong> respond in the channels selected below.</p>
-            <div style={{ maxHeight: '240px', overflowY: 'auto', borderRadius: '8px', border: '1px solid var(--border-light)', padding: '8px' }}>
-              {textChannels.map(ch => (
-                <label key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', cursor: 'pointer', borderRadius: '6px', transition: 'background 0.15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <input
-                    type="checkbox"
-                    checked={(form.allowed_channels || []).includes(ch.id)}
-                    onChange={() => toggleChannel(ch.id, 'allowed_channels')}
-                    style={{ accentColor: 'var(--primary-color)', width: '16px', height: '16px' }}
-                  />
-                  <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}># {ch.name}</span>
-                </label>
-              ))}
-              {textChannels.length === 0 && (
-                <p className="text-muted small p-2 mb-0">No channels available.</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {form.channel_mode === 'all' && (
-          <p className="text-muted small mb-0">The AI will respond in all channels where it has access.</p>
-        )}
-      </CollapsibleSection>
+      <AiChannelScopeSection form={form} setForm={setForm} textChannels={textChannels} />
 
       <SaveBar
         isDirty={isDirty}
