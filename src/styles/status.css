@@ -126,15 +126,21 @@
   text-transform: uppercase;
 }
 
+/* The headline is sized against its own column so a whole word always fits
+   on one line; breaking inside a word is only a last resort. */
+.status-hero__copy {
+  container-type: inline-size;
+}
+
 .status-hero__copy h1 {
-  max-width: 12ch;
+  max-width: 8em;
   margin: 15px 0 22px;
   color: var(--status-white);
-  font-size: clamp(3rem, 5.2vw, 5rem);
+  font-size: clamp(2.25rem, min(max(3rem, 5.2vw), 14cqi), 5rem);
   font-weight: 750;
   letter-spacing: -0.04em;
   line-height: 0.98;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: balance;
 }
 
