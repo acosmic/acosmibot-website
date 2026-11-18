@@ -17,3 +17,11 @@ test('successful setup hydrates the persisted channel and enabled state and conf
   assert.match(page, /enabled: jail\.enabled/);
   assert.match(page, /showToast\(response\.message \?\? 'Jail channel and Inmate role are ready\.', 'success'\)/);
 });
+
+test('Jail role pickers never offer @everyone, which the API rejects', () => {
+  // A brand-new server often has only @everyone plus the bot role; offering it
+  // as a staff choice made every setup attempt fail (TrashRoom, 2026-11-17).
+  const pickers = page.match(/<RoleMultiSelect[\s\S]*?\/>/g) ?? [];
+  assert.equal(pickers.length, 2);
+  for (const picker of pickers) assert.match(picker, /\bexcludeEveryone\b/);
+});
