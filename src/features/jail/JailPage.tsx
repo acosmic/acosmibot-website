@@ -139,6 +139,7 @@ export const JailPage: React.FC = () => {
           </div>
           <RoleMultiSelect
             guildId={guildId!}
+            excludeEveryone
             value={form.staff_role_ids}
             onChange={(staff_role_ids) => setForm({ staff_role_ids })}
             label="Staff roles with Jail access (optional)"
@@ -234,7 +235,7 @@ export const JailPage: React.FC = () => {
         <CollapsibleSection title="03 / Confinement safeguards" defaultOpen>
           <div className="jail-safeguards">
             <div className="jail-safeguards__controls">
-              <RoleMultiSelect guildId={guildId!} value={form.protected_role_ids} onChange={(protected_role_ids) => setForm({ protected_role_ids })} disabled={!form.enabled} label="Protected roles" placeholder="No protected roles — choose any roles immune to ballots" />
+              <RoleMultiSelect guildId={guildId!} excludeEveryone value={form.protected_role_ids} onChange={(protected_role_ids) => setForm({ protected_role_ids })} disabled={!form.enabled} label="Protected roles" placeholder="No protected roles — choose any roles immune to ballots" />
               <ChannelSelect guildId={guildId!} value={form.mod_log_channel_id} onChange={(mod_log_channel_id) => setForm({ mod_log_channel_id })} label="Optional Jail mod-log channel" placeholder="Do not send a separate Jail mod-log" />
             </div>
             <div className="jail-guidance" role="note">
