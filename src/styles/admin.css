@@ -2740,6 +2740,9 @@
 .admin-summary th, .admin-summary td { padding: 7px 5px; text-align: right; font-variant-numeric: tabular-nums; }
 .admin-summary th:first-child { padding-left: 0; text-align: left; }
 .admin-summary thead th { color: var(--text-secondary); font-size: .7rem; font-weight: 500; }
+.admin-summary thead th[rowspan] { vertical-align: bottom; }
+.admin-summary thead th[colspan] { padding-bottom: 0; text-align: center; font-weight: 600; }
+.admin-summary :is(th, td):nth-last-child(3):not([rowspan]), .admin-summary thead th[colspan]:last-child { padding-left: 14px; border-left: 1px solid var(--border-light); }
 .admin-summary tbody th { font-weight: 500; }
 .admin-summary tbody th span { display: flex; gap: 7px; align-items: center; }
 .admin-summary tbody tr { border-top: 1px solid var(--border-light); }
