@@ -159,6 +159,8 @@ export interface WowProfileCardData {
   realmName: string;
   region: string;
   versionLabel: string;
+  /** WoW Forever's PvP/PvE ruleset; empty or absent for other versions. Never a realm. */
+  ruleset?: string;
   level: number;
   race: string;
   characterClass: string;

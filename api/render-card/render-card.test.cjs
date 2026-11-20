@@ -685,3 +685,46 @@ test('WoW professions card renders and validates its lists', async () => {
   );
   assert.equal((await render(wowProfessionsPayload({ secondaries: 'nope' }))).status, 400);
 });
+
+
+function wowPayload(overrides = {}) {
+  return {
+    card: 'wow-profile',
+    characterName: 'Ana',
+    realmName: 'Forever',
+    region: 'US',
+    versionLabel: 'WoW Forever',
+    ruleset: 'PvP',
+    level: 60,
+    race: 'Night Elf',
+    characterClass: 'Druid',
+    faction: 'Alliance',
+    guildName: '',
+    itemLevel: 0,
+    isRetail: false,
+    activeSpec: '',
+    characterImageUrl: 'https://render.worldofwarcraft.com/us/character/ana-main-raw.png',
+    stats: [{ label: 'Health', value: '2,965' }],
+    talents: [{ name: 'Balance', points: 31 }],
+    footer: 'Blizzard profile data · updates after logout',
+    ...overrides,
+  };
+}
+
+test('WoW Forever card accepts an optional ruleset and rejects a malformed one', async () => {
+  const tinyPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL5eAAAAABJRU5ErkJggg==', 'base64');
+  const originalFetch = global.fetch;
+  global.fetch = async () => new Response(tinyPng, { headers: { 'content-type': 'image/png' } });
+  try {
+    for (const payload of [wowPayload(), wowPayload({ ruleset: undefined })]) {
+      const response = await render(payload);
+      assert.equal(response.status, 200);
+      assert.deepEqual(pngDimensions(response.body), { width: 1200, height: 675 });
+    }
+    const invalid = await render(wowPayload({ ruleset: 7 }));
+    assert.equal(invalid.status, 400);
+    assert.equal(invalid.body, 'Invalid WoW profile card payload');
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
