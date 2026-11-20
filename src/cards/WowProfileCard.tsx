@@ -275,7 +275,12 @@ export function WowProfileCard({ data }: { data: WowProfileCardData }) {
         >
           <span>{data.region.toUpperCase()}</span>
           <span style={{ margin: '0 9px', color: '#4B5B68' }}>//</span>
-          <span>{compact(data.versionLabel.toUpperCase(), 42)}</span>
+          <span>
+            {compact(
+              (data.ruleset ? `${data.versionLabel} · ${data.ruleset}` : data.versionLabel).toUpperCase(),
+              42,
+            )}
+          </span>
           {data.guildName ? (
             <span style={{ marginLeft: 'auto', color: '#A9BAC7', letterSpacing: 0 }}>
               {compact(data.guildName, 24)}

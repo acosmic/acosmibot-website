@@ -545,6 +545,7 @@ function isValidWowProfile(data: unknown): data is WowProfileCardData {
     typeof d.realmName === 'string' &&
     typeof d.region === 'string' &&
     typeof d.versionLabel === 'string' &&
+    (d.ruleset === undefined || typeof d.ruleset === 'string') &&
     typeof d.level === 'number' &&
     typeof d.race === 'string' &&
     typeof d.characterClass === 'string' &&
