@@ -52,20 +52,21 @@ export function AdminSummary() {
         <div className="admin-summary__tiers">
           <h3>Subscription tiers</h3>
           <table>
-            <caption className="admin-summary__caption">Servers are connected servers on each tier now, split by a paid subscription or a complimentary grant. Subscriptions are paid billing records, including servers the bot has left.</caption>
-            <thead>
-              <tr><th scope="col" rowSpan={2}>Tier</th><th scope="colgroup" colSpan={3}>Servers</th><th scope="colgroup" colSpan={3}>Subscriptions</th></tr>
-              <tr><th scope="col">All</th><th scope="col">Paid</th><th scope="col">Granted</th><th scope="col">Active</th><th scope="col">Inactive</th><th scope="col">Total</th></tr>
-            </thead>
-            <tbody>{TIERS.map(tier => <tr key={tier}>
-              <th scope="row"><span><PremiumTierIcon tier={tier} size={20} />{PREMIUM_TIER_LABELS[tier]}</span></th>
-              <td>{count(data?.tiers[tier].servers)}</td>
-              <td>{tier === 'free' ? '—' : count(data?.tiers[tier].paid)}</td>
-              <td>{tier === 'free' ? '—' : count(data?.tiers[tier].granted)}</td>
-              <td>{tier === 'free' ? '—' : count(data?.tiers[tier].active)}</td>
-              <td>{tier === 'free' ? '—' : count(data?.tiers[tier].inactive)}</td>
-              <td>{tier === 'free' ? '—' : count(data?.tiers[tier].total)}</td>
-            </tr>)}</tbody>
+            <caption className="admin-summary__caption">Servers are connected servers on each tier now, marked <span className="admin-summary__source admin-summary__source--paid">paid</span> or <span className="admin-summary__source admin-summary__source--granted">granted</span>. Subscriptions are paid billing records, including servers the bot has left.</caption>
+            <thead><tr><th scope="col">Tier</th><th scope="col">Servers</th><th scope="col">Active subs</th><th scope="col">Inactive subs</th></tr></thead>
+            <tbody>{TIERS.map(tier => {
+              const row = data?.tiers[tier];
+              return <tr key={tier}>
+                <th scope="row"><span><PremiumTierIcon tier={tier} size={20} />{PREMIUM_TIER_LABELS[tier]}</span></th>
+                <td className="admin-summary__servers"><div>
+                  <strong>{count(row?.servers)}</strong>
+                  {tier !== 'free' && !!row?.paid && <span className="admin-summary__source admin-summary__source--paid">{count(row.paid)} paid</span>}
+                  {tier !== 'free' && !!row?.granted && <span className="admin-summary__source admin-summary__source--granted">{count(row.granted)} granted</span>}
+                </div></td>
+                <td>{tier === 'free' ? '—' : count(row?.active)}</td>
+                <td>{tier === 'free' ? '—' : count(row?.inactive)}</td>
+              </tr>;
+            })}</tbody>
           </table>
         </div>
         <div className="admin-summary__website">
