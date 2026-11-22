@@ -861,6 +861,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
               if (a.action === "skip") skipAlert(); else if (a.action === "clear") clearAlerts(); else if (a.action === "stop_effects") stopEffects();
               return;
             }
+            // An effect the owner sent from the dashboard: a live action, so only when fresh, and only a real effect.
+            if (a.type === "effect") {
+              if (Date.now() / 1000 - (a.created || 0) > 30) return;
+              if (FX[a.effect] && !ALERTS[a.effect]) window.AcosmicFX.fire(a.effect, { user: a.name, text: a.message });
+              return;
+            }
             if (Date.now() / 1000 - (a.created || 0) > STALE) return;
             if (ALERTS[a.type]) window.AcosmicFX.fire(a.type, { user: a.name, text: a.message, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox });
           });
