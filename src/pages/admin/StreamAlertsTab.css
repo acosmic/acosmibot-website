@@ -1,0 +1,90 @@
+.stream-alerts { display: grid; gap: 24px; min-width: 0; }
+
+.stream-alerts__status { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--bg-tertiary); border-radius: 12px; }
+.stream-alerts__status strong { color: var(--text-primary); }
+.stream-alerts__status p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.stream-alerts__light { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--text-muted); }
+.stream-alerts__light.is-on { background: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
+
+.stream-alerts__layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.stream-alerts__stage { position: sticky; top: 16px; min-width: 0; }
+
+/* A stand-in stream scene behind the transparent overlay frame. */
+.stream-alerts__screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background:
+    radial-gradient(60% 80% at 70% 30%, rgba(97, 218, 241, 0.10), transparent 70%),
+    linear-gradient(140deg, #0d1622, #05080d 70%);
+}
+.stream-alerts__screen iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; }
+.stream-alerts__scene-label { position: absolute; right: 12px; bottom: 10px; color: var(--text-muted); font-size: 11px; }
+/* Where the overlay assumes the camera sits when OBS is not attached. */
+.stream-alerts__cam {
+  position: absolute; left: 2%; top: 65%; width: 19%; height: 27%;
+  display: grid; place-items: center;
+  border: 1px dashed var(--border-cyan); border-radius: 6px;
+  color: var(--text-muted); font-size: 11px;
+}
+.stream-alerts__hint { margin: 10px 0 0; color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+
+.stream-alerts__rewards { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.stream-alerts__rewards > span { flex-basis: 100%; color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+
+.stream-alerts button {
+  min-height: 44px; padding: 8px 14px;
+  border: 1px solid var(--border-light); border-radius: 6px;
+  background: var(--bg-secondary); color: var(--text-primary);
+  font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.stream-alerts button:hover:not(:disabled) { border-color: var(--border-cyan); }
+.stream-alerts button:disabled { opacity: 0.5; cursor: not-allowed; }
+.stream-alerts button.is-primary { border-color: var(--border-cyan); color: var(--primary-color); font-weight: 600; }
+.stream-alerts button:focus-visible, .stream-alerts input:focus-visible, .stream-alerts select:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+
+.stream-alerts__controls { min-width: 0; }
+.stream-alerts__shared { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stream-alerts__shared label, .stream-alerts__number { display: grid; gap: 4px; min-width: 0; }
+.stream-alerts__shared label.is-wide { grid-column: 1 / -1; }
+.stream-alerts label > span { color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.stream-alerts .form-control { min-height: 44px; }
+
+.stream-alerts__kinds { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.stream-alerts__kinds li {
+  display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; align-items: end; gap: 12px;
+  padding: 12px 0 12px 14px;
+  border-top: 1px solid var(--border-light);
+  border-left: 3px solid var(--alert-accent);
+}
+.stream-alerts__kind-name { display: grid; gap: 2px; align-self: center; min-width: 0; }
+.stream-alerts__kind-name strong { color: var(--text-primary); }
+.stream-alerts__kind-name span { color: var(--text-muted); font-size: 12px; }
+.stream-alerts__actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+.stream-alerts__notice { margin: 12px 0 0; font-size: 13px; }
+.stream-alerts__notice.is-ok { color: var(--success-color); }
+.stream-alerts__notice.is-error { color: var(--error-color); }
+
+.stream-alerts__recent h3 { margin: 0 0 6px; }
+.stream-alerts__recent > p { max-width: 80ch; margin: 0 0 12px; font-size: 13px; }
+.stream-alerts__table { overflow-x: auto; }
+.stream-alerts table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.stream-alerts th, .stream-alerts td { padding: 9px 10px; border-bottom: 1px solid var(--border-light); text-align: start; white-space: nowrap; }
+.stream-alerts thead th { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.stream-alerts td em { margin-left: 8px; padding: 1px 6px; border: 1px solid var(--border-light); border-radius: 4px; color: var(--text-muted); font-size: 10px; font-style: normal; text-transform: uppercase; }
+.stream-alerts td.stream-alerts__message { max-width: 320px; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); }
+.stream-alerts .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 1100px) {
+  .stream-alerts__layout { grid-template-columns: minmax(0, 1fr); }
+  .stream-alerts__stage { position: static; }
+}
+@media (max-width: 560px) {
+  .stream-alerts__kinds li { grid-template-columns: minmax(0, 1fr) 96px; }
+  .stream-alerts__kinds .stream-alerts__actions { grid-column: 1 / -1; justify-content: stretch; }
+  .stream-alerts__kinds .stream-alerts__actions button { flex: 1; }
+  .stream-alerts__shared { grid-template-columns: minmax(0, 1fr); }
+}

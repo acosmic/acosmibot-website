@@ -23,6 +23,14 @@
         "X-Robots-Tag": "noindex, nofollow"
       }
     },
+    {
+      "route": "/stream-overlay/*",
+      "headers": {
+        "X-Frame-Options": "",
+        "Content-Security-Policy": "frame-ancestors 'self'; base-uri 'self'; object-src 'none'",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
+    },
     { "route": "/premium", "redirect": "/pricing", "statusCode": 301 },
     { "route": "/docs", "redirect": "/docs/introduction", "statusCode": 301 },
     { "route": "/docs/spotify", "redirect": "/docs/music", "statusCode": 301 },
