@@ -44,3 +44,39 @@ test('dashboard calls stay on the owner-only admin API', () => {
   for (const path of ['status', 'recent', 'test', 'replay']) assert.match(api, new RegExp(`/api/admin/stream-alerts/${path}`));
   assert.doesNotMatch(tab, /Bearer|overlay key value|STREAM_ALERTS_OVERLAY_KEY/);
 });
+
+test('live controls reach OBS through the owner-only control and settings routes', () => {
+  assert.match(api, /export interface StreamAlertSettings \{/);
+  assert.match(api, /export type StreamAlertControlAction = 'skip' \| 'clear' \| 'pause' \| 'resume' \| 'safe_mode_on' \| 'safe_mode_off'/);
+  assert.match(api, /settings: StreamAlertSettings;/);
+  assert.match(api, /sendStreamAlertControl: [\s\S]*?'\/api\/admin\/stream-alerts\/control', \{\s*method: 'POST'/);
+  assert.match(api, /updateStreamAlertSettings: [\s\S]*?'\/api\/admin\/stream-alerts\/settings', \{\s*method: 'PUT'/);
+  assert.match(tab, /adminApi\.sendStreamAlertControl/);
+  assert.match(tab, /adminApi\.updateStreamAlertSettings/);
+});
+
+test('the tab offers skip, pause, clear, Safe Mode and the raid and cheer limits', () => {
+  for (const text of ['Live controls', 'Skip current alert', 'Pause alerts', 'Resume alerts', 'Clear waiting alerts',
+    'Smallest raid to show', 'Smallest cheer to show', 'Follow and raid alerts are hidden until you turn it off']) {
+    assert.ok(tab.includes(text), text);
+  }
+  for (const action of ['skip', 'clear', 'pause', 'resume', 'safe_mode_on', 'safe_mode_off']) assert.match(tab, new RegExp(`'${action}'`));
+  // Live controls sit above the preview and test-alert grid.
+  assert.ok(tab.indexOf('aria-label="Live controls"') < tab.indexOf('className="stream-alerts__layout"'));
+});
+
+test('the preview mirrors skip and clear only when its overlay copy supports them', () => {
+  assert.match(tab, /fx\?\.skip\?\.\(\)/);
+  assert.match(tab, /fx\?\.clear\?\.\(\)/);
+  assert.match(tab, /typeof fx\?\.queue === 'function'/);
+  assert.match(tab, /Preview a follow flood/);
+  assert.match(tab, /counting follows only/);
+  assert.doesNotMatch(tab, /fx\?\.(pause|resume|applySettings)/);
+});
+
+test('a new preview cuts off the one before it', () => {
+  assert.match(tab, /stop\?: \(\) => void/);
+  assert.match(tab, /stopPreview\(\);\s*overlay\.AcosmicFX\.fire\(effect, options\)/);
+  assert.match(tab, /AcosmicFX\?\.stop\?\.\(\)/);
+  assert.match(tab, />Stop preview</);
+});

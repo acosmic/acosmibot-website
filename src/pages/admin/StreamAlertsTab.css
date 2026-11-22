@@ -1,10 +1,25 @@
-.stream-alerts { display: grid; gap: 24px; min-width: 0; }
+/* One column that may shrink: without it the wide recent-alerts table sets the page width on a phone. */
+.stream-alerts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; }
 
 .stream-alerts__status { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--bg-tertiary); border-radius: 12px; }
 .stream-alerts__status strong { color: var(--text-primary); }
 .stream-alerts__status p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
 .stream-alerts__light { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--text-muted); }
 .stream-alerts__light.is-on { background: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
+
+.stream-alerts__live { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--border-light); border-radius: 12px; background: var(--bg-tertiary); min-width: 0; }
+.stream-alerts__live-head h3 { margin: 0; }
+.stream-alerts__live-head p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; }
+.stream-alerts__banners { display: grid; gap: 8px; }
+.stream-alerts__banner { margin: 0; padding: 10px 12px; border: 2px solid; border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; line-height: 1.5; }
+.stream-alerts__banner.is-paused { border-color: var(--warning-color, #fbbf24); }
+.stream-alerts__banner.is-safe { border-color: var(--error-color); }
+.stream-alerts__live-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.stream-alerts button.stream-alerts__skip { min-width: 200px; padding: 10px 22px; border: 2px solid var(--primary-color); color: var(--primary-color); font-size: 15px; font-weight: 700; }
+.stream-alerts button.is-on { border: 2px solid var(--error-color); color: var(--error-color); font-weight: 700; }
+.stream-alerts__thresholds { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.stream-alerts__thresholds label { display: grid; gap: 4px; flex: 1 1 180px; min-width: 0; max-width: 260px; }
+.stream-alerts__queue { margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
 
 .stream-alerts__layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .stream-alerts__stage { position: sticky; top: 16px; min-width: 0; }
@@ -65,12 +80,14 @@
 .stream-alerts__actions { display: flex; gap: 8px; justify-content: flex-end; }
 
 .stream-alerts__notice { margin: 12px 0 0; font-size: 13px; }
+.stream-alerts__live .stream-alerts__notice { margin: 0; }
 .stream-alerts__notice.is-ok { color: var(--success-color); }
 .stream-alerts__notice.is-error { color: var(--error-color); }
 
 .stream-alerts__recent h3 { margin: 0 0 6px; }
 .stream-alerts__recent > p { max-width: 80ch; margin: 0 0 12px; font-size: 13px; }
-.stream-alerts__table { overflow-x: auto; }
+/* Positioned, so the hidden column label inside stays within this scroll box instead of widening the page. */
+.stream-alerts__table { position: relative; overflow-x: auto; }
 .stream-alerts table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
 .stream-alerts th, .stream-alerts td { padding: 9px 10px; border-bottom: 1px solid var(--border-light); text-align: start; white-space: nowrap; }
 .stream-alerts thead th { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
@@ -87,4 +104,8 @@
   .stream-alerts__kinds .stream-alerts__actions { grid-column: 1 / -1; justify-content: stretch; }
   .stream-alerts__kinds .stream-alerts__actions button { flex: 1; }
   .stream-alerts__shared { grid-template-columns: minmax(0, 1fr); }
+  .stream-alerts__live-buttons button { flex: 1 1 140px; white-space: normal; }
+  .stream-alerts button.stream-alerts__skip { flex-basis: 100%; min-width: 0; }
+  .stream-alerts__thresholds label { max-width: none; }
+  .stream-alerts__thresholds button { flex: 1 1 100%; }
 }
