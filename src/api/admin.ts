@@ -79,7 +79,8 @@ export interface StreamAlertSettings {
   min_cheer_bits: number;
 }
 
-export type StreamAlertControlAction = 'skip' | 'clear' | 'pause' | 'resume' | 'safe_mode_on' | 'safe_mode_off';
+export type StreamAlertControlAction = 'skip' | 'clear' | 'pause' | 'resume' | 'safe_mode_on' | 'safe_mode_off' | 'stop_effects';
+export type StreamAlertClearScope = 'tests' | 'all';
 
 export interface AdminGuildOption {
   id: string;
@@ -736,6 +737,13 @@ export const adminApi = {
     api.fetch<{ success: boolean; settings: StreamAlertSettings }>('/api/admin/stream-alerts/settings', {
       method: 'PUT',
       body: JSON.stringify(partial),
+    }),
+
+  /** Tidies the dashboard's recent list only; nothing in OBS or Stripe changes. */
+  clearRecentStreamAlerts: (scope: StreamAlertClearScope) =>
+    api.fetch<{ success: boolean; scope: StreamAlertClearScope; removed: number }>('/api/admin/stream-alerts/recent/clear', {
+      method: 'POST',
+      body: JSON.stringify({ scope }),
     }),
 
   getCosmetics: () =>

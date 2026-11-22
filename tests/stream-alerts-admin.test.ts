@@ -47,7 +47,7 @@ test('dashboard calls stay on the owner-only admin API', () => {
 
 test('live controls reach OBS through the owner-only control and settings routes', () => {
   assert.match(api, /export interface StreamAlertSettings \{/);
-  assert.match(api, /export type StreamAlertControlAction = 'skip' \| 'clear' \| 'pause' \| 'resume' \| 'safe_mode_on' \| 'safe_mode_off'/);
+  assert.match(api, /export type StreamAlertControlAction = 'skip' \| 'clear' \| 'pause' \| 'resume' \| 'safe_mode_on' \| 'safe_mode_off' \| 'stop_effects'/);
   assert.match(api, /settings: StreamAlertSettings;/);
   assert.match(api, /sendStreamAlertControl: [\s\S]*?'\/api\/admin\/stream-alerts\/control', \{\s*method: 'POST'/);
   assert.match(api, /updateStreamAlertSettings: [\s\S]*?'\/api\/admin\/stream-alerts\/settings', \{\s*method: 'PUT'/);
@@ -79,4 +79,31 @@ test('a new preview cuts off the one before it', () => {
   assert.match(tab, /stopPreview\(\);\s*overlay\.AcosmicFX\.fire\(effect, options\)/);
   assert.match(tab, /AcosmicFX\?\.stop\?\.\(\)/);
   assert.match(tab, />Stop preview</);
+});
+
+test('stop effects ends channel point effects in OBS and mirrors in the preview when supported', () => {
+  assert.match(tab, /stop_effects: \{ done: 'Stopped the effects in OBS\.'/);
+  assert.match(tab, /runControl\('stop_effects'\)/);
+  assert.match(tab, />\s*Stop effects\s*</);
+  assert.match(tab, /Skip ends the alert card on screen\. Stop effects ends a channel point effect/);
+  assert.match(tab, /stopEffects\?: \(\) => void/);
+  assert.match(tab, /typeof fx\?\.stopEffects === 'function'\) fx\.stopEffects\(\)/);
+});
+
+test('the recent list can be cleared of tests, or fully after a confirmation step', () => {
+  assert.match(api, /export type StreamAlertClearScope = 'tests' \| 'all'/);
+  assert.match(api, /clearRecentStreamAlerts: \(scope: StreamAlertClearScope\)[\s\S]*?'\/api\/admin\/stream-alerts\/recent\/clear', \{\s*method: 'POST',\s*body: JSON\.stringify\(\{ scope \}\)/);
+  assert.match(tab, /adminApi\.clearRecentStreamAlerts/);
+  for (const text of ['Clear test alerts', 'Clear recent alerts', 'Clear all recent alerts?', 'Yes, clear', 'Cancel',
+    'Nothing to clear.', 'This only tidies this list. It does not change anything in OBS or Stripe.']) {
+    assert.ok(tab.includes(text), text);
+  }
+  assert.match(tab, /runClear\('tests'\)/);
+  assert.match(tab, /runClear\('all'\)/);
+  assert.match(tab, /disabled=\{clearRecent\.isPending \|\| !hasTestAlerts\}/);
+  assert.match(tab, /disabled=\{clearRecent\.isPending \|\| alerts\.length === 0\}/);
+  assert.match(tab, /alert\.test \|\| alert\.sandbox/);
+  assert.doesNotMatch(tab, /window\.confirm/);
+  // Clearing the list is not an OBS control.
+  assert.doesNotMatch(tab, /disabled=\{[^}]*clearRecent[^}]*(liveDisabled|obsReady)/);
 });

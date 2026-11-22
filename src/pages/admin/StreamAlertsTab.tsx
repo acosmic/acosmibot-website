@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   adminApi,
   StreamAlert,
+  StreamAlertClearScope,
   StreamAlertControlAction,
   StreamAlertSettings,
   StreamAlertStatus,
@@ -20,6 +21,7 @@ interface OverlayWindow extends Window {
     skip?: () => boolean;
     stop?: () => void;
     clear?: () => number;
+    stopEffects?: () => void;
     queue?: () => PreviewQueue;
   };
 }
@@ -43,6 +45,7 @@ const CONTROL_TEXT: Record<StreamAlertControlAction, { done: string; verb: strin
   resume: { done: 'Resumed alerts in OBS.', verb: 'resume alerts' },
   safe_mode_on: { done: 'Safe Mode is on. Follow and raid alerts are hidden.', verb: 'turn on Safe Mode' },
   safe_mode_off: { done: 'Safe Mode is off. Follow and raid alerts show again.', verb: 'turn off Safe Mode' },
+  stop_effects: { done: 'Stopped the effects in OBS.', verb: 'stop the effects' },
 };
 
 const FLOOD_COUNT = 200;
@@ -250,11 +253,12 @@ export const StreamAlertsTab: React.FC = () => {
 
   const runControl = (action: StreamAlertControlAction) => {
     if (control.isPending) return;
-    // The preview mirrors skip and clear only; it never pauses or hides alerts.
+    // The preview mirrors skip, clear and stop effects only; it never pauses or hides alerts.
     try {
       const fx = overlayFX();
       if (action === 'skip') fx?.skip?.();
       if (action === 'clear') fx?.clear?.();
+      if (action === 'stop_effects' && typeof fx?.stopEffects === 'function') fx.stopEffects();
     } catch {
       /* an older preview copy; the OBS part still runs */
     }
@@ -322,6 +326,32 @@ export const StreamAlertsTab: React.FC = () => {
     },
     onError: (error) => setNotice({ tone: 'error', text: `Could not replay: ${String(error)}` }),
   });
+  /** Results of clearing the recent list, shown beside the list. */
+  const [recentNotice, setRecentNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+  const clearRecent = useMutation({
+    mutationFn: (scope: StreamAlertClearScope) => adminApi.clearRecentStreamAlerts(scope),
+    onSuccess: (result, scope) => {
+      const removed = Number(result.removed) || 0;
+      const what = scope === 'tests' ? 'test alert' : 'recent alert';
+      setRecentNotice({
+        tone: 'ok',
+        text: removed === 0 ? 'Nothing to clear.' : `Cleared ${removed} ${what}${removed === 1 ? '' : 's'}.`,
+      });
+    },
+    onError: (error, scope) => setRecentNotice({
+      tone: 'error',
+      text: `Could not clear the ${scope === 'tests' ? 'test alerts' : 'recent alerts'}: ${String(error)}`,
+    }),
+    onSettled: () => {
+      setConfirmClearAll(false);
+      refreshRecent();
+    },
+  });
+  const runClear = (scope: StreamAlertClearScope) => {
+    if (clearRecent.isPending) return;
+    clearRecent.mutate(scope);
+  };
 
   const lastSeen = status.data?.overlay_last_seen ?? null;
   const secondsSinceSeen = lastSeen === null ? null : Math.max(0, Math.round(now / 1000 - lastSeen));
@@ -329,6 +359,7 @@ export const StreamAlertsTab: React.FC = () => {
   const alerts = recent.data?.alerts ?? [];
   const obsReady = Boolean(status.data?.configured && status.data?.available);
   const liveDisabled = control.isPending || !obsReady;
+  const hasTestAlerts = alerts.some((alert) => alert.test || alert.sandbox);
 
   return (
     <div className="stream-alerts">
@@ -371,6 +402,14 @@ export const StreamAlertsTab: React.FC = () => {
           </button>
           <button
             type="button"
+            title="Ends a running channel point effect, such as Blackout. Alert cards stay."
+            disabled={liveDisabled}
+            onClick={() => runControl('stop_effects')}
+          >
+            Stop effects
+          </button>
+          <button
+            type="button"
             className={settings.paused ? 'is-on' : ''}
             aria-pressed={settings.paused}
             disabled={liveDisabled}
@@ -391,6 +430,9 @@ export const StreamAlertsTab: React.FC = () => {
             {settings.safe_mode ? 'Safe Mode: on (turn off)' : 'Safe Mode: off (turn on)'}
           </button>
         </div>
+        <p className="stream-alerts__hint stream-alerts__live-hint">
+          Skip ends the alert card on screen. Stop effects ends a channel point effect, such as Blackout, and leaves alert cards alone.
+        </p>
         <form className="stream-alerts__thresholds" onSubmit={submitThresholds}>
           <label>
             <span>Smallest raid to show (viewers)</span>
@@ -533,6 +575,42 @@ export const StreamAlertsTab: React.FC = () => {
         <p className="text-muted">
           Donations and tests that went through the API, newest first. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here yet.
         </p>
+        <div className="stream-alerts__recent-tools">
+          <div className="stream-alerts__recent-buttons">
+            <button
+              type="button"
+              disabled={clearRecent.isPending || !hasTestAlerts}
+              onClick={() => runClear('tests')}
+            >
+              Clear test alerts
+            </button>
+            {confirmClearAll ? (
+              <span className="stream-alerts__confirm" role="group" aria-label="Confirm clearing all recent alerts">
+                <strong>Clear all recent alerts?</strong>
+                <button type="button" className="is-on" disabled={clearRecent.isPending} onClick={() => runClear('all')}>
+                  {clearRecent.isPending ? 'Clearing…' : 'Yes, clear'}
+                </button>
+                <button type="button" disabled={clearRecent.isPending} onClick={() => setConfirmClearAll(false)}>Cancel</button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                disabled={clearRecent.isPending || alerts.length === 0}
+                onClick={() => { setRecentNotice(null); setConfirmClearAll(true); }}
+              >
+                Clear recent alerts
+              </button>
+            )}
+          </div>
+          <p className="stream-alerts__hint">
+            This only tidies this list. It does not change anything in OBS or Stripe. Cleared donations can no longer be replayed.
+          </p>
+          {recentNotice && (
+            <p className={`stream-alerts__notice is-${recentNotice.tone}`} role={recentNotice.tone === 'error' ? 'alert' : 'status'}>
+              {recentNotice.text}
+            </p>
+          )}
+        </div>
         {recent.isLoading && <p className="text-muted">Loading…</p>}
         {recent.error && <p role="alert" className="stream-alerts__notice is-error">Could not load recent alerts: {String(recent.error)}</p>}
         {!recent.isLoading && !recent.error && alerts.length === 0 && <p className="text-muted">No alerts yet. Send a test above.</p>}
