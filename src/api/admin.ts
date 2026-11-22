@@ -32,6 +32,43 @@ export interface PremiumGrantInput {
   expires_at: string | null;
 }
 
+export type StreamAlertType = 'donation' | 'follow' | 'sub' | 'resub' | 'gift' | 'cheer' | 'raid' | 'hypetrain';
+export type StreamAlertTier = '1000' | '2000' | '3000' | 'prime';
+
+/** One alert as the stream overlay receives it. `value` is the kind's number (months, subs, bits, raiders, level). */
+export interface StreamAlert {
+  id: string;
+  type: StreamAlertType;
+  name: string;
+  message: string;
+  created: number;
+  test: boolean;
+  sandbox: boolean;
+  cursor?: string;
+  value?: number;
+  tier?: StreamAlertTier;
+  amount_minor?: number;
+  amount_display?: string;
+  replay_of?: string;
+}
+
+export interface StreamAlertTestInput {
+  type: StreamAlertType;
+  name?: string;
+  message?: string;
+  value?: number;
+  tier?: StreamAlertTier;
+  amount_minor?: number;
+}
+
+export interface StreamAlertStatus {
+  success: boolean;
+  configured: boolean;
+  available: boolean;
+  overlay_last_seen: number | null;
+  types: StreamAlertType[];
+}
+
 export interface AdminGuildOption {
   id: string;
   name: string;
@@ -638,6 +675,24 @@ export const adminApi = {
         body: JSON.stringify(payload),
       },
     ),
+
+  getStreamAlertStatus: () =>
+    api.fetch<StreamAlertStatus>('/api/admin/stream-alerts/status'),
+
+  getRecentStreamAlerts: (limit = 30) =>
+    api.fetch<{ success: boolean; alerts: StreamAlert[] }>(`/api/admin/stream-alerts/recent?limit=${limit}`),
+
+  fireStreamAlert: (payload: StreamAlertTestInput) =>
+    api.fetch<{ success: boolean; alert: StreamAlert }>('/api/admin/stream-alerts/test', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  replayStreamAlert: (id: string) =>
+    api.fetch<{ success: boolean; alert: StreamAlert }>('/api/admin/stream-alerts/replay', {
+      method: 'POST',
+      body: JSON.stringify({ id }),
+    }),
 
   getCosmetics: () =>
     api.fetch<AdminCosmeticsResponse>('/api/admin/cosmetics'),
