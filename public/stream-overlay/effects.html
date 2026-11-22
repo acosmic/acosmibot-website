@@ -246,10 +246,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // ?volume=0.5 on the source URL scales everything; 0 mutes.
   var ac, master, VOL = q.get("volume") == null ? 0.9 : clamp(parseFloat(q.get("volume")) || 0, 0, 2);
   function audio() {
-    if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = VOL; master.connect(ac.destination); }
+    if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); newMaster(); }
     if (ac.state === "suspended") ac.resume();
     return ac;
   }
+  // Every sound goes through one master gain; stop() unplugs it (silencing sounds already scheduled) and makes a new one.
+  function newMaster() { master = ac.createGain(); master.gain.value = VOL; master.connect(ac.destination); }
+  function silence() { if (!ac) return; try { master.disconnect(); } catch (e) {} newMaster(); }
   function env(g, t, len, vol, attack) {
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (attack || 0.008)); g.gain.exponentialRampToValueAtTime(vol * 0.35, t + Math.max(len * 0.6, (attack || 0.008) + 0.01)); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
   }
@@ -512,7 +515,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     donation: { kicker: "New donation", accent: "#22d3ee", hold: 6500, hl: function (o) { return o.amount || "$5.00"; },
       go: function () { SFX.donation(); markFountain(46, "#22d3ee"); bump(0.05, 0.7); } },
     follow: { kicker: "New follower", accent: "#22d3ee", hold: 4200, hl: function () { return ""; },
-      go: function () { SFX.follow(); markFountain(10, "#22d3ee"); } },
+      go: function (o) { var n = o.count || 1; SFX.follow(); markFountain(clamp(Math.round(10 + Math.sqrt(n - 1) * 4), 10, 46), "#22d3ee"); if (n >= 20) bump(0.03, 0.5); } },
     sub: { kicker: "New subscriber", accent: "#a78bfa", hold: 6000, hl: function (o) { return tierName(o.tier); },
       go: function () { SFX.sub(false); markFountain(28, "#a78bfa"); bump(0.04, 0.6); } },
     resub: { kicker: "Resubscribed", accent: "#a78bfa", hold: 6000, hl: function (o) { return plural(num(o.value, 2), "month", "months"); },
@@ -524,9 +527,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     raid: { kicker: "Raid incoming", accent: "#fb7185", hold: 8000, hl: function (o) { return "with " + plural(num(o.value, 1), "raider", "raiders"); },
       go: function () { SFX.raid(); meteors(); bump(0.09, 1.4); } },
     hypetrain: { kicker: "Hype train", accent: "#4ade80", hold: 6500, name: "Hype Train", hl: function (o) { return "Level " + num(o.value, 1); },
-      go: function () { SFX.hypetrain(); bump(0.05, 2.4); for (var i = 0; i < 7; i++) (function (i) { setTimeout(function () { burst(W * (0.08 + i * 0.14), H * 0.97, 22, 700, "#86efac"); }, i * 180); })(i); } }
+      go: function () { SFX.hypetrain(); bump(0.05, 2.4); for (var i = 0; i < 7; i++) (function (i) { var g = stageGen; setTimeout(function () { if (g === stageGen) burst(W * (0.08 + i * 0.14), H * 0.97, 22, 700, "#86efac"); }, i * 180); })(i); } }
   };
-  var alertQ = [], alertBusy = false;
+  // The queue: priority order (lower plays first), first in first out within a priority.
+  // Follows merge into one waiting card; a fast run of follows switches to count-only "flood" mode.
+  var PRI = { donation: 0, raid: 0, gift: 1, sub: 1, resub: 1, cheer: 1, hypetrain: 2, follow: 3 };
+  var QCAP = 40, QCAP_DONATION = 200;
+  var SET = { paused: false, safe_mode: false, min_raid_viewers: 1, min_cheer_bits: 1 };
+  var stageGen = 0; // bumped by stop(), so effects' delayed steps from before it do nothing
+  var alertQ = [], cur = null, seq = 0, dropped = 0, wakeT = null;
+  var followTimes = [], floodUntil = 0, lastFollowEnd = 0;
   function markFountain(count, color) {
     var list = [];
     for (var i = 0; i < count; i++) list.push({
@@ -549,18 +559,69 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       if (!alive) return false;
     } });
   }
-  function nextAlert() {
-    var item = alertQ.shift();
-    if (!item) { alertBusy = false; return; }
-    alertBusy = true;
-    var A = ALERTS[item.type], o = item.o;
-    var text = String(o.text || "").slice(0, 220), hl = A.hl(o), hold = clamp(A.hold + text.length * 45, A.hold, 13000);
+  function inFlood() { return Date.now() < floodUntil; }
+  function enqueue(type, o) {
+    o = o || {};
+    if (SET.safe_mode && (type === "follow" || type === "raid")) return;
+    if (type === "raid" && num(o.value, 1) < SET.min_raid_viewers) return;
+    if (type === "cheer" && num(o.value, 100) < SET.min_cheer_bits) return;
+    if (type === "follow") {
+      var t = Date.now();
+      followTimes.push(t); if (followTimes.length > 10) followTimes.shift();
+      if (followTimes.length >= 10 && t - followTimes[0] <= 10000) floodUntil = t + 60000;
+      var fl = inFlood(), w = null;
+      for (var i = 0; i < alertQ.length; i++) if (alertQ[i].type === "follow") { w = alertQ[i]; break; }
+      // In flood mode names are thrown away, never stored: follow-bot and hate-raid names stay off stream.
+      if (w) { w.o.count++; if (fl) { w.o.flood = true; w.o.names = []; } else if (o.user && w.o.names.length < 3) w.o.names.push(String(o.user)); if (o.test) w.o.test = true; return pump(); }
+      o = { count: 1, names: fl || !o.user ? [] : [String(o.user)], flood: fl, test: o.test };
+    }
+    alertQ.push({ type: type, o: o, seq: seq++ });
+    if (alertQ.length > QCAP) dropOne();
+    pump();
+  }
+  // Over the cap: drop the oldest card of the lowest priority present; donations only past QCAP_DONATION.
+  // The follows card is never dropped: it is one card however many follows it counts.
+  function dropOne() {
+    var worst = -1;
+    for (var i = 0; i < alertQ.length; i++) {
+      var a = alertQ[i];
+      if (a.type === "follow" || (a.type === "donation" && alertQ.length <= QCAP_DONATION)) continue;
+      if (worst < 0 || PRI[a.type] > PRI[alertQ[worst].type]) worst = i;
+    }
+    if (worst >= 0) { alertQ.splice(worst, 1); dropped++; }
+  }
+  function pump() {
+    if (cur || SET.paused || !alertQ.length) return;
+    var best = 0;
+    for (var i = 1; i < alertQ.length; i++) if (PRI[alertQ[i].type] < PRI[alertQ[best].type]) best = i;
+    // During a flood follows cards keep 10 s apart, so each one carries a bigger count.
+    if (alertQ[best].type === "follow" && inFlood() && lastFollowEnd) {
+      var gap = lastFollowEnd + 10000 - Date.now();
+      if (gap > 0) { clearTimeout(wakeT); wakeT = setTimeout(pump, gap + 20); return; }
+    }
+    show(alertQ.splice(best, 1)[0]);
+  }
+  function followView(o) {
+    var n = o.count || 1, names = o.names || [];
+    if (o.flood || inFlood() || (n > 1 && !names.length)) return { kicker: "New followers", name: plural(n, "new follower", "new followers"), hl: "" };
+    if (n === 1) return { kicker: "New follower", name: names[0] || "Anonymous", hl: "" };
+    var list = names.length === 1 ? names[0] : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    return { kicker: "New followers", name: list, hl: n > names.length ? "+" + (n - names.length).toLocaleString("en-US") + " more" : "" };
+  }
+  function show(item) {
+    var A = ALERTS[item.type], o = item.o, card = { type: item.type, timers: [] };
+    cur = card;
+    var v = item.type === "follow" ? followView(o) : { kicker: A.kicker, name: A.name || o.user || "Anonymous", hl: A.hl(o) };
+    var text = item.type === "follow" ? "" : String(o.text || "").slice(0, 220);
+    var hold = clamp(A.hold + text.length * 45, A.hold, 13000), n = alertQ.length;
+    // The more waiting, the shorter each card stays.
+    hold = Math.max(Math.round(hold * (n <= 2 ? 1 : n <= 5 ? 0.75 : n <= 10 ? 0.55 : 0.4)), text ? 4500 : 2500);
     A.go(o);
     burst(W * 0.36, H * 0.16, 30, 620, A.accent); burst(W * 0.64, H * 0.16, 30, 620, A.accent);
-    var d = add("don",
+    var d = card.d = add("don",
       '<svg viewBox="100 100 400 400"><path fill="#fff" d="' + MARK_D + '"/></svg><div>' +
-      '<div class="k">' + esc(A.kicker) + "</div>" +
-      '<div class="n"><span>' + esc(A.name || o.user || "Anonymous") + "</span>" + (hl ? "<b>" + esc(hl) + "</b>" : "") + "</div>" +
+      '<div class="k">' + esc(v.kicker) + "</div>" +
+      '<div class="n"><span>' + esc(v.name) + "</span>" + (v.hl ? "<b>" + esc(v.hl) + "</b>" : "") + "</div>" +
       (text ? '<div class="t">' + esc(text) + "</div>" : "") + "</div>" +
       (o.test ? '<div class="tag">TEST</div>' : ""));
     d.style.setProperty("--a", A.accent);
@@ -569,12 +630,49 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       { transform: "translate(-50%,.8vw) scale(1.03)", opacity: 1, offset: 0.7 },
       { transform: "translate(-50%,0) scale(1)", opacity: 1 }
     ], { duration: 650, easing: "cubic-bezier(.2,.9,.3,1)" });
-    setTimeout(function () {
-      d.animate([{ transform: "translate(-50%,0)", opacity: 1 }, { transform: "translate(-50%,-22vw)", opacity: 0 }], { duration: 450, easing: "ease-in", fill: "forwards" });
-      setTimeout(function () { d.remove(); nextAlert(); }, 900);
-    }, hold);
+    card.timers.push(setTimeout(function () { leave(card, 450, 900); }, hold));
   }
-  function alertFx(type) { return function (o) { alertQ.push({ type: type, o: o || {} }); if (!alertBusy) nextAlert(); }; }
+  // Every timer checks it still belongs to the card on screen, so a skipped card's leftovers do nothing.
+  function leave(card, anim, after) {
+    if (cur !== card) return;
+    card.timers.forEach(clearTimeout); card.timers = [];
+    card.d.animate([{ transform: "translate(-50%,0)", opacity: 1 }, { transform: "translate(-50%,-22vw)", opacity: 0 }], { duration: anim, easing: "ease-in", fill: "forwards" });
+    card.timers.push(setTimeout(function () { done(card); }, after));
+  }
+  function done(card) {
+    if (cur !== card) return;
+    card.d.remove(); cur = null;
+    if (card.type === "follow") lastFollowEnd = Date.now();
+    pump();
+  }
+  function skipAlert() { if (!cur) return false; if (!cur.skipping) { cur.skipping = true; leave(cur, 250, 260); } return true; }
+  function clearAlerts() { var n = alertQ.length; alertQ = []; return n; }
+  function applySettings(s) {
+    s = s || {};
+    if ("paused" in s) SET.paused = !!s.paused;
+    if ("safe_mode" in s) SET.safe_mode = !!s.safe_mode;
+    [["min_raid_viewers", 100000], ["min_cheer_bits", 1000000]].forEach(function (k) {
+      var v = parseInt(s[k[0]], 10); if (isFinite(v)) SET[k[0]] = clamp(v, 1, k[1]);
+    });
+    if (SET.safe_mode) {
+      alertQ = alertQ.filter(function (a) { return a.type !== "follow" && a.type !== "raid"; });
+      if (cur && (cur.type === "follow" || cur.type === "raid")) skipAlert();
+    }
+    pump();
+    return { paused: SET.paused, safe_mode: SET.safe_mode, min_raid_viewers: SET.min_raid_viewers, min_cheer_bits: SET.min_cheer_bits };
+  }
+  // Stage reset for the dashboard preview: no exit animation, settings and flood state untouched.
+  function stopAll() {
+    stageGen++;
+    if (cur) { cur.timers.forEach(clearTimeout); cur = null; }
+    alertQ = []; clearTimeout(wakeT); lastFollowEnd = 0;
+    layers = []; sparks = []; sparkLayer.on = false; ctx.clearRect(0, 0, W, H);
+    if (camFx.length) releaseCam();
+    combo = 0; clearTimeout(comboT); comboEl = null;
+    fx.innerHTML = ""; clearTimeout(toastT); toast.classList.remove("on");
+    silence();
+  }
+  function alertFx(type) { return function (o) { enqueue(type, o); }; }
 
   var FX = {
     boop: function (o) {
@@ -605,7 +703,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     rewind: function (o) { say(o, "Instant Replay"); SFX.rewind(); add("rew", "<b>◀◀ REW</b><i></i>", 4200); }
   };
   Object.keys(ALERTS).forEach(function (type) { FX[type] = alertFx(type); });
-  window.AcosmicFX = { fire: function (name, o) { if (FX[name]) FX[name](o || {}); return !!FX[name]; }, names: Object.keys(FX), alerts: Object.keys(ALERTS) };
+  window.AcosmicFX = { fire: function (name, o) { if (FX[name]) FX[name](o || {}); return !!FX[name]; }, names: Object.keys(FX), alerts: Object.keys(ALERTS),
+    skip: skipAlert, stop: function () { stopAll(); }, clear: clearAlerts, applySettings: applySettings,
+    pause: function () { return applySettings({ paused: true }); }, resume: function () { return applySettings({ paused: false }); },
+    queue: function () { return { waiting: alertQ.length, playing: cur ? cur.type : null, paused: SET.paused, safe_mode: SET.safe_mode, flood: inFlood(), dropped: dropped }; } };
   // OBS can trigger an effect without Twitch (handy for a Stream Deck key or a test):
   // obs-websocket CallVendorRequest, vendor "obs-browser", request "emit_event",
   // data {event_name: "acosmic-fx", event_data: {name: "flood", user: "someone"}}
@@ -742,11 +843,18 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
         .then(function (j) {
           if (!j || !j.success) throw new Error((j && j.error) || "request failed " + code);
           fails = 0; setAlertStatus("listening");
+          if (j.settings) applySettings(j.settings);
           if (j.cursor) { cursor = j.cursor; try { localStorage.setItem(CKEY, cursor); } catch (e) {} }
           (j.alerts || []).forEach(function (a) {
             if (seenIds.indexOf(a.id) >= 0) return;
             seenIds.push(a.id); if (seenIds.length > 200) seenIds.shift();
             // Something that happened while OBS was closed is not announced late.
+            // Controls: skip and clear only when fresh, so a stale one never eats a later alert.
+            if (a.type === "control") {
+              if (Date.now() / 1000 - (a.created || 0) > 30) return;
+              if (a.action === "skip") skipAlert(); else if (a.action === "clear") clearAlerts();
+              return;
+            }
             if (Date.now() / 1000 - (a.created || 0) > STALE) return;
             if (ALERTS[a.type]) window.AcosmicFX.fire(a.type, { user: a.name, text: a.message, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox });
           });

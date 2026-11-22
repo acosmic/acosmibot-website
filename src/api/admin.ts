@@ -68,7 +68,18 @@ export interface StreamAlertStatus {
   available: boolean;
   overlay_last_seen: number | null;
   types: StreamAlertType[];
+  settings: StreamAlertSettings;
 }
+
+/** Live overlay settings, owned by the API and applied by the OBS overlay. */
+export interface StreamAlertSettings {
+  paused: boolean;
+  safe_mode: boolean;
+  min_raid_viewers: number;
+  min_cheer_bits: number;
+}
+
+export type StreamAlertControlAction = 'skip' | 'clear' | 'pause' | 'resume' | 'safe_mode_on' | 'safe_mode_off';
 
 export interface AdminGuildOption {
   id: string;
@@ -713,6 +724,18 @@ export const adminApi = {
     api.fetch<{ success: boolean; alert: StreamAlert }>('/api/admin/stream-alerts/replay', {
       method: 'POST',
       body: JSON.stringify({ id }),
+    }),
+
+  sendStreamAlertControl: (action: StreamAlertControlAction) =>
+    api.fetch<{ success: boolean; action: StreamAlertControlAction; settings: StreamAlertSettings }>('/api/admin/stream-alerts/control', {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+    }),
+
+  updateStreamAlertSettings: (partial: Partial<Pick<StreamAlertSettings, 'min_raid_viewers' | 'min_cheer_bits'>>) =>
+    api.fetch<{ success: boolean; settings: StreamAlertSettings }>('/api/admin/stream-alerts/settings', {
+      method: 'PUT',
+      body: JSON.stringify(partial),
     }),
 
   getCosmetics: () =>
