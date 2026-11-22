@@ -663,13 +663,19 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   }
   // Stage reset for the dashboard preview: no exit animation, settings and flood state untouched.
   function stopAll() {
-    stageGen++;
     if (cur) { cur.timers.forEach(clearTimeout); cur = null; }
     alertQ = []; clearTimeout(wakeT); lastFollowEnd = 0;
+    stopEffects();
+  }
+  // The dashboard's "Stop effects": end every running effect and all sound (a Blackout, a Flood, the news
+  // ticker), but leave the alert card on screen and everything waiting in the queue.
+  function stopEffects() {
+    stageGen++;
     layers = []; sparks = []; sparkLayer.on = false; ctx.clearRect(0, 0, W, H);
     if (camFx.length) releaseCam();
     combo = 0; clearTimeout(comboT); comboEl = null;
-    fx.innerHTML = ""; clearTimeout(toastT); toast.classList.remove("on");
+    Array.prototype.slice.call(fx.children).forEach(function (n) { if (!cur || n !== cur.d) n.remove(); });
+    clearTimeout(toastT); toast.classList.remove("on");
     silence();
   }
   function alertFx(type) { return function (o) { enqueue(type, o); }; }
@@ -704,7 +710,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   };
   Object.keys(ALERTS).forEach(function (type) { FX[type] = alertFx(type); });
   window.AcosmicFX = { fire: function (name, o) { if (FX[name]) FX[name](o || {}); return !!FX[name]; }, names: Object.keys(FX), alerts: Object.keys(ALERTS),
-    skip: skipAlert, stop: function () { stopAll(); }, clear: clearAlerts, applySettings: applySettings,
+    skip: skipAlert, stop: function () { stopAll(); }, stopEffects: function () { stopEffects(); }, clear: clearAlerts, applySettings: applySettings,
     pause: function () { return applySettings({ paused: true }); }, resume: function () { return applySettings({ paused: false }); },
     queue: function () { return { waiting: alertQ.length, playing: cur ? cur.type : null, paused: SET.paused, safe_mode: SET.safe_mode, flood: inFlood(), dropped: dropped }; } };
   // OBS can trigger an effect without Twitch (handy for a Stream Deck key or a test):
@@ -849,10 +855,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
             if (seenIds.indexOf(a.id) >= 0) return;
             seenIds.push(a.id); if (seenIds.length > 200) seenIds.shift();
             // Something that happened while OBS was closed is not announced late.
-            // Controls: skip and clear only when fresh, so a stale one never eats a later alert.
+            // Controls: skip, clear and stop effects only when fresh, so a stale one never eats a later alert.
             if (a.type === "control") {
               if (Date.now() / 1000 - (a.created || 0) > 30) return;
-              if (a.action === "skip") skipAlert(); else if (a.action === "clear") clearAlerts();
+              if (a.action === "skip") skipAlert(); else if (a.action === "clear") clearAlerts(); else if (a.action === "stop_effects") stopEffects();
               return;
             }
             if (Date.now() / 1000 - (a.created || 0) > STALE) return;
