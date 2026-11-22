@@ -80,6 +80,25 @@ export interface StreamAlertSettings {
 
 export type StreamAlertControlAction = 'skip' | 'clear' | 'pause' | 'resume' | 'safe_mode_on' | 'safe_mode_off' | 'stop_effects';
 export type StreamAlertClearScope = 'tests' | 'all';
+/** The overlay's channel point effects, in the order the dashboard lists them. */
+export type StreamEffectName = 'boop' | 'meteor' | 'news' | 'blackout' | 'flood' | 'rewind';
+
+export interface StreamEffectInput {
+  effect: StreamEffectName;
+  name?: string;
+  message?: string;
+}
+
+export interface StreamEffectEntry {
+  id: string;
+  type: 'effect';
+  effect: StreamEffectName;
+  name: string;
+  message: string;
+  created: number;
+  sandbox: boolean;
+  test: boolean;
+}
 
 export interface AdminGuildOption {
   id: string;
@@ -696,6 +715,12 @@ export const adminApi = {
 
   fireStreamAlert: (payload: StreamAlertTestInput) =>
     api.fetch<{ success: boolean; alert: StreamAlert }>('/api/admin/stream-alerts/test', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  fireStreamEffect: (payload: StreamEffectInput) =>
+    api.fetch<{ success: boolean; cursor: string; effect: StreamEffectEntry }>('/api/admin/stream-alerts/effect', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),

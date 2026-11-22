@@ -107,3 +107,45 @@ test('the recent list can be cleared of tests, or fully after a confirmation ste
   // Clearing the list is not an OBS control.
   assert.doesNotMatch(tab, /disabled=\{[^}]*clearRecent[^}]*(liveDisabled|obsReady)/);
 });
+
+test('channel point effects reach OBS through the owner-only effect route', () => {
+  assert.match(api, /export type StreamEffectName = 'boop' \| 'meteor' \| 'news' \| 'blackout' \| 'flood' \| 'rewind'/);
+  assert.match(api, /fireStreamEffect: \(payload: StreamEffectInput\)[\s\S]*?'\/api\/admin\/stream-alerts\/effect', \{\s*method: 'POST',\s*body: JSON\.stringify\(payload\)/);
+  assert.match(tab, /adminApi\.fireStreamEffect/);
+  assert.match(tab, /fireEffect\.mutate\(\{ effect: effect\.name, name: name\.trim\(\) \|\| undefined, message: message\.trim\(\) \|\| undefined \}\)/);
+  assert.match(tab, /if \(fireEffect\.isPending\) return;/);
+  assert.match(tab, /Sent \$\{effectLabel\(input\.effect\)\} to OBS\./);
+  assert.match(tab, /Could not send \$\{effectLabel\(input\.effect\)\}: /);
+});
+
+test('the effects are a second list beside the alerts, each with Preview and Send to OBS', () => {
+  const effects = [...tab.matchAll(/\{ name: '(\w+)', label: '/g)].map((match) => match[1]);
+  assert.deepEqual(effects, ['boop', 'meteor', 'news', 'blackout', 'flood', 'rewind']);
+  for (const effect of effects) assert.match(overlay, new RegExp(`^    ${effect}: function`, 'm'));
+  const listStart = tab.indexOf('className="stream-alerts__kinds is-effects"');
+  assert.ok(listStart > tab.indexOf('>Alerts</h3>'));
+  assert.ok(tab.indexOf('>Channel point effects</h3>') < listStart);
+  const list = tab.slice(listStart, tab.indexOf('</ul>', listStart));
+  assert.match(list, /onClick=\{\(\) => previewEffect\(effect\)\}>Preview</);
+  assert.match(list, /disabled=\{fireEffect\.isPending \|\| !status\.data\?\.configured\}\s*onClick=\{\(\) => sendEffect\(effect\)\}\s*>\s*Send to OBS/);
+  assert.match(tab, /previewEffect = \(effect: RewardEffect\) => playInPreview\(effect\.name, /);
+  assert.match(tab, /name: 'news', label: 'Breaking News', accent: '[^']+', usesMessage: true/);
+  // The old preview-only effect buttons under the stage are gone; flood and stop stay there.
+  assert.doesNotMatch(tab, /preview only/);
+  const rewards = tab.slice(tab.indexOf('className="stream-alerts__rewards"'), tab.indexOf('</section>', tab.indexOf('className="stream-alerts__rewards"')));
+  assert.doesNotMatch(rewards, /REWARD_EFFECTS/);
+  assert.match(rewards, /Preview a follow flood/);
+  assert.match(rewards, />Stop preview</);
+});
+
+test('the two lists sit side by side when there is room and stack otherwise', () => {
+  const css = read('src/pages/admin/StreamAlertsTab.css');
+  // The layout follows the tab's own width (the admin page has a sidebar), not the window's.
+  assert.match(css, /\.stream-alerts \{[^}]*container: stream-alerts \/ inline-size/);
+  assert.match(css, /\.stream-alerts__controls \{[^}]*container: stream-controls \/ inline-size/);
+  assert.match(css, /@container stream-controls \(min-width: 600px\) \{\s*\.stream-alerts__lists \{ grid-template-columns: minmax\(0, 1\.3fr\) minmax\(0, 1fr\)/);
+  assert.match(css, /@container stream-alerts \(max-width: 1000px\) \{\s*\.stream-alerts__layout \{ grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /@container stream-list \(max-width: 440px\)/);
+  assert.match(css, /\.stream-alerts__lists \{ display: grid; grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /\.stream-alerts__stage \{ position: sticky/);
+});

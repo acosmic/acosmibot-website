@@ -10,6 +10,8 @@ import {
   StreamAlertTestInput,
   StreamAlertTier,
   StreamAlertType,
+  StreamEffectInput,
+  StreamEffectName,
 } from '@/api/admin';
 import './StreamAlertsTab.css';
 
@@ -87,14 +89,23 @@ const ALERT_KINDS: AlertKind[] = [
   { type: 'hypetrain', label: 'Hype train', source: 'Twitch', accent: '#4ade80', number: { label: 'Level', initial: 2 } },
 ];
 
-/** Channel point effects already on the overlay. They only run in the preview from here. */
-const REWARD_EFFECTS = [
-  { name: 'boop', label: 'Boop' },
-  { name: 'meteor', label: 'Meteor Shower' },
-  { name: 'news', label: 'Breaking News' },
-  { name: 'blackout', label: 'Blackout' },
-  { name: 'flood', label: 'Flood' },
-  { name: 'rewind', label: 'Instant Replay tag' },
+interface RewardEffect {
+  name: StreamEffectName;
+  label: string;
+  /** What it does on stream, from the overlay's FX table. */
+  does: string;
+  accent: string;
+  usesMessage?: boolean;
+}
+
+/** Channel point effects on the overlay. Each can be previewed here or sent to OBS. */
+const REWARD_EFFECTS: RewardEffect[] = [
+  { name: 'boop', label: 'Boop', accent: '#22d3ee', does: 'Ripples across the screen and a camera bump. Repeats count up, and five in a row make a boop storm.' },
+  { name: 'meteor', label: 'Meteor Shower', accent: '#61daf1', does: 'About 30 meteors streak down. A few hit the camera and knock it.' },
+  { name: 'news', label: 'Breaking News', accent: '#fbbf24', usesMessage: true, does: 'A news ticker along the bottom for about 14 seconds. Shows the name and the Message.' },
+  { name: 'blackout', label: 'Blackout', accent: '#a78bfa', does: 'Darkens the stage for 20 seconds with a wandering flashlight. The camera stays lit.' },
+  { name: 'flood', label: 'Flood', accent: '#1570e0', does: 'Water rises over the screen for about 13 seconds and the camera floats on it.' },
+  { name: 'rewind', label: 'Instant Replay tag', accent: '#fb7185', does: 'A REW tag in the corner for about 4 seconds, with a rewind sound.' },
 ];
 
 const TIERS: { value: StreamAlertTier; label: string }[] = [
@@ -103,6 +114,8 @@ const TIERS: { value: StreamAlertTier; label: string }[] = [
   { value: '3000', label: 'Tier 3' },
   { value: 'prime', label: 'Prime' },
 ];
+
+const effectLabel = (effect: StreamEffectName) => REWARD_EFFECTS.find((item) => item.name === effect)?.label ?? effect;
 
 const KIND_BY_TYPE = new Map(ALERT_KINDS.map((kind) => [kind.type, kind]));
 const OVERLAY_CONNECTED_WINDOW_SECONDS = 45;
@@ -310,6 +323,17 @@ export const StreamAlertsTab: React.FC = () => {
 
   const refreshRecent = () => queryClient.invalidateQueries({ queryKey: ['admin', 'stream-alerts', 'recent'] });
 
+  const fireEffect = useMutation({
+    mutationFn: (input: StreamEffectInput) => adminApi.fireStreamEffect(input),
+    onSuccess: (_result, input) => setNotice({ tone: 'ok', text: `Sent ${effectLabel(input.effect)} to OBS.` }),
+    onError: (error, input) => setNotice({ tone: 'error', text: `Could not send ${effectLabel(input.effect)}: ${String(error)}` }),
+  });
+  const sendEffect = (effect: RewardEffect) => {
+    if (fireEffect.isPending) return;
+    fireEffect.mutate({ effect: effect.name, name: name.trim() || undefined, message: message.trim() || undefined });
+  };
+  const previewEffect = (effect: RewardEffect) => playInPreview(effect.name, { user: name.trim() || 'Test Viewer', text: message.trim() });
+
   const fire = useMutation({
     mutationFn: (input: StreamAlertTestInput) => adminApi.fireStreamAlert(input),
     onSuccess: (result) => {
@@ -490,19 +514,10 @@ export const StreamAlertsTab: React.FC = () => {
             The preview ignores Safe Mode, pause and the smallest raid and cheer, so it always shows the card.
           </p>
           <p className="stream-alerts__hint">
-            "Preview" plays here only, with sound, and cuts off the preview before it. "Send to OBS" goes through the same path a real donation takes and shows a TEST tag on stream.
+            "Preview" plays here only, with sound, and cuts off the preview before it. For alerts, "Send to OBS" goes through the same path a real donation takes and shows a TEST tag on stream. Channel point effects sent to OBS play right away, with no TEST tag.
           </p>
           <div className="stream-alerts__rewards">
-            <span>Channel point effects (preview only)</span>
-            {REWARD_EFFECTS.map((effect) => (
-              <button
-                key={effect.name}
-                type="button"
-                onClick={() => playInPreview(effect.name, { user: name.trim() || 'Test Viewer', text: message.trim() })}
-              >
-                {effect.label}
-              </button>
-            ))}
+            <span>More preview tools</span>
             <button type="button" disabled={flooding} onClick={previewFollowFlood}>
               {flooding ? 'Sending follows…' : 'Preview a follow flood'}
             </button>
@@ -510,7 +525,7 @@ export const StreamAlertsTab: React.FC = () => {
           </div>
         </section>
 
-        <section className="stream-alerts__controls" aria-label="Test alerts">
+        <section className="stream-alerts__controls" aria-label="Test alerts and effects">
           <div className="stream-alerts__shared">
             <label>
               <span>Name</span>
@@ -528,6 +543,9 @@ export const StreamAlertsTab: React.FC = () => {
             </label>
           </div>
 
+          <div className="stream-alerts__lists">
+          <div className="stream-alerts__list">
+          <h3 className="stream-alerts__list-head">Alerts</h3>
           <ul className="stream-alerts__kinds">
             {ALERT_KINDS.map((kind) => (
               <li key={kind.type} style={{ '--alert-accent': kind.accent } as React.CSSProperties}>
@@ -562,6 +580,33 @@ export const StreamAlertsTab: React.FC = () => {
               </li>
             ))}
           </ul>
+          </div>
+
+          <div className="stream-alerts__list">
+          <h3 className="stream-alerts__list-head">Channel point effects</h3>
+          <ul className="stream-alerts__kinds is-effects">
+            {REWARD_EFFECTS.map((effect) => (
+              <li key={effect.name} style={{ '--alert-accent': effect.accent } as React.CSSProperties}>
+                <div className="stream-alerts__kind-name">
+                  <strong>{effect.label}</strong>
+                  <span>{effect.does}{effect.usesMessage ? '' : ' Ignores the message.'}</span>
+                </div>
+                <div className="stream-alerts__actions">
+                  <button type="button" onClick={() => previewEffect(effect)}>Preview</button>
+                  <button
+                    type="button"
+                    className="is-primary"
+                    disabled={fireEffect.isPending || !status.data?.configured}
+                    onClick={() => sendEffect(effect)}
+                  >
+                    Send to OBS
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          </div>
+          </div>
           {notice && (
             <p className={`stream-alerts__notice is-${notice.tone}`} role={notice.tone === 'error' ? 'alert' : 'status'}>
               {notice.text}
@@ -573,7 +618,7 @@ export const StreamAlertsTab: React.FC = () => {
       <section className="stream-alerts__recent" aria-label="Recent alerts">
         <h3>Recent alerts</h3>
         <p className="text-muted">
-          Donations and tests that went through the API, newest first. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here yet.
+          Donations and test alerts that went through the API, newest first. Channel point effects are not listed. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here yet.
         </p>
         <div className="stream-alerts__recent-tools">
           <div className="stream-alerts__recent-buttons">
