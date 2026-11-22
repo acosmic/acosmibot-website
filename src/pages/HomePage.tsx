@@ -1028,7 +1028,7 @@ export const HomePage: React.FC = () => {
                 <span className="method-icon"><CreditCard aria-hidden="true" /></span>
                 <div>
                   <span className="method-name">Stripe</span>
-                  <p className="method-description">Choose a one-time amount; no public attribution</p>
+                  <p className="method-description">Choose a one-time amount. A name and message are optional and appear live on stream; leave the name blank to stay anonymous.</p>
                 </div>
                 {paymentUrl() ? (
                   <a href={paymentUrl() ?? STRIPE_DONATION_URL} target="_blank" rel="noopener noreferrer" className="donation-btn">
