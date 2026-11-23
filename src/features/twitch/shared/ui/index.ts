@@ -190,7 +190,9 @@ export {
 } from './basics';
 export { ConfirmTypeDialog, SettingsSaveBar, SavedTick, type ConfirmTypeDialogProps } from './dialogs';
 export { useChannelMutation, type ChannelMutationOptions } from './useChannelMutation';
-export { channelStatusView, channelHealthView, liveView, type StatusTone, type StatusView } from './channelStatus';
+export {
+  REAUTH_GRACE_DAYS, channelStatusView, channelHealthView, liveView, reauthDetail, reauthReasonText, type StatusTone, type StatusView,
+} from './channelStatus';
 export { describeActivityRow, describeActivityEvent, type ActivityRow, type ActivityLine } from './activity';
 export { formatDuration, describeDuration, formatDateTime, formatRelative, formatNumber } from './format';
 export { RoleRequired } from '../../shell/RoleRequired';

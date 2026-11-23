@@ -143,10 +143,10 @@ export const ChannelPickerPage: React.FC = () => {
                     </Link>
                     {isOwn && channel.status === 'reauth_required' && (
                       <div className="tw-channel-card__action">
-                        <p>Twitch no longer accepts this channel’s permission.</p>
+                        <p>{status.detail}</p>
                         <button type="button" className="btn" onClick={() => startAddChannel(true)}>
                           <RefreshCw aria-hidden="true" size={16} />
-                          Reconnect
+                          Reconnect Acosmibot
                         </button>
                       </div>
                     )}

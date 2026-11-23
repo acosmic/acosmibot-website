@@ -11,11 +11,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bot, Pause, Play, Trash2 } from 'lucide-react';
+import { AlertTriangle, Bot, Pause, Play, RefreshCw, Trash2 } from 'lucide-react';
 import { ConfirmDialog, TimezoneSelect } from '@/components/ui';
 import { showToast } from '@/utils/toast';
 import type { SectionProps } from '../types';
-import { startCustomBotLogin } from '../shared/auth';
+import { startAddChannel, startCustomBotLogin } from '../shared/auth';
 import { useTwitchAuthStore } from '../shared/authStore';
 import {
   ConfirmTypeDialog,
@@ -27,8 +27,10 @@ import {
   StatusChip,
   Switch,
   TWITCH_CHANNELS_KEY,
+  REAUTH_GRACE_DAYS,
   UserLookupInput,
   hasRole,
+  reauthDetail,
   summaryKey,
   tk,
   twitchErrorMessage,
@@ -224,6 +226,17 @@ export const ChannelSettingsPage: React.FC<SectionProps> = ({ channelId, channel
 
   return (
     <SectionPage title="Channel settings" description={`How Acosmibot behaves in ${channel.display_name}’s chat.`} query={settings.query}>
+      {channel.status === 'reauth_required' && (
+        <div className="tw-banner tw-banner--error" role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <p>{reauthDetail(channel)}</p>
+          <RoleGate min="broadcaster" role={role} fallback={<span className="tw-muted">Only the broadcaster can reconnect Acosmibot.</span>}>
+            <button type="button" className="btn primary" onClick={() => startAddChannel(true)}>
+              <RefreshCw size={16} aria-hidden="true" /> Reconnect Acosmibot
+            </button>
+          </RoleGate>
+        </div>
+      )}
       <GeneralForm settings={settings} role={role} />
 
       <section className="tw-admin-card" aria-labelledby="tw-settings-bot">
@@ -283,6 +296,11 @@ export const ChannelSettingsPage: React.FC<SectionProps> = ({ channelId, channel
           <p className="tw-admin-card__lead">
             Acosmibot leaves your chat now, gives back its Twitch permissions, and deletes this channel’s commands, settings,
             points, logs and every other record within 15 minutes. This cannot be undone.
+          </p>
+          <p className="tw-muted">
+            Only this button deletes right away. If Acosmibot loses access on Twitch instead (for example you disconnect
+            it there), it leaves your chat and keeps this channel’s data for {REAUTH_GRACE_DAYS} days so you can reconnect;
+            after that the data is deleted.
           </p>
           <button type="button" className="btn tw-admin-danger" onClick={() => setConfirm('delete_channel')} disabled={deleteChannel.isPending}>
             <Trash2 size={16} aria-hidden="true" /> Delete Acosmibot data for this channel

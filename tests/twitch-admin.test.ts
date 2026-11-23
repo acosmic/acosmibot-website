@@ -170,3 +170,27 @@ test('settings capabilities follow the role (presentation only)', () => {
   assert.deepEqual(settingsCapabilities('editor'), { editGeneral: true, broadcasterTools: false });
   assert.deepEqual(settingsCapabilities('broadcaster'), { editGeneral: true, broadcasterTools: true });
 });
+
+test('reauth_required: data is kept, the purge time is stated, and Reconnect Acosmibot is the action', async () => {
+  const { REAUTH_GRACE_DAYS, channelStatusView, reauthDetail, reauthReasonText } =
+    await import('../src/features/twitch/shared/ui/channelStatus.ts');
+  assert.equal(REAUTH_GRACE_DAYS, 7);
+  const view = channelStatusView('reauth_required');
+  assert.equal(view.tone, 'error');
+  assert.match(view.detail, /kept for 7 days/);
+  const detail = reauthDetail(
+    { status_reason: 'token_revoked', reauth: { reason: 'user_removed', since: '2026-11-22T20:00:00.000Z', purge_after: '2026-11-29T20:00:00.000Z' } },
+    (value) => (value === '2026-11-29T20:00:00.000Z' ? 'Nov 29' : null),
+  );
+  assert.equal(detail, `${reauthReasonText('user_removed')} Acosmibot has left the chat but kept this channel’s settings and data. `
+    + 'Reconnect Acosmibot before Nov 29 to keep them; after that they are deleted.');
+  assert.match(reauthDetail({ status_reason: 'token_revoked', reauth: null }, () => null), /within 7 days of losing access/);
+  assert.match(reauthReasonText('authorization_revoked'), /disconnected/);
+  assert.match(reauthReasonText(null), /no longer accepts/);
+
+  const overview = readFileSync(new URL('../src/features/twitch/overview/OverviewPage.tsx', import.meta.url), 'utf8');
+  assert.match(overview, /Reconnect Acosmibot/);
+  const settings = readFileSync(new URL('../src/features/twitch/admin/ChannelSettingsPage.tsx', import.meta.url), 'utf8');
+  assert.match(settings, /Reconnect Acosmibot/);
+  assert.match(settings, /Only this button deletes right away/);
+});

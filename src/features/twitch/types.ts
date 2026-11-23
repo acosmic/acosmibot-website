@@ -62,6 +62,18 @@ export interface ChannelSummary {
   missing_scopes: string[];
   config_version: number;
   joined_at: string | null;
+  /** Set while `status` is `reauth_required` (lost authorization): data is kept until `purge_after`. */
+  reauth?: ChannelReauth | null;
+}
+
+/**
+ * Why and since when a channel needs re-authorization, and when its data is deleted unless the
+ * broadcaster reconnects first (7 days after access was lost).
+ */
+export interface ChannelReauth {
+  reason: string | null;
+  since: string | null;
+  purge_after: string | null;
 }
 
 /** `GET /channels/:id/status` result (§10.6). `status` is absent when the bot is offline. */

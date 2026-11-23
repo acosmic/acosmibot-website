@@ -13,7 +13,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Pause, Play, RefreshCw, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Pause, Play, RefreshCw, ShieldCheck } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui';
 import { showToast } from '@/utils/toast';
 import type { ChannelRuntimeStatus, CursorPage, SectionProps } from '../types';
@@ -35,6 +35,7 @@ import {
   formatNumber,
   formatRelative,
   liveView,
+  reauthDetail,
   useChannelMutation,
   type ActivityLine,
   type ActivityRow,
@@ -161,9 +162,9 @@ export const OverviewPage: React.FC<SectionProps> = ({ channelId, channel, role 
       </button>
     </RoleGate>
   ) : channel.status === 'reauth_required' ? (
-    <RoleGate min="broadcaster" role={role} fallback={<span className="tw-muted">Only the broadcaster can reconnect.</span>}>
+    <RoleGate min="broadcaster" role={role} fallback={<span className="tw-muted">Only the broadcaster can reconnect Acosmibot.</span>}>
       <button type="button" className="btn primary" onClick={() => startAddChannel(true)}>
-        <RefreshCw aria-hidden="true" size={16} /> Reconnect
+        <RefreshCw aria-hidden="true" size={16} /> Reconnect Acosmibot
       </button>
     </RoleGate>
   ) : channel.status === 'bot_banned' ? (
@@ -177,8 +178,20 @@ export const OverviewPage: React.FC<SectionProps> = ({ channelId, channel, role 
   const lines: ActivityLine[] = activity.isSuccess ? (activity.data.items ?? []).map(describeActivityRow) : liveLines;
   const showActivity = activity.isSuccess || (activityMissing && liveLines.length > 0) || (activity.isError && !activityMissing);
 
+  const needsReauth = channel.status === 'reauth_required';
+  const channelDetail = needsReauth
+    ? reauthDetail(channel)
+    : channel.status_reason ? `${channelState.detail} ${channel.status_reason}` : channelState.detail;
+
   return (
     <SectionPage title="Overview" description={`Live state and bot health for ${channel.display_name}.`}>
+      {needsReauth && (
+        <div className="tw-banner tw-banner--error" role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <p>{reauthDetail(channel)}</p>
+          {statusAction}
+        </div>
+      )}
       <section className="overview-server-summary tw-overview-summary" aria-label="Channel">
         <div className="overview-server-summary__identity">
           <ChannelAvatar src={channel.profile_image_url} name={channel.display_name} size={56} className="overview-server-summary__avatar" />
@@ -210,8 +223,8 @@ export const OverviewPage: React.FC<SectionProps> = ({ channelId, channel, role 
           <HealthRow
             label="Channel"
             view={channelState}
-            detail={channel.status_reason ? `${channelState.detail} ${channel.status_reason}` : channelState.detail}
-            action={statusAction}
+            detail={channelDetail}
+            action={needsReauth ? undefined : statusAction}
           />
           <HealthRow
             label="Chat service"

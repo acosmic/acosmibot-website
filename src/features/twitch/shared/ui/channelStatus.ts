@@ -2,9 +2,12 @@
  * One place that turns channel state into a status chip, so the context bar,
  * channel picker and overview always agree. Pure functions.
  */
-import type { ChannelStatus, ChannelSummary } from '../../types';
+import type { ChannelReauth, ChannelStatus, ChannelSummary } from '../../types.ts';
 
 export type StatusTone = 'active' | 'neutral' | 'warning' | 'error';
+
+/** Days a channel's data is kept after Acosmibot lost access (core `DEAUTH_PURGE_GRACE_DAYS`). */
+export const REAUTH_GRACE_DAYS = 7;
 
 export interface StatusView {
   tone: StatusTone;
@@ -21,7 +24,7 @@ export function channelStatusView(status: ChannelStatus): StatusView {
     case 'paused':
       return { tone: 'warning', label: 'Paused', detail: 'The broadcaster paused Acosmibot. It does not respond or act in chat until resumed.' };
     case 'reauth_required':
-      return { tone: 'error', label: 'Reconnect needed', detail: 'Twitch no longer accepts this channel\'s permission. The broadcaster needs to reconnect it.' };
+      return { tone: 'error', label: 'Reconnect needed', detail: `Acosmibot lost access to this channel on Twitch and left its chat. Its data is kept for ${REAUTH_GRACE_DAYS} days so the broadcaster can reconnect Acosmibot.` };
     case 'bot_banned':
       return { tone: 'error', label: 'Bot banned', detail: 'The bot account is banned from this chat. Unban it on Twitch, then rejoin.' };
     case 'removing':
@@ -53,4 +56,38 @@ export function liveView(channel: Pick<ChannelSummary, 'live'>): StatusView {
   return channel.live?.live
     ? { tone: 'active', label: 'Live', detail: 'The channel is streaming now.' }
     : { tone: 'neutral', label: 'Offline', detail: 'The channel is not streaming.' };
+}
+
+/** Plain-words reason for `reauth_required` (`status_reason` from the bot). */
+export function reauthReasonText(reason: string | null | undefined): string {
+  switch (reason) {
+    case 'authorization_revoked':
+      return 'Acosmibot was disconnected from this channel on Twitch.';
+    case 'token_revoked':
+      return 'Twitch stopped accepting this channel’s permission, for example after a password change or a disconnect on Twitch.';
+    case 'user_removed':
+      return 'Twitch reports that this channel’s account is unavailable.';
+    default:
+      return 'Twitch no longer accepts this channel’s permission.';
+  }
+}
+
+function dateText(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+/**
+ * The overview and settings explanation of `reauth_required`: why, that nothing has been deleted,
+ * and the exact time the data is deleted unless the broadcaster reconnects first.
+ */
+export function reauthDetail(channel: { status_reason: string | null; reauth?: ChannelReauth | null },
+                             formatDate: (value: string | null | undefined) => string | null = dateText): string {
+  const reason = reauthReasonText(channel.reauth?.reason ?? channel.status_reason);
+  const deadline = formatDate(channel.reauth?.purge_after);
+  const keep = deadline
+    ? `Reconnect Acosmibot before ${deadline} to keep them; after that they are deleted.`
+    : `Reconnect Acosmibot within ${REAUTH_GRACE_DAYS} days of losing access to keep them; after that they are deleted.`;
+  return `${reason} Acosmibot has left the chat but kept this channel’s settings and data. ${keep}`;
 }
