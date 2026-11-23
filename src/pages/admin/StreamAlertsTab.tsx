@@ -103,7 +103,6 @@ const REWARD_EFFECTS: RewardEffect[] = [
   { name: 'boop', label: 'Boop', accent: '#22d3ee', does: 'Ripples across the screen and a camera bump. Repeats count up, and five in a row make a boop storm.' },
   { name: 'meteor', label: 'Meteor Shower', accent: '#61daf1', does: 'About 30 meteors streak down. A few hit the camera and knock it.' },
   { name: 'news', label: 'Breaking News', accent: '#fbbf24', usesMessage: true, does: 'A news ticker along the bottom for about 14 seconds. Shows the name and the Message.' },
-  { name: 'blackout', label: 'Blackout', accent: '#a78bfa', does: 'Darkens the stage for 20 seconds with a wandering flashlight. The camera stays lit.' },
   { name: 'flood', label: 'Flood', accent: '#1570e0', does: 'Water rises over the screen for about 13 seconds and the camera floats on it.' },
   { name: 'rewind', label: 'Instant Replay tag', accent: '#fb7185', does: 'A REW tag in the corner for about 4 seconds, with a rewind sound.' },
 ];
@@ -426,7 +425,7 @@ export const StreamAlertsTab: React.FC = () => {
           </button>
           <button
             type="button"
-            title="Ends a running channel point effect, such as Blackout. Alert cards stay."
+            title="Ends a running channel point effect, such as Flood. Alert cards stay."
             disabled={liveDisabled}
             onClick={() => runControl('stop_effects')}
           >
@@ -455,7 +454,7 @@ export const StreamAlertsTab: React.FC = () => {
           </button>
         </div>
         <p className="stream-alerts__hint stream-alerts__live-hint">
-          Skip ends the alert card on screen. Stop effects ends a channel point effect, such as Blackout, and leaves alert cards alone.
+          Skip ends the alert card on screen. Stop effects ends a channel point effect, such as Flood, and leaves alert cards alone.
         </p>
         <form className="stream-alerts__thresholds" onSubmit={submitThresholds}>
           <label>

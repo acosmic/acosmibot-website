@@ -82,7 +82,7 @@ export interface StreamAlertSettings {
 export type StreamAlertControlAction = 'skip' | 'clear' | 'pause' | 'resume' | 'safe_mode_on' | 'safe_mode_off' | 'stop_effects';
 export type StreamAlertClearScope = 'tests' | 'all';
 /** The overlay's channel point effects, in the order the dashboard lists them. */
-export type StreamEffectName = 'boop' | 'meteor' | 'news' | 'blackout' | 'flood' | 'rewind';
+export type StreamEffectName = 'boop' | 'meteor' | 'news' | 'flood' | 'rewind';
 
 export interface StreamEffectInput {
   effect: StreamEffectName;

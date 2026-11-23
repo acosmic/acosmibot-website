@@ -7,7 +7,7 @@
 <!--
   Transparent overlay for channel point effects. Top browser source in OBS, 1920x1080.
 
-  Reward effects: boop, meteor, news, blackout, flood, rewind.
+  Reward effects: boop, meteor, news, flood, rewind.
   Alerts (one card at a time, queued): donation, follow, sub, resub, gift, cheer, raid, hypetrain.
     effects.html?test=1     test bar along the bottom
     AcosmicFX.fire("flood", {user: "someone", text: "optional message"})
@@ -20,7 +20,7 @@
     alerts-config.js  Acosmibot API address and overlay key for donation alerts (tools/install-overlay.mjs)
 
   With obs-config.js the effects use the real camera: Boop bumps it and ripples across it,
-  Flood floats it up on the water, meteors can hit it, Blackout leaves it lit.
+  Flood floats it up on the water, meteors can hit it.
   The camera is always put back exactly where it was. Without the file every effect still runs
   as a plain overlay.
 -->
@@ -244,89 +244,196 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
 
   // ---- sound (all synthesized, no audio files) ----------------------------------
   // ?volume=0.5 on the source URL scales everything; 0 mutes.
-  var ac, master, VOL = q.get("volume") == null ? 0.9 : clamp(parseFloat(q.get("volume")) || 0, 0, 2);
+  var ac, bus, impulse, VOL = q.get("volume") == null ? 0.9 : clamp(parseFloat(q.get("volume")) || 0, 0, 2);
   function audio() {
-    if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); newMaster(); }
-    if (ac.state === "suspended") ac.resume();
+    if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); newBus(); }
+    if (ac.state === "suspended") { try { var p = ac.resume(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
     return ac;
   }
-  // Every sound goes through one master gain; stop() unplugs it (silencing sounds already scheduled) and makes a new one.
-  function newMaster() { master = ac.createGain(); master.gain.value = VOL; master.connect(ac.destination); }
-  function silence() { if (!ac) return; try { master.disconnect(); } catch (e) {} newMaster(); }
-  function env(g, t, len, vol, attack) {
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (attack || 0.008)); g.gain.exponentialRampToValueAtTime(vol * 0.35, t + Math.max(len * 0.6, (attack || 0.008) + 0.01)); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  // Every sound plays into one bus: a dry path, a reverb send (a big metal room) and a stereo echo send,
+  // through a limiter to the output. silence() unplugs the whole bus, which cuts sounds already scheduled
+  // and every tail, and builds a fresh one.
+  function newBus() {
+    var out = ac.createGain(), lim = ac.createDynamicsCompressor(), dry = ac.createGain(), rev = ac.createGain(), echo = ac.createGain();
+    out.gain.value = VOL * LEVEL; lim.threshold.value = -10; lim.knee.value = 8; lim.ratio.value = 8; lim.attack.value = 0.003; lim.release.value = 0.2;
+    dry.connect(lim); lim.connect(out); out.connect(ac.destination);
+    if (!impulse) {   // 2.4 s of fading noise that gets darker as it fades
+      var n = Math.floor(ac.sampleRate * 2.4); impulse = ac.createBuffer(2, n, ac.sampleRate);
+      for (var c = 0; c < 2; c++) { var d = impulse.getChannelData(c), lp = 0; for (var i = 0; i < n; i++) { var k = i / n; lp += (Math.random() * 2 - 1 - lp) * (0.7 - 0.55 * k); d[i] = lp * Math.pow(1 - k, 2.6); } }
+    }
+    var conv = ac.createConvolver(), wet = ac.createGain(); conv.buffer = impulse; wet.gain.value = 0.55;
+    rev.connect(conv); conv.connect(wet); wet.connect(lim);
+    // Echo: left, then right, then left again, each repeat quieter and duller.
+    var dl = ac.createDelay(1), dr = ac.createDelay(1), fb = ac.createGain(), damp = ac.createBiquadFilter(), both = ac.createChannelMerger(2);
+    dl.delayTime.value = 0.21; dr.delayTime.value = 0.21; fb.gain.value = 0.36; damp.type = "lowpass"; damp.frequency.value = 3200;
+    echo.connect(dl); dl.connect(both, 0, 0); dl.connect(damp); damp.connect(dr); dr.connect(both, 0, 1); dr.connect(fb); fb.connect(dl); both.connect(lim);
+    bus = { out: out, dry: dry, rev: rev, echo: echo };
   }
-  function tone(f0, f1, len, vol, type, delay) {
+  function silence() { if (!ac) return; try { bus.out.disconnect(); } catch (e) {} newBus(); }
+  function env(g, t, len, vol, attack, sus) {
+    var a = Math.min(attack || 0.008, len * 0.9);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + a);
+    g.gain.exponentialRampToValueAtTime(vol * (sus || 0.35), t + Math.max(len * 0.6, a + 0.01)); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  }
+  // Place a finished sound in the stereo field and feed the reverb and echo sends.
+  function route(node, o) {
+    var src = node;
+    if (o.pan && ac.createStereoPanner) { src = ac.createStereoPanner(); src.pan.value = clamp(o.pan, -1, 1); node.connect(src); }
+    src.connect(bus.dry);
+    [["rev", bus.rev], ["echo", bus.echo]].forEach(function (s) { if (o[s[0]]) { var g = ac.createGain(); g.gain.value = o[s[0]]; src.connect(g); g.connect(s[1]); } });
+  }
+  // One synth voice. f: pitch in Hz, to: pitch it glides to (over `glide` of its length), len, vol, type,
+  // at: seconds from now, a: attack, sus: level at 60% of its length, n and det: stacked copies spread `det` cents apart,
+  // fm [ratio, depth, decay]: a second oscillator bending the pitch, for glassy and metallic tones,
+  // vib [rate, cents]: vibrato, lp [from, to, Q]: a low-pass filter sweep, pan, rev, echo.
+  function voice(o) {
     try {
-      var a = audio(), t = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
-      o.type = type || "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + len * 0.85);
-      env(g, t, len, vol); o.connect(g).connect(master); o.start(t); o.stop(t + len + 0.05);
+      var a = audio(), t = a.currentTime + (o.at || 0), len = o.len, n = o.n || 1, end = t + len + 0.05, g = a.createGain(), into = g;
+      env(g, t, len, o.vol / Math.sqrt(n), o.a, o.sus);
+      if (o.lp) {
+        into = a.createBiquadFilter(); into.type = "lowpass"; into.Q.value = o.lp[2] || 1;
+        into.frequency.setValueAtTime(o.lp[0], t); into.frequency.exponentialRampToValueAtTime(o.lp[1], t + len); into.connect(g);
+      }
+      for (var i = 0; i < n; i++) {
+        var osc = a.createOscillator(); osc.type = o.type || "sine";
+        osc.detune.value = n > 1 ? (i / (n - 1) - 0.5) * (o.det || 16) : 0;
+        osc.frequency.setValueAtTime(o.f, t);
+        if (o.to) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.to), t + len * (o.glide || 0.85));
+        if (o.fm) {
+          var m = a.createOscillator(), mg = a.createGain(); m.frequency.value = o.f * o.fm[0];
+          mg.gain.setValueAtTime(o.f * o.fm[1], t); mg.gain.exponentialRampToValueAtTime(o.f * o.fm[1] * 0.02, t + Math.min(len, o.fm[2] || len));
+          m.connect(mg); mg.connect(osc.frequency); m.start(t); m.stop(end);
+        }
+        if (o.vib) { var v = a.createOscillator(), vg = a.createGain(); v.frequency.value = o.vib[0]; vg.gain.value = o.vib[1]; v.connect(vg); vg.connect(osc.detune); v.start(t); v.stop(end); }
+        osc.connect(into); osc.start(t); osc.stop(end);
+      }
+      route(g, o);
     } catch (e) {}
   }
+  // Filtered noise. kind: filter type, f and to: filter sweep, q, lfo [rate, cents]: a slow wobble of the filter.
   var noiseBuf;
-  function noise(len, vol, kind, f0, f1, delay, attack) {
+  function noise(o) {
     try {
-      var a = audio(), t = a.currentTime + (delay || 0);
+      var a = audio(), t = a.currentTime + (o.at || 0), len = o.len, end = t + len + 0.05;
       if (!noiseBuf) { noiseBuf = a.createBuffer(1, a.sampleRate * 2, a.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
       var n = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-      n.buffer = noiseBuf; n.loop = true; f.type = kind; f.Q.value = 0.8;
-      f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + len);
-      env(g, t, len, vol, attack); n.connect(f).connect(g).connect(master); n.start(t); n.stop(t + len + 0.05);
+      n.buffer = noiseBuf; n.loop = true; f.type = o.kind || "lowpass"; f.Q.value = o.q || 0.8;
+      f.frequency.setValueAtTime(o.f, t); f.frequency.exponentialRampToValueAtTime(o.to || o.f, t + len);
+      if (o.lfo) { var l = a.createOscillator(), lg = a.createGain(); l.frequency.value = o.lfo[0]; lg.gain.value = o.lfo[1]; l.connect(lg); lg.connect(f.detune); l.start(t); l.stop(end); }
+      env(g, t, len, o.vol, o.a, o.sus); n.connect(f); f.connect(g); n.start(t, Math.random()); n.stop(end);
+      route(g, o);
     } catch (e) {}
   }
-  function blip(f, len, vol) { tone(f, f / 2, len || 0.18, vol || 0.5); }
+  // The palette. Everything is tuned around D so any two sounds that overlap still agree.
+  var LEVEL = 0.8;
+  function N(s) { return 293.66 * Math.pow(2, s / 12); }   // semitones up from D4
+  // A glass bell: a sine with a fast-fading metallic edge and a faint, slightly sharp octave above it.
+  function bell(s, at, vol, len, pan) {
+    len = len || 0.9;
+    voice({ f: N(s), len: len, vol: vol, at: at, fm: [3.5, s > 24 ? 0.7 : 1.3, 0.22], pan: pan, rev: 0.45, echo: 0.3 });
+    voice({ f: N(s + 12.06), len: len * 0.6, vol: vol * 0.18, at: at, pan: pan, rev: 0.45 });
+  }
+  // A wide synth chord: stacked saws behind a moving filter. lp opening is a swell, lp closing is a stab.
+  function pad(notes, at, len, vol, lp, attack) {
+    notes.forEach(function (s, i) { voice({ f: N(s), len: len, vol: vol, at: at, type: "sawtooth", n: 3, det: 24, a: attack, lp: lp, pan: i % 2 ? 0.45 : -0.45, rev: 0.5 }); });
+  }
+  function drop(at, vol) { voice({ f: 120, to: 34, len: 0.9, vol: vol, at: at, glide: 0.6 }); }   // sub-bass drop under a landing
+  function ticks(at, count, gap, vol) {   // a burst of data chatter
+    for (var i = 0; i < count; i++) voice({ f: 900 + Math.random() * 1800, len: 0.035, vol: vol, type: "square", at: at + i * gap, lp: [5000, 5000, 1], pan: Math.random() - 0.5 });
+  }
+  var SCALE = [0, 2, 4, 7, 9, 12, 14, 16];   // D E F# A B, the notes every melody here is picked from
   var SFX = {
+    // A rounded "bwoop" that climbs the scale with the combo; a storm adds a run of bells and a drop.
     boop: function (n, storm) {
-      tone(620 + Math.min(n, 8) * 70, 310, 0.22, 0.65); tone(1500, 900, 0.05, 0.14, "triangle");
-      if (storm) [0, 0.09, 0.18, 0.27, 0.36].forEach(function (d, i) { tone(520 * Math.pow(1.19, i), 400, 0.16, 0.7, "sine", 0.12 + d); });
+      var s = SCALE[Math.min(n, SCALE.length) - 1];
+      voice({ f: N(s + 12), to: N(s), len: 0.28, vol: 0.6, glide: 0.45, fm: [2, 1.1, 0.1], rev: 0.25, echo: 0.22 });
+      voice({ f: N(s - 12), to: N(s - 19), len: 0.3, vol: 0.36 });
+      voice({ f: 1900, to: 700, len: 0.05, vol: 0.14, type: "triangle" });
+      if (storm) { drop(0.12, 0.4); [12, 14, 16, 19, 21, 24].forEach(function (b, i) { bell(b, 0.12 + i * 0.085, 0.26, 0.6, i % 2 ? 0.5 : -0.5); }); }
     },
+    // Water rushing in, a muffled pressure hum and two sonar pings while it is full, then the drain.
     flood: function () {
-      noise(5, 0.6, "lowpass", 220, 1500, 0, 3.2);        // water rushing in
-      noise(4.2, 0.3, "lowpass", 900, 600, 4.6, 0.6);      // slosh while full
-      noise(4.8, 0.55, "lowpass", 1400, 160, 9, 0.5);      // draining away
-      for (var i = 0; i < 26; i++) tone(300 + Math.random() * 700, 900 + Math.random() * 600, 0.07, 0.14, "sine", 1 + Math.random() * 10); // bubbles
+      noise({ len: 5, vol: 0.4, f: 220, to: 1500, a: 3.2, pan: -0.3, lfo: [0.7, 500], rev: 0.25 });
+      noise({ len: 4.8, vol: 0.13, kind: "bandpass", f: 500, to: 2600, q: 1.5, a: 3.2, pan: 0.4, rev: 0.3 });
+      noise({ at: 4.6, len: 4.2, vol: 0.21, f: 700, to: 450, a: 0.6, lfo: [0.5, 400] });
+      voice({ at: 4.4, f: N(-24), len: 4.8, vol: 0.16, n: 2, det: 14, a: 1, vib: [0.4, 12] });
+      [5.3, 7.3].forEach(function (at) { voice({ at: at, f: N(19), len: 1.4, vol: 0.12, fm: [2, 0.6, 0.1], rev: 0.8, echo: 0.6 }); });
+      noise({ at: 9, len: 4.8, vol: 0.4, f: 1400, to: 160, a: 0.5, lfo: [3, 500], rev: 0.25 });
+      for (var i = 0; i < 26; i++) voice({ f: 300 + Math.random() * 700, to: 900 + Math.random() * 600, len: 0.07, vol: 0.1, at: 1 + Math.random() * 10, pan: Math.random() * 1.6 - 0.8, rev: 0.3 });
     },
-    meteor: function () { noise(3.2, 0.2, "bandpass", 2600, 500, 0, 1.2); },
-    hit: function () { tone(150, 45, 0.3, 0.36); noise(0.22, 0.16, "lowpass", 1800, 300); },
-    blackout: function (len) {
-      tone(240, 38, 0.7, 0.45, "sawtooth"); noise(0.5, 0.2, "lowpass", 2000, 120);
-      tone(55, 52, len - 1, 0.16, "sine", 0.5);            // low hum in the dark
-      tone(70, 360, 0.45, 0.35, "sawtooth", len - 0.6);    // lights back
+    // The shower passing overhead: a long rush, a low rumble and falling whistles.
+    meteor: function () {
+      noise({ len: 3.4, vol: 0.25, kind: "bandpass", f: 2600, to: 500, a: 1.2, rev: 0.4 });
+      noise({ len: 3.6, vol: 0.38, f: 140, to: 70, a: 0.8 });
+      for (var i = 0; i < 9; i++) voice({ f: 2400 + Math.random() * 1400, to: 320, len: 0.5 + Math.random() * 0.3, vol: 0.12, at: Math.random() * 2.8, glide: 1, pan: Math.random() * 1.6 - 0.8, rev: 0.4, echo: 0.2 });
     },
-    news: function () { tone(660, 660, 0.14, 0.32, "triangle"); tone(880, 880, 0.14, 0.32, "triangle", 0.15); tone(1320, 1320, 0.3, 0.3, "triangle", 0.3); },
-    rewind: function () { tone(300, 1400, 0.5, 0.25, "sawtooth"); noise(0.6, 0.15, "bandpass", 800, 3000); },
+    // A meteor striking the camera: a thump, debris and a short metallic ring.
+    hit: function () {
+      voice({ f: 150, to: 42, len: 0.35, vol: 0.4 }); noise({ len: 0.25, vol: 0.18, f: 2200, to: 300, rev: 0.4 });
+      voice({ f: 520, len: 0.4, vol: 0.1, fm: [1.41, 3, 0.3], rev: 0.5 });
+    },
+    // Incoming transmission: static, a burst of data, then a three-note ident.
+    news: function () {
+      noise({ len: 0.14, vol: 0.1, kind: "bandpass", f: 3000, to: 1200, q: 2 });
+      ticks(0.1, 7, 0.045, 0.06);
+      bell(12, 0.45, 0.2, 0.35); bell(19, 0.6, 0.2, 0.35); bell(24, 0.75, 0.2, 1.1);
+    },
+    // Tape spinning backwards: a wobbling rising sweep with climbing scrub ticks.
+    rewind: function () {
+      voice({ f: 260, to: 1500, len: 0.7, vol: 0.28, type: "sawtooth", n: 2, det: 20, lp: [600, 5000, 5], glide: 1, vib: [22, 45], echo: 0.25 });
+      noise({ len: 0.75, vol: 0.18, kind: "bandpass", f: 700, to: 4000, q: 3, a: 0.6 });
+      for (var i = 0; i < 10; i++) voice({ f: 500 * Math.pow(1.13, i), len: 0.04, vol: 0.12, type: "square", at: i * 0.065, lp: [4000, 4000, 1] });
+    },
+    // A power-up riser, a heavy landing as the card arrives, a wide chord and a run of bells over it.
     donation: function () {
-      tone(98, 49, 0.5, 0.5);                                // low thump as the card lands
-      noise(1.6, 0.12, "highpass", 3000, 9000, 0, 0.5);      // shimmer
-      [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {            // C major, rising
-        tone(f, f, 0.34, 0.34, "triangle", 0.1 + i * 0.12); tone(f * 2, f * 2, 0.22, 0.1, "sine", 0.1 + i * 0.12);
-      });
-      [1046.5, 1318.5, 1568].forEach(function (f) { tone(f, f, 1.5, 0.2, "triangle", 0.62); });   // held chord
+      noise({ len: 0.5, vol: 0.2, kind: "bandpass", f: 300, to: 7000, q: 3, a: 0.42, rev: 0.3 });
+      voice({ f: N(-24), to: N(-12), len: 0.5, vol: 0.24, type: "sawtooth", n: 3, det: 30, a: 0.4, lp: [300, 4000, 4], glide: 1 });
+      drop(0.45, 0.6); noise({ at: 0.45, len: 0.6, vol: 0.2, f: 5000, to: 200, rev: 0.4 });
+      pad([-12, -5, 0, 4, 7, 14], 0.45, 2.6, 0.2, [4500, 700, 1.5]);
+      [12, 19, 24, 26, 28, 31].forEach(function (s, i) { bell(s, 0.52 + i * 0.09, 0.22, 1.1, i % 2 ? 0.5 : -0.5); });
+      noise({ at: 0.45, len: 1.8, vol: 0.07, kind: "highpass", f: 4000, to: 10000, a: 0.3, rev: 0.5 });
     },
-    follow: function () { tone(659.25, 659.25, 0.16, 0.3, "triangle"); tone(987.77, 987.77, 0.4, 0.3, "triangle", 0.14); tone(1975.5, 1975.5, 0.3, 0.07, "sine", 0.14); },
+    // A two-note sonar ping over a soft low note.
+    follow: function () {
+      voice({ f: 2200, to: 4400, len: 0.07, vol: 0.05, type: "square", lp: [6000, 6000, 1] });
+      bell(19, 0.04, 0.22, 0.6, -0.3); bell(26, 0.17, 0.22, 1.1, 0.3);
+      voice({ f: N(-12), len: 0.5, vol: 0.14, at: 0.04, a: 0.03, rev: 0.3 });
+    },
+    // A chord swelling open under a rising run of bells; a resub adds one more bell on top.
     sub: function (extra) {
-      noise(1.2, 0.1, "highpass", 3500, 9000, 0, 0.4);
-      [587.33, 739.99, 880, 1174.7].concat(extra ? [1479.98] : []).forEach(function (f, i) { tone(f, f, 0.3, 0.32, "triangle", i * 0.1); });
-      [880, 1174.7, 1479.98].forEach(function (f) { tone(f, f, 1.2, 0.16, "triangle", extra ? 0.6 : 0.5); });
+      noise({ len: 1.4, vol: 0.08, kind: "highpass", f: 3000, to: 9000, a: 0.5, rev: 0.4 });
+      pad([-12, -5, 2], 0, 2, 0.2, [500, 3200, 2], 0.45);
+      voice({ f: N(-24), len: 0.8, vol: 0.3, a: 0.05 });
+      [12, 19, 26, 28].concat(extra ? [31] : []).forEach(function (s, i) { bell(s, 0.08 + i * 0.1, 0.24, 0.9, i % 2 ? 0.45 : -0.45); });
     },
+    // The sub sound, then one bright zap for each gifted sub.
     gift: function (n) {
       SFX.sub(false);
-      for (var i = 0; i < Math.min(n, 10); i++) tone(700 + i * 90, 1400 + i * 90, 0.09, 0.28, "sine", 0.75 + i * 0.09);   // one pop per sub
+      for (var i = 0; i < Math.min(n, 10); i++) { var f = N(12 + SCALE[i % 5]); voice({ f: f, to: f * 2, len: 0.1, vol: 0.22, at: 0.75 + i * 0.09, fm: [1.5, 1.5, 0.08], pan: i % 2 ? 0.6 : -0.6, echo: 0.25, rev: 0.2 }); }
     },
+    // Glass ticks counting up, more of them for more bits, then a two-note confirm.
     cheer: function (bits) {
       var n = clamp(Math.round(4 + Math.log(Math.max(bits, 1)) / Math.LN10 * 4), 5, 20);
-      for (var i = 0; i < n; i++) { tone(1568 + (i % 3) * 262, 2093 + (i % 3) * 262, 0.07, 0.2, "square", i * 0.055); }   // coins
-      tone(1046.5, 1046.5, 0.5, 0.22, "triangle", n * 0.055); tone(1568, 1568, 0.7, 0.2, "triangle", n * 0.055 + 0.1);
+      for (var i = 0; i < n; i++) voice({ f: N(19 + SCALE[(i * 3) % 5]), len: 0.09, vol: 0.14, at: i * 0.055, fm: [2, 1, 0.05], pan: i % 2 ? 0.55 : -0.55, echo: 0.15, rev: 0.2 });
+      bell(19, n * 0.055, 0.21, 0.7); bell(24, n * 0.055 + 0.1, 0.21, 1.2);
+      voice({ f: N(-12), len: 0.6, vol: 0.14, at: n * 0.055, a: 0.02 });
     },
+    // A klaxon over engine pulses while a warp builds, then the arrival: a drop, a blast and a chord.
     raid: function () {
-      [0, 0.5, 1].forEach(function (d) { tone(440, 880, 0.42, 0.3, "sawtooth", d); });      // rising siren, three sweeps
-      [0, 0.25, 0.5, 0.75, 1, 1.25].forEach(function (d) { tone(110, 55, 0.2, 0.42, "sine", d); });   // marching thumps
-      noise(2.2, 0.16, "bandpass", 500, 2600, 0, 1.4);
+      [0, 0.5, 1].forEach(function (d) { voice({ f: N(-5), to: N(7), len: 0.44, vol: 0.3, at: d, type: "sawtooth", n: 2, det: 18, lp: [900, 3600, 6], rev: 0.35 }); });
+      [0, 0.25, 0.5, 0.75, 1, 1.25].forEach(function (d) { voice({ f: 98, to: 44, len: 0.22, vol: 0.42, at: d }); });
+      noise({ len: 1.6, vol: 0.2, kind: "bandpass", f: 200, to: 5000, q: 5, a: 1.4, rev: 0.3 });
+      drop(1.55, 0.6); noise({ at: 1.55, len: 0.9, vol: 0.24, f: 6000, to: 150, rev: 0.5 });
+      pad([-12, -5, 2, 7], 1.55, 2.2, 0.2, [3800, 500, 2]);
     },
+    // Magnetic pulses speeding up while the engine spools, then two blasts of the horn.
     hypetrain: function () {
-      for (var i = 0; i < 12; i++) noise(0.11, 0.3, "bandpass", 900, 500, i * (0.2 - i * 0.008), 0.01);   // chug, speeding up
-      tone(622.25, 622.25, 0.9, 0.2, "sawtooth", 1.5); tone(739.99, 739.99, 0.9, 0.2, "sawtooth", 1.5);   // whistle
-      tone(622.25, 600, 0.5, 0.16, "sawtooth", 2.45); tone(739.99, 715, 0.5, 0.16, "sawtooth", 2.45);
+      for (var i = 0; i < 12; i++) noise({ len: 0.11, vol: 0.36, kind: "bandpass", f: 900 + i * 60, to: 500, q: 3, at: i * (0.2 - i * 0.008), a: 0.01, pan: i % 2 ? 0.3 : -0.3 });
+      voice({ f: N(-24), to: N(0), len: 1.5, vol: 0.24, type: "sawtooth", n: 3, det: 30, a: 1.2, lp: [200, 2600, 5], glide: 1, rev: 0.3 });
+      [0, 7, 14].forEach(function (s) {
+        voice({ f: N(s), len: 0.9, vol: 0.19, at: 1.5, type: "sawtooth", n: 3, det: 16, a: 0.04, sus: 0.8, lp: [3000, 2200, 1], vib: [5.5, 8], rev: 0.5, echo: 0.2 });
+        voice({ f: N(s), to: N(s - 0.6), len: 0.55, vol: 0.17, at: 2.45, type: "sawtooth", n: 3, det: 16, a: 0.04, sus: 0.8, lp: [3000, 1800, 1], rev: 0.5, echo: 0.2 });
+      });
     }
   };
 
@@ -482,25 +589,6 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       });
       c.restore();
       if (!alive) return false;
-    } });
-  }
-
-  // ---- BLACKOUT: dark stage, a wandering flashlight, and the camera left lit -----
-  var dark = document.createElement("canvas"); dark.width = W; dark.height = H; var dctx = dark.getContext("2d");
-  function blackout() {
-    var LEN = 20;
-    addLayer({ z: 35, draw: function (c, e, t) {
-      if (e > LEN) return false;
-      var a = Math.min(1, e / 0.5, (LEN - e) / 0.6);
-      dctx.globalCompositeOperation = "source-over"; dctx.clearRect(0, 0, W, H);
-      dctx.fillStyle = "rgba(2,5,12," + 0.97 * a + ")"; dctx.fillRect(0, 0, W, H);
-      dctx.globalCompositeOperation = "destination-out";
-      var x = W * (0.5 + 0.36 * Math.sin(e * 0.9)), y = H * (0.5 + 0.3 * Math.sin(e * 1.4 + 1)), rad = 300;
-      var g = dctx.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(0.5, "rgba(0,0,0,.95)"); g.addColorStop(1, "rgba(0,0,0,0)");
-      dctx.fillStyle = g; dctx.beginPath(); dctx.arc(x, y, rad, 0, 7); dctx.fill();
-      var r = camPx();
-      if (r.real && !cam.full) { dctx.save(); dctx.shadowColor = "#000"; dctx.shadowBlur = 50; dctx.fillStyle = "#000"; dctx.fillRect(r.x + 14, r.y + 14, r.w - 28, r.h - 28); dctx.restore(); }
-      c.drawImage(dark, 0, 0);
     } });
   }
 
@@ -667,7 +755,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     alertQ = []; clearTimeout(wakeT); lastFollowEnd = 0;
     stopEffects();
   }
-  // The dashboard's "Stop effects": end every running effect and all sound (a Blackout, a Flood, the news
+  // The dashboard's "Stop effects": end every running effect and all sound (a Flood, a Meteor Shower, the news
   // ticker), but leave the alert card on screen and everything waiting in the queue.
   function stopEffects() {
     stageGen++;
@@ -704,7 +792,6 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       var n = add("news", '<div class="k">BREAKING</div><div class="m"><span>' + esc((o.user ? o.user + " reports: " : "") + (o.text || "no further details at this time")) + "</span></div>", 14400);
       n.animate([{ transform: "translateY(14vw)" }, { transform: "none" }], { duration: 350, easing: "ease-out" });
     },
-    blackout: function (o) { say(o, "Blackout"); SFX.blackout(20); blackout(); },
     flood: function (o) { say(o, "Flood"); SFX.flood(); flood(); },
     rewind: function (o) { say(o, "Instant Replay"); SFX.rewind(); add("rew", "<b>◀◀ REW</b><i></i>", 4200); }
   };
