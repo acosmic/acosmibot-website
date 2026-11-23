@@ -73,7 +73,7 @@
       "rewrite": "/app-shell.html",
       "headers": { "X-Robots-Tag": "noindex, nofollow" }
     },
-    { "route": "/twitch-overlay/*", "headers": { "X-Frame-Options": "", "Content-Security-Policy": "frame-ancestors 'self'; base-uri 'self'; object-src 'none'", "X-Robots-Tag": "noindex, nofollow", "Cache-Control": "no-store" } },
+    { "route": "/twitch-overlay/*", "headers": { "X-Frame-Options": "", "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src https://static-cdn.jtvnw.net; media-src https:; connect-src https://api.acosmibot.com https://api-test.acosmibot.com http://localhost:5000 http://127.0.0.1:5000; require-trusted-types-for 'script'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'; object-src 'none'", "X-Robots-Tag": "noindex, nofollow", "Cache-Control": "no-cache" } },
     { "route": "/twitch", "rewrite": "/app-shell.html" },
     { "route": "/twitch/*", "rewrite": "/app-shell.html", "headers": { "X-Robots-Tag": "noindex, nofollow" } },
     { "route": "/t/*", "rewrite": "/app-shell.html", "headers": { "X-Robots-Tag": "noindex, nofollow" } },

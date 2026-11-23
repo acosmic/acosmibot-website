@@ -48,6 +48,34 @@ const securityHeaders = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
 };
 
+// OBS overlay pages (public/twitch-overlay/, TWITCH_BOT_SPEC.md §11.7/§12.9): framable only by this site,
+// unindexed, revalidated on every load, and a CSP that allows only what the widgets use (same-origin
+// scripts/styles, Twitch emote images, the allowlisted API origins, https sound effects). Mirrors the
+// "/twitch-overlay/*" route in public/staticwebapp.config.json; tests/twitch-hosting.test.ts pins both.
+const TWITCH_OVERLAY_PREFIX = '/twitch-overlay/';
+export const twitchOverlayHeaders = {
+  'Content-Security-Policy': [
+    "default-src 'none'",
+    "script-src 'self'",
+    "style-src 'self'",
+    'img-src https://static-cdn.jtvnw.net',
+    'media-src https:',
+    'connect-src https://api.acosmibot.com https://api-test.acosmibot.com http://localhost:5000 http://127.0.0.1:5000',
+    "require-trusted-types-for 'script'",
+    "frame-ancestors 'self'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "object-src 'none'",
+  ].join('; '),
+  'X-Robots-Tag': 'noindex, nofollow',
+  'Cache-Control': 'no-cache',
+};
+const applyTwitchOverlayHeaders = (headers) => {
+  delete headers['X-Frame-Options'];
+  Object.assign(headers, twitchOverlayHeaders);
+  return headers;
+};
+
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -189,6 +217,7 @@ const serveStaticWebResponse = async (requestUrl, method = 'GET') => {
     // isolated settings from one server-owned source of truth.
     body = Buffer.from(`window.__ACOSMIBOT_RUNTIME_CONFIG__ = ${JSON.stringify(runtimeConfig)};\n${file.toString('utf8')}`);
   }
+  if (status === 200 && pathname.startsWith(TWITCH_OVERLAY_PREFIX)) applyTwitchOverlayHeaders(headers);
   if (method === 'HEAD') body = Buffer.alloc(0);
   headers['Content-Length'] = String(body.length);
   return new Response(body, { status, headers });

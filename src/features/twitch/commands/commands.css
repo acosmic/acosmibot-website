@@ -1,0 +1,199 @@
+/* Commands section and public command list (§12.1). Existing tokens only; cyan marks action and active state. */
+.tw-cmd-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tw-cmd-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+}
+
+.tw-cmd-toolbar .tw-field {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
+.tw-cmd-toolbar .btn {
+  min-height: 44px;
+}
+
+.tw-cmd-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tw-cmd-search svg {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tw-cmd-search .form-control {
+  min-height: 44px;
+  padding-left: 36px;
+}
+
+.tw-cmd-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tw-cmd-name small {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tw-cmd-response {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.tw-cmd-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tw-cmd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 0 16px;
+}
+
+.tw-cmd-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 24px;
+  border: 1px solid var(--border-light);
+  border-radius: 15px;
+  background: var(--bg-card);
+}
+
+/* "What this command does": a tonal inset, not another full card. */
+.tw-cmd-preview {
+  margin: 4px 0 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+}
+
+.tw-cmd-preview h3 {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font: 600 11px/1.2 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tw-cmd-preview dl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.tw-cmd-preview__row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+.tw-cmd-preview dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tw-cmd-preview dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Public list */
+.tw-cmd-public {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  border: 1px solid var(--border-light);
+  border-radius: 15px;
+  background: var(--bg-card);
+}
+
+.tw-cmd-public__item {
+  padding: 14px 20px;
+}
+
+.tw-cmd-public__item + .tw-cmd-public__item {
+  border-top: 1px solid var(--border-light);
+}
+
+.tw-cmd-public__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.tw-cmd-public__name {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.tw-cmd-public__title {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font: 600 11px/1.2 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tw-cmd-public__description {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.tw-cmd-public__response {
+  margin: 6px 0 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+  .tw-cmd-preview__row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .tw-cmd-toolbar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tw-cmd-panel {
+    padding: 18px;
+  }
+}

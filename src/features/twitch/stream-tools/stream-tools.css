@@ -1,0 +1,160 @@
+/* Quotes, Counters, Stream tools and Channel points pages (§12.8). Existing tokens only; cyan marks action and active state. */
+.tw-st-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tw-st-card {
+  padding: 18px 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 13px;
+  background: var(--bg-card);
+}
+
+.tw-st-card__title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.tw-st-card__lead {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.tw-st-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.tw-st-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.tw-st-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+}
+
+.tw-st-inline > .tw-field {
+  flex: 1 1 240px;
+  margin-bottom: 0;
+}
+
+.tw-st-text {
+  display: block;
+  max-width: 56ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-st-quote {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tw-st-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.tw-st-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tw-st-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tw-st-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tw-st-results button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tw-st-results button:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.04));
+}
+
+.tw-st-results button[aria-pressed='true'] {
+  border-color: var(--border-signal, rgba(0, 217, 255, 0.4));
+  background: var(--control-overlay, rgba(0, 217, 255, 0.08));
+}
+
+.tw-st-results img {
+  width: 28px;
+  height: 38px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.tw-st-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.2));
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.tw-st-public-quote {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tw-st-public-quote:last-child {
+  border-bottom: 0;
+}
+
+.tw-st-public-quote blockquote {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.tw-st-public-quote small {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .tw-st-text {
+    max-width: none;
+    white-space: normal;
+  }
+}

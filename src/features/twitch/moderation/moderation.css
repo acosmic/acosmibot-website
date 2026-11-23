@@ -1,0 +1,212 @@
+/* Moderation pages (§12.3). Existing tokens only; cyan marks action and active state. */
+.tw-mod-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tw-mod-card {
+  padding: 18px 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 15px;
+  background: var(--bg-card);
+}
+
+.tw-mod-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.tw-mod-card__title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.tw-mod-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 16px;
+  margin-top: 8px;
+}
+
+.tw-mod-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.tw-mod-row > .tw-field {
+  flex: 1 1 200px;
+}
+
+.tw-mod-divider {
+  margin: 14px 0;
+  border: 0;
+  border-top: 1px solid var(--border-light);
+}
+
+.tw-mod-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.tw-mod-ladder__step {
+  display: grid;
+  grid-template-columns: 72px minmax(160px, 1fr) minmax(160px, 1fr) 44px;
+  align-items: end;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tw-mod-ladder__label {
+  padding-bottom: 28px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.tw-mod-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.tw-mod-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 4px 0 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.tw-mod-chip .tw-icon-button {
+  width: 36px;
+  height: 36px;
+}
+
+.tw-mod-pattern {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.tw-mod-message {
+  display: block;
+  max-width: 52ch;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.tw-mod-message.is-deleted {
+  color: var(--text-secondary);
+  text-decoration: line-through;
+}
+
+.tw-mod-tester {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.tw-mod-result {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.tw-mod-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.tw-mod-toolbar > .tw-field {
+  flex: 1 1 200px;
+  margin-bottom: 0;
+}
+
+.tw-mod-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 0;
+}
+
+.tw-mod-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.tw-mod-facts dt {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.tw-mod-facts dd {
+  margin: 2px 0 0;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.tw-mod-history {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.tw-mod-history li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 14px;
+}
+
+.tw-mod-history time {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.tw-mod-subtitle {
+  margin: 16px 0 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+@media (max-width: 768px) {
+  .tw-mod-ladder__step {
+    grid-template-columns: 1fr 44px;
+  }
+
+  .tw-mod-ladder__label {
+    grid-column: 1 / -1;
+    padding-bottom: 0;
+  }
+
+  .tw-mod-card {
+    padding: 16px;
+  }
+}

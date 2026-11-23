@@ -21,17 +21,69 @@ test('/twitch, /twitch/* and /t/* rewrite to the app shell', () => {
   assert.deepEqual(route('/t/*'), { route: '/t/*', rewrite: '/app-shell.html', headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
 });
 
-test('/twitch-overlay/* is static, frameable only by this site, uncached and unindexed', () => {
+const OVERLAY_CSP = [
+  "default-src 'none'",
+  "script-src 'self'",
+  "style-src 'self'",
+  'img-src https://static-cdn.jtvnw.net',
+  'media-src https:',
+  'connect-src https://api.acosmibot.com https://api-test.acosmibot.com http://localhost:5000 http://127.0.0.1:5000',
+  "require-trusted-types-for 'script'",
+  "frame-ancestors 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "object-src 'none'",
+].join('; ');
+
+test('/twitch-overlay/* is static, frameable only by this site, revalidated, unindexed and locked down by CSP', () => {
   assert.deepEqual(route('/twitch-overlay/*'), {
     route: '/twitch-overlay/*',
     headers: {
       'X-Frame-Options': '',
-      'Content-Security-Policy': "frame-ancestors 'self'; base-uri 'self'; object-src 'none'",
+      'Content-Security-Policy': OVERLAY_CSP,
       'X-Robots-Tag': 'noindex, nofollow',
-      'Cache-Control': 'no-store',
+      'Cache-Control': 'no-cache',
     },
   });
   assert.equal(route('/twitch-overlay/*').rewrite, undefined, 'overlay files are served as themselves');
+  const directives = OVERLAY_CSP.split('; ');
+  assert.ok(!directives.some((d) => /unsafe-|\*|data:|blob:/.test(d.replace('https:', ''))), 'no unsafe sources');
+});
+
+test('the container runtime serves /twitch-overlay/* with the same headers as Azure', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const root = mkdtempSync(join(tmpdir(), 'overlay-hosting-'));
+  mkdirSync(join(root, 'twitch-overlay'));
+  writeFileSync(join(root, 'twitch-overlay', 'alerts.html'), '<!doctype html><title>x</title>');
+  writeFileSync(join(root, 'twitch-overlay', 'overlay.js'), 'export {};');
+  writeFileSync(join(root, 'index.html'), '<!doctype html><title>home</title>');
+  writeFileSync(join(root, '404.html'), '<!doctype html><title>missing</title>');
+  process.env.STATIC_ROOT = root;
+  const runtime = await import('../runtime/server.mjs');
+  const azure = route('/twitch-overlay/*').headers ?? {};
+  assert.deepEqual(runtime.twitchOverlayHeaders, {
+    'Content-Security-Policy': azure['Content-Security-Policy'],
+    'X-Robots-Tag': azure['X-Robots-Tag'],
+    'Cache-Control': azure['Cache-Control'],
+  });
+  for (const path of ['/twitch-overlay/alerts.html', '/twitch-overlay/overlay.js']) {
+    const response = await runtime.serveStaticWebResponse(new URL(`http://localhost${path}`));
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get('x-frame-options'), null, `${path} may be framed by this site`);
+    assert.equal(response.headers.get('content-security-policy'), OVERLAY_CSP, path);
+    assert.equal(response.headers.get('x-robots-tag'), 'noindex, nofollow', path);
+    assert.equal(response.headers.get('cache-control'), 'no-cache', path);
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff', path);
+    assert.equal(response.headers.get('referrer-policy'), 'no-referrer', path);
+  }
+  // Every other route keeps the global headers.
+  for (const path of ['/', '/twitch-overlayx/alerts.html', '/twitch-overlay/missing.html']) {
+    const response = await runtime.serveStaticWebResponse(new URL(`http://localhost${path}`));
+    assert.equal(response.headers.get('x-frame-options'), 'DENY', path);
+    assert.equal(response.headers.get('content-security-policy'), hosting.globalHeaders['Content-Security-Policy'], path);
+  }
 });
 
 test('the Twitch routes sit before /server/* and the existing rules are unchanged', () => {
