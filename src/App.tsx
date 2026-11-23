@@ -51,6 +51,8 @@ const StatusPage = lazyRoute(() => import('./pages/StatusPage').then(module => (
 const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
 const SignInRequiredPage = lazyRoute(() => import('./pages/SignInRequiredPage').then(module => ({ default: module.SignInRequiredPage })));
 const AdminPage = lazyRoute(() => import('./pages/admin/AdminPage').then(module => ({ default: module.AdminPage })));
+const TwitchRoot = lazyRoute(() => import('./features/twitch/TwitchRoot').then(m => ({ default: m.TwitchRoot })));
+const TwitchPublicRoot = lazyRoute(() => import('./features/twitch/public/TwitchPublicRoot').then(m => ({ default: m.TwitchPublicRoot })));
 
 /** Completes the cookie-backed OAuth redirect and returns the user to where
  * they started login, falling back to the server selector. After a bot
@@ -289,6 +291,8 @@ function App() {
       <Route path="/status" element={<StatusPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/premium" element={<Navigate to={{ pathname: '/pricing', search: window.location.search }} replace />} />
+      <Route path="/twitch/*" element={<TwitchRoot />} />
+      <Route path="/t/:login/*" element={<TwitchPublicRoot />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </Suspense>

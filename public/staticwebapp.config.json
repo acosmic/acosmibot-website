@@ -73,6 +73,10 @@
       "rewrite": "/app-shell.html",
       "headers": { "X-Robots-Tag": "noindex, nofollow" }
     },
+    { "route": "/twitch-overlay/*", "headers": { "X-Frame-Options": "", "Content-Security-Policy": "frame-ancestors 'self'; base-uri 'self'; object-src 'none'", "X-Robots-Tag": "noindex, nofollow", "Cache-Control": "no-store" } },
+    { "route": "/twitch", "rewrite": "/app-shell.html" },
+    { "route": "/twitch/*", "rewrite": "/app-shell.html", "headers": { "X-Robots-Tag": "noindex, nofollow" } },
+    { "route": "/t/*", "rewrite": "/app-shell.html", "headers": { "X-Robots-Tag": "noindex, nofollow" } },
     {
       "route": "/server/*",
       "rewrite": "/app-shell.html",

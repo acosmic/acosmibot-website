@@ -78,6 +78,7 @@ const privateRoute = (pathname) => (
   || pathname.startsWith('/u/')
   || pathname.startsWith('/leaderboard')
   || pathname === '/achievements'
+  || pathname === '/twitch' || pathname.startsWith('/twitch/') || pathname.startsWith('/t/')
 );
 
 const responseHeaders = (extra = {}) => ({ ...securityHeaders, ...extra });
