@@ -35,6 +35,19 @@ import {
   secondsLeft,
   share,
   totalVotes,
+  blockingFixes,
+  defaultRules,
+  describeExclusions,
+  describeRules,
+  explainVerdict,
+  newRequestId,
+  normalizeRules,
+  presetsProblem,
+  rulesFromLegacy,
+  rulesOf,
+  rulesProblem,
+  sameRules,
+  type EligibilityRules,
   type Giveaway,
   type GiveawayWinner,
   type Poll,
@@ -76,8 +89,8 @@ test('giveawayInput sends only the fields of the chosen entry mode', () => {
   assert.deepEqual([tickets.keyword, tickets.ticket_cost, tickets.max_tickets], [null, 25, 5]);
   const active = giveawayInput({ ...base, entry_mode: 'active', keyword: '!x', ticket_cost: 25 });
   assert.deepEqual([active.keyword, active.ticket_cost, active.max_tickets], [null, null, 1]);
-  assert.deepEqual(keyword.eligibility, {
-    min_level: 0, subscriber_only: false, min_follow_minutes: 0, min_account_age_days: 0, exclude_winners_days: 0 });
+  // Contract change (eligibility rules v2): the form sends version 2 rules; the defaults let everyone enter.
+  assert.deepEqual(keyword.eligibility, defaultRules());
   assert.equal(giveawayInput({ ...base, keyword: '   ' }).keyword, null);
 });
 
@@ -88,11 +101,14 @@ test('a giveaway round-trips through the form', () => {
   });
   const draft = draftFromGiveaway(g);
   assert.equal(draft.ticket_cost, 15);
-  assert.equal(draft.min_level, 300);
+  assert.equal(draft.rules.min_level, 300);
   const input = giveawayInput(draft);
   assert.equal(input.entry_mode, 'tickets');
   assert.equal(input.ticket_cost, 15);
-  assert.deepEqual(input.eligibility, g.eligibility_json);
+  // Contract change (eligibility rules v2): the older keys come back as the same rules in version 2.
+  assert.deepEqual(input.eligibility, rulesFromLegacy(g.eligibility_json));
+  assert.equal(input.eligibility.subscription, 'subscribers');
+  assert.deepEqual(input.eligibility.prior_winners.statuses, ['pending', 'claimed', 'expired']);
   assert.equal(sameGiveawayDraft(draft, draftFromGiveaway(g)), true);
   assert.equal(sameGiveawayDraft(draft, { ...draft, winner_count: 4 }), false);
 });
@@ -116,9 +132,11 @@ test('giveawayProblem enforces every bound before the request is sent', () => {
   assert.match(giveawayProblem({ ...ok, winner_count: 21 }, NOW) ?? '', /1 to 20/);
   assert.match(giveawayProblem({ ...ok, claim_seconds: 3601 }, NOW) ?? '', /claim/);
   assert.match(giveawayProblem({ ...ok, entry_mode: 'active', active_window_minutes: 0 }, NOW) ?? '', /active window/);
-  assert.match(giveawayProblem({ ...ok, min_follow_minutes: 525_601 }, NOW) ?? '', /minutes/);
-  assert.match(giveawayProblem({ ...ok, min_account_age_days: 3651 }, NOW) ?? '', /3650/);
-  assert.match(giveawayProblem({ ...ok, exclude_winners_days: 366 }, NOW) ?? '', /365/);
+  // Contract change (eligibility rules v2): rule bounds are checked through rulesProblem.
+  const rules = defaultRules();
+  assert.match(giveawayProblem({ ...ok, rules: { ...rules, following: { mode: 'followers', min_follow_minutes: 525_601 } } }, NOW) ?? '', /one year/);
+  assert.match(giveawayProblem({ ...ok, rules: { ...rules, min_account_age_days: 3651 } }, NOW) ?? '', /3650/);
+  assert.match(giveawayProblem({ ...ok, rules: { ...rules, prior_winners: { ...rules.prior_winners, period: 'rolling', days: 0 } } }, NOW) ?? '', /1 to 3650 days/);
   assert.match(giveawayProblem({ ...ok, winner_count: 1.5 }, NOW) ?? '', /1 to 20/);
 });
 
@@ -145,8 +163,9 @@ test('datetime-local values round-trip through ISO instants', () => {
 // ── giveaway state ────────────────────────────────────────────────────────
 test('each status offers exactly the actions the bot accepts', () => {
   assert.deepEqual(availableActions('draft'), ['open']);
-  assert.deepEqual(availableActions('open'), ['close', 'draw', 'cancel']);
-  assert.deepEqual(availableActions('closed'), ['draw', 'cancel']);
+  // Contract change (eligibility rules v2): open and closed giveaways can go back to draft to change their rules.
+  assert.deepEqual(availableActions('open'), ['close', 'draw', 'reset', 'cancel']);
+  assert.deepEqual(availableActions('closed'), ['draw', 'reset', 'cancel']);
   assert.deepEqual(availableActions('drawn'), ['reroll']);
   assert.deepEqual(availableActions('cancelled'), []);
   assert.equal(canEdit('draft') && canEdit('open'), true);
@@ -307,4 +326,123 @@ test('every page owns its loading, failed-load and empty states through the shar
   assert.match(publicPage, /LoadFailed/);
   assert.match(publicPage, /LoadingSpinner/);
   assert.match(publicPage, /EmptyState/);
+});
+
+// ── eligibility rules (version 2) ─────────────────────────────────────────
+const rules = (patch: Partial<EligibilityRules> = {}): EligibilityRules => ({ ...defaultRules(), ...patch });
+
+test('the default rules let everyone in chat enter and say so in plain words', () => {
+  assert.deepEqual(describeRules(defaultRules()), ['Everyone in chat can enter.', 'You (the broadcaster) cannot enter.']);
+  const withBroadcaster = rules({ roles: { ...defaultRules().roles, broadcaster: 'allow' } });
+  assert.deepEqual(describeRules(withBroadcaster), ['Everyone in chat can enter.', 'You (the broadcaster) can enter too.']);
+  assert.equal(rulesProblem(defaultRules()), null);
+});
+
+test('the plain-language summary names every rule that is switched on, and only those', () => {
+  const r = rules({
+    min_level: 300,
+    roles: { broadcaster: 'exclude', moderators: 'exclude', vips: 'allow', regulars: 'allow', only: ['vips', 'regulars'] },
+    subscription: 'subscribers',
+    following: { mode: 'followers', min_follow_minutes: 7 * 1440 },
+    prior_winners: { period: 'week', days: 0, start: null, end: null, statuses: ['pending', 'claimed'] },
+    min_account_age_days: 30,
+    participation: { min_watch_minutes: 120, min_messages: 10, min_points: 500 },
+    named_exclusions: [{ user_id: '1', login: 'alt1' }, { user_id: '2', login: 'alt2' }, { user_id: '3', login: 'alt3' }, { user_id: '4', login: 'alt4' }],
+  });
+  assert.deepEqual(describeRules(r, { levelName: (v) => `L${v}`, timezone: 'Europe/Berlin' }), [
+    'Only VIPs and regulars can enter.',
+    'Moderators cannot enter.',
+    'Chat level L300 or higher.',
+    'Subscribers only.',
+    'Followers who have followed for at least 7 days.',
+    'Nobody who won a giveaway in this channel this week (weeks start on Monday).',
+    'A win counts once drawn, claimed or still waiting to claim; prizes nobody claimed do not count.',
+    'Days follow the channel time zone (Europe/Berlin).',
+    'Twitch account at least 30 days old.',
+    'At least 2 hours watched, 10 chat messages and 500 points in this channel.',
+    'Excluded by name: alt1, alt2, alt3 and 1 more.',
+    'You (the broadcaster) cannot enter.',
+  ]);
+});
+
+test('"this week" and "the last seven days" read differently, and custom periods and statuses are named', () => {
+  const prior = defaultRules().prior_winners;
+  const week = describeRules(rules({ prior_winners: { ...prior, period: 'week' } }))[0];
+  const rolling = describeRules(rules({ prior_winners: { ...prior, period: 'rolling', days: 7 } }))[0];
+  assert.match(week, /this week \(weeks start on Monday\)/);
+  assert.match(rolling, /in the last 7 days/);
+  const range = describeRules(rules({ prior_winners: { ...prior, period: 'range', start: '2026-11-01', end: '2026-11-15' } }), { timezone: 'UTC' });
+  assert.equal(range[0], 'Nobody who won a giveaway in this channel between 1 Nov 2026 and 15 Nov 2026.');
+  assert.equal(range[2], 'Days follow the channel time zone (UTC).');
+  const ever = describeRules(rules({ prior_winners: { ...prior, period: 'ever', statuses: ['claimed', 'expired'] } }));
+  assert.equal(ever[1], 'Counted as a win: claimed prizes and prizes nobody claimed in time.');
+  assert.equal(describeRules(rules({ following: { mode: 'non_followers', min_follow_minutes: 0 } }))[0], 'Only viewers who do not follow the channel.');
+  assert.equal(describeRules(rules({ following: { mode: 'followers', min_follow_minutes: 60 } }))[0], 'Followers who have followed for at least 1 hour.');
+});
+
+test('rulesProblem mirrors the server validation', () => {
+  const base = defaultRules();
+  assert.match(rulesProblem(rules({ roles: { ...base.roles, vips: 'exclude', only: ['vips'] } })) ?? '', /both required and excluded/);
+  assert.match(rulesProblem(rules({ following: { mode: 'everyone', min_follow_minutes: 10 } })) ?? '', /Followers only/);
+  assert.match(rulesProblem(rules({ prior_winners: { ...base.prior_winners, period: 'range', start: '2026-11-10', end: null } })) ?? '', /start and an end/);
+  assert.match(rulesProblem(rules({ prior_winners: { ...base.prior_winners, period: 'range', start: '2026-11-10', end: '2026-11-01' } })) ?? '', /not be after/);
+  assert.match(rulesProblem(rules({ prior_winners: { ...base.prior_winners, period: 'today', statuses: [] } })) ?? '', /at least one/);
+  assert.match(rulesProblem(rules({ participation: { min_watch_minutes: 1.5, min_messages: 0, min_points: 0 } })) ?? '', /watch time/);
+  const many = Array.from({ length: 101 }, (_v, i) => ({ user_id: String(i), login: `u${i}` }));
+  assert.match(rulesProblem(rules({ named_exclusions: many })) ?? '', /at most 100/);
+});
+
+test('saved rule sets: a cap of ten, unique one-line names, valid rules', () => {
+  assert.equal(presetsProblem([{ name: 'Subs', rules: defaultRules() }]), null);
+  assert.match(presetsProblem(Array.from({ length: 11 }, (_v, i) => ({ name: `p${i}`, rules: defaultRules() }))) ?? '', /at most 10/);
+  assert.match(presetsProblem([{ name: 'A', rules: defaultRules() }, { name: ' a ', rules: defaultRules() }]) ?? '', /Two saved rule sets/);
+  assert.match(presetsProblem([{ name: '  ', rules: defaultRules() }]) ?? '', /needs a name/);
+  assert.match(presetsProblem([{ name: 'x'.repeat(41), rules: defaultRules() }]) ?? '', /40 characters/);
+  assert.match(presetsProblem([{ name: 'Bad', rules: rules({ min_account_age_days: 9999 }) }]) ?? '', /^Bad: /);
+});
+
+test('rules compare by meaning: excluded accounts by id, so a login change is not an edit', () => {
+  const a = rules({ named_exclusions: [{ user_id: '7', login: 'old' }, { user_id: '8', login: 'x' }] });
+  const b = rules({ named_exclusions: [{ user_id: '8', login: 'x' }, { user_id: '7', login: 'renamed' }] });
+  assert.equal(sameRules(a, b), true);
+  assert.equal(sameRules(a, rules()), false);
+  const draft = { ...emptyGiveawayDraft(), rules: a };
+  assert.equal(sameGiveawayDraft(draft, { ...draft, rules: b }), true);
+  assert.equal(sameGiveawayDraft(draft, { ...draft, rules: rules() }), false);
+});
+
+test('a giveaway reads its version 2 rules when present, else the older keys', () => {
+  const v2 = rules({ subscription: 'non_subscribers' });
+  assert.equal(rulesOf(giveaway({ eligibility: v2 })).subscription, 'non_subscribers');
+  assert.deepEqual(rulesOf(giveaway()), defaultRules());
+  assert.deepEqual(normalizeRules({ v: 2 } as EligibilityRules), defaultRules());
+  assert.equal(emptyGiveawayDraft({ rules: v2 }).rules.subscription, 'non_subscribers');
+});
+
+test('entrant verdicts are explained in plain words, with what stops a draw', () => {
+  assert.equal(explainVerdict({ status: 'eligible', reason: null }), 'Meets every rule');
+  assert.equal(explainVerdict({ status: 'excluded', reason: 'prior_winner' }), 'Already won in the past-winners period');
+  assert.equal(explainVerdict({ status: 'excluded', reason: 'something_new' }), 'Excluded by a rule');
+  assert.equal(explainVerdict({ status: 'unknown', reason: 'missing_grant' }), 'Cannot be checked: Acosmibot needs to be reconnected');
+  assert.equal(explainVerdict({ status: 'unknown', reason: 'not_checked' }), 'Checked again when you draw');
+  const counts = { total: 6, eligible: 2, excluded: 3, unknown: 1, excluded_by_reason: { role_vip: 1, not_following: 2 }, unknown_by_reason: { missing_grant: 1 } };
+  assert.deepEqual(describeExclusions(counts), ['Not following: 2', 'VIPs cannot enter: 1']);
+  assert.deepEqual(blockingFixes({ counts, checks: [{ fact: 'follow', rule: 'following', available: false, reason: 'missing_grant', fix: 'Reconnect Acosmibot to check followers.' }] }),
+    ['Reconnect Acosmibot to check followers.']);
+  assert.deepEqual(blockingFixes({ counts: { ...counts, unknown_by_reason: { not_checked: 4 } }, checks: [] }), []);
+});
+
+test('draw request ids are fresh, bounded and in the accepted alphabet', () => {
+  const a = newRequestId();
+  assert.match(a, /^[A-Za-z0-9_-]{8,64}$/);
+  assert.notEqual(a, newRequestId());
+});
+
+test('the giveaways page builds its rule editor from shared parts and never renders viewer text as HTML', () => {
+  const editor = read('src/features/twitch/engagement/RulesEditor.tsx');
+  assert.doesNotMatch(editor, /dangerouslySetInnerHTML|innerHTML/);
+  assert.match(editor, /from '\.\.\/shared\/ui'/);
+  const page = read('src/features/twitch/engagement/GiveawaysPage.tsx');
+  assert.match(page, /newRequestId\(\)/);
+  assert.match(page, /giveawaysApi\.eligibility/);
 });

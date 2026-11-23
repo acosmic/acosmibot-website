@@ -1,9 +1,11 @@
 /** Endpoint calls of the Giveaways, Polls & predictions and Viewer queue pages (§10.7.6). */
 import { channelPath, twitchApi } from '../shared/api';
 import type {
-  EntriesResponse, Giveaway, GiveawayAction, GiveawayInput, GiveawayListResponse, Poll, Prediction, PublicQueueResponse,
-  QueueActionBody, QueueResponse, WinnersResponse,
+  EligibilityResponse, EntriesResponse, Giveaway, GiveawayAction, GiveawayInput, GiveawayListResponse, Poll, Prediction,
+  PublicQueueResponse, QueueActionBody, QueueResponse, VerdictStatus, WinnersResponse,
 } from './model';
+
+export interface EligibilityQuery { offset: number; limit: number; status?: VerdictStatus | null; search?: string }
 
 export const giveawaysApi = {
   list: (channelId: string) => twitchApi.get<GiveawayListResponse>(channelPath(channelId, '/giveaways?limit=50')),
@@ -12,9 +14,20 @@ export const giveawaysApi = {
   update: (channelId: string, id: number, input: GiveawayInput) =>
     twitchApi.put<{ success: true; giveaway: Giveaway; live_applied: boolean }>(channelPath(channelId, `/giveaways/${id}`), input),
   remove: (channelId: string, id: number) => twitchApi.del(channelPath(channelId, `/giveaways/${id}`)),
-  action: (channelId: string, id: number, action: GiveawayAction, count?: number) =>
+  /** `requestId` (draw/reroll) makes a retried request return the first result instead of drawing again. */
+  action: (channelId: string, id: number, action: GiveawayAction, count?: number, requestId?: string) =>
     twitchApi.post<Record<string, unknown> & { success: true }>(
-      channelPath(channelId, `/giveaways/${id}/actions`), count === undefined ? { action } : { action, count }),
+      channelPath(channelId, `/giveaways/${id}/actions`),
+      { action, ...(count === undefined ? {} : { count }), ...(requestId === undefined ? {} : { request_id: requestId }) }),
+  eligibility: (channelId: string, id: number, query: EligibilityQuery) => {
+    const params = new URLSearchParams({ offset: String(query.offset), limit: String(query.limit) });
+    if (query.status) params.set('status', query.status);
+    if (query.search) params.set('search', query.search);
+    return twitchApi.get<EligibilityResponse>(channelPath(channelId, `/giveaways/${id}/eligibility?${params.toString()}`));
+  },
+  resolveUsers: (channelId: string, logins: string[]) =>
+    twitchApi.post<{ success: true; users: Array<{ user_id: string; login: string; display_name: string }>; missing: string[] }>(
+      channelPath(channelId, '/giveaways/resolve-users'), { logins }),
   entries: (channelId: string, id: number, offset: number, limit: number) =>
     twitchApi.get<EntriesResponse>(channelPath(channelId, `/giveaways/${id}/entries?offset=${offset}&limit=${limit}`)),
   removeEntry: (channelId: string, id: number, userId: string) =>

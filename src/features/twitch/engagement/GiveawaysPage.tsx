@@ -1,20 +1,25 @@
 /**
- * Giveaways (§11.4, §12.6): create giveaways, run one live (open, close, draw, reroll, cancel), watch the
- * entry count and the winner's claim countdown, and set the chat messages. Draws happen in the bot with
- * a secure random generator; this page only asks for them.
+ * Giveaways (§11.4, §12.6): create giveaways, run one live (open, close, draw, reroll, cancel, back to
+ * draft), watch the entry count and the winner's claim countdown, and set the chat messages. Draws happen
+ * in the bot with a secure random generator; this page only asks for them.
+ *
+ * Eligibility (owner request): each giveaway carries its own rules (grouped editor, plain-language summary,
+ * channel defaults and saved rule sets). The live card shows eligible / excluded / unknown counts, a
+ * searchable entrant list with the reason for each status, and what to do when a rule cannot be checked.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
-import { ConfirmDialog, FeatureToggle, NumberInput } from '@/components/ui';
+import { AlertTriangle, Plus, RefreshCw } from 'lucide-react';
+import { CollapsibleSection, ConfirmDialog, FeatureToggle, NumberInput } from '@/components/ui';
 import type { SectionProps } from '../types';
+import { startAddChannel } from '../shared/auth';
 import {
   EditorDrawer,
   EmptyState,
   Field,
-  LevelSelect,
   ReadOnlyNotice,
   RecordTable,
+  RoleGate,
   SectionPage,
   SettingsSaveBar,
   StatusChip,
@@ -33,43 +38,63 @@ import {
   type Column,
 } from '../shared/ui';
 import { giveawaysApi } from './api';
+import { RulesEditor, RulesSummary } from './RulesEditor';
 import {
   ACTION_LABEL,
   ENTRY_MODES,
   GIVEAWAY_LIMITS,
+  RULE_LIMITS,
   STATUS_LABEL,
   TEMPLATE_MAX,
+  VERDICT_LABEL,
   WINNER_LABEL,
   availableActions,
+  blockingFixes,
   canDelete,
   canEdit,
   clock,
+  defaultRules,
   describeDrawOdds,
-  describeEligibility,
   describeEntry,
+  describeExclusions,
   draftFromGiveaway,
   emptyGiveawayDraft,
+  explainVerdict,
   giveawayInput,
   giveawayProblem,
   isRunning,
+  newRequestId,
+  normalizeRules,
+  presetsProblem,
+  rulesOf,
+  rulesProblem,
   sameGiveawayDraft,
   secondsLeft,
   statusTone,
+  verdictTone,
+  type EligibilityItem,
+  type EligibilityPreset,
   type EntryMode,
   type Giveaway,
   type GiveawayAction,
   type GiveawayDraft,
   type GiveawaySettings,
   type GiveawayWinner,
+  type VerdictStatus,
 } from './model';
 import './engagement.css';
 
 type Editing = { kind: 'new' } | { kind: 'edit'; giveaway: Giveaway } | null;
-type Confirm = { kind: 'cancel' | 'delete'; giveaway: Giveaway } | null;
+type Confirm = { kind: 'cancel' | 'delete' | 'reset'; giveaway: Giveaway } | null;
 
 const SUCCESS: Record<GiveawayAction, string> = {
   open: 'Giveaway opened', close: 'Entries closed', draw: 'Winner drawn', reroll: 'Rerolled', cancel: 'Giveaway cancelled',
+  reset: 'Back to draft: entries cleared',
 };
+const STATUS_FILTERS: ReadonlyArray<{ value: '' | VerdictStatus; label: string }> = [
+  { value: '', label: 'Everyone' }, { value: 'eligible', label: 'Eligible' }, { value: 'excluded', label: 'Excluded' },
+  { value: 'unknown', label: 'Unknown' },
+];
 
 /** Ticks once a second while `active`, so claim countdowns stay current. */
 const useNow = (active: boolean): number => {
@@ -94,6 +119,9 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
   const [base, setBase] = useState<GiveawayDraft>(emptyGiveawayDraft());
   const [clientError, setClientError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<Confirm>(null);
+  const [statusFilter, setStatusFilter] = useState<'' | VerdictStatus>('');
+  const [search, setSearch] = useState('');
+  const presets = settings.value?.eligibility_presets ?? [];
 
   const list = useQuery({
     queryKey: tk(channelId, 'giveaways'),
@@ -110,13 +138,21 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
     enabled: selected !== null && selected.status !== 'draft',
     retry: twitchRetry,
   });
+  const searchTerm = search.trim().replace(/^@/, '').slice(0, 25);
   const entries = useQuery({
-    queryKey: tk(channelId, 'giveaways', selected?.id ?? 0, 'entries', entriesPage),
-    queryFn: () => giveawaysApi.entries(channelId, selected?.id ?? 0, entriesPage * GIVEAWAY_LIMITS.entriesPageSize, GIVEAWAY_LIMITS.entriesPageSize),
+    queryKey: tk(channelId, 'giveaways', selected?.id ?? 0, 'eligibility', entriesPage, statusFilter, searchTerm),
+    queryFn: () => giveawaysApi.eligibility(channelId, selected?.id ?? 0, {
+      offset: entriesPage * GIVEAWAY_LIMITS.entriesPageSize, limit: GIVEAWAY_LIMITS.entriesPageSize,
+      status: statusFilter || null, search: searchTerm,
+    }),
     enabled: selected !== null && selected.status !== 'draft' && selected.status !== 'cancelled',
     retry: twitchRetry,
     placeholderData: (previous) => previous,
   });
+  const counts = entries.data?.counts ?? null;
+  const fixes = blockingFixes(entries.data);
+  const needsReconnect = (entries.data?.checks ?? []).some((check) => !check.available && check.reason === 'missing_grant')
+    || (counts?.unknown_by_reason?.missing_grant ?? 0) > 0;
   const winnerRows = winners.data?.items ?? [];
   const pending = winnerRows.filter((winner) => winner.status === 'pending');
   const now = useNow(pending.length > 0);
@@ -127,7 +163,10 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
   const open = (giveaway: Giveaway | null) => {
     const next = giveaway
       ? draftFromGiveaway(giveaway)
-      : emptyGiveawayDraft({ keyword: settings.value?.default_keyword, claim_seconds: settings.value?.default_claim_seconds });
+      : emptyGiveawayDraft({
+        keyword: settings.value?.default_keyword, claim_seconds: settings.value?.default_claim_seconds,
+        rules: settings.value?.default_eligibility ?? defaultRules(),
+      });
     setDraft(next);
     setBase(next);
     setClientError(null);
@@ -148,12 +187,14 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
     onSuccess: (data) => { setEditing(null); setSelectedId(data.giveaway.id); },
   });
   const run = useChannelMutation({
-    mutationFn: (vars: { giveaway: Giveaway; action: GiveawayAction }) =>
-      giveawaysApi.action(channelId, vars.giveaway.id, vars.action),
+    // Draws and rerolls carry a request id: if the answer is lost and the request is sent again, the bot
+    // returns the first result instead of drawing a second time.
+    mutationFn: (vars: { giveaway: Giveaway; action: GiveawayAction; requestId?: string }) =>
+      giveawaysApi.action(channelId, vars.giveaway.id, vars.action, undefined, vars.requestId),
     invalidate: [tk(channelId, 'giveaways')],
     successMessage: (_data, vars) => SUCCESS[vars.action],
     errorMessage: false,
-    onSuccess: (_data, vars) => { if (vars.action === 'open') setSelectedId(vars.giveaway.id); setConfirm(null); },
+    onSuccess: (_data, vars) => { if (vars.action === 'open' || vars.action === 'reset') setSelectedId(vars.giveaway.id); setConfirm(null); },
     onError: () => setConfirm(null),
   });
   const remove = useChannelMutation({
@@ -178,7 +219,7 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
   };
   const serverError = save.error
     ? (isTwitchApiError(save.error, 'locked_field')
-      ? 'The entry mode and ticket cost cannot change once a giveaway is open.'
+      ? twitchErrorMessage(save.error)
       : isTwitchApiError(save.error, 'limit_reached')
         ? 'There are too many unused draft giveaways. Delete some first.'
         : twitchErrorMessage(save.error))
@@ -194,8 +235,44 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
 
   const busy = run.isPending;
   const askAction = (giveaway: Giveaway, action: GiveawayAction) => {
-    if (action === 'cancel') setConfirm({ kind: 'cancel', giveaway });
-    else run.mutate({ giveaway, action });
+    if (action === 'cancel' || action === 'reset') setConfirm({ kind: action, giveaway });
+    else run.mutate({ giveaway, action, requestId: action === 'draw' || action === 'reroll' ? newRequestId() : undefined });
+  };
+  const entrantColumns: Column<EligibilityItem>[] = selected ? [
+    { key: 'name', header: 'Viewer', primary: true, render: (item) => <span className="tw-en-name">{item.display_name || item.login}</span> },
+    { key: 'status', header: 'Status', render: (item) => <StatusChip tone={verdictTone(item.status)}>{VERDICT_LABEL[item.status]}</StatusChip> },
+    {
+      key: 'why', header: 'Why',
+      render: (item) => (
+        <span className="tw-en-note">
+          {explainVerdict(item)}{!item.entered && item.status === 'excluded' ? ' (could not enter)' : ''}
+          {item.fix && item.reason !== 'not_checked' && <span className="tw-en-fix">{item.fix}</span>}
+        </span>
+      ),
+    },
+    ...(selected.entry_mode === 'tickets'
+      ? [{ key: 'tickets', header: 'Tickets', align: 'end' as const, hideOnMobile: true, render: (item: EligibilityItem) => <span className="tw-en-value">{item.tickets}</span> }]
+      : []),
+    {
+      key: 'remove', header: 'Remove', hideHeader: true, align: 'end',
+      render: (item) => ((selected.status === 'open' || selected.status === 'closed') && item.entered ? (
+        <button
+          type="button" className="btn" disabled={removeEntry.isPending}
+          aria-label={`Remove ${item.display_name || item.login}`}
+          onClick={() => removeEntry.mutate({ giveaway: selected, userId: item.user_id })}
+        >
+          Remove
+        </button>
+      ) : null),
+    },
+  ] : [];
+  const entrantTotal = entries.data?.total ?? 0;
+  const resetImpact = (giveaway: Giveaway): string => {
+    const count = giveaway.id === selected?.id ? (counts?.total ?? giveaway.entry_count) : giveaway.entry_count;
+    const entriesText = `${count.toLocaleString('en-US')} ${count === 1 ? 'entry is' : 'entries are'} cleared`;
+    return giveaway.entry_mode === 'tickets'
+      ? `${entriesText} and every ticket is refunded in full. Viewers enter again after you reopen it.`
+      : `${entriesText}. Viewers enter again after you reopen it.`;
   };
   const runningHere = selected !== null && isRunning(selected, winnerRows);
 
@@ -249,56 +326,94 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
                 </div>
                 {Boolean(run.error) && <p className="tw-field__error" role="alert">{twitchErrorMessage(run.error)}</p>}
                 <ul className="tw-en-facts">
-                  <li><strong className="tw-en-value">{(entries.data?.total ?? selected.entry_count).toLocaleString('en-US')}</strong> {selected.entry_mode === 'active' ? 'in the draw' : 'entries'}</li>
+                  <li><strong className="tw-en-value">{(counts?.total ?? selected.entry_count).toLocaleString('en-US')}</strong> {selected.entry_mode === 'active' ? 'in the draw' : 'entrants'}</li>
+                  {counts && (
+                    <>
+                      <li><strong className="tw-en-value">{counts.eligible.toLocaleString('en-US')}</strong> eligible</li>
+                      <li><strong className="tw-en-value">{counts.excluded.toLocaleString('en-US')}</strong> excluded</li>
+                      <li><strong className="tw-en-value">{counts.unknown.toLocaleString('en-US')}</strong> unknown</li>
+                    </>
+                  )}
                   <li>{selected.winner_count} winner{selected.winner_count === 1 ? '' : 's'}</li>
                   <li>{selected.claim_seconds > 0 ? `${selected.claim_seconds} seconds to claim` : 'No claim step'}</li>
                   {selected.subscriber_luck > 1 && <li>Subscribers have {selected.subscriber_luck}x luck</li>}
                   {selected.auto_close_at && <li>Closes {formatDateTime(selected.auto_close_at)}</li>}
-                  {describeEligibility(selected.eligibility_json, levelName).map((rule) => <li key={rule}>{rule}</li>)}
                 </ul>
+                {fixes.length > 0 && (
+                  <div className="tw-banner tw-banner--error" role="status">
+                    <AlertTriangle aria-hidden="true" />
+                    <div>
+                      <p>Some entrants cannot be checked, so a draw stops instead of guessing.</p>
+                      {fixes.map((fix) => <p key={fix}>{fix}</p>)}
+                    </div>
+                    {needsReconnect ? (
+                      <RoleGate min="broadcaster" role={role} fallback={<span className="tw-muted">Ask the broadcaster to reconnect.</span>}>
+                        <button type="button" className="btn" onClick={() => startAddChannel(true)}>
+                          <RefreshCw aria-hidden="true" size={16} /> Reconnect Acosmibot
+                        </button>
+                      </RoleGate>
+                    ) : <span />}
+                  </div>
+                )}
+                <RulesSummary
+                  rules={rulesOf(selected)} levelName={levelName} timezone={selected.rules_snapshot?.timezone}
+                  label={selected.rules_snapshot?.opened_at
+                    ? `Rules (locked since ${formatDateTime(selected.rules_snapshot.opened_at)})`
+                    : 'Rules'}
+                />
+                {counts && counts.excluded > 0 && (
+                  <ul className="tw-en-facts" aria-label="Why entrants were excluded">
+                    {describeExclusions(counts).map((line) => <li key={line}>{line}</li>)}
+                  </ul>
+                )}
                 <WinnersList winners={winnerRows} now={now} />
                 {selected.status !== 'draft' && selected.status !== 'cancelled' && (
                   <>
-                    <h3 className="tw-en-subhead">Entries</h3>
+                    <h3 className="tw-en-subhead">Entrants</h3>
+                    {entries.data && !entries.data.live && entries.data.evaluated_at && (
+                      <p className="tw-muted">Checked at the last draw, {formatDateTime(entries.data.evaluated_at)}.</p>
+                    )}
                     <RecordTable
                       rows={entries.data?.items ?? []}
-                      rowKey={(entry) => entry.user_id}
-                      caption="Giveaway entries"
-                      columns={[
-                        { key: 'name', header: 'Viewer', primary: true, render: (entry) => <span className="tw-en-name">{entry.display_name}</span> },
-                        ...(selected.entry_mode === 'tickets'
-                          ? [{ key: 'tickets', header: 'Tickets', align: 'end' as const, render: (entry: { tickets: number }) => <span className="tw-en-value">{entry.tickets}</span> }]
-                          : []),
-                        { key: 'sub', header: 'Subscriber', hideOnMobile: true, render: (entry) => (entry.is_subscriber ? 'Yes' : '') },
-                        {
-                          key: 'remove', header: 'Remove', hideHeader: true, align: 'end',
-                          render: (entry) => (selected.status === 'open' || selected.status === 'closed' ? (
-                            <button
-                              type="button" className="btn" disabled={removeEntry.isPending}
-                              aria-label={`Remove ${entry.display_name}`}
-                              onClick={() => removeEntry.mutate({ giveaway: selected, userId: entry.user_id })}
-                            >
-                              Remove
-                            </button>
-                          ) : null),
-                        },
-                      ]}
+                      rowKey={(item) => item.user_id}
+                      caption="Giveaway entrants and whether they can win"
+                      columns={entrantColumns}
+                      toolbar={(
+                        <div className="tw-en-grid">
+                          <Field label="Find a viewer">
+                            {(control) => (
+                              <input {...control} className="form-control" type="search" maxLength={25} value={search}
+                                placeholder="Name" onChange={(event) => { setSearch(event.target.value); setEntriesPage(0); }} />
+                            )}
+                          </Field>
+                          <Field label="Show">
+                            {(control) => (
+                              <select {...control} className="form-select" value={statusFilter}
+                                onChange={(event) => { setStatusFilter(event.target.value as '' | VerdictStatus); setEntriesPage(0); }}>
+                                {STATUS_FILTERS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                              </select>
+                            )}
+                          </Field>
+                        </div>
+                      )}
                       empty={(
                         <EmptyState
-                          title={selected.entry_mode === 'active' ? 'Drawn from active chatters' : 'No entries yet'}
-                          description={selected.entry_mode === 'active'
-                            ? 'Nobody enters. When you draw, the pool is whoever chatted inside the active window and is eligible.'
-                            : 'Entries show up here a couple of seconds after viewers enter in chat.'}
+                          title={searchTerm || statusFilter ? 'Nobody matches' : selected.entry_mode === 'active' ? 'Drawn from active chatters' : 'No entries yet'}
+                          description={searchTerm || statusFilter
+                            ? 'Try another name or show everyone.'
+                            : selected.entry_mode === 'active'
+                              ? 'Nobody enters. When you draw, the pool is whoever chatted inside the active window and is eligible.'
+                              : 'Entrants show up here a couple of seconds after viewers enter in chat.'}
                         />
                       )}
-                      footer={(entries.data?.total ?? 0) > GIVEAWAY_LIMITS.entriesPageSize ? (
+                      footer={entrantTotal > GIVEAWAY_LIMITS.entriesPageSize ? (
                         <div className="tw-en-pager">
-                          <span className="tw-muted">Page {entriesPage + 1} of {Math.ceil((entries.data?.total ?? 0) / GIVEAWAY_LIMITS.entriesPageSize)}</span>
+                          <span className="tw-muted">Page {entriesPage + 1} of {Math.ceil(entrantTotal / GIVEAWAY_LIMITS.entriesPageSize)}</span>
                           <span className="tw-en-actions">
                             <button type="button" className="btn" disabled={entriesPage === 0} onClick={() => setEntriesPage(entriesPage - 1)}>Previous</button>
                             <button
                               type="button" className="btn"
-                              disabled={(entriesPage + 1) * GIVEAWAY_LIMITS.entriesPageSize >= (entries.data?.total ?? 0)}
+                              disabled={(entriesPage + 1) * GIVEAWAY_LIMITS.entriesPageSize >= entrantTotal}
                               onClick={() => setEntriesPage(entriesPage + 1)}
                             >
                               Next
@@ -316,7 +431,7 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
               rowKey={(giveaway) => giveaway.id}
               caption="All giveaways"
               columns={columns}
-              onRowClick={(giveaway) => { setSelectedId(giveaway.id); setEntriesPage(0); }}
+              onRowClick={(giveaway) => { setSelectedId(giveaway.id); setEntriesPage(0); setSearch(''); setStatusFilter(''); }}
               rowLabel={(giveaway) => `Show ${giveaway.title}`}
               activeKey={selected?.id ?? null}
               empty={(
@@ -376,7 +491,31 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
               ))}
             </section>
           )}
-          <SettingsSaveBar settings={settings} />
+          {settings.form && (
+            <section className="tw-en-card" aria-labelledby="tw-giveaway-default-rules">
+              <h2 id="tw-giveaway-default-rules" className="tw-en-card__title">Default rules for new giveaways</h2>
+              <p className="tw-en-card__lead">New giveaways, including ones opened with !giveaway open, start with these rules.</p>
+              <RulesEditor
+                channelId={channelId} levelName={levelName} disabled={!settings.canWrite}
+                rules={normalizeRules(settings.form.default_eligibility)}
+                onChange={(default_eligibility) => settings.setForm({ default_eligibility })}
+              />
+            </section>
+          )}
+          {settings.form && (
+            <section className="tw-en-card" aria-labelledby="tw-giveaway-presets">
+              <h2 id="tw-giveaway-presets" className="tw-en-card__title">Saved rule sets</h2>
+              <p className="tw-en-card__lead">
+                Pick one when you create a giveaway. Excluded accounts are saved with the set. Up to {RULE_LIMITS.presetsMax}.
+              </p>
+              <PresetList
+                channelId={channelId} levelName={levelName} disabled={!settings.canWrite}
+                presets={settings.form.eligibility_presets ?? []}
+                onChange={(eligibility_presets) => settings.setForm({ eligibility_presets })}
+              />
+            </section>
+          )}
+          <SettingsSaveBar settings={settings} validationMessage={settingsProblem(settings.form) ?? undefined} />
         </TabPanel>
       </div>
 
@@ -384,8 +523,8 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
         open={editing !== null}
         title={editing?.kind === 'edit' ? 'Edit giveaway' : 'New giveaway'}
         description={editing?.kind === 'edit' && editing.giveaway.status === 'open'
-          ? 'This giveaway is open. The entry mode and ticket cost are locked so tickets can be refunded exactly.'
-          : 'A new giveaway starts as a draft. Open it when you are ready for entries.'}
+          ? 'This giveaway is open. The entry mode, ticket cost and rules are locked; use Back to draft to change the rules.'
+          : 'A new giveaway starts as a draft. Its rules are locked when you open it.'}
         onClose={() => setEditing(null)}
         onSubmit={submit}
         submitting={save.isPending}
@@ -393,18 +532,24 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
         dirty={!sameGiveawayDraft(draft, base)}
         submitLabel={editing?.kind === 'edit' ? 'Save giveaway' : 'Create draft'}
       >
-        <GiveawayForm draft={draft} onChange={setDraft} locked={editing?.kind === 'edit' && editing.giveaway.status === 'open'} />
+        <GiveawayForm
+          channelId={channelId} draft={draft} onChange={setDraft} levelName={levelName}
+          locked={editing?.kind === 'edit' && editing.giveaway.status === 'open'}
+          presets={editing?.kind === 'new' ? presets : []}
+          defaults={settings.value?.default_eligibility ?? null}
+        />
       </EditorDrawer>
 
       {confirm && (
         <ConfirmDialog
-          kicker={confirm.kind === 'cancel' ? 'Cancel giveaway' : 'Delete giveaway'}
-          title={confirm.kind === 'cancel' ? `Cancel ${confirm.giveaway.title}?` : `Delete ${confirm.giveaway.title}?`}
-          confirmLabel={confirm.kind === 'cancel' ? 'Cancel giveaway' : 'Delete giveaway'}
+          kicker={confirm.kind === 'cancel' ? 'Cancel giveaway' : confirm.kind === 'reset' ? 'Back to draft' : 'Delete giveaway'}
+          title={confirm.kind === 'cancel' ? `Cancel ${confirm.giveaway.title}?`
+            : confirm.kind === 'reset' ? `Take ${confirm.giveaway.title} back to draft?` : `Delete ${confirm.giveaway.title}?`}
+          confirmLabel={confirm.kind === 'cancel' ? 'Cancel giveaway' : confirm.kind === 'reset' ? 'Back to draft' : 'Delete giveaway'}
           pending={run.isPending || remove.isPending}
-          onConfirm={() => (confirm.kind === 'cancel'
-            ? run.mutate({ giveaway: confirm.giveaway, action: 'cancel' })
-            : remove.mutate(confirm.giveaway))}
+          onConfirm={() => (confirm.kind === 'delete'
+            ? remove.mutate(confirm.giveaway)
+            : run.mutate({ giveaway: confirm.giveaway, action: confirm.kind }))}
           onClose={() => setConfirm(null)}
         >
           <p>
@@ -412,7 +557,9 @@ export const GiveawaysPage: React.FC<SectionProps> = ({ channelId, role }) => {
               ? (confirm.giveaway.entry_mode === 'tickets'
                 ? 'The giveaway ends without a winner and every ticket is refunded in full.'
                 : 'The giveaway ends without a winner.')
-              : 'The giveaway, its entries and its winners are removed for good.'}
+              : confirm.kind === 'reset'
+                ? `Entries close and the rules can be edited again. ${resetImpact(confirm.giveaway)}`
+                : 'The giveaway, its entries and its winners are removed for good.'}
           </p>
         </ConfirmDialog>
       )}
@@ -451,7 +598,61 @@ const WinnersList: React.FC<{ winners: GiveawayWinner[]; now: number }> = ({ win
   );
 };
 
-const GiveawayForm: React.FC<{ draft: GiveawayDraft; onChange: (draft: GiveawayDraft) => void; locked: boolean }> = ({ draft, onChange, locked }) => {
+const settingsProblem = (form: GiveawaySettings | null | undefined): string | null => {
+  if (!form) return null;
+  const rules = rulesProblem(normalizeRules(form.default_eligibility));
+  if (rules) return `Default rules: ${rules}`;
+  return presetsProblem((form.eligibility_presets ?? []).map((preset) => ({ ...preset, rules: normalizeRules(preset.rules) })));
+};
+
+const PresetList: React.FC<{
+  channelId: string; presets: EligibilityPreset[]; onChange: (presets: EligibilityPreset[]) => void;
+  disabled: boolean; levelName: (value: number) => string;
+}> = ({ channelId, presets, onChange, disabled, levelName }) => {
+  const update = (index: number, patch: Partial<EligibilityPreset>) =>
+    onChange(presets.map((preset, i) => (i === index ? { ...preset, ...patch } : preset)));
+  const nextName = (): string => {
+    const taken = new Set(presets.map((preset) => preset.name.toLocaleLowerCase()));
+    let n = presets.length + 1;
+    while (taken.has(`rule set ${n}`)) n += 1;
+    return `Rule set ${n}`;
+  };
+  return (
+    <div className="tw-en-stack">
+      {presets.length === 0 && (
+        <EmptyState title="No saved rule sets" description="Save the rules you use often, for example subscribers only or no repeat winners this month." />
+      )}
+      {presets.map((preset, index) => (
+        <CollapsibleSection key={`preset-${index}`} title={preset.name || 'Unnamed rule set'}>
+          <Field label="Name">
+            {(control) => (
+              <input {...control} className="form-control" type="text" maxLength={RULE_LIMITS.presetNameMax} value={preset.name}
+                disabled={disabled} onChange={(event) => update(index, { name: event.target.value })} />
+            )}
+          </Field>
+          <RulesEditor channelId={channelId} levelName={levelName} disabled={disabled}
+            rules={normalizeRules(preset.rules)} onChange={(rules) => update(index, { rules })} />
+          <div className="tw-en-actions">
+            <button type="button" className="btn" disabled={disabled} onClick={() => onChange(presets.filter((_p, i) => i !== index))}>
+              Delete rule set
+            </button>
+          </div>
+        </CollapsibleSection>
+      ))}
+      <div className="tw-en-actions">
+        <button type="button" className="btn" disabled={disabled || presets.length >= RULE_LIMITS.presetsMax}
+          onClick={() => onChange([...presets, { name: nextName(), rules: defaultRules() }])}>
+          <Plus size={16} aria-hidden="true" /> Add rule set
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const GiveawayForm: React.FC<{
+  channelId: string; draft: GiveawayDraft; onChange: (draft: GiveawayDraft) => void; locked: boolean;
+  presets: EligibilityPreset[]; defaults: GiveawaySettings['default_eligibility'] | null; levelName: (value: number) => string;
+}> = ({ channelId, draft, onChange, locked, presets, defaults, levelName }) => {
   const set = (patch: Partial<GiveawayDraft>) => onChange({ ...draft, ...patch });
   const L = GIVEAWAY_LIMITS;
   const mode = ENTRY_MODES.find((item) => item.value === draft.entry_mode);
@@ -529,33 +730,30 @@ const GiveawayForm: React.FC<{ draft: GiveawayDraft; onChange: (draft: GiveawayD
             onChange={(event) => set({ auto_close_at: event.target.value })} />
         )}
       </Field>
-      <h3 className="tw-en-subhead">Who can win</h3>
-      <FeatureToggle
-        label="Subscribers only" description="Only subscribers can enter."
-        enabled={draft.subscriber_only} onChange={(subscriber_only) => set({ subscriber_only })}
-      />
-      <LevelSelect label="At least this chat level" value={draft.min_level} onChange={(min_level) => set({ min_level })}
-        help="Followers need the follower level; it is checked with Twitch when someone enters." />
-      <div className="tw-en-grid">
-        <Field label="Following for at least (minutes)" help="0 for no requirement.">
+      <h3 className="tw-en-subhead">Who can enter</h3>
+      {locked && (
+        <p className="tw-muted" role="status">The rules are locked while the giveaway is open. Use Back to draft to change them.</p>
+      )}
+      {!locked && presets.length > 0 && (
+        <Field label="Start from" help="Copies the rules of a saved rule set. You can still change them below.">
           {(control) => (
-            <NumberInput {...control} className="form-control" min={0} max={L.followMinutesMax} value={draft.min_follow_minutes}
-              onValueChange={(min_follow_minutes) => set({ min_follow_minutes })} />
+            <select {...control} className="form-select" value=""
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === '__defaults') set({ rules: normalizeRules(defaults ?? defaultRules()) });
+                else {
+                  const preset = presets.find((item) => item.name === value);
+                  if (preset) set({ rules: normalizeRules(preset.rules) });
+                }
+              }}>
+              <option value="" disabled>Choose a rule set</option>
+              <option value="__defaults">Channel defaults</option>
+              {presets.map((preset) => <option key={preset.name} value={preset.name}>{preset.name}</option>)}
+            </select>
           )}
         </Field>
-        <Field label="Account at least (days old)" help="0 for no requirement.">
-          {(control) => (
-            <NumberInput {...control} className="form-control" min={0} max={L.accountAgeDaysMax} value={draft.min_account_age_days}
-              onValueChange={(min_account_age_days) => set({ min_account_age_days })} />
-          )}
-        </Field>
-        <Field label="No win in the last (days)" help="0 lets past winners enter again.">
-          {(control) => (
-            <NumberInput {...control} className="form-control" min={0} max={L.excludeWinnersDaysMax} value={draft.exclude_winners_days}
-              onValueChange={(exclude_winners_days) => set({ exclude_winners_days })} />
-          )}
-        </Field>
-      </div>
+      )}
+      <RulesEditor channelId={channelId} rules={draft.rules} onChange={(rules) => set({ rules })} disabled={locked} levelName={levelName} />
     </>
   );
 };
