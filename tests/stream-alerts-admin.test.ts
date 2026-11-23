@@ -109,7 +109,7 @@ test('the recent list can be cleared of tests, or fully after a confirmation ste
 });
 
 test('channel point effects reach OBS through the owner-only effect route', () => {
-  assert.match(api, /export type StreamEffectName = 'boop' \| 'meteor' \| 'news' \| 'blackout' \| 'flood' \| 'rewind'/);
+  assert.match(api, /export type StreamEffectName = 'boop' \| 'meteor' \| 'news' \| 'flood' \| 'rewind'/);
   assert.match(api, /fireStreamEffect: \(payload: StreamEffectInput\)[\s\S]*?'\/api\/admin\/stream-alerts\/effect', \{\s*method: 'POST',\s*body: JSON\.stringify\(payload\)/);
   assert.match(tab, /adminApi\.fireStreamEffect/);
   assert.match(tab, /fireEffect\.mutate\(\{ effect: effect\.name, name: name\.trim\(\) \|\| undefined, message: message\.trim\(\) \|\| undefined \}\)/);
@@ -120,7 +120,9 @@ test('channel point effects reach OBS through the owner-only effect route', () =
 
 test('the effects are a second list beside the alerts, each with Preview and Send to OBS', () => {
   const effects = [...tab.matchAll(/\{ name: '(\w+)', label: '/g)].map((match) => match[1]);
-  assert.deepEqual(effects, ['boop', 'meteor', 'news', 'blackout', 'flood', 'rewind']);
+  assert.deepEqual(effects, ['boop', 'meteor', 'news', 'flood', 'rewind']);
+  // Blackout was removed on 2026-11-22: the overlay must not still carry it.
+  assert.doesNotMatch(overlay, /blackout/i);
   for (const effect of effects) assert.match(overlay, new RegExp(`^    ${effect}: function`, 'm'));
   const listStart = tab.indexOf('className="stream-alerts__kinds is-effects"');
   assert.ok(listStart > tab.indexOf('>Alerts</h3>'));
