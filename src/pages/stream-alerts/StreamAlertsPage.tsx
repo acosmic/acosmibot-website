@@ -2,10 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Radio } from 'lucide-react';
 import { PublicNav } from '@/components/layout/PublicNav';
-import { StreamAlertsPanel } from './StreamAlertsPanel';
+import { StreamAlertsWorkspace } from './StreamAlertsWorkspace';
 import '@/styles/admin.css';
 
-/** /admin/stream-alerts: the stream alert dashboard on its own page (it used to be an admin tab). */
+/** /admin/stream-alerts: the stream alert dashboard on its own page. The workspace picks whose alerts it shows. */
 export const StreamAlertsPage: React.FC = () => (
   <div className="admin-page stream-alerts-page">
     <PublicNav variant="observatory" />
@@ -27,7 +27,7 @@ export const StreamAlertsPage: React.FC = () => (
       </header>
 
       <div className="admin-surface">
-        <StreamAlertsPanel />
+        <StreamAlertsWorkspace />
       </div>
     </main>
   </div>

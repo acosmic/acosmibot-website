@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  adminApi,
+  streamAlertsApi,
   StreamAlert,
+  StreamAlertAccount,
   StreamAlertClearScope,
   StreamAlertControlAction,
   StreamAlertSettings,
@@ -12,7 +13,8 @@ import {
   StreamAlertType,
   StreamEffectInput,
   StreamEffectName,
-} from '@/api/admin';
+} from '@/api/streamAlerts';
+import { ownerPossessive } from '@/utils/streamAlertAccounts';
 import './StreamAlertsPanel.css';
 
 /** What the overlay page exposes on its window (stream-overlays/acosmic-kit/obs/effects/effects.html). */
@@ -135,8 +137,15 @@ function overlayOptions(alert: Pick<StreamAlert, 'name' | 'message' | 'value' | 
   return { user: alert.name, text: alert.message, value: alert.value, tier: alert.tier, amount: alert.amount_display, test };
 }
 
-export const StreamAlertsPanel: React.FC = () => {
+/**
+ * Controls, preview, tests and the recent list for one account. The page mounts it with
+ * `key={account.id}`, so nothing typed or shown for one account carries over to another.
+ */
+export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ account }) => {
   const queryClient = useQueryClient();
+  const accountId = account.id;
+  const statusKey = ['stream-alerts', accountId, 'status'];
+  const recentKey = ['stream-alerts', accountId, 'recent'];
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [name, setName] = useState('Nova');
   const [message, setMessage] = useState('Love the stream, keep building.');
@@ -156,13 +165,13 @@ export const StreamAlertsPanel: React.FC = () => {
   const floodTimer = useRef<number | null>(null);
 
   const status = useQuery({
-    queryKey: ['admin', 'stream-alerts', 'status'],
-    queryFn: () => adminApi.getStreamAlertStatus(),
+    queryKey: statusKey,
+    queryFn: () => streamAlertsApi.getStatus(accountId),
     refetchInterval: 10_000,
   });
   const recent = useQuery({
-    queryKey: ['admin', 'stream-alerts', 'recent'],
-    queryFn: () => adminApi.getRecentStreamAlerts(30),
+    queryKey: recentKey,
+    queryFn: () => streamAlertsApi.getRecent(accountId, 30),
     refetchInterval: 15_000,
   });
 
@@ -250,12 +259,12 @@ export const StreamAlertsPanel: React.FC = () => {
   };
 
   const applySettings = (next: StreamAlertSettings) => {
-    queryClient.setQueryData<StreamAlertStatus>(['admin', 'stream-alerts', 'status'], (old) => (old ? { ...old, settings: next } : old));
-    queryClient.invalidateQueries({ queryKey: ['admin', 'stream-alerts', 'status'] });
+    queryClient.setQueryData<StreamAlertStatus>(statusKey, (old) => (old ? { ...old, settings: next } : old));
+    queryClient.invalidateQueries({ queryKey: statusKey });
   };
 
   const control = useMutation({
-    mutationFn: (action: StreamAlertControlAction) => adminApi.sendStreamAlertControl(action),
+    mutationFn: (action: StreamAlertControlAction) => streamAlertsApi.sendControl(accountId, action),
     onSuccess: (result, action) => {
       if (result.settings) applySettings(result.settings);
       setLiveNotice({ tone: 'ok', text: CONTROL_TEXT[action].done });
@@ -278,7 +287,7 @@ export const StreamAlertsPanel: React.FC = () => {
   };
 
   const saveThresholds = useMutation({
-    mutationFn: (partial: { min_raid_viewers: number; min_cheer_bits: number }) => adminApi.updateStreamAlertSettings(partial),
+    mutationFn: (partial: { min_raid_viewers: number; min_cheer_bits: number }) => streamAlertsApi.updateSettings(accountId, partial),
     onSuccess: (result) => {
       setThresholdsDirty(false);
       if (result.settings) applySettings(result.settings);
@@ -320,10 +329,10 @@ export const StreamAlertsPanel: React.FC = () => {
     }, Math.round(FLOOD_MS / (FLOOD_COUNT / 4)));
   };
 
-  const refreshRecent = () => queryClient.invalidateQueries({ queryKey: ['admin', 'stream-alerts', 'recent'] });
+  const refreshRecent = () => queryClient.invalidateQueries({ queryKey: recentKey });
 
   const fireEffect = useMutation({
-    mutationFn: (input: StreamEffectInput) => adminApi.fireStreamEffect(input),
+    mutationFn: (input: StreamEffectInput) => streamAlertsApi.fireEffect(accountId, input),
     onSuccess: (_result, input) => setNotice({ tone: 'ok', text: `Sent ${effectLabel(input.effect)} to OBS.` }),
     onError: (error, input) => setNotice({ tone: 'error', text: `Could not send ${effectLabel(input.effect)}: ${String(error)}` }),
   });
@@ -334,7 +343,7 @@ export const StreamAlertsPanel: React.FC = () => {
   const previewEffect = (effect: RewardEffect) => playInPreview(effect.name, { user: name.trim() || 'Test Viewer', text: message.trim() });
 
   const fire = useMutation({
-    mutationFn: (input: StreamAlertTestInput) => adminApi.fireStreamAlert(input),
+    mutationFn: (input: StreamAlertTestInput) => streamAlertsApi.fireAlert(accountId, input),
     onSuccess: (result) => {
       setNotice({ tone: 'ok', text: `Sent a test ${KIND_BY_TYPE.get(result.alert.type)?.label.toLowerCase() ?? 'alert'} to the overlay.` });
       refreshRecent();
@@ -342,7 +351,7 @@ export const StreamAlertsPanel: React.FC = () => {
     onError: (error) => setNotice({ tone: 'error', text: `Could not send: ${String(error)}` }),
   });
   const replay = useMutation({
-    mutationFn: (id: string) => adminApi.replayStreamAlert(id),
+    mutationFn: (id: string) => streamAlertsApi.replayAlert(accountId, id),
     onSuccess: () => {
       setNotice({ tone: 'ok', text: 'Replayed on the overlay.' });
       refreshRecent();
@@ -353,7 +362,7 @@ export const StreamAlertsPanel: React.FC = () => {
   const [recentNotice, setRecentNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   const [confirmClearAll, setConfirmClearAll] = useState(false);
   const clearRecent = useMutation({
-    mutationFn: (scope: StreamAlertClearScope) => adminApi.clearRecentStreamAlerts(scope),
+    mutationFn: (scope: StreamAlertClearScope) => streamAlertsApi.clearRecent(accountId, scope),
     onSuccess: (result, scope) => {
       const removed = Number(result.removed) || 0;
       const what = scope === 'tests' ? 'test alert' : 'recent alert';
@@ -383,6 +392,10 @@ export const StreamAlertsPanel: React.FC = () => {
   const obsReady = Boolean(status.data?.configured && status.data?.available);
   const liveDisabled = control.isPending || !obsReady;
   const hasTestAlerts = alerts.some((alert) => alert.test || alert.sandbox);
+  // The account that drives the overlay already installed in OBS keeps its source name; everyone else pasted a link.
+  const reconnectHint = account.legacy_overlay
+    ? 'Open OBS, or refresh the "Acosmic Effects" source.'
+    : `Open OBS, or refresh the browser source that uses ${account.role === 'owner' ? 'your' : ownerPossessive(account.owner_username)} link.`;
 
   return (
     <div className="stream-alerts">
@@ -395,7 +408,7 @@ export const StreamAlertsPanel: React.FC = () => {
             {status.error && `Could not read the status: ${String(status.error)}`}
             {status.data && !status.data.configured && 'The API has no overlay key set, so alerts cannot reach OBS.'}
             {status.data?.configured && overlayConnected && 'The overlay in OBS is listening. "Send to OBS" will play on stream.'}
-            {status.data?.configured && !overlayConnected && 'Nothing has asked for alerts in the last minute. Open OBS, or refresh the "Acosmic Effects" source.'}
+            {status.data?.configured && !overlayConnected && `Nothing has asked for alerts in the last minute. ${reconnectHint}`}
           </p>
         </div>
       </header>
@@ -617,7 +630,9 @@ export const StreamAlertsPanel: React.FC = () => {
       <section className="stream-alerts__recent" aria-label="Recent alerts">
         <h3>Recent alerts</h3>
         <p className="text-muted">
-          Donations and test alerts that went through the API, newest first. Channel point effects are not listed. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here yet.
+          {account.legacy_overlay
+            ? 'Donations and test alerts that went through the API, newest first. Channel point effects are not listed. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here yet.'
+            : 'Test alerts sent from this page, newest first. Channel point effects are not listed. Real donations and Twitch alerts are not connected to a hosted link yet.'}
         </p>
         <div className="stream-alerts__recent-tools">
           <div className="stream-alerts__recent-buttons">

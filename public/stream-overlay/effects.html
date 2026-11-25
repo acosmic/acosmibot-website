@@ -23,6 +23,12 @@
   Flood floats it up on the water, meteors can hit it.
   The camera is always put back exactly where it was. Without the file every effect still runs
   as a plain overlay.
+
+  Three modes, decided once when the page loads (AcosmicFX.mode):
+    offline   effects.html?offline=1        the dashboard preview; connects to nothing
+    hosted    effects.html#key=<overlay key>  the copy on acosmibot.com for one stream alert account;
+                                            alerts come from the Acosmibot API, no Twitch connection
+    local     everything else               the installed copy with the private files above
 -->
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;800&family=JetBrains+Mono:wght@600&display=swap");
@@ -67,6 +73,18 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
 <script>
 (function () {
   var q = new URLSearchParams(location.search);
+  // ---- Mode ------------------------------------------------------------------
+  // Hosted: the overlay key arrives in the URL fragment (never sent to the web server). It is kept
+  // in this variable only and taken out of the address bar at once.
+  var HOSTED = null;
+  if (!q.get("offline")) (function () {
+    var h = new URLSearchParams(location.hash.replace(/^#/, "")), key = h.get("key") || "", api = h.get("api") || "";
+    if (!/^[A-Za-z0-9_-]{43}$/.test(key)) return;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { try { location.hash = ""; } catch (e2) {} }
+    // The link may only name a test API on this computer; the key is never sent anywhere else.
+    HOSTED = { key: key, url: /^http:\/\/(localhost|127\.0\.0\.1):\d{1,5}$/.test(api) ? api : "https://api.acosmibot.com", hosted: true };
+  })();
+  var MODE = q.get("offline") ? "offline" : HOSTED ? "hosted" : "local";
   var W = 1920, H = 1080;
   var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
   var fx = document.getElementById("fx"), toast = document.getElementById("toast"), toastT;
@@ -796,7 +814,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     rewind: function (o) { say(o, "Instant Replay"); SFX.rewind(); add("rew", "<b>◀◀ REW</b><i></i>", 4200); }
   };
   Object.keys(ALERTS).forEach(function (type) { FX[type] = alertFx(type); });
-  window.AcosmicFX = { fire: function (name, o) { if (FX[name]) FX[name](o || {}); return !!FX[name]; }, names: Object.keys(FX), alerts: Object.keys(ALERTS),
+  window.AcosmicFX = { mode: MODE, fire: function (name, o) { if (FX[name]) FX[name](o || {}); return !!FX[name]; }, names: Object.keys(FX), alerts: Object.keys(ALERTS),
     skip: skipAlert, stop: function () { stopAll(); }, stopEffects: function () { stopEffects(); }, clear: clearAlerts, applySettings: applySettings,
     pause: function () { return applySettings({ paused: true }); }, resume: function () { return applySettings({ paused: false }); },
     queue: function () { return { waiting: alertQ.length, playing: cur ? cur.type : null, paused: SET.paused, safe_mode: SET.safe_mode, flood: inFlood(), dropped: dropped }; } };
@@ -808,9 +826,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // ---- Twitch channel points -------------------------------------------------
   // Runs only when config.js (written by tools/twitch-setup.mjs, never committed) sits next to this file.
   // The page listens on Twitch's EventSub WebSocket and keeps its own token fresh; no server involved.
-  var status = "not connected to Twitch (no config.js)";
+  // The hosted overlay never reads the Twitch settings: its alerts come from the API.
+  var status = HOSTED ? "off (hosted overlay)" : "not connected to Twitch (no config.js)";
   function setStatus(s) { status = s; var el = document.getElementById("tw"); if (el) el.textContent = "Twitch: " + s; }
-  var CFG = window.ACOSMIC_FX_CONFIG;
+  var CFG = HOSTED ? null : window.ACOSMIC_FX_CONFIG;
   if (CFG && CFG.clientId && !q.get("offline")) twitch(CFG);
 
   function twitch(cfg) {
@@ -919,19 +938,50 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
 
   // ---- Donation alerts ----------------------------------------------------------
   // Stripe tells the Acosmibot API about a donation; this page long-polls the API for it.
-  // Runs only when alerts-config.js (written by tools/install-overlay.mjs, never committed) is present.
+  // Runs only when alerts-config.js (written by tools/install-overlay.mjs, never committed) is present,
+  // or in hosted mode, where the key from the link takes its place and every alert arrives this way.
   var alertStatus = "off (no alerts-config.js)";
   function setAlertStatus(s) { alertStatus = s; var el = document.getElementById("al"); if (el) el.textContent = "Alerts: " + s; }
-  var ACFG = window.ACOSMIC_ALERTS_CONFIG;
+  var ACFG = HOSTED || window.ACOSMIC_ALERTS_CONFIG;
   if (ACFG && ACFG.url && ACFG.key && !q.get("offline")) alertFeed(ACFG);
 
   function alertFeed(cfg) {
     var CKEY = "acosmic-fx-alert-cursor", STALE = 600, cursor = null, fails = 0, seenIds = [];
-    try { cursor = localStorage.getItem(CKEY); } catch (e) {}
-    var base = String(cfg.url).replace(/\/+$/, "") + "/api/stream-alerts/poll?wait=20" + (q.get("test") ? "&sandbox=1" : "");
+    var root = String(cfg.url).replace(/\/+$/, "") + "/api/stream-alerts/";
+    var base = root + "poll?wait=20" + (q.get("test") ? "&sandbox=1" : "");
+    function readCursor() { try { cursor = localStorage.getItem(CKEY); } catch (e) {} }
+    function req(signal) {
+      var o = { headers: { Authorization: "Bearer " + cfg.key }, cache: "no-store", signal: signal };
+      if (cfg.hosted) o.credentials = "omit";
+      return o;
+    }
+    function failed(again, code, err) {
+      fails++;
+      // Hosted: the API answers 401 only when the link is no longer good (a new one was made, or the account
+      // was turned off). Clear the stage and ask again once a minute.
+      if (cfg.hosted && code === 401) { stopAll(); setAlertStatus("this OBS link no longer works (copy the current one from the dashboard)"); setTimeout(again, 60000); return; }
+      setAlertStatus(code === 401 ? "wrong key (run tools/install-overlay.mjs --alerts-key)" : "retrying (" + (err && err.message || "network") + ")");
+      setTimeout(again, code === 429 ? 45000 : Math.min(60000, 3000 * Math.pow(2, Math.min(fails, 5))));
+    }
+    // Hosted only: ask the API whose overlay this is before the first poll. Each account keeps its own cursor.
+    function hello() {
+      var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 15000), code = 0;
+      fetch(root + "overlay/config", req(ctl.signal))
+        .then(function (r) { code = r.status; return r.json(); })
+        .then(function (j) {
+          if (!j || !j.success) throw new Error((j && j.error) || "request failed " + code);
+          fails = 0;
+          CKEY = "acosmic-fx-alert-cursor" + (typeof j.account_id === "number" ? ":a" + j.account_id : "");
+          readCursor();
+          if (j.settings) applySettings(j.settings);
+          poll();
+        })
+        .catch(function (err) { failed(hello, code, err); })
+        .finally(function () { clearTimeout(timer); });
+    }
     function poll() {
       var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 35000), code = 0;
-      fetch(base + (cursor ? "&cursor=" + encodeURIComponent(cursor) : ""), { headers: { Authorization: "Bearer " + cfg.key }, cache: "no-store", signal: ctl.signal })
+      fetch(base + (cursor ? "&cursor=" + encodeURIComponent(cursor) : ""), req(ctl.signal))
         .then(function (r) { code = r.status; return r.json(); })
         .then(function (j) {
           if (!j || !j.success) throw new Error((j && j.error) || "request failed " + code);
@@ -959,15 +1009,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
           });
           setTimeout(poll, 250);
         })
-        .catch(function (err) {
-          fails++;
-          setAlertStatus(code === 401 ? "wrong key (run tools/install-overlay.mjs --alerts-key)" : "retrying (" + (err && err.message || "network") + ")");
-          setTimeout(poll, code === 429 ? 45000 : Math.min(60000, 3000 * Math.pow(2, Math.min(fails, 5))));
-        })
+        .catch(function (err) { failed(poll, code, err); })
         .finally(function () { clearTimeout(timer); });
     }
     setAlertStatus("connecting");
-    poll();
+    if (cfg.hosted) hello(); else { readCursor(); poll(); }
   }
 
   if (q.get("test")) {

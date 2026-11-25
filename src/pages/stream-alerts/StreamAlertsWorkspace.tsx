@@ -1,0 +1,197 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { streamAlertsApi, StreamAlertsMe } from '@/api/streamAlerts';
+import {
+  accountLabel,
+  linkedAccountMissing,
+  orderAccounts,
+  ownerPossessive,
+  pickAccount,
+  plainError,
+} from '@/utils/streamAlertAccounts';
+import { EditorsCard } from './EditorsCard';
+import { ObsLinkCard } from './ObsLinkCard';
+import { StreamAlertsPanel } from './StreamAlertsPanel';
+import './StreamAlertAccounts.css';
+
+const ME_KEY = ['stream-alerts', 'me'];
+const ACCOUNT_PARAM = 'account';
+
+/**
+ * Everything under the page header: whose stream alerts are shown, the owner's OBS link and
+ * editors, and the control panel for the selected account.
+ */
+export const StreamAlertsWorkspace: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const requested = params.get(ACCOUNT_PARAM);
+  const me = useQuery({ queryKey: ME_KEY, queryFn: () => streamAlertsApi.getMe() });
+  const [linkMissed, setLinkMissed] = useState(false);
+  const [justSetUp, setJustSetUp] = useState(false);
+  const [setupError, setSetupError] = useState<string | null>(null);
+  const linkChecked = useRef(false);
+
+  const accounts = useMemo(() => orderAccounts(me.data?.accounts ?? []), [me.data]);
+  const selected = pickAccount(accounts, requested, me.data?.own_account_id ?? null);
+
+  const writeAccountParam = (id: number | null) => setParams((current) => {
+    const next = new URLSearchParams(current);
+    if (id === null) next.delete(ACCOUNT_PARAM);
+    else next.set(ACCOUNT_PARAM, String(id));
+    return next;
+  }, { replace: true });
+
+  // Arriving on a link to an account this person cannot open: show another one, say so, and
+  // take the dead id out of the address so the page is not shared on with it.
+  useEffect(() => {
+    if (!me.data || linkChecked.current) return;
+    linkChecked.current = true;
+    if (!linkedAccountMissing(me.data.accounts, requested)) return;
+    setLinkMissed(true);
+    writeAccountParam(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me.data]);
+
+  const selectAccount = (id: number) => {
+    setLinkMissed(false);
+    writeAccountParam(id);
+  };
+
+  const setUp = useMutation({
+    mutationFn: () => streamAlertsApi.createAccount(),
+    onMutate: () => setSetupError(null),
+    onSuccess: ({ account }) => {
+      queryClient.setQueryData<StreamAlertsMe>(ME_KEY, (old) => (old ? {
+        ...old,
+        own_account_id: account.id,
+        accounts: [...old.accounts.filter((item) => item.id !== account.id), account],
+      } : old));
+      setJustSetUp(true);
+      selectAccount(account.id);
+    },
+    onError: (error) => setSetupError(plainError(error)),
+    // Also after a failure: "You already have stream alerts set up" means the list here is out of date.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ME_KEY }),
+  });
+
+  if (me.isLoading) {
+    return <p className="stream-accounts__state" role="status">Loading your stream alerts…</p>;
+  }
+  if (!me.data) {
+    return (
+      <div className="stream-accounts stream-accounts__state" role="alert">
+        <strong>Could not load your stream alerts.</strong>
+        <p>{plainError(me.error)}</p>
+        <div className="stream-accounts__buttons">
+          <button type="button" disabled={me.isFetching} onClick={() => me.refetch()}>
+            {me.isFetching ? 'Trying again…' : 'Try again'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const canSetUp = me.data.can_create && me.data.own_account_id === null;
+  const setUpButton = (
+    <button type="button" className="is-primary" disabled={setUp.isPending} onClick={() => setUp.mutate()}>
+      {setUp.isPending ? 'Setting up…' : 'Set up stream alerts'}
+    </button>
+  );
+  const setUpFailed = setupError && (
+    <p className="stream-accounts__notice is-error" role="alert">Could not set up stream alerts: {setupError}</p>
+  );
+
+  if (!selected) {
+    if (!canSetUp) {
+      return (
+        <div className="stream-accounts stream-accounts__state">
+          <strong>You do not have stream alerts yet.</strong>
+          <p>
+            {me.data.can_open
+              ? 'Nobody has added you as an editor of their stream alerts, and you cannot set up your own from this account.'
+              : 'Stream alerts are not open to your account yet.'}
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div className="stream-accounts">
+        <section className="stream-accounts__card stream-accounts__setup" aria-labelledby="stream-setup-title">
+          <div className="stream-accounts__card-head">
+            <h3 id="stream-setup-title">Set up stream alerts</h3>
+            <p>
+              You get your own alerts for OBS: a private link to add as a Browser source, a preview, test alerts and live controls. You can add editors afterwards.
+            </p>
+          </div>
+          <div className="stream-accounts__buttons">{setUpButton}</div>
+          {setUpFailed}
+        </section>
+      </div>
+    );
+  }
+
+  const isOwner = selected.role === 'owner';
+
+  return (
+    <div className="stream-alerts-workspace">
+      <div className="stream-accounts">
+        {linkMissed && (
+          <p className="stream-accounts__note" role="status">
+            You do not have access to the stream alerts in that link, so this page shows {selected.is_own ? 'yours' : ownerPossessive(selected.owner_username)} instead.
+          </p>
+        )}
+
+        {accounts.length > 1 && (
+          <div className="stream-accounts__switch" role="group" aria-label="Whose stream alerts to control">
+            <span>Whose alerts</span>
+            {accounts.map((account) => (
+              <button
+                key={account.id}
+                type="button"
+                className={account.id === selected.id ? 'is-current' : ''}
+                aria-pressed={account.id === selected.id}
+                onClick={() => selectAccount(account.id)}
+              >
+                {accountLabel(account)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {!isOwner && (
+          <p className="stream-accounts__who">
+            <strong>You are controlling {ownerPossessive(selected.owner_username)} stream alerts.</strong>{' '}
+            You are an editor, so what you send or change here plays on their stream. Only {selected.owner_username} can see the OBS link or change the editors.
+          </p>
+        )}
+
+        {isOwner && justSetUp && (
+          <p className="stream-accounts__notice is-ok" role="status">
+            Your stream alerts are set up. Next, copy your OBS link and add it to OBS.
+          </p>
+        )}
+
+        {canSetUp && (
+          <section className="stream-accounts__card stream-accounts__setup is-compact" aria-labelledby="stream-setup-title">
+            <div className="stream-accounts__card-head">
+              <h3 id="stream-setup-title">Set up stream alerts</h3>
+              <p>You do not have stream alerts of your own yet. Setting them up does not change the ones you edit.</p>
+            </div>
+            <div className="stream-accounts__buttons">{setUpButton}</div>
+            {setUpFailed}
+          </section>
+        )}
+
+        {isOwner && (
+          <div className="stream-accounts__cards" key={selected.id}>
+            <ObsLinkCard account={selected} />
+            <EditorsCard account={selected} />
+          </div>
+        )}
+      </div>
+
+      <StreamAlertsPanel key={selected.id} account={selected} />
+    </div>
+  );
+};
