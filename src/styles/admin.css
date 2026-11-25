@@ -306,7 +306,7 @@
     border-bottom: none !important;
   }
 
-  .admin-tabs button {
+  .admin-tabs :is(button, a) {
     min-height: 44px;
     border: 1px solid var(--border-light) !important;
     border-radius: 8px;
@@ -625,7 +625,7 @@
   border: 0;
 }
 
-.admin-page .admin-tabs button {
+.admin-page .admin-tabs :is(button, a) {
   position: relative;
   min-width: 0;
   min-height: 48px;
@@ -645,47 +645,51 @@
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.admin-page .admin-tabs button:hover {
+.admin-page .admin-tabs a {
+  text-decoration: none;
+}
+
+.admin-page .admin-tabs :is(button, a):hover {
   color: var(--text-secondary);
   background: rgba(97, 218, 241, 0.05);
 }
 
-.admin-page .admin-tabs button.is-active {
+.admin-page .admin-tabs :is(button, a).is-active {
   border-color: rgba(97, 218, 241, 0.24);
   background: rgba(97, 218, 241, 0.08);
   color: var(--primary-color);
 }
 
-.admin-page .admin-tabs button:focus-visible {
+.admin-page .admin-tabs :is(button, a):focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
-.admin-page .admin-tabs button > svg {
+.admin-page .admin-tabs :is(button, a) > svg {
   width: 17px;
   height: 17px;
   justify-self: center;
 }
 
-.admin-page .admin-tabs button > span {
+.admin-page .admin-tabs :is(button, a) > span {
   min-width: 0;
 }
 
-.admin-page .admin-tabs button strong,
-.admin-page .admin-tabs button small {
+.admin-page .admin-tabs :is(button, a) strong,
+.admin-page .admin-tabs :is(button, a) small {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.admin-page .admin-tabs button strong {
+.admin-page .admin-tabs :is(button, a) strong {
   color: inherit;
   font-size: 12px;
   font-weight: 650;
 }
 
-.admin-page .admin-tabs button small {
+.admin-page .admin-tabs :is(button, a) small {
   margin-top: 2px;
   color: #70838f;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
@@ -695,14 +699,14 @@
   text-transform: uppercase;
 }
 
-.admin-page .admin-tabs button > i {
+.admin-page .admin-tabs :is(button, a) > i {
   width: 4px;
   height: 4px;
   border-radius: 50%;
   background: transparent;
 }
 
-.admin-page .admin-tabs button.is-active > i {
+.admin-page .admin-tabs :is(button, a).is-active > i {
   background: var(--primary-color);
 }
 
@@ -1454,7 +1458,7 @@
     display: none;
   }
 
-  .admin-page .admin-tabs button {
+  .admin-page .admin-tabs :is(button, a) {
     min-width: 146px;
     min-height: 46px;
     grid-template-columns: 24px minmax(0, 1fr) 4px;
@@ -1625,7 +1629,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .admin-page .admin-tabs button {
+  .admin-page .admin-tabs :is(button, a) {
     transition: none;
   }
 }
@@ -2766,4 +2770,25 @@
   .admin-summary__body > div + div { border-left: 0; border-top: 1px solid var(--border-light); }
   .admin-summary__website-counts { display: block; }
   .admin-summary__body > div { padding: 16px; }
+}
+
+/* Stream alerts page (/admin/stream-alerts) */
+
+.stream-alerts-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.stream-alerts-page__back:hover,
+.stream-alerts-page__back:focus-visible {
+  text-decoration: underline;
+}
+
+.stream-alerts-page__back svg {
+  width: 14px;
+  height: 14px;
 }

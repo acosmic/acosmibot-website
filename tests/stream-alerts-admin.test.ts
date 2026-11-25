@@ -4,14 +4,38 @@ import test from 'node:test';
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const admin = read('src/pages/admin/AdminPage.tsx');
-const tab = read('src/pages/admin/StreamAlertsTab.tsx');
+const app = read('src/App.tsx');
+const gate = read('src/components/auth/RequireSuperAdmin.tsx');
+const page = read('src/pages/stream-alerts/StreamAlertsPage.tsx');
+const tab = read('src/pages/stream-alerts/StreamAlertsPanel.tsx');
 const api = read('src/api/admin.ts');
 const overlay = read('public/stream-overlay/effects.html');
 const hosting = JSON.parse(read('public/staticwebapp.config.json'));
 
-test('stream alerts is an owner admin tab', () => {
-  assert.match(admin, /id: 'stream', label: 'Stream Alerts'/);
-  assert.match(admin, /tab === 'stream' && \(\s*<div className="admin-surface">\s*<StreamAlertsTab \/>/);
+test('stream alerts is its own page at /admin/stream-alerts, behind the super admin gate', () => {
+  const gated = app.slice(app.indexOf('<Route element={<RequireSuperAdmin />}>'));
+  const block = gated.slice(0, gated.indexOf('</Route>', gated.indexOf('/admin/stream-alerts')));
+  assert.match(block, /<Route path="\/admin" element=\{<AdminPage \/>\} \/>/);
+  assert.match(block, /<Route path="\/admin\/stream-alerts" element=\{<StreamAlertsPage \/>\} \/>/);
+  // The gate sits inside the signed-in routes, so a signed-out visitor never reaches it.
+  assert.ok(app.indexOf('<Route element={<RequireAuth />}>') < app.indexOf('<Route element={<RequireSuperAdmin />}>'));
+  assert.match(page, /<div className="admin-surface">\s*<StreamAlertsPanel \/>/);
+  assert.match(page, /to="\/admin"/);
+});
+
+test('the gate lets only a super admin through and renders nothing of the page before that', () => {
+  assert.match(gate, /\/api\/admin\/check/);
+  assert.match(gate, /if \(!d\.is_super_admin\) navigate\('\/'\);/);
+  assert.match(gate, /\.catch\(\(\) => navigate\('\/'\)\)/);
+  assert.match(gate, /if \(!authChecked\) \{[\s\S]*?\}\s*return <Outlet \/>;/);
+  // The admin page relies on the route gate instead of its own copy.
+  assert.doesNotMatch(admin, /\/api\/admin\/check/);
+});
+
+test('the admin page no longer has a stream alerts tab, only a link to the page', () => {
+  assert.doesNotMatch(admin, /id: 'stream'/);
+  assert.doesNotMatch(admin, /StreamAlertsTab|StreamAlertsPanel/);
+  assert.match(admin, /<Link to="\/admin\/stream-alerts">[\s\S]*?<strong>Stream Alerts<\/strong>/);
 });
 
 test('every alert the overlay draws can be previewed and sent from the dashboard', () => {
@@ -141,7 +165,7 @@ test('the effects are a second list beside the alerts, each with Preview and Sen
 });
 
 test('the two lists sit side by side when there is room and stack otherwise', () => {
-  const css = read('src/pages/admin/StreamAlertsTab.css');
+  const css = read('src/pages/stream-alerts/StreamAlertsPanel.css');
   // The layout follows the tab's own width (the admin page has a sidebar), not the window's.
   assert.match(css, /\.stream-alerts \{[^}]*container: stream-alerts \/ inline-size/);
   assert.match(css, /\.stream-alerts__controls \{[^}]*container: stream-controls \/ inline-size/);
