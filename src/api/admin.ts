@@ -32,74 +32,6 @@ export interface PremiumGrantInput {
   expires_at: string | null;
 }
 
-export type StreamAlertType = 'donation' | 'follow' | 'sub' | 'resub' | 'gift' | 'cheer' | 'raid' | 'hypetrain';
-export type StreamAlertTier = '1000' | '2000' | '3000' | 'prime';
-
-/** One alert as the stream overlay receives it. `value` is the kind's number (months, subs, bits, raiders, level). */
-export interface StreamAlert {
-  id: string;
-  type: StreamAlertType;
-  name: string;
-  message: string;
-  created: number;
-  test: boolean;
-  sandbox: boolean;
-  cursor?: string;
-  value?: number;
-  tier?: StreamAlertTier;
-  amount_minor?: number;
-  amount_display?: string;
-  replay_of?: string;
-}
-
-export interface StreamAlertTestInput {
-  type: StreamAlertType;
-  name?: string;
-  message?: string;
-  value?: number;
-  tier?: StreamAlertTier;
-  amount_minor?: number;
-}
-
-export interface StreamAlertStatus {
-  success: boolean;
-  configured: boolean;
-  available: boolean;
-  overlay_last_seen: number | null;
-  types: StreamAlertType[];
-  settings: StreamAlertSettings;
-}
-
-/** Live overlay settings, owned by the API and applied by the OBS overlay. */
-export interface StreamAlertSettings {
-  paused: boolean;
-  safe_mode: boolean;
-  min_raid_viewers: number;
-  min_cheer_bits: number;
-}
-
-export type StreamAlertControlAction = 'skip' | 'clear' | 'pause' | 'resume' | 'safe_mode_on' | 'safe_mode_off' | 'stop_effects';
-export type StreamAlertClearScope = 'tests' | 'all';
-/** The overlay's channel point effects, in the order the dashboard lists them. */
-export type StreamEffectName = 'boop' | 'meteor' | 'news' | 'flood' | 'rewind';
-
-export interface StreamEffectInput {
-  effect: StreamEffectName;
-  name?: string;
-  message?: string;
-}
-
-export interface StreamEffectEntry {
-  id: string;
-  type: 'effect';
-  effect: StreamEffectName;
-  name: string;
-  message: string;
-  created: number;
-  sandbox: boolean;
-  test: boolean;
-}
-
 export interface AdminGuildOption {
   id: string;
   name: string;
@@ -706,49 +638,6 @@ export const adminApi = {
         body: JSON.stringify(payload),
       },
     ),
-
-  getStreamAlertStatus: () =>
-    api.fetch<StreamAlertStatus>('/api/admin/stream-alerts/status'),
-
-  getRecentStreamAlerts: (limit = 30) =>
-    api.fetch<{ success: boolean; alerts: StreamAlert[] }>(`/api/admin/stream-alerts/recent?limit=${limit}`),
-
-  fireStreamAlert: (payload: StreamAlertTestInput) =>
-    api.fetch<{ success: boolean; alert: StreamAlert }>('/api/admin/stream-alerts/test', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-
-  fireStreamEffect: (payload: StreamEffectInput) =>
-    api.fetch<{ success: boolean; cursor: string; effect: StreamEffectEntry }>('/api/admin/stream-alerts/effect', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-
-  replayStreamAlert: (id: string) =>
-    api.fetch<{ success: boolean; alert: StreamAlert }>('/api/admin/stream-alerts/replay', {
-      method: 'POST',
-      body: JSON.stringify({ id }),
-    }),
-
-  sendStreamAlertControl: (action: StreamAlertControlAction) =>
-    api.fetch<{ success: boolean; action: StreamAlertControlAction; settings: StreamAlertSettings }>('/api/admin/stream-alerts/control', {
-      method: 'POST',
-      body: JSON.stringify({ action }),
-    }),
-
-  updateStreamAlertSettings: (partial: Partial<Pick<StreamAlertSettings, 'min_raid_viewers' | 'min_cheer_bits'>>) =>
-    api.fetch<{ success: boolean; settings: StreamAlertSettings }>('/api/admin/stream-alerts/settings', {
-      method: 'PUT',
-      body: JSON.stringify(partial),
-    }),
-
-  /** Tidies the dashboard's recent list only; nothing in OBS or Stripe changes. */
-  clearRecentStreamAlerts: (scope: StreamAlertClearScope) =>
-    api.fetch<{ success: boolean; scope: StreamAlertClearScope; removed: number }>('/api/admin/stream-alerts/recent/clear', {
-      method: 'POST',
-      body: JSON.stringify({ scope }),
-    }),
 
   getCosmetics: () =>
     api.fetch<AdminCosmeticsResponse>('/api/admin/cosmetics'),

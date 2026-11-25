@@ -28,7 +28,8 @@
       "headers": {
         "X-Frame-Options": "",
         "Content-Security-Policy": "frame-ancestors 'self'; base-uri 'self'; object-src 'none'",
-        "X-Robots-Tag": "noindex, nofollow"
+        "X-Robots-Tag": "noindex, nofollow",
+        "Cache-Control": "no-cache"
       }
     },
     { "route": "/premium", "redirect": "/pricing", "statusCode": 301 },
