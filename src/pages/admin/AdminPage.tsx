@@ -6,7 +6,7 @@
  * FORM: Third-ranked subsystem-console structure; established world; seed 04af1d35.
  */
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Activity,
   ArrowDown,
@@ -49,14 +49,12 @@ import { AdminDetailDialog } from './AdminDetailDialog';
 import { PremiumGrantsTab } from './PremiumGrantsTab';
 import { SocialStudioTab } from './SocialStudioTab';
 import { LiveActivityTab } from './LiveActivityTab';
-import { StreamAlertsTab } from './StreamAlertsTab';
 import '@/styles/admin.css';
 import { AdminSummary } from './AdminSummary';
 
 const ADMIN_TABS = [
   { id: 'growth', label: 'Growth & Retention', group: 'Telemetry', description: 'Connect acquisition sources to installs, feature use, and removals.', icon: BarChart3 },
   { id: 'live', label: 'Live Activity', group: 'Now', description: 'Watch commands, AI routes, tools, and website actions as they happen.', icon: Activity },
-  { id: 'stream', label: 'Stream Alerts', group: 'Now', description: 'Test, preview, and replay the donation and Twitch alerts that play on the owner stream overlay.', icon: Radio },
   { id: 'signins', label: 'Sign-In Log', group: 'Security', description: 'Review recent website authentication events and reveal network details only when needed.', icon: Fingerprint },
   { id: 'servers', label: 'Servers', group: 'Network', description: 'Inspect every connected Discord server, its status, subscription, and stored configuration.', icon: Server },
   { id: 'grants', label: 'Premium Grants', group: 'Network', description: 'Issue, schedule, extend, revoke, and restore audited complimentary server access.', icon: BadgeCheck },
@@ -334,9 +332,7 @@ const SettingsCell: React.FC<{ json: string | null }> = ({ json }) => {
 };
 
 export const AdminPage: React.FC = () => {
-  const navigate = useNavigate();
   const [tab, setTab] = useState<AdminTab>('live');
-  const [authChecked, setAuthChecked] = useState(false);
   const activeTab = ADMIN_TABS.find((item) => item.id === tab) ?? ADMIN_TABS[0];
   const ActiveIcon = activeTab.icon;
 
@@ -354,37 +350,6 @@ export const AdminPage: React.FC = () => {
         ? { label: 'Data unavailable', tone: 'error' }
         : { label: 'Live data', tone: 'live' }
     : { label: 'Owner module', tone: 'neutral' };
-
-  useEffect(() => {
-    const apiBase = (window as any).AppConfig?.apiBaseUrl ?? 'https://api.acosmibot.com';
-    fetch(`${apiBase}/api/admin/check`, { credentials: 'include' })
-      .then(r => {
-        if (r.status === 401) clearExpiredSession();
-        return r.json();
-      })
-      .then(d => {
-        // The panel and every /api/admin route require super-admin; a plain
-        // 'admin' row (or anyone else) is bounced here too.
-        if (!d.is_super_admin) navigate('/');
-        else setAuthChecked(true);
-      })
-      .catch(() => navigate('/'));
-  }, [navigate]);
-
-  if (!authChecked) {
-    return (
-      <div className="admin-access-check" role="status" aria-live="polite">
-        <div className="admin-access-check__orbit" aria-hidden="true">
-          <span /><span />
-          <img src="/images/acosmibot-logo.png" alt="" />
-        </div>
-        <div>
-          <span><LockKeyhole aria-hidden="true" /> Owner boundary</span>
-          <strong>Verifying control access…</strong>
-        </div>
-      </div>
-    );
-  }
 
   const signinColumns = [
     { key: 'signed_in_at', label: 'Time', render: (r: SigninLog) => new Date(r.signed_in_at).toLocaleString() },
@@ -452,6 +417,11 @@ export const AdminPage: React.FC = () => {
             </button>
                 );
               })}
+              <Link to="/admin/stream-alerts">
+                <Radio aria-hidden="true" />
+                <span><strong>Stream Alerts</strong><small>Own page</small></span>
+                <i aria-hidden="true" />
+              </Link>
             </nav>
             <div className="admin-module-rail__footer">
               <Sparkles aria-hidden="true" />
@@ -503,12 +473,6 @@ export const AdminPage: React.FC = () => {
         {tab === 'grants' && (
           <div className="admin-surface">
             <PremiumGrantsTab />
-          </div>
-        )}
-
-        {tab === 'stream' && (
-          <div className="admin-surface">
-            <StreamAlertsTab />
           </div>
         )}
 

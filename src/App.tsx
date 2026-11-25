@@ -49,6 +49,8 @@ const PrivacyPolicyPage = lazyRoute(() => import('./pages/legal/PrivacyPolicyPag
 const StatusPage = lazyRoute(() => import('./pages/StatusPage').then(module => ({ default: module.StatusPage })));
 const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
 const AdminPage = lazyRoute(() => import('./pages/admin/AdminPage').then(module => ({ default: module.AdminPage })));
+const RequireSuperAdmin = lazyRoute(() => import('./components/auth/RequireSuperAdmin').then(module => ({ default: module.RequireSuperAdmin })));
+const StreamAlertsPage = lazyRoute(() => import('./pages/stream-alerts/StreamAlertsPage').then(module => ({ default: module.StreamAlertsPage })));
 
 /** Completes the cookie-backed OAuth redirect and returns the user to where
  * they started login, falling back to the server selector. After a bot
@@ -271,7 +273,10 @@ function App() {
           <Route path="reaction-roles/edit/:rrId" element={<ReactionRoleBuilderPage />} />
           <Route path=":feature" element={<FeatureOutlet />} />
         </Route>
-        <Route path="/admin" element={<AdminPage />} />
+        <Route element={<RequireSuperAdmin />}>
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/stream-alerts" element={<StreamAlertsPage />} />
+        </Route>
       </Route>
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/docs/spotify" element={<Navigate to="/docs/music" replace />} />

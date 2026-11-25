@@ -13,7 +13,7 @@ import {
   StreamEffectInput,
   StreamEffectName,
 } from '@/api/admin';
-import './StreamAlertsTab.css';
+import './StreamAlertsPanel.css';
 
 /** What the overlay page exposes on its window (stream-overlays/acosmic-kit/obs/effects/effects.html). */
 interface OverlayWindow extends Window {
@@ -135,7 +135,7 @@ function overlayOptions(alert: Pick<StreamAlert, 'name' | 'message' | 'value' | 
   return { user: alert.name, text: alert.message, value: alert.value, tier: alert.tier, amount: alert.amount_display, test };
 }
 
-export const StreamAlertsTab: React.FC = () => {
+export const StreamAlertsPanel: React.FC = () => {
   const queryClient = useQueryClient();
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [name, setName] = useState('Nova');
