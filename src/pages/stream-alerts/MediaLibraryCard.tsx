@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/client';
 import { streamAlertsApi, StreamAlertAccount, StreamAlertAsset, StreamAlertAssets } from '@/api/streamAlerts';
 import { PageNotice, plainError } from '@/utils/streamAlertAccounts';
+import { alertsQueryKey } from '@/utils/streamAlertBox';
 import {
   ACCEPTED_WORDS,
   ASSET_KIND_LABELS,
@@ -175,12 +176,13 @@ export const MediaLibraryCard: React.FC<{ account: StreamAlertAccount }> = ({ ac
   const quota = list.data?.quota;
   useDesignFonts([], assets);
 
-  // A file that has finished converting can change what a saved design resolves to.
+  // A file that has finished converting can change what a saved look or design resolves to.
   const readyKey = assets.filter((asset) => asset.status === 'ready').map((asset) => asset.id).join(',');
   const firstReady = useRef(true);
   useEffect(() => {
     if (firstReady.current) { firstReady.current = false; return; }
     queryClient.invalidateQueries({ queryKey: designsKey });
+    queryClient.invalidateQueries({ queryKey: alertsQueryKey(accountId) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readyKey]);
 

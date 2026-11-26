@@ -29,6 +29,10 @@
     hosted    effects.html#key=<overlay key>  the copy on acosmibot.com for one stream alert account;
                                             alerts come from the Acosmibot API, no Twitch connection
     local     everything else               the installed copy with the private files above
+
+  Alert settings (AcosmicFX.applyConfig({designs, alerts, general}), from /overlay/config in hosted and local mode):
+  per kind on/off, a look (classic, preset or custom) and variations chosen by condition; profanity filter,
+  minimums, delay between cards, interrupt and moderation. With an empty config every alert is the built-in card.
 -->
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;800&family=JetBrains+Mono:wght@600&display=swap");
@@ -66,6 +70,35 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
 .cus .tb.fit{overflow:hidden}
 .cus .tb > div{width:100%}
 .cus .tag{position:absolute;top:-17px;right:27px;background:#ffb800;color:#04121c;font:600 18px "JetBrains Mono",monospace;letter-spacing:.14em;padding:3px 13px;border-radius:6px}
+/* A preset alert look: the same 1920x1080 stage, one block centred on it (media above, under or beside the text). */
+.ax{left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;display:flex;align-items:center;justify-content:center}
+.ax .blk{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px}
+.ax .blk.side{flex-direction:row;gap:40px}
+.ax .med{position:relative;flex:none}
+.ax .med video,.ax .med img{display:block;width:100%;height:100%}
+.ax .txt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.2em;max-width:1600px;line-height:1.18;overflow-wrap:anywhere}
+.ax .blk.side .txt{align-items:flex-start;text-align:left;max-width:1100px}
+.ax .blk.over .txt{position:absolute;left:5%;right:5%;top:0;bottom:0;justify-content:center;max-width:none}
+.ax .tpl,.ax .msg{white-space:pre-wrap;max-width:100%}
+.ax .msg{font-size:.6em;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.ax .w{display:inline-block;white-space:pre}
+.ax .l,.ax .m{display:inline-block}
+.ax .tag{position:absolute;top:-17px;right:-10px;background:#ffb800;color:#04121c;font:600 18px "JetBrains Mono",monospace;letter-spacing:.14em;padding:3px 13px;border-radius:6px;text-shadow:none}
+/* Text animations for preset looks (letters are .l, each holding one .m for the looping part). */
+@keyframes ax-in-fade{from{opacity:0}}
+@keyframes ax-in-type{from{opacity:0}to{opacity:1}}
+@keyframes ax-in-rise{from{opacity:0;transform:translateY(.75em)}}
+@keyframes ax-in-pop{0%{opacity:0;transform:scale(0)}65%{opacity:1;transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes ax-in-slide{from{opacity:0;transform:translateX(-1.4em)}}
+@keyframes ax-loop-wave{0%,100%{transform:none}50%{transform:translateY(-.2em)}}
+@keyframes ax-loop-wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+@keyframes ax-loop-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes ax-loop-bounce{0%,55%,100%{transform:none}25%{transform:translateY(-.38em)}40%{transform:translateY(.04em)}}
+@keyframes ax-loop-glow{0%,100%{text-shadow:var(--sh)}50%{text-shadow:0 0 .2em var(--hl),0 0 .55em var(--hl)}}
+@keyframes ax-loop-shimmer{0%,60%,100%{filter:none}30%{filter:brightness(1.9)}}
+@keyframes ax-out-fade{to{opacity:0}}
+@keyframes ax-out-fall{to{opacity:0;transform:translateY(1.7em) rotate(28deg)}}
+@keyframes ax-out-shrink{to{opacity:0;transform:scale(0)}}
 #test{position:fixed;left:0;right:0;bottom:0;display:none;gap:8px;padding:10px;background:rgba(4,9,20,.85);flex-wrap:wrap;align-items:center;font-size:13px}
 #test button{font:600 14px "Sora",sans-serif;color:#e6f0ff;background:#0a1730;border:1px solid rgba(130,175,255,.3);border-radius:6px;padding:8px 14px;cursor:pointer}
 </style>
@@ -272,6 +305,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // ---- sound (all synthesized, no audio files) ----------------------------------
   // ?volume=0.5 on the source URL scales everything; 0 mutes.
   var ac, bus, impulse, VOL = q.get("volume") == null ? 0.9 : clamp(parseFloat(q.get("volume")) || 0, 0, 2);
+  // A configured alert look scales its built-in sound for the moment it is scheduled; 0 plays nothing.
+  var sfxGain = 1;
   function audio() {
     if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); newBus(); }
     if (ac.state === "suspended") { try { var p = ac.resume(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
@@ -314,9 +349,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // fm [ratio, depth, decay]: a second oscillator bending the pitch, for glassy and metallic tones,
   // vib [rate, cents]: vibrato, lp [from, to, Q]: a low-pass filter sweep, pan, rev, echo.
   function voice(o) {
+    if (sfxGain <= 0) return;
     try {
       var a = audio(), t = a.currentTime + (o.at || 0), len = o.len, n = o.n || 1, end = t + len + 0.05, g = a.createGain(), into = g;
-      env(g, t, len, o.vol / Math.sqrt(n), o.a, o.sus);
+      env(g, t, len, o.vol * sfxGain / Math.sqrt(n), o.a, o.sus);
       if (o.lp) {
         into = a.createBiquadFilter(); into.type = "lowpass"; into.Q.value = o.lp[2] || 1;
         into.frequency.setValueAtTime(o.lp[0], t); into.frequency.exponentialRampToValueAtTime(o.lp[1], t + len); into.connect(g);
@@ -340,6 +376,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // Filtered noise. kind: filter type, f and to: filter sweep, q, lfo [rate, cents]: a slow wobble of the filter.
   var noiseBuf;
   function noise(o) {
+    if (sfxGain <= 0) return;
     try {
       var a = audio(), t = a.currentTime + (o.at || 0), len = o.len, end = t + len + 0.05;
       if (!noiseBuf) { noiseBuf = a.createBuffer(1, a.sampleRate * 2, a.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
@@ -347,7 +384,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       n.buffer = noiseBuf; n.loop = true; f.type = o.kind || "lowpass"; f.Q.value = o.q || 0.8;
       f.frequency.setValueAtTime(o.f, t); f.frequency.exponentialRampToValueAtTime(o.to || o.f, t + len);
       if (o.lfo) { var l = a.createOscillator(), lg = a.createGain(); l.frequency.value = o.lfo[0]; lg.gain.value = o.lfo[1]; l.connect(lg); lg.connect(f.detune); l.start(t); l.stop(end); }
-      env(g, t, len, o.vol, o.a, o.sus); n.connect(f); f.connect(g); n.start(t, Math.random()); n.stop(end);
+      env(g, t, len, o.vol * sfxGain, o.a, o.sus); n.connect(f); f.connect(g); n.start(t, Math.random()); n.stop(end);
       route(g, o);
     } catch (e) {}
   }
@@ -675,11 +712,155 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     } });
   }
   function inFlood() { return Date.now() < floodUntil; }
-  function enqueue(type, o) {
-    o = o || {};
+
+  // ---- Alert settings (AcosmicFX.applyConfig) ------------------------------------------
+  // CONF.alerts: {kind: {enabled, look, variations}} for the kinds the config names; a kind it does not name keeps the
+  // built-in card exactly as before. CONF.general: profanity, minimums, delay, interrupt, moderation; null when the
+  // config has none (then the Redis settings above are all there is).
+  var CONF = { alerts: {}, general: null }, PROF = null, held = {}, decisions = {}, gapUntil = 0;
+  var MSG_KINDS = { donation: 1, resub: 1, cheer: 1 };   // kinds that carry the viewer's message
+  function obj(v) { return v && typeof v === "object" && !Array.isArray(v) ? v : null; }
+  function own(set, k) { return typeof k === "string" && Object.prototype.hasOwnProperty.call(set, k); }
+  function delayMs() { return CONF.general ? fnum(CONF.general.delay_ms, 0, 0, 30000) : 0; }
+  function cents(o) {
+    var v = parseInt(o.amount_minor, 10); if (isFinite(v)) return v;
+    var m = /(\d[\d,]*(?:\.\d+)?)/.exec(String(o.amount || "$5.00")); return m ? Math.round(parseFloat(m[1].replace(/,/g, "")) * 100) : 0;
+  }
+  // The number a kind is measured by (minimums, message minimums, conditions), read the way its card shows it.
+  function measure(type, o) {
+    if (type === "donation") return cents(o);
+    if (type === "cheer") return num(o.value, 100);
+    if (type === "resub") return num(o.value, 2);
+    if (type === "raid" || type === "gift" || type === "hypetrain") return num(o.value, 1);
+    return null;
+  }
+  // Under the smallest raid, cheer, gift, resub, donation or hype train shown. general.minimums wins over Redis.
+  function below(type, o) {
+    var mins = CONF.general && obj(CONF.general.minimums);
+    function min(k, redis) { var m = mins ? parseInt(mins[k], 10) : NaN; return isFinite(m) ? clamp(m, 0, 1000000) : redis; }
+    if (type === "raid") return num(o.value, 1) < min("raid", SET.min_raid_viewers);
+    if (type === "cheer") return num(o.value, 100) < min("cheer", SET.min_cheer_bits);
+    if (!mins || !own(mins, type)) return false;
+    var v = measure(type, o); return v != null && v < min(type, 0);
+  }
+
+  // Profanity: whole words (and listed phrases), case-insensitive, after folding common substitutions.
+  // The API sends the effective list (built-in + own words - allowed words); `allow` is honoured here as well.
+  var FOLD = { "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s" };
+  function words(s) {
+    var out = [], re = /[\p{L}\p{M}\p{N}@$]+/gu, m;
+    while ((m = re.exec(s))) out.push({ a: m.index, b: m.index + m[0].length, w: m[0].toLowerCase().replace(/[013457@$]/g, function (c) { return FOLD[c]; }) });
+    return out;
+  }
+  function profanity(g) {
+    var p = obj(g && g.profanity), mode = p && /^(replace|hide_message|skip_alert)$/.test(p.mode) ? p.mode : null;
+    if (!mode) return null;
+    var allow = {}, list = {}, n = 0, key = function (w) { return words(String(w)).map(function (x) { return x.w; }); };
+    (Array.isArray(p.allow) ? p.allow : []).forEach(function (w) { allow[key(w).join(" ")] = 1; });
+    (Array.isArray(p.words) ? p.words : []).slice(0, 5000).forEach(function (w) {
+      var t = key(w); if (!t.length || allow[t.join(" ")]) return;
+      if (!own(list, t[0])) list[t[0]] = [];
+      list[t[0]].push(t); n++;
+    });
+    return n ? { mode: mode, list: list } : null;
+  }
+  function badSpans(s) {   // [start, end) of each listed word or phrase in s, longest first
+    var t = words(s), out = [];
+    for (var i = 0; i < t.length; i++) {
+      var best = 0;
+      (own(PROF.list, t[i].w) ? PROF.list[t[i].w] : []).forEach(function (c) {
+        if (c.length <= best || i + c.length > t.length) return;
+        for (var j = 1; j < c.length; j++) if (t[i + j].w !== c[j]) return;
+        best = c.length;
+      });
+      if (best) { out.push([t[i].a, t[i + best - 1].b]); i += best - 1; }
+    }
+    return out;
+  }
+  function stars(s, spans) {
+    for (var k = spans.length - 1; k >= 0; k--) s = s.slice(0, spans[k][0]) + s.slice(spans[k][0], spans[k][1]).replace(/\S/gu, "*") + s.slice(spans[k][1]);
+    return s;
+  }
+  // false: drop the whole alert. Otherwise the name and message in o are filtered in place.
+  function filterWords(o) {
+    if (!PROF) return true;
+    var name = o.user == null ? "" : String(o.user), text = o.text == null ? "" : String(o.text), bn = badSpans(name), bt = badSpans(text);
+    if (PROF.mode === "skip_alert") return !bn.length && !bt.length;
+    if (bn.length) o.user = stars(name, bn);
+    if (bt.length) o.text = PROF.mode === "hide_message" ? "" : stars(text, bt);
+    return true;
+  }
+
+  // Variations: the first enabled one whose condition matches, else the base look. A test entry's `variation` forces
+  // one ("base" or a variation id). Returns the key its look is stored under ("follow" or "follow:v_3fa9c1d2").
+  function tierKey(t) { t = String(t || "1000").toLowerCase(); return t === "prime" || t === "2000" || t === "3000" ? t : "1000"; }
+  function matches(type, c, o) {
+    c = obj(c); if (!c) return false;
+    var v = c.value, n = parseInt(v, 10), m = measure(type, o);
+    if (c.type === "random") return Math.random() * 100 < fnum(v, 0, 0, 100);
+    if (c.type === "viewer") return v != null && String(v) !== "" && String(o.viewer == null ? "" : o.viewer).toLowerCase() === String(v).toLowerCase();
+    if (c.type === "amount_at_least" || c.type === "amount_exactly") return /^(donation|cheer|raid|hypetrain|gift)$/.test(type) && isFinite(n) && (c.type === "amount_exactly" ? m === n : m >= n);
+    if (c.type === "months_at_least" || c.type === "months_exactly") return type === "resub" && isFinite(n) && (c.type === "months_exactly" ? m === n : m >= n);
+    if (c.type === "tier") return /^(sub|resub|gift)$/.test(type) && tierKey(o.tier) === String(v).toLowerCase();
+    return false;
+  }
+  function vkey(type, v, i) { return type + ":" + (typeof v.id === "string" && v.id ? v.id : "#" + i); }
+  function pickLook(type, o) {
+    var A = CONF.alerts[type], i; if (!A) return null;
+    if (o.variation != null && o.variation !== "") {
+      for (i = 0; i < A.variations.length; i++) if (A.variations[i].id === o.variation) return vkey(type, A.variations[i], i);
+      return type;
+    }
+    for (i = 0; i < A.variations.length; i++) if (A.variations[i].enabled !== false && matches(type, A.variations[i].condition, o)) return vkey(type, A.variations[i], i);
+    return type;
+  }
+  // The look stored under a key now (a config may have been applied since the alert was picked).
+  function lookOf(type, key) {
+    var A = CONF.alerts[type]; if (!A || !key) return null;
+    for (var i = 0; key !== type && i < A.variations.length; i++) if (vkey(type, A.variations[i], i) === key) return A.variations[i].look;
+    return A.look;
+  }
+
+  // Moderation: an alert from the API (it has an id) waits here, outside the queue. hold: it plays `seconds` after it
+  // was made unless blocked; manual: it plays once approved and is dropped 10 minutes after it was made.
+  // The dashboard preview (offline) and alerts without an id (the installed copy's own Twitch events) are never held.
+  function moderated(type, o) {
+    var m = CONF.general && obj(CONF.general.moderation), mode = m && m.mode, id = o.id == null ? "" : String(o.id);
+    if (MODE === "offline" || !id || (mode !== "hold" && mode !== "manual")) return false;
+    if (own(decisions, id)) return decisions[id].d === "block";
+    if (own(held, id)) return true;
+    var made = +o.created > 0 ? +o.created * 1000 : Date.now();
+    var wait = (mode === "hold" ? made + fnum(m.seconds, 10, 5, 60) * 1000 : made + 600000) - Date.now();
+    if (wait <= 0) return mode === "manual";   // hold: its time is up, play it; manual: too old, drop it
+    held[id] = { type: type, o: o, t: setTimeout(function () { if (!own(held, id)) return; delete held[id]; if (mode === "hold") toQueue(type, o); }, wait) };
+    return true;
+  }
+  function decide(id, d) {
+    id = id == null ? "" : String(id); if (!id) return;
+    var t = Date.now();
+    Object.keys(decisions).forEach(function (k) { if (t - decisions[k].at > 900000) delete decisions[k]; });
+    decisions[id] = { d: d, at: t };
+    if (!own(held, id)) return;
+    var h = held[id]; clearTimeout(h.t); delete held[id];
+    if (d === "approve") toQueue(h.type, h.o);
+  }
+
+  // Every alert from any source comes in here, in this order: on/off, Safe Mode and minimums, profanity, message
+  // minimum, variation, moderation, then the queue. With no config each step but the first two does nothing.
+  function intake(type, o) {
+    o = Object.assign({}, o || {});
+    var A = CONF.alerts[type], g = CONF.general;
+    if (A && !A.enabled) return;
     if (SET.safe_mode && (type === "follow" || type === "raid")) return;
-    if (type === "raid" && num(o.value, 1) < SET.min_raid_viewers) return;
-    if (type === "cheer" && num(o.value, 100) < SET.min_cheer_bits) return;
+    if (below(type, o)) return;
+    o.viewer = o.user;   // conditions look at the real name, before any filtering
+    if (!filterWords(o)) return;
+    if (g && MSG_KINDS[type]) { var mm = obj(g.message_minimums), lim = mm ? parseInt(mm[type], 10) : NaN; if (isFinite(lim) && measure(type, o) < lim) o.text = ""; }
+    o.lookKey = pickLook(type, o);
+    if (moderated(type, o)) return;
+    toQueue(type, o);
+  }
+  function toQueue(type, o) {
     if (type === "follow") {
       var t = Date.now();
       followTimes.push(t); if (followTimes.length > 10) followTimes.shift();
@@ -687,13 +868,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       var fl = inFlood(), w = null;
       for (var i = 0; i < alertQ.length; i++) if (alertQ[i].type === "follow") { w = alertQ[i]; break; }
       // In flood mode names are thrown away, never stored: follow-bot and hate-raid names stay off stream.
-      if (w) { w.o.count++; if (fl) { w.o.flood = true; w.o.names = []; } else if (o.user && w.o.names.length < 3) w.o.names.push(String(o.user)); if (o.test) w.o.test = true; return pump(); }
-      o = { count: 1, names: fl || !o.user ? [] : [String(o.user)], flood: fl, test: o.test };
+      if (w) { w.o.count++; if (fl) { w.o.flood = true; w.o.names = []; } else if (o.user && w.o.names.length < 3) w.o.names.push(String(o.user)); if (o.test) w.o.test = true; interrupt(); return pump(); }
+      o = { count: 1, names: fl || !o.user ? [] : [String(o.user)], flood: fl, test: o.test, lookKey: o.lookKey };
     }
     alertQ.push({ type: type, o: o, seq: seq++ });
     if (alertQ.length > QCAP) dropOne();
+    interrupt();
     pump();
   }
+  // general.interrupt: a new alert ends the card on screen (with its hide animation) instead of waiting for it.
+  function interrupt() { if (CONF.general && CONF.general.interrupt === true && cur && !cur.leaving) leave(cur, cur.hideMs == null ? 450 : cur.hideMs, cur.hideAfter || 900); }
   // Over the cap: drop the oldest card of the lowest priority present; donations only past QCAP_DONATION.
   // The follows card is never dropped: it is one card however many follows it counts.
   function dropOne() {
@@ -707,6 +891,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   }
   function pump() {
     if (cur || SET.paused || !alertQ.length) return;
+    var wait = gapUntil - Date.now();   // general.delay_ms between two cards
+    if (wait > 0) { clearTimeout(wakeT); wakeT = setTimeout(pump, wait + 5); return; }
     var best = 0;
     for (var i = 1; i < alertQ.length; i++) if (PRI[alertQ[i].type] < PRI[alertQ[best].type]) best = i;
     // During a flood follows cards keep 10 s apart, so each one carries a bigger count.
@@ -723,25 +909,41 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     var list = names.length === 1 ? names[0] : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
     return { kicker: "New followers", name: list, hl: n > names.length ? "+" + (n - names.length).toLocaleString("en-US") + " more" : "" };
   }
-  // A kind with a loaded custom design shows it; follow flood mode (count only) always uses the built-in card.
+  // The card for an alert: its look (classic, preset or custom) when the config names one, else the built-in card.
+  // Follow flood mode (count only) and any look that did not load or cannot be drawn use the built-in card.
   function show(item) {
-    var D = DESIGNS[item.type], A = ALERTS[item.type], o = item.o;
+    var A = ALERTS[item.type], o = item.o, look = obj(lookOf(item.type, o.lookKey)), P = look && own(LOADED, o.lookKey) ? LOADED[o.lookKey] : null;
     var v = item.type === "follow" ? followView(o) : { name: A.name || o.user || "Anonymous", hl: "" };
-    if (!D || v.countOnly) return showCard(item);
-    try { showCustom(item, D, v); } catch (e) {   // a design this page cannot draw: the built-in card instead
-      if (cur && cur.custom) { cur.d && cur.d.remove(); var c = cur; cur = null; endCustom(c); }
-      showCard(item);
+    if (P && P.look !== look) P = null;
+    var style = look && look.style;
+    if (v.countOnly || !look || (style !== "custom" && style !== "preset")) return showCard(item, style === "classic" ? look : null, style === "classic" ? P : null);
+    if (!P) return showCard(item, null);
+    try { if (style === "custom") showCustom(item, P, v); else showPreset(item, look, P, v); } catch (e) {   // a look this page cannot draw
+      if (cur && cur.media) { cur.d && cur.d.remove(); var c = cur; cur = null; endCustom(c); }
+      showCard(item, null);
     }
   }
-  function showCard(item) {
+  // look: a classic look (sound, sound volume, show_message and the show/hide animation), or null for the card as it
+  // always was. P: what was loaded for that look (an uploaded sound).
+  function showCard(item, look, P) {
     var A = ALERTS[item.type], o = item.o, card = { type: item.type, timers: [] };
     cur = card;
     var v = item.type === "follow" ? followView(o) : { kicker: A.kicker, name: A.name || o.user || "Anonymous", hl: A.hl(o) };
     var text = item.type === "follow" ? "" : String(o.text || "").slice(0, 220);
+    if (look && look.show_message === false && MSG_KINDS[item.type]) text = "";
     var hold = clamp(A.hold + text.length * 45, A.hold, 13000), n = alertQ.length;
     // The more waiting, the shorter each card stays.
     hold = Math.max(Math.round(hold * (n <= 2 ? 1 : n <= 5 ? 0.75 : n <= 10 ? 0.55 : 0.4)), text ? 4500 : 2500);
-    A.go(o);
+    var an = look && obj(look.animation) || {};
+    if (!look) A.go(o);
+    else {
+      // The built-in sound at sound_volume (0.8, the default, is the level it always had), none, or an uploaded sound.
+      var sv = fnum(look.sound_volume, 0.8, 0, 1), up = P && P.sound;
+      sfxGain = look.sound === "none" || up ? 0 : sv / 0.8;
+      try { A.go(o); } finally { sfxGain = 1; }
+      if (up) { mediaCard(card); card.keys = P.keys; var snd = new Audio(); snd.preload = "auto"; snd.src = P.sound; snd.volume = sv * MEDIA_VOL; card.media.push(snd); playMedia(snd).catch(function () {}); }
+      card.hide = pick(an.hide, HIDE_MS, "fade"); card.classic = true;
+    }
     burst(W * 0.36, H * 0.16, 30, 620, A.accent); burst(W * 0.64, H * 0.16, 30, 620, A.accent);
     var d = card.d = add("don",
       '<svg viewBox="100 100 400 400"><path fill="#fff" d="' + MARK_D + '"/></svg><div>' +
@@ -750,7 +952,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       (text ? '<div class="t">' + esc(text) + "</div>" : "") + "</div>" +
       (o.test ? '<div class="tag">TEST</div>' : ""));
     d.style.setProperty("--a", A.accent);
-    d.animate([
+    if (look) boxAnim(d, pick(an.show, SHOW_MS, "fade"), true, true);
+    else d.animate([
       { transform: "translate(-50%,-22vw) scale(.9)", opacity: 0 },
       { transform: "translate(-50%,.8vw) scale(1.03)", opacity: 1, offset: 0.7 },
       { transform: "translate(-50%,0) scale(1)", opacity: 1 }
@@ -760,16 +963,19 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // Every timer checks it still belongs to the card on screen, so a skipped card's leftovers do nothing.
   function leave(card, anim, after) {
     if (cur !== card) return;
+    card.leaving = true;
     card.timers.forEach(clearTimeout); card.timers = [];
     if (card.custom) { card.halt(); card.d.animate([{ opacity: 1 }, { opacity: 0 }], { duration: anim, easing: "ease-in", fill: "forwards" }); }
+    else if (card.hide) boxAnim(card.box || card.d, card.hide, false, card.classic, anim);
     else card.d.animate([{ transform: "translate(-50%,0)", opacity: 1 }, { transform: "translate(-50%,-22vw)", opacity: 0 }], { duration: anim, easing: "ease-in", fill: "forwards" });
     card.timers.push(setTimeout(function () { done(card); }, after));
   }
   function done(card) {
     if (cur !== card) return;
     card.d.remove(); cur = null;
-    if (card.custom) endCustom(card);
+    if (card.media) endCustom(card);
     if (card.type === "follow") lastFollowEnd = Date.now();
+    var gap = delayMs(); if (gap) gapUntil = Date.now() + gap;
     pump();
   }
   function skipAlert() { if (!cur) return false; if (!cur.skipping) { cur.skipping = true; leave(cur, 250, 260); } return true; }
@@ -783,6 +989,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     });
     if (SET.safe_mode) {
       alertQ = alertQ.filter(function (a) { return a.type !== "follow" && a.type !== "raid"; });
+      Object.keys(held).forEach(function (id) { var h = held[id]; if (h.type === "follow" || h.type === "raid") { clearTimeout(h.t); delete held[id]; } });
       if (cur && (cur.type === "follow" || cur.type === "raid")) skipAlert();
     }
     pump();
@@ -790,8 +997,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   }
   // Stage reset for the dashboard preview: no exit animation, settings and flood state untouched.
   function stopAll() {
-    if (cur) { cur.timers.forEach(clearTimeout); var c = cur; cur = null; if (c.custom) endCustom(c); }
-    alertQ = []; clearTimeout(wakeT); lastFollowEnd = 0;
+    if (cur) { cur.timers.forEach(clearTimeout); var c = cur; cur = null; if (c.media) endCustom(c); }
+    alertQ = []; clearTimeout(wakeT); lastFollowEnd = 0; gapUntil = 0;
+    Object.keys(held).forEach(function (id) { clearTimeout(held[id].t); }); held = {};
     stopEffects();
   }
   // The dashboard's "Stop effects": end every running effect and all sound (a Flood, a Meteor Shower, the news
@@ -805,19 +1013,19 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     clearTimeout(toastT); toast.classList.remove("on");
     silence();
   }
-  function alertFx(type) { return function (o) { enqueue(type, o); }; }
+  function alertFx(type) { return function (o) { intake(type, o); }; }
 
-  // ---- Custom alert designs (hosted overlay and the dashboard preview) ----------------
-  // applyDesigns({kind: resolved design}) loads each design's media into memory (blob URLs) and its fonts, then
-  // swaps the whole set in. While a kind has a loaded design its alerts show that design instead of the built-in
-  // card, through the same queue. Local mode never loads any, so the installed copy keeps the built-in look.
+  // ---- Loading looks: media, sounds and fonts (applyConfig / applyDesigns) ------------------
+  // applyConfig({designs, alerts, general}) applies `general` at once, loads every look's media into memory (blob URLs)
+  // and its fonts, then swaps the alerts and what was loaded in together. A kind in `alerts` uses that entry; a kind
+  // only in `designs` (phase 4) is a custom look; any other kind keeps the built-in card.
   // Fonts on Google Fonts (the fixed list shared with the API and the dashboard): 0 one style, 1 weights 400 and 700,
   // 3 weights 400 and 700 upright and italic. Asking Google for a style a family lacks fails the whole stylesheet.
   var GFONTS = { "Poppins": 3, "Montserrat": 3, "Bebas Neue": 0, "Oswald": 1, "Playfair Display": 3, "Lora": 3, "Merriweather": 3, "Roboto Slab": 1,
     "Pacifico": 0, "Caveat": 1, "Permanent Marker": 0, "Righteous": 0, "Bangers": 0, "Orbitron": 1, "Press Start 2P": 0 };
   var VARS = { donation: ["amount", "message"], sub: ["tier"], resub: ["months", "tier", "message"], gift: ["count", "tier"], cheer: ["bits", "message"], raid: ["viewers"], hypetrain: ["level"] };
-  var DESIGNS = {}, designGen = 0, media = {}, loadingKeys = {}, fontFaces = {}, gfontLink = null;
-  var MEDIA_VOL = q.get("volume") == null ? 1 : clamp(VOL, 0, 1);   // ?volume= scales custom media too
+  var LOADED = {}, cfgGen = 0, media = {}, loadingKeys = {}, fontFaces = {}, gfontLink = null;
+  var MEDIA_VOL = q.get("volume") == null ? 1 : clamp(VOL, 0, 1);   // ?volume= scales uploaded media too
   function fnum(v, d, a, b) { v = parseFloat(v); return isFinite(v) ? clamp(v, a, b) : d; }
   function timeout(p, ms) {
     return new Promise(function (resolve, reject) {
@@ -839,7 +1047,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       el.src = src;
     }), 20000);
   }
-  // One entry per media file, shared by every design that uses it and kept across applyDesigns calls.
+  // One entry per media file, shared by every look that uses it and kept across applyConfig calls.
   function loadMedia(kind, url) {
     var k = kind + " " + url, m = media[k];
     loadingKeys[k] = 1;
@@ -854,10 +1062,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     m.p.catch(function () { if (media[k] === m) delete media[k]; if (m.src) URL.revokeObjectURL(m.src); });   // tried again next time
     return m.p;
   }
-  // Drop media no design, no load in progress and no card on screen still uses.
+  // Drop media no look, no load in progress and no card on screen still uses.
   function sweep() {
     var keep = {};
-    Object.keys(DESIGNS).forEach(function (t) { DESIGNS[t].keys.forEach(function (k) { keep[k] = 1; }); });
+    Object.keys(LOADED).forEach(function (t) { LOADED[t].keys.forEach(function (k) { keep[k] = 1; }); });
     Object.keys(loadingKeys).forEach(function (k) { keep[k] = 1; });
     if (cur && cur.keys) cur.keys.forEach(function (k) { keep[k] = 1; });
     Object.keys(media).forEach(function (k) { if (keep[k]) return; var m = media[k]; delete media[k]; m.dead = true; if (m.src) URL.revokeObjectURL(m.src); });
@@ -872,7 +1080,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     p.catch(function () { delete fontFaces[k]; });
     return p;
   }
-  // One stylesheet for every listed family the designs use, then each style actually used is fetched.
+  // One stylesheet for every listed family the looks use, then each style actually used is fetched.
   function googleFonts(used) {
     var names = Object.keys(used).sort();
     if (!names.length) return Promise.resolve();
@@ -893,46 +1101,100 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       }, [])), 10000);
     }).catch(function () {});
   }
-  function applyDesigns(designs) {
-    var gen = ++designGen, next = {}, failed = {}, used = {}, jobs = [];
+  // A look's font: one of the listed Google fonts, or an uploaded one ("asset:<id>" resolves to "acosmic-font-<id>").
+  function fontName(f) {
+    f = String((obj(f) ? f.family : f) || "Poppins");
+    var a = /^asset:(\d+)$/.exec(f);
+    return a ? "acosmic-font-" + a[1] : f.replace(/["\\]/g, "");
+  }
+  function fweight(w) { w = parseInt(w, 10); return isFinite(w) ? clamp(Math.round(w / 100) * 100, 100, 900) : 700; }
+  function cssColor(c, d) { return /^#[0-9a-f]{3,8}$/i.test(String(c)) ? String(c) : d; }
+  function readAlerts(config) {
+    var out = {}, al = obj(config.alerts) || {}, ds = obj(config.designs) || {};
+    Object.keys(ALERTS).forEach(function (type) {
+      var a = own(al, type) ? obj(al[type]) : null;
+      if (a) out[type] = { enabled: a.enabled !== false, look: obj(a.look) || { style: "classic" },
+        variations: (Array.isArray(a.variations) ? a.variations : []).filter(obj).slice(0, 10).map(function (v) { return Object.assign({}, v, { look: obj(v.look) || { style: "classic" } }); }) };
+      else if (own(ds, type) && obj(ds[type])) out[type] = { enabled: true, look: { style: "custom", custom: ds[type] }, variations: [] };
+    });
+    return out;
+  }
+  function applyConfig(config) {
+    config = obj(config) || {};
+    var gen = ++cfgGen, next = {}, failed = {}, used = {}, jobs = [], alerts = readAlerts(config);
     loadingKeys = {};
-    designs = designs && typeof designs === "object" ? designs : {};
-    Object.keys(designs).forEach(function (type) {
-      var d = designs[type];
-      if (!ALERTS[type] || !d || typeof d !== "object") return;
-      var main = d.video && d.video.url ? "video" : d.image && d.image.url ? "image" : null;
-      if (!main) { failed[type] = "no video or image"; return; }
-      // A sound plays with an image, or with a video that has no sound of its own.
-      var sound = d.sound && d.sound.url && (main === "image" || !d.video.has_audio) ? String(d.sound.url) : null;
-      (Array.isArray(d.texts) ? d.texts : []).forEach(function (t) {
-        if (!t || !(t.font in GFONTS)) return;
-        (used[t.font] = used[t.font] || {})[(t.italic && GFONTS[t.font] === 3 ? "italic " : "") + (t.weight >= 700 && GFONTS[t.font] ? "700" : "400")] = 1;
-      });
-      (Array.isArray(d.fonts) ? d.fonts : []).forEach(function (f) { if (f && f.family && f.url) jobs.push(loadFont(f).catch(function () {})); });
-      jobs.push(Promise.all([loadMedia(main, String(d[main].url)), sound ? loadMedia("sound", sound) : null]).then(function (r) {
-        next[type] = { d: d, main: main, src: r[0].src, sound: r[1] ? r[1].src : null, keys: [r[0].key].concat(r[1] ? [r[1].key] : []),
-          w: fnum(d[main].width, 0, 0, 8192) || r[0].w || 800, h: fnum(d[main].height, 0, 0, 8192) || r[0].h || 600,
-          dur: r[0].dur || fnum(d[main].duration_ms, 0, 0, 60000) };
-      }, function (e) { failed[type] = (e && e.message) || "could not load"; }));
+    CONF.general = obj(config.general); PROF = profanity(CONF.general);
+    function why(key) { return function (e) { failed[key] = (e && e.message) || "could not load"; }; }
+    function load(key, look) {
+      var d = obj(look.custom), md = obj(look.media) || {}, main, sound;
+      if (look.style === "custom") {
+        if (!d) { failed[key] = "no design"; return; }
+        main = obj(d.video) && d.video.url ? "video" : obj(d.image) && d.image.url ? "image" : null;
+        if (!main) { failed[key] = "no video or image"; return; }
+        // A sound plays with an image, or with a video that has no sound of its own.
+        sound = obj(d.sound) && d.sound.url && (main === "image" || !d.video.has_audio) ? String(d.sound.url) : null;
+        (Array.isArray(d.texts) ? d.texts : []).forEach(function (t) {
+          if (!t || !own(GFONTS, t.font)) return;
+          (used[t.font] = used[t.font] || {})[(t.italic && GFONTS[t.font] === 3 ? "italic " : "") + (t.weight >= 700 && GFONTS[t.font] ? "700" : "400")] = 1;
+        });
+        (Array.isArray(d.fonts) ? d.fonts : []).forEach(function (f) { if (f && f.family && f.url) jobs.push(loadFont(f).catch(function () {})); });
+        jobs.push(Promise.all([loadMedia(main, String(d[main].url)), sound ? loadMedia("sound", sound) : null]).then(function (r) {
+          next[key] = { look: look, d: d, main: main, src: r[0].src, sound: r[1] ? r[1].src : null, keys: [r[0].key].concat(r[1] ? [r[1].key] : []),
+            w: fnum(d[main].width, 0, 0, 8192) || r[0].w || 800, h: fnum(d[main].height, 0, 0, 8192) || r[0].h || 600,
+            dur: r[0].dur || fnum(d[main].duration_ms, 0, 0, 60000) };
+        }, why(key)));
+        return;
+      }
+      sound = obj(look.sound) && look.sound.url ? String(look.sound.url) : null;
+      if (look.style !== "preset") {   // classic: only an uploaded sound needs loading
+        if (sound) jobs.push(loadMedia("sound", sound).then(function (r) { next[key] = { look: look, sound: r.src, keys: [r.key] }; }, why(key)));
+        return;
+      }
+      main = obj(md.video) && md.video.url ? "video" : obj(md.image) && md.image.url ? "image" : null;
+      var ownAudio = main === "video" && !!md.video.has_audio, f = obj(look.font) || {}, fam = fontName(f.family);
+      if (ownAudio) sound = null;
+      if (own(GFONTS, fam)) (used[fam] = used[fam] || {})[fweight(f.weight) >= 600 && GFONTS[fam] ? "700" : "400"] = 1;
+      (Array.isArray(look.fonts) ? look.fonts : []).concat(obj(f.family) ? [f.family] : f.url ? [{ family: fam, url: f.url }] : [])
+        .forEach(function (x) { if (x && x.family && x.url) jobs.push(loadFont(x).catch(function () {})); });
+      jobs.push(Promise.all([main ? loadMedia(main, String(md[main].url)) : null, sound ? loadMedia("sound", sound) : null]).then(function (r) {
+        next[key] = { look: look, main: main, src: r[0] ? r[0].src : null, sound: r[1] ? r[1].src : null, ownAudio: ownAudio,
+          keys: [r[0], r[1]].filter(Boolean).map(function (x) { return x.key; }),
+          w: main ? fnum(md[main].width, 0, 0, 8192) || r[0].w || 800 : 0, h: main ? fnum(md[main].height, 0, 0, 8192) || r[0].h || 600 : 0,
+          dur: main === "video" ? r[0].dur || fnum(md.video.duration_ms, 0, 0, 60000) : 0 };
+      }, why(key)));
+    }
+    Object.keys(alerts).forEach(function (type) {
+      load(type, alerts[type].look);
+      alerts[type].variations.forEach(function (v, i) { load(vkey(type, v, i), v.look); });
     });
     jobs.push(googleFonts(used));
     return Promise.all(jobs).then(function () {
       var out = { ready: Object.keys(next).sort(), failed: failed };
-      if (gen !== designGen) { out.superseded = true; return out; }
-      DESIGNS = next; loadingKeys = {}; sweep();
+      if (gen !== cfgGen) { out.superseded = true; return out; }
+      CONF.alerts = alerts; LOADED = next; loadingKeys = {}; sweep();
       return out;
     });
   }
+  // Phase 4: {kind: resolved design} replaces everything with just those custom looks.
+  function applyDesigns(designs) { return applyConfig({ designs: obj(designs) || {} }); }
   function fitStage(el) { el.style.transform = "scale(" + innerWidth / W + "," + innerHeight / H + ")"; }
-  window.addEventListener("resize", function () { if (cur && cur.custom) fitStage(cur.d); });
-  // Template variables, filled as plain text. {name} is what the built-in card shows as the name (merged follows included).
-  function fillTemplate(tpl, type, o, v) {
+  window.addEventListener("resize", function () { if (cur && (cur.custom || cur.preset)) fitStage(cur.d); });
+  // Template variables, as plain text parts ({hl: true} for a variable's value). {name} is what the built-in card
+  // shows as the name (merged follows included).
+  function templateParts(tpl, type, o, v) {
     var vals = { name: v.name + (v.hl ? " " + v.hl : ""), amount: o.amount || "$5.00", message: String(o.text || "").slice(0, 220), tier: tierName(o.tier),
       months: num(o.value, 2).toLocaleString("en-US"), count: num(o.value, 1).toLocaleString("en-US"), bits: num(o.value, 100).toLocaleString("en-US"),
       viewers: num(o.value, 1).toLocaleString("en-US"), level: num(o.value, 1).toLocaleString("en-US") };
-    var ok = ["name"].concat(VARS[type] || []);
-    return String(tpl == null ? "" : tpl).slice(0, 200).replace(/\{(\w+)\}/g, function (m, k) { return ok.indexOf(k) >= 0 ? vals[k] : m; });
+    var ok = ["name"].concat(VARS[type] || []), s = String(tpl == null ? "" : tpl).slice(0, 200), out = [], re = /\{(\w+)\}/g, m, last = 0;
+    while ((m = re.exec(s))) {
+      if (ok.indexOf(m[1]) < 0) continue;
+      if (m.index > last) out.push({ t: s.slice(last, m.index) });
+      out.push({ t: String(vals[m[1]]), hl: true }); last = re.lastIndex;
+    }
+    if (last < s.length) out.push({ t: s.slice(last) });
+    return out;
   }
+  function fillTemplate(tpl, type, o, v) { return templateParts(tpl, type, o, v).map(function (p) { return p.t; }).join(""); }
   // One text box: placed as fractions of the media box, its size scaled with the media. The whole text is laid out
   // from the start (the part not typed yet is invisible), so a typewriter entrance never moves or resizes it.
   function textBox(parent, t, text, w, h, sc) {
@@ -977,13 +1239,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       p.muted = true; return p.play();
     });
   }
+  // A card that plays media: halt() silences and freezes it; skip, stop and the end of the card all come through here.
+  function mediaCard(card) {
+    card.media = [];
+    card.halt = function () { if (card.halted) return; card.halted = true; cancelAnimationFrame(card.raf); card.media.forEach(function (p) { try { p.pause(); } catch (e) {} }); };
+    return card;
+  }
   function showCustom(item, D, v) {
-    var o = item.o, d = D.d, card = { type: item.type, timers: [], custom: true, keys: D.keys, media: [] };
+    var o = item.o, d = D.d, card = mediaCard({ type: item.type, timers: [], custom: true, keys: D.keys });
     cur = card;
-    card.halt = function () {   // silence and freeze; skip, stop and the end of the card all come through here
-      if (card.halted) return; card.halted = true; cancelAnimationFrame(card.raf);
-      card.media.forEach(function (p) { try { p.pause(); } catch (e) {} });
-    };
     var sc = fnum(d.scale, 1, 0.1, 3), w = D.w * sc, h = D.h * sc, started = false, t0 = 0, vol = fnum(d.volume, 1, 0, 1) * MEDIA_VOL;
     var root = card.d = add("cus"), box = document.createElement("div"), el;
     fitStage(root); root.style.opacity = "0";
@@ -1005,7 +1269,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
       if (cur !== card) return;
       if (started) return done(card);
       card.timers.forEach(clearTimeout); root.remove(); cur = null; endCustom(card);
-      showCard(item);
+      showCard(item, null);
     }
     function begin() {
       if (cur !== card || card.halted) return;
@@ -1025,6 +1289,161 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     card.halt();
     card.media.forEach(function (p) { p.onerror = p.onended = null; p.removeAttribute("src"); try { p.load(); } catch (e) {} });
     sweep();
+  }
+
+  // ---- Preset looks and the show/hide animations ----------------------------------------
+  // Show and hide move the whole card (classic or preset). Keyframes: [transform, opacity, extra]; distances are stage
+  // pixels, or the same share of the screen in vw for the classic card (which is centred with translate(-50%,0)).
+  var SHOW_MS = { none: 0, fade: 500, rise: 600, drop: 650, "slide-left": 600, "slide-right": 600, zoom: 550, pop: 550, flip: 700, glitch: 600 };
+  var HIDE_MS = { none: 0, fade: 450, rise: 450, drop: 450, "slide-left": 450, "slide-right": 450, zoom: 450, shrink: 450, flip: 500, glitch: 450 };
+  function pick(name, set, d) { return own(set, name) ? name : d; }
+  function boxFrames(name, show, classic) {
+    function u(px) { return classic ? +(px / 19.2).toFixed(3) + "vw" : px + "px"; }
+    var P3 = "perspective(1400px) ", G = function (x, clip, hue, sat, off) { return ["translateX(" + u(x) + ")", 1, { clipPath: clip, filter: "hue-rotate(" + hue + "deg) saturate(" + sat + ")", offset: off, easing: "steps(1, end)" }]; };
+    var glitch = [G(-30, "inset(0% 0% 100% 0%)", 0, 1, 0), G(26, "inset(10% 0% 55% 0%)", 90, 2.2, 0.15), G(-18, "inset(45% 0% 20% 0%)", -80, 1.6, 0.3), G(12, "inset(0% 0% 35% 0%)", 40, 2, 0.45),
+      G(-8, "inset(25% 0% 0% 0%)", -30, 1.4, 0.6), G(4, "inset(0% 0% 8% 0%)", 15, 1.2, 0.75), G(0, "inset(0% 0% 0% 0%)", 0, 1, 1)];
+    glitch[0][1] = 0;
+    var S = {
+      fade: [["", 0], ["", 1]],
+      rise: [["translateY(" + u(160) + ")", 0], ["translateY(0px)", 1]],
+      drop: [["translateY(" + u(-422.4) + ") scale(.9)", 0], ["translateY(" + u(15.36) + ") scale(1.03)", 1, { offset: 0.7 }], ["translateY(0px) scale(1)", 1]],
+      "slide-left": [["translateX(" + u(-760) + ")", 0], ["translateX(" + u(24) + ")", 1, { offset: 0.75 }], ["translateX(0px)", 1]],
+      "slide-right": [["translateX(" + u(760) + ")", 0], ["translateX(" + u(-24) + ")", 1, { offset: 0.75 }], ["translateX(0px)", 1]],
+      zoom: [["scale(.3)", 0], ["scale(1)", 1]],
+      pop: [["scale(0)", 0], ["scale(1.14)", 1, { offset: 0.65 }], ["scale(1)", 1]],
+      flip: [[P3 + "rotateX(90deg)", 0], [P3 + "rotateX(-12deg)", 1, { offset: 0.7 }], [P3 + "rotateX(0deg)", 1]],
+      glitch: glitch
+    };
+    var Hd = {
+      none: [["", 0], ["", 0]],
+      fade: [["", 1], ["", 0]],
+      rise: [["translateY(0px)", 1], ["translateY(" + u(classic ? -422.4 : -160) + ")", 0]],
+      drop: [["translateY(0px)", 1], ["translateY(" + u(160) + ")", 0]],
+      "slide-left": [["translateX(0px)", 1], ["translateX(" + u(-760) + ")", 0]],
+      "slide-right": [["translateX(0px)", 1], ["translateX(" + u(760) + ")", 0]],
+      zoom: [["scale(1)", 1], ["scale(1.6)", 0]],
+      shrink: [["scale(1)", 1], ["scale(0)", 0]],
+      flip: [[P3 + "rotateX(0deg)", 1], [P3 + "rotateX(90deg)", 0]],
+      glitch: glitch.slice().reverse().map(function (f, i, a) { return [f[0], i === a.length - 1 ? 0 : 1, Object.assign({}, f[2], { offset: +(1 - f[2].offset).toFixed(2) })]; })
+    };
+    var list = (show ? S : Hd)[name];
+    if (!list) return null;
+    var base = classic ? "translate(-50%,0) " : "";
+    return list.map(function (f) { return Object.assign({ transform: base + (f[0] || "translate(0px,0px)"), opacity: f[1] }, f[2] || {}); });
+  }
+  function boxAnim(el, name, show, classic, ms) {
+    var k = boxFrames(name, show, classic); if (!k) return null;
+    var e = show ? "cubic-bezier(.2,.9,.3,1)" : "ease-in";
+    if (name === "fade") e = show ? "ease-out" : "ease-in"; else if (name === "glitch") e = "linear"; else if (name === "pop" || name === "flip") e = "ease-out";
+    return el.animate(k, { duration: Math.max(1, ms == null ? (show ? SHOW_MS : HIDE_MS)[name] : ms), easing: e, fill: show ? "none" : "forwards" });
+  }
+  var TEMPLATES = { donation: "{name} donated {amount}!", follow: "{name} is now following!", sub: "{name} just subscribed!", resub: "{name} resubscribed for {months} months!",
+    gift: "{name} gifted {count} subs!", cheer: "{name} cheered {bits} bits!", raid: "{name} is raiding with {viewers} viewers!", hypetrain: "Hype train level {level}!" };
+  var SOUND = { donation: function () { SFX.donation(); }, follow: function () { SFX.follow(); }, sub: function () { SFX.sub(false); }, resub: function () { SFX.sub(true); },
+    gift: function (o) { SFX.gift(num(o.value, 1)); }, cheer: function (o) { SFX.cheer(num(o.value, 100)); }, raid: function () { SFX.raid(); }, hypetrain: function () { SFX.hypetrain(); } };
+  var INTRO = { none: 1, fade: 1, typewriter: 1, "letters-rise": 1, "letters-pop": 1, slide: 1 }, LOOP = { none: 1, wave: 1, wiggle: 1, pulse: 1, bounce: 1, glow: 1, shimmer: 1 }, OUTRO = { none: 1, fade: 1, "letters-fall": 1, shrink: 1 };
+  // One span per letter (.l, holding a .m for the looping part), words kept together so lines break between words.
+  function spell(parent, text, color, list) {
+    var p = document.createElement("span"); if (color) p.style.color = color; parent.appendChild(p);
+    String(text).split(/(\s+)/).forEach(function (run) {
+      if (!run) return;
+      if (/^\s+$/.test(run)) { p.appendChild(document.createTextNode(run)); return; }
+      var w = document.createElement("span"); w.className = "w"; p.appendChild(w);
+      Array.from(run).forEach(function (ch) {
+        var l = document.createElement("span"), m = document.createElement("span");
+        l.className = "l"; m.className = "m"; m.textContent = ch; l.appendChild(m); w.appendChild(l); list.push(l);
+      });
+    });
+  }
+  // The text's intro, loop (starts when the intro is over) and outro, as CSS animations on the text and its letters.
+  function textFx(txt, tpl, msg, ls, t) {
+    var n = Math.max(ls.length, 1), intro = pick(t.intro, INTRO, "none"), loop = pick(t.loop, LOOP, "none"), outro = pick(t.outro, OUTRO, "none");
+    var L = { "letters-rise": ["ax-in-rise", 520, clamp(900 / n, 12, 40), "cubic-bezier(.2,.9,.3,1.3)"], "letters-pop": ["ax-in-pop", 420, clamp(900 / n, 12, 40), "ease-out"], typewriter: ["ax-in-type", 1, clamp(1500 / n, 18, 60), "steps(1, end)"] }[intro];
+    var introMs = L ? L[1] + L[2] * (n - 1) : intro === "fade" ? 500 : intro === "slide" ? 550 : 0;
+    var fall = Math.min(20, 600 / n);
+    return {
+      introMs: introMs,
+      outroMs: outro === "none" ? 0 : outro === "letters-fall" ? Math.round(600 + fall * (n - 1)) : 450,
+      start: function () {
+        var a = [];
+        if (L) ls.forEach(function (l, i) { l.style.animation = L[0] + " " + L[1] + "ms " + L[3] + " " + Math.round(i * L[2]) + "ms both"; });
+        else if (intro === "fade") a.push("ax-in-fade 500ms ease-out both");
+        else if (intro === "slide") a.push("ax-in-slide 550ms cubic-bezier(.2,.9,.3,1) both");
+        if (msg && intro !== "none") msg.style.animation = (intro === "slide" ? "ax-in-slide 550ms cubic-bezier(.2,.9,.3,1) " : "ax-in-fade 500ms ease-out ") + (L ? Math.round(introMs * 0.6) : 0) + "ms both";
+        if (loop === "pulse" || loop === "glow") a.push("ax-loop-" + loop + " 1600ms ease-in-out " + introMs + "ms infinite");
+        else if (loop !== "none") {
+          var Lp = { wave: [1400, 70, "ease-in-out"], wiggle: [900, 45, "ease-in-out"], bounce: [1200, 55, "ease-out"], shimmer: [2200, 45, "linear"] }[loop];
+          ls.forEach(function (l, i) { l.firstChild.style.animation = "ax-loop-" + loop + " " + Lp[0] + "ms " + Lp[2] + " " + Math.round(introMs + i * Lp[1]) + "ms infinite"; });
+        }
+        tpl.style.animation = a.join(", ");
+      },
+      end: function () {
+        if (outro === "letters-fall") {
+          ls.forEach(function (l, i) { l.style.animation = "ax-out-fall 600ms ease-in " + Math.round(i * fall) + "ms forwards"; });
+          if (msg) msg.style.animation = "ax-out-fade 450ms ease-in forwards";
+        } else if (outro !== "none") txt.style.animation = (outro === "fade" ? "ax-out-fade" : "ax-out-shrink") + " 450ms ease-in forwards";
+      }
+    };
+  }
+  // A preset look: media (P.main) above, under or beside the template, the template's variables in the highlight
+  // colour, the viewer's message under it. On screen for duration_ms (null: the video's own length). Plain text only.
+  function showPreset(item, look, P, v) {
+    var o = item.o, card = mediaCard({ type: item.type, timers: [], preset: true, keys: P.keys });
+    cur = card;
+    var an = obj(look.animation) || {}, font = obj(look.font) || {}, started = false, el = null;
+    var layout = P.main && /^(above|over|side)$/.test(look.layout) ? look.layout : "above", size = fnum(look.size, 100, 10, 200) / 100;
+    var root = card.d = add("ax"), blk = document.createElement("div"), txt = document.createElement("div"), tpl = document.createElement("div");
+    fitStage(root); root.style.opacity = "0";
+    blk.className = "blk " + layout; root.appendChild(blk); card.box = blk;
+    if (P.main) {
+      var med = document.createElement("div"); med.className = "med";
+      med.style.width = P.w * size + "px"; med.style.height = P.h * size + "px";
+      el = document.createElement(P.main === "video" ? "video" : "img");
+      if (P.main === "video") { el.playsInline = true; el.preload = "auto"; card.media.push(el); }
+      el.src = P.src; med.appendChild(el); blk.appendChild(med);
+      if (P.main === "video") el.volume = fnum(look.volume, 0.8, 0, 1) * MEDIA_VOL;
+    }
+    var hl = cssColor(font.highlight, "#61daf1"), sh = font.shadow === false ? "0 0 0 transparent" : "0 3px 12px rgba(0,0,0,.8)", ls = [];
+    txt.className = "txt"; tpl.className = "tpl";
+    txt.style.fontFamily = '"' + fontName(font.family) + '", "Sora", sans-serif'; txt.style.fontSize = fnum(font.size, 48, 8, 400) + "px";
+    txt.style.fontWeight = String(fweight(font.weight)); txt.style.color = cssColor(font.color, "#ffffff");
+    txt.style.setProperty("--hl", hl); txt.style.setProperty("--sh", sh); txt.style.textShadow = sh;
+    var tp = look.template != null && String(look.template).trim() ? look.template : TEMPLATES[item.type];
+    templateParts(tp, item.type, o, v).forEach(function (p) { spell(tpl, p.t, p.hl ? hl : null, ls); });
+    txt.appendChild(tpl);
+    var msgText = look.show_message !== false && MSG_KINDS[item.type] ? String(o.text || "").slice(0, 220) : "", msg = null;
+    if (msgText) { msg = document.createElement("div"); msg.className = "msg"; msg.textContent = msgText; txt.appendChild(msg); }
+    blk.appendChild(txt);
+    if (o.test) { var tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "TEST"; blk.appendChild(tag); }
+    txt.style.visibility = "hidden";
+    var tfx = textFx(txt, tpl, msg, ls, obj(look.text) || {}), showName = pick(an.show, SHOW_MS, "fade"), hideName = pick(an.hide, HIDE_MS, "fade");
+    card.hide = hideName; card.hideMs = HIDE_MS[hideName]; card.hideAfter = card.hideMs + 20;
+    var dur = Math.min(35000, look.duration_ms == null && P.main === "video" && P.dur ? P.dur : fnum(look.duration_ms, 6000, 2000, 30000));
+    var delay = fnum(look.text_delay_ms, 0, 0, 10000);
+    function fail() {
+      if (cur !== card) return;
+      if (started) return done(card);
+      card.timers.forEach(clearTimeout); root.remove(); cur = null; endCustom(card);
+      showCard(item, null);
+    }
+    function begin() {
+      if (cur !== card || card.halted) return;
+      started = true; root.style.opacity = "";
+      boxAnim(blk, showName, true, false);
+      // The sound plays with an image, with no media, or with a video that has no sound of its own.
+      var sv = fnum(look.sound_volume, 0.8, 0, 1);
+      if (!P.ownAudio && look.sound !== "none") {
+        if (P.sound) { var snd = new Audio(); snd.preload = "auto"; snd.src = P.sound; snd.volume = sv * MEDIA_VOL; card.media.push(snd); playMedia(snd).catch(function () {}); }
+        else if (sv > 0) { sfxGain = sv / 0.8; try { SOUND[item.type](o); } finally { sfxGain = 1; } }
+      }
+      card.timers.push(setTimeout(function () { if (cur !== card) return; txt.style.visibility = ""; tfx.start(); }, delay));
+      if (tfx.outroMs) card.timers.push(setTimeout(function () { if (cur === card) tfx.end(); }, Math.max(delay + tfx.introMs, dur - card.hideMs - tfx.outroMs)));
+      card.timers.push(setTimeout(function () { leave(card, card.hideMs, card.hideAfter); }, Math.max(0, dur - card.hideMs)));
+    }
+    if (!el) return begin();
+    el.onerror = fail;
+    if (P.main === "video") timeout(playMedia(el), 6000).then(begin, fail);
+    else timeout(el.decode(), 6000).then(begin, fail);
   }
 
   var FX = {
@@ -1056,9 +1475,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   };
   Object.keys(ALERTS).forEach(function (type) { FX[type] = alertFx(type); });
   window.AcosmicFX = { mode: MODE, fire: function (name, o) { if (FX[name]) FX[name](o || {}); return !!FX[name]; }, names: Object.keys(FX), alerts: Object.keys(ALERTS),
-    skip: skipAlert, stop: function () { stopAll(); }, applyDesigns: applyDesigns, stopEffects: function () { stopEffects(); }, clear: clearAlerts, applySettings: applySettings,
+    skip: skipAlert, stop: function () { stopAll(); }, applyConfig: applyConfig, applyDesigns: applyDesigns, stopEffects: function () { stopEffects(); }, clear: clearAlerts, applySettings: applySettings,
     pause: function () { return applySettings({ paused: true }); }, resume: function () { return applySettings({ paused: false }); },
-    queue: function () { return { waiting: alertQ.length, playing: cur ? cur.type : null, paused: SET.paused, safe_mode: SET.safe_mode, flood: inFlood(), dropped: dropped }; } };
+    queue: function () { return { waiting: alertQ.length, playing: cur ? cur.type : null, paused: SET.paused, safe_mode: SET.safe_mode, flood: inFlood(), dropped: dropped, held: Object.keys(held).length }; } };
   // OBS can trigger an effect without Twitch (handy for a Stream Deck key or a test):
   // obs-websocket CallVendorRequest, vendor "obs-browser", request "emit_event",
   // data {event_name: "acosmic-fx", event_data: {name: "flood", user: "someone"}}
@@ -1129,6 +1548,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
         setStatus("listening for " + ok.filter(function (l) { return bad.indexOf(l) < 0; }).join(", ") + (bad.length ? "; NOT " + bad.join(", ") + " (run tools/twitch-setup.mjs again)" : ""));
       });
     }
+    // These carry no alert id, so moderation never holds them; the config's other alert settings all apply.
     function handle(p) {
       var e = p.event || {}, type = p.subscription.type, fire = window.AcosmicFX.fire;
       if (type === "channel.follow") return fire("follow", { user: e.user_name });
@@ -1218,25 +1638,26 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
           CKEY = "acosmic-fx-alert-cursor" + (typeof j.account_id === "number" ? ":a" + j.account_id : "");
           readCursor();
           if (j.settings) applySettings(j.settings);
-          // Custom alert designs: give their media a little time to load so the first alerts already use them.
-          timeout(applyDesigns(designsOf(j)), 15000).catch(function () {}).then(poll);
+          // The account's alert settings and looks: give their media a little time to load so the first alerts use them.
+          timeout(applyConfig(configOf(j)), 15000).catch(function () {}).then(poll);
         })
         .catch(function (err) { failed(hello, code, err); })
         .finally(function () { clearTimeout(timer); });
     }
-    function designsOf(j) { var c = j && j.config; return c && c.designs && typeof c.designs === "object" ? c.designs : {}; }
-    // A "config" control (a design was saved or removed on the dashboard): fetch the designs again. Calls that
-    // arrive while one is running are folded into one more fetch after it.
+    function configOf(j) { var c = j && j.config; return c && typeof c === "object" ? c : {}; }
+    // A "config" control (alert settings or a look were saved on the dashboard): fetch the config again. Calls that
+    // arrive while one is running are folded into one more fetch after it. The installed copy (local mode) also
+    // fetches it once at start, with its own key, before the first poll.
     var cfgBusy = false, cfgAgain = false, cfgTries = 0;
-    function reloadDesigns() {
-      if (cfgBusy) { cfgAgain = true; return; }
+    function reloadConfig() {
+      if (cfgBusy) { cfgAgain = true; return Promise.resolve(); }
       cfgBusy = true; cfgAgain = false;
       var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 15000);
-      fetch(root + "overlay/config", req(ctl.signal))
+      return fetch(root + "overlay/config", req(ctl.signal))
         .then(function (r) { return r.json(); })
-        .then(function (j) { clearTimeout(timer); if (!j || !j.success) throw new Error("config"); cfgTries = 0; return applyDesigns(designsOf(j)); })
-        .catch(function () { if (++cfgTries <= 3) setTimeout(reloadDesigns, 5000 * cfgTries); })
-        .finally(function () { clearTimeout(timer); cfgBusy = false; if (cfgAgain) reloadDesigns(); });
+        .then(function (j) { clearTimeout(timer); if (!j || !j.success) throw new Error("config"); cfgTries = 0; return applyConfig(configOf(j)); })
+        .catch(function () { if (++cfgTries <= 3) setTimeout(reloadConfig, 5000 * cfgTries); })
+        .finally(function () { clearTimeout(timer); cfgBusy = false; if (cfgAgain) reloadConfig(); });
     }
     function poll() {
       var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 35000), code = 0;
@@ -1253,8 +1674,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
             // Something that happened while OBS was closed is not announced late.
             // Controls: skip, clear and stop effects only when fresh, so a stale one never eats a later alert.
             if (a.type === "control") {
-              // Designs are only fetched by the hosted overlay; the installed copy ignores this one. Any age: it is idempotent.
-              if (a.action === "config") { if (cfg.hosted) reloadDesigns(); return; }
+              // Any age: fetching the config again is idempotent.
+              if (a.action === "config") { reloadConfig(); return; }
+              // Moderation decisions from the dashboard count for up to 10 minutes (as long as an alert can wait).
+              if (a.action === "approve" || a.action === "block") { if (Date.now() / 1000 - (a.created || 0) <= 600) decide(a.alert_id, a.action); return; }
               if (Date.now() / 1000 - (a.created || 0) > 30) return;
               if (a.action === "skip") skipAlert(); else if (a.action === "clear") clearAlerts(); else if (a.action === "stop_effects") stopEffects();
               return;
@@ -1274,7 +1697,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
             // the same queue: pause, Safe Mode, the smallest raid and cheer, follow merging and flood mode all apply.
             var text = a.message;
             if (a.source === "twitch" && a.type === "hypetrain" && !text) text = "The hype train is leaving the station!";
-            window.AcosmicFX.fire(a.type, { user: a.name, text: text, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox });
+            // id and created: moderation; variation: a test that forces one of the kind's looks.
+            window.AcosmicFX.fire(a.type, { user: a.name, text: text, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox,
+              id: a.id, created: a.created, variation: a.variation, amount_minor: a.amount_minor });
           });
           setTimeout(poll, 250);
         })
@@ -1282,7 +1707,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
         .finally(function () { clearTimeout(timer); });
     }
     setAlertStatus("connecting");
-    if (cfg.hosted) hello(); else { readCursor(); poll(); }
+    if (cfg.hosted) hello(); else { readCursor(); timeout(reloadConfig(), 15000).catch(function () {}).then(poll); }
   }
 
   if (q.get("test")) {
