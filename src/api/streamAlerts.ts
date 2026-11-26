@@ -20,7 +20,14 @@ export interface StreamAlert {
   replay_of?: string;
   /** Set on an alert that came from the connected Twitch channel rather than a test or a donation. */
   source?: 'twitch';
+  /** On a test sent for one look: a variation id, or "base". */
+  variation?: string;
+  /** Alert moderation: null while it is off, else where this alert stands. Older APIs leave it out. */
+  moderation?: StreamAlertModeration | null;
 }
+
+/** Where a held alert stands. `released`: a hold ran out without a block, so it showed. */
+export type StreamAlertModeration = 'pending' | 'approved' | 'blocked' | 'released';
 
 export interface StreamAlertTestInput {
   type: StreamAlertType;
@@ -29,6 +36,8 @@ export interface StreamAlertTestInput {
   value?: number;
   tier?: StreamAlertTier;
   amount_minor?: number;
+  /** Forces one look: a variation id, or "base" for the alert's own look. */
+  variation?: string;
 }
 
 /** Live overlay settings, owned by the API and applied by the OBS overlay. */
@@ -297,6 +306,129 @@ export interface StreamAlertDesigns {
   kinds: StreamAlertType[];
 }
 
+/* ---- Alert box: looks, variations, general settings and moderation ---- */
+
+export type StreamAlertStyle = 'classic' | 'preset' | 'custom';
+/** above: media above the text. over: text over the media. side: media left of the text. */
+export type StreamAlertLayout = 'above' | 'over' | 'side';
+/** "builtin" (the Acosmibot sound), "none", or a sound asset id. */
+export type StreamAlertSound = 'builtin' | 'none' | number;
+
+export interface StreamAlertLookFont {
+  /** A font from the shared list, or "asset:<id>" for an uploaded font. */
+  family: string;
+  size: number;
+  weight: number;
+  color: string;
+  /** The colour the template's variables are drawn in. */
+  highlight: string;
+  shadow: boolean;
+}
+
+/** How one alert (or one variation of it) looks and sounds. */
+export interface StreamAlertLook {
+  style: StreamAlertStyle;
+  layout: StreamAlertLayout;
+  /** Asset ids; a video wins over a picture. */
+  media: { video: number | null; image: number | null };
+  /** Percent of the media's own size, 10 to 200. */
+  size: number;
+  volume: number;
+  sound: StreamAlertSound;
+  sound_volume: number;
+  template: string;
+  show_message: boolean;
+  /** null: as long as the video. */
+  duration_ms: number | null;
+  text_delay_ms: number;
+  animation: { show: string; hide: string };
+  text: { intro: string; loop: string; outro: string };
+  font: StreamAlertLookFont;
+  /** The phase 4 design, used by the custom style. */
+  custom: StreamAlertDesign | null;
+}
+
+export type StreamAlertConditionType =
+  | 'random' | 'viewer' | 'amount_at_least' | 'amount_exactly' | 'months_at_least' | 'months_exactly' | 'tier';
+
+export interface StreamAlertCondition {
+  type: StreamAlertConditionType;
+  value: number | string;
+}
+
+/** Another look for the same alert, used when its condition matches. */
+export interface StreamAlertVariation {
+  /** "v_" and 8 lowercase hex digits. */
+  id: string;
+  name: string;
+  enabled: boolean;
+  condition: StreamAlertCondition;
+  look: StreamAlertLook;
+}
+
+/** One alert kind's settings: on or off, its look, and up to 10 variations checked in order. */
+export interface StreamAlertKindSettings {
+  enabled: boolean;
+  look: StreamAlertLook;
+  variations: StreamAlertVariation[];
+}
+
+/** A look as the overlay gets it: asset ids replaced by facts, uploaded fonts given a family. */
+export interface StreamAlertResolvedLook extends Omit<StreamAlertLook, 'media' | 'sound' | 'custom'> {
+  media: { video: StreamAlertMediaFacts | null; image: StreamAlertMediaFacts | null };
+  sound: 'builtin' | 'none' | { url: string; duration_ms?: number | null };
+  fonts?: { family: string; url: string }[];
+  custom: StreamAlertResolvedDesign | null;
+}
+
+export interface StreamAlertResolvedKind {
+  enabled: boolean;
+  look: StreamAlertResolvedLook;
+  variations: Array<Omit<StreamAlertVariation, 'look'> & { look: StreamAlertResolvedLook }>;
+}
+
+export interface StreamAlertAnimationNames {
+  show: string[];
+  hide: string[];
+  intro: string[];
+  loop: string[];
+  outro: string[];
+}
+
+export interface StreamAlertAlerts {
+  success: boolean;
+  alerts: Partial<Record<StreamAlertType, StreamAlertKindSettings>>;
+  resolved: Partial<Record<StreamAlertType, StreamAlertResolvedKind>>;
+  kinds: StreamAlertType[];
+  variables: Partial<Record<StreamAlertType, string[]>>;
+  fonts: string[];
+  names: StreamAlertAnimationNames;
+  conditions: Partial<Record<StreamAlertType, StreamAlertConditionType[]>>;
+}
+
+export type StreamAlertProfanityMode = 'off' | 'replace' | 'hide_message' | 'skip_alert';
+export type StreamAlertModerationMode = 'off' | 'hold' | 'manual';
+export type StreamAlertMinimumKind = 'cheer' | 'raid' | 'gift' | 'resub' | 'donation' | 'hypetrain';
+export type StreamAlertMessageMinimumKind = 'cheer' | 'donation' | 'resub';
+
+/** Settings for every alert of an account. */
+export interface StreamAlertGeneral {
+  profanity: { mode: StreamAlertProfanityMode; builtin: boolean; words: string[]; allow: string[] };
+  minimums: Record<StreamAlertMinimumKind, number>;
+  message_minimums: Record<StreamAlertMessageMinimumKind, number>;
+  delay_ms: number;
+  interrupt: boolean;
+  moderation: { mode: StreamAlertModerationMode; seconds: number };
+  /** The look "Global editing" copies parts of into every alert. */
+  defaults: StreamAlertLook;
+}
+
+/** The look parts "Apply to all alerts" can copy from the defaults. */
+export type StreamAlertDefaultsField =
+  | 'layout' | 'size' | 'volume' | 'sound_volume' | 'duration_ms' | 'text_delay_ms' | 'animation' | 'text' | 'font';
+
+export type StreamAlertModerationDecision = 'approve' | 'block';
+
 const BASE = '/api/stream-alerts';
 const account = (accountId: number) => `${BASE}/accounts/${accountId}`;
 
@@ -429,6 +561,41 @@ export const streamAlertsApi = {
     api.fetch<{ success: boolean; design: StreamAlertDesign; resolved: StreamAlertResolvedDesign | null }>(`${account(accountId)}/designs/${kind}`, {
       method: 'PUT',
       body: JSON.stringify(design),
+    }),
+
+  /** Every kind's settings, what the overlay gets for them, and the names and limits the forms offer. */
+  getAlerts: (accountId: number) =>
+    api.fetch<StreamAlertAlerts>(`${account(accountId)}/alerts`),
+
+  /** Saves one kind whole: enabled, look and variations. A 400 carries `field`, such as "variations[1].look.font.family". */
+  saveAlert: (accountId: number, kind: StreamAlertType, alert: StreamAlertKindSettings) =>
+    api.fetch<{ success: boolean; alert: StreamAlertKindSettings; resolved: StreamAlertResolvedKind | null }>(`${account(accountId)}/alerts/${kind}`, {
+      method: 'PUT',
+      body: JSON.stringify(alert),
+    }),
+
+  getAlertSettings: (accountId: number) =>
+    api.fetch<{ success: boolean; general: StreamAlertGeneral }>(`${account(accountId)}/alert-settings`),
+
+  /** Only the parts sent change. A 400 carries `field`. */
+  saveAlertSettings: (accountId: number, general: Partial<StreamAlertGeneral>) =>
+    api.fetch<{ success: boolean; general: StreamAlertGeneral }>(`${account(accountId)}/alert-settings`, {
+      method: 'PUT',
+      body: JSON.stringify(general),
+    }),
+
+  /** Copies the listed parts of the saved defaults into each kind's own look. Variations stay as they are. */
+  applyDefaults: (accountId: number, fields: StreamAlertDefaultsField[], kinds?: StreamAlertType[]) =>
+    api.fetch<{ success: boolean; alerts: Partial<Record<StreamAlertType, StreamAlertKindSettings>> }>(`${account(accountId)}/alerts/apply-defaults`, {
+      method: 'POST',
+      body: JSON.stringify(kinds ? { kinds, fields } : { fields }),
+    }),
+
+  /** Shows (approve) or drops (block) an alert that moderation is holding. */
+  moderate: (accountId: number, alertId: string, decision: StreamAlertModerationDecision) =>
+    api.fetch<{ success: boolean }>(`${account(accountId)}/moderation`, {
+      method: 'POST',
+      body: JSON.stringify({ alert_id: alertId, decision }),
     }),
 
   /** That kind goes back to the built-in card. */

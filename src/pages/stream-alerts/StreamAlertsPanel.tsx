@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   streamAlertsApi,
@@ -6,41 +6,23 @@ import {
   StreamAlertAccount,
   StreamAlertClearScope,
   StreamAlertControlAction,
+  StreamAlertModerationDecision,
   StreamAlertSettings,
   StreamAlertStatus,
-  StreamAlertTestInput,
-  StreamAlertTier,
   StreamAlertType,
   StreamEffectInput,
   StreamEffectName,
 } from '@/api/streamAlerts';
-import { ownerPossessive } from '@/utils/streamAlertAccounts';
-import type { DesignPreviewResult, PreviewDesigns, PreviewHandle } from './previewHandle';
+import { ownerPossessive, plainError } from '@/utils/streamAlertAccounts';
+import { previewProblem, type PreviewHandle } from './previewHandle';
 import './StreamAlertsPanel.css';
 
-/** What the overlay page exposes on its window (stream-overlays/acosmic-kit/obs/effects/effects.html). */
-interface OverlayWindow extends Window {
-  AcosmicFX?: {
-    fire: (name: string, options?: Record<string, unknown>) => boolean;
-    /** Newer overlay copies only; an older preview copy may lack these. */
-    skip?: () => boolean;
-    stop?: () => void;
-    clear?: () => number;
-    stopEffects?: () => void;
-    queue?: () => PreviewQueue;
-    /** Custom alert designs (phase 4 copies only). Resolves once their media has loaded or failed. */
-    applyDesigns?: (designs: PreviewDesigns) => unknown;
-  };
-}
-
-interface PreviewQueue {
-  waiting: number;
-  playing: string | null;
-  paused: boolean;
-  safe_mode: boolean;
-  flood: boolean;
-  dropped: number;
-}
+/*
+ * The pieces of the stream alerts control panel that the alert box page places: the overlay
+ * light and live controls in the top bar, the channel point effects under Channel points, and
+ * the recent alerts (with moderation) under Activity. Each takes the account, and the page
+ * mounts them under `key={account.id}`, so nothing typed or shown for one account carries over.
+ */
 
 const DEFAULT_SETTINGS: StreamAlertSettings = { paused: false, safe_mode: false, min_raid_viewers: 1, min_cheer_bits: 1 };
 
@@ -55,43 +37,23 @@ const CONTROL_TEXT: Record<StreamAlertControlAction, { done: string; verb: strin
   stop_effects: { done: 'Stopped the effects in OBS.', verb: 'stop the effects' },
 };
 
-const FLOOD_COUNT = 200;
-const FLOOD_MS = 3_000;
-const FLOOD_WORDS = ['Pixel', 'Nova', 'Echo', 'Lumen', 'Static', 'Comet', 'Byte', 'Orbit', 'Drift', 'Ember', 'Quartz', 'Vapor'];
-const FLOOD_TAILS = ['Fox', 'Wave', 'Runner', 'Moth', 'Knight', 'Cat', 'Shade', 'Loop', 'Spark', 'Bloom'];
-
-function floodName(index: number): string {
-  const word = FLOOD_WORDS[index % FLOOD_WORDS.length];
-  const tail = FLOOD_TAILS[Math.floor(index / FLOOD_WORDS.length) % FLOOD_TAILS.length];
-  return `${word}${tail}${(index * 37) % 1000}`;
-}
-
-function wholeNumber(value: string, min: number, max: number): number | null {
-  if (!/^\d+$/.test(value.trim())) return null;
-  const number = Number(value.trim());
-  return number >= min && number <= max ? number : null;
-}
-
 interface AlertKind {
   type: StreamAlertType;
   label: string;
   source: string;
   accent: string;
-  /** Label and default for the kind's number; donations use dollars instead. */
-  number?: { label: string; initial: number };
-  hasTier?: boolean;
-  hasMessage?: boolean;
 }
 
-const ALERT_KINDS: AlertKind[] = [
-  { type: 'donation', label: 'Donation', source: 'Stripe', accent: '#22d3ee', number: { label: 'Dollars', initial: 5 }, hasMessage: true },
+/** Every alert the overlay draws, in the order the page lists them. */
+export const ALERT_KINDS: AlertKind[] = [
+  { type: 'donation', label: 'Donation', source: 'Stripe', accent: '#22d3ee' },
   { type: 'follow', label: 'Follow', source: 'Twitch', accent: '#22d3ee' },
-  { type: 'sub', label: 'New sub', source: 'Twitch', accent: '#a78bfa', hasTier: true },
-  { type: 'resub', label: 'Resub', source: 'Twitch', accent: '#a78bfa', number: { label: 'Months', initial: 14 }, hasTier: true, hasMessage: true },
-  { type: 'gift', label: 'Gift subs', source: 'Twitch', accent: '#f472b6', number: { label: 'Subs', initial: 5 }, hasTier: true },
-  { type: 'cheer', label: 'Cheer', source: 'Twitch', accent: '#fbbf24', number: { label: 'Bits', initial: 500 }, hasMessage: true },
-  { type: 'raid', label: 'Raid', source: 'Twitch', accent: '#fb7185', number: { label: 'Raiders', initial: 42 } },
-  { type: 'hypetrain', label: 'Hype train', source: 'Twitch', accent: '#4ade80', number: { label: 'Level', initial: 2 } },
+  { type: 'sub', label: 'New sub', source: 'Twitch', accent: '#a78bfa' },
+  { type: 'resub', label: 'Resub', source: 'Twitch', accent: '#a78bfa' },
+  { type: 'gift', label: 'Gift subs', source: 'Twitch', accent: '#f472b6' },
+  { type: 'cheer', label: 'Cheer', source: 'Twitch', accent: '#fbbf24' },
+  { type: 'raid', label: 'Raid', source: 'Twitch', accent: '#fb7185' },
+  { type: 'hypetrain', label: 'Hype train', source: 'Twitch', accent: '#4ade80' },
 ];
 
 interface RewardEffect {
@@ -112,16 +74,10 @@ const REWARD_EFFECTS: RewardEffect[] = [
   { name: 'rewind', label: 'Instant Replay tag', accent: '#fb7185', does: 'A REW tag in the corner for about 4 seconds, with a rewind sound.' },
 ];
 
-const TIERS: { value: StreamAlertTier; label: string }[] = [
-  { value: '1000', label: 'Tier 1' },
-  { value: '2000', label: 'Tier 2' },
-  { value: '3000', label: 'Tier 3' },
-  { value: 'prime', label: 'Prime' },
-];
-
 const effectLabel = (effect: StreamEffectName) => REWARD_EFFECTS.find((item) => item.name === effect)?.label ?? effect;
 
 const KIND_BY_TYPE = new Map(ALERT_KINDS.map((kind) => [kind.type, kind]));
+export const kindLabel = (type: StreamAlertType) => KIND_BY_TYPE.get(type)?.label ?? type;
 const OVERLAY_CONNECTED_WINDOW_SECONDS = 45;
 
 function describe(alert: StreamAlert): string {
@@ -140,182 +96,66 @@ function overlayOptions(alert: Pick<StreamAlert, 'name' | 'message' | 'value' | 
   return { user: alert.name, text: alert.message, value: alert.value, tier: alert.tier, amount: alert.amount_display, test };
 }
 
-/**
- * Controls, preview, tests and the recent list for one account. The page mounts it with
- * `key={account.id}`, so nothing typed or shown for one account carries over to another.
- */
-export const StreamAlertsPanel: React.FC<{
-  account: StreamAlertAccount;
-  /** Filled in by the panel so the alert designer can play designs in this preview. */
-  previewRef?: React.MutableRefObject<PreviewHandle | null>;
-}> = ({ account, previewRef }) => {
-  const queryClient = useQueryClient();
-  const accountId = account.id;
-  const statusKey = ['stream-alerts', accountId, 'status'];
-  const recentKey = ['stream-alerts', accountId, 'recent'];
-  const frameRef = useRef<HTMLIFrameElement>(null);
-  const [name, setName] = useState('Nova');
-  const [message, setMessage] = useState('Love the stream, keep building.');
-  const [numbers, setNumbers] = useState<Record<string, number>>(
-    () => Object.fromEntries(ALERT_KINDS.filter((kind) => kind.number).map((kind) => [kind.type, kind.number!.initial])),
-  );
-  const [tier, setTier] = useState<StreamAlertTier>('1000');
-  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
-  /** Results of the live controls, shown beside them rather than under the test list further down. */
-  const [liveNotice, setLiveNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
-  const [now, setNow] = useState(() => Date.now());
-  const [minRaid, setMinRaid] = useState('');
-  const [minCheer, setMinCheer] = useState('');
-  const [thresholdsDirty, setThresholdsDirty] = useState(false);
-  const [previewQueue, setPreviewQueue] = useState<PreviewQueue | null>(null);
-  const [flooding, setFlooding] = useState(false);
-  const floodTimer = useRef<number | null>(null);
-  /** The saved designs, given by the designer. The preview frame gets them whenever it loads. */
-  const savedDesigns = useRef<PreviewDesigns | null>(null);
-  /** True after a designer preview put unsaved designs in the frame; the next plain preview puts the saved ones back. */
-  const draftInFrame = useRef(false);
-  const [designNote, setDesignNote] = useState<{ label: string; onBack: () => void } | null>(null);
-  const stageRef = useRef<HTMLElement>(null);
+export const statusQueryKey = (accountId: number) => ['stream-alerts', accountId, 'status'];
+export const recentQueryKey = (accountId: number) => ['stream-alerts', accountId, 'recent'];
 
-  const status = useQuery({
-    queryKey: statusKey,
+/** The account's status (overlay, Twitch, live settings), read every 10 seconds. One read for every piece that shows it. */
+export function useStreamStatus(accountId: number) {
+  return useQuery({
+    queryKey: statusQueryKey(accountId),
     queryFn: () => streamAlertsApi.getStatus(accountId),
     refetchInterval: 10_000,
   });
-  const recent = useQuery({
-    queryKey: recentKey,
-    queryFn: () => streamAlertsApi.getRecent(accountId, 30),
-    refetchInterval: 15_000,
-  });
+}
 
+function useNow(ms = 5_000) {
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 5_000);
+    const timer = window.setInterval(() => setNow(Date.now()), ms);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [ms]);
+  return now;
+}
 
-  const overlayFX = useCallback(
-    () => (frameRef.current?.contentWindow as OverlayWindow | null | undefined)?.AcosmicFX,
-    [],
+/** The overlay connection light, with the reason in its title and a sentence for screen readers. */
+export const OverlayLight: React.FC<{ account: StreamAlertAccount }> = ({ account }) => {
+  const status = useStreamStatus(account.id);
+  const now = useNow();
+  const lastSeen = status.data?.overlay_last_seen ?? null;
+  const secondsSinceSeen = lastSeen === null ? null : Math.max(0, Math.round(now / 1000 - lastSeen));
+  const overlayConnected = secondsSinceSeen !== null && secondsSinceSeen <= OVERLAY_CONNECTED_WINDOW_SECONDS;
+  // The account that drives the overlay already installed in OBS keeps its source name; everyone else pasted a link.
+  const reconnectHint = account.legacy_overlay
+    ? 'Open OBS, or refresh the "Acosmic Effects" source.'
+    : `Open OBS, or refresh the browser source that uses ${account.role === 'owner' ? 'your' : ownerPossessive(account.owner_username)} link.`;
+  let detail = '';
+  if (status.isLoading) detail = 'Checking the overlay…';
+  else if (status.error) detail = `Could not read the status: ${String(status.error)}`;
+  else if (status.data && !status.data.configured) detail = 'The API has no overlay key set, so alerts cannot reach OBS.';
+  else if (status.data?.configured && overlayConnected) detail = 'The overlay in OBS is listening. "Send to OBS" will play on stream.';
+  else if (status.data?.configured) detail = `Nothing has asked for alerts in the last minute. ${reconnectHint}`;
+  return (
+    <div className="stream-alerts__status stream-box__light" aria-live="polite" title={detail}>
+      <span className={`stream-alerts__light ${overlayConnected ? 'is-on' : ''}`} aria-hidden="true" />
+      <div>
+        <strong>{overlayConnected ? 'OBS connected' : 'OBS not connected'}</strong>
+        <p>{detail}</p>
+      </div>
+    </div>
   );
+};
 
-  // Light poll of the preview overlay's queue. Hidden when the preview copy has no queue().
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      try {
-        const fx = overlayFX();
-        setPreviewQueue(typeof fx?.queue === 'function' ? fx.queue() : null);
-      } catch {
-        setPreviewQueue(null);
-      }
-    }, 500);
-    return () => window.clearInterval(timer);
-  }, [overlayFX]);
-
-  useEffect(() => () => {
-    if (floodTimer.current !== null) window.clearInterval(floodTimer.current);
-  }, []);
-
+/** Skip, stop effects, pause, clear waiting and Safe Mode, acting on the overlay in OBS right now. */
+export const LiveControls: React.FC<{ account: StreamAlertAccount; preview: React.MutableRefObject<PreviewHandle | null> }> = ({ account, preview }) => {
+  const queryClient = useQueryClient();
+  const accountId = account.id;
+  const status = useStreamStatus(accountId);
+  const [liveNotice, setLiveNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   const settings = status.data?.settings ?? DEFAULT_SETTINGS;
 
-  // Fill the threshold inputs from the saved settings until the owner starts editing them.
-  useEffect(() => {
-    if (thresholdsDirty) return;
-    setMinRaid(String(settings.min_raid_viewers));
-    setMinCheer(String(settings.min_cheer_bits));
-  }, [settings.min_raid_viewers, settings.min_cheer_bits, thresholdsDirty]);
-
-  const buildInput = useCallback((kind: AlertKind): StreamAlertTestInput => {
-    const input: StreamAlertTestInput = { type: kind.type, name: name.trim() || undefined };
-    if (kind.hasMessage && message.trim()) input.message = message.trim();
-    if (kind.hasTier) input.tier = tier;
-    const number = numbers[kind.type];
-    if (kind.type === 'donation') input.amount_minor = Math.round((number || 0) * 100);
-    else if (kind.number) input.value = Math.max(1, Math.round(number || 1));
-    return input;
-  }, [message, name, numbers, tier]);
-
-  /** Cut whatever the preview is showing or playing, so the next thing starts on an empty stage. */
-  const stopPreview = useCallback(() => {
-    if (floodTimer.current !== null) {
-      window.clearInterval(floodTimer.current);
-      floodTimer.current = null;
-      setFlooding(false);
-    }
-    try {
-      const overlay = frameRef.current?.contentWindow as OverlayWindow | null | undefined;
-      overlay?.AcosmicFX?.stop?.();
-    } catch {
-      /* an older preview copy without stop(); the new preview waits its turn as before */
-    }
-  }, []);
-
-  /** Puts the saved designs into the preview frame, when its overlay copy can take them. */
-  const applySavedDesigns = useCallback(async () => {
-    const fx = overlayFX();
-    if (!savedDesigns.current || typeof fx?.applyDesigns !== 'function') return;
-    try {
-      await fx.applyDesigns(savedDesigns.current);
-      draftInFrame.current = false;
-    } catch {
-      /* the preview falls back to the built-in cards */
-    }
-  }, [overlayFX]);
-
-  const playInPreview = useCallback(async (effect: string, options: Record<string, unknown>) => {
-    const overlay = frameRef.current?.contentWindow as OverlayWindow | null | undefined;
-    if (!overlay?.AcosmicFX) {
-      setNotice({ tone: 'error', text: 'The preview is still loading. Try again in a moment.' });
-      return;
-    }
-    setDesignNote(null);
-    // After a designer preview of unsaved changes, the alerts here show the saved designs again.
-    if (draftInFrame.current) await applySavedDesigns();
-    // A new preview replaces the last one instead of waiting behind it.
-    stopPreview();
-    overlay.AcosmicFX.fire(effect, options);
-  }, [applySavedDesigns, stopPreview]);
-
-  useEffect(() => {
-    if (!previewRef) return undefined;
-    previewRef.current = {
-      setSavedDesigns: (designs) => {
-        savedDesigns.current = designs;
-        void applySavedDesigns();
-      },
-      playDesign: async (designs, kind, options, from): Promise<DesignPreviewResult> => {
-        const fx = overlayFX();
-        if (!fx) return 'loading';
-        if (typeof fx.applyDesigns !== 'function') return 'unsupported';
-        stopPreview();
-        try {
-          await fx.applyDesigns(designs);
-          draftInFrame.current = true;
-          fx.fire(kind, options);
-        } catch {
-          return 'failed';
-        }
-        setDesignNote(from);
-        stageRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        return 'played';
-      },
-    };
-    return () => { previewRef.current = null; };
-  }, [applySavedDesigns, overlayFX, previewRef, stopPreview]);
-
-  const previewKind = (kind: AlertKind) => {
-    const input = buildInput(kind);
-    playInPreview(kind.type, overlayOptions({
-      name: input.name ?? 'Test Viewer',
-      message: input.message ?? '',
-      value: input.value,
-      tier: input.tier,
-      amount_display: input.amount_minor === undefined ? undefined : `$${(input.amount_minor / 100).toFixed(2)}`,
-    }, true));
-  };
-
   const applySettings = (next: StreamAlertSettings) => {
-    queryClient.setQueryData<StreamAlertStatus>(statusKey, (old) => (old ? { ...old, settings: next } : old));
-    queryClient.invalidateQueries({ queryKey: statusKey });
+    queryClient.setQueryData<StreamAlertStatus>(statusQueryKey(accountId), (old) => (old ? { ...old, settings: next } : old));
+    queryClient.invalidateQueries({ queryKey: statusQueryKey(accountId) });
   };
 
   const control = useMutation({
@@ -329,63 +169,84 @@ export const StreamAlertsPanel: React.FC<{
 
   const runControl = (action: StreamAlertControlAction) => {
     if (control.isPending) return;
-    // The preview mirrors skip, clear and stop effects only; it never pauses or hides alerts.
-    try {
-      const fx = overlayFX();
-      if (action === 'skip') fx?.skip?.();
-      if (action === 'clear') fx?.clear?.();
-      if (action === 'stop_effects' && typeof fx?.stopEffects === 'function') fx.stopEffects();
-    } catch {
-      /* an older preview copy; the OBS part still runs */
-    }
+    if (action === 'skip' || action === 'clear' || action === 'stop_effects') preview.current?.mirror(action);
     control.mutate(action);
   };
 
-  const saveThresholds = useMutation({
-    mutationFn: (partial: { min_raid_viewers: number; min_cheer_bits: number }) => streamAlertsApi.updateSettings(accountId, partial),
-    onSuccess: (result) => {
-      setThresholdsDirty(false);
-      if (result.settings) applySettings(result.settings);
-      setLiveNotice({ tone: 'ok', text: 'Saved. OBS now uses the new smallest raid and cheer.' });
-    },
-    onError: (error) => setLiveNotice({ tone: 'error', text: `Could not save the limits: ${String(error)}` }),
-  });
+  const obsReady = Boolean(status.data?.configured && status.data?.available);
+  const liveDisabled = control.isPending || !obsReady;
 
-  const submitThresholds = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (saveThresholds.isPending) return;
-    const raid = wholeNumber(minRaid, 1, 100_000);
-    const cheer = wholeNumber(minCheer, 1, 1_000_000);
-    if (raid === null) return setLiveNotice({ tone: 'error', text: 'Smallest raid must be a whole number from 1 to 100000.' });
-    if (cheer === null) return setLiveNotice({ tone: 'error', text: 'Smallest cheer must be a whole number from 1 to 1000000.' });
-    saveThresholds.mutate({ min_raid_viewers: raid, min_cheer_bits: cheer });
-  };
+  return (
+    <section className="stream-alerts stream-alerts__live stream-box__live" aria-label="Live controls">
+      <div className="stream-alerts__live-buttons">
+        <button type="button" className="stream-alerts__skip" disabled={liveDisabled} title="Ends the alert card on screen." onClick={() => runControl('skip')}>
+          Skip alert
+        </button>
+        <button
+          type="button"
+          className={settings.paused ? 'is-on' : ''}
+          aria-pressed={settings.paused}
+          disabled={liveDisabled}
+          onClick={() => runControl(settings.paused ? 'resume' : 'pause')}
+        >
+          {settings.paused ? 'Resume alerts' : 'Pause alerts'}
+        </button>
+        <button
+          type="button"
+          className={settings.safe_mode ? 'is-on' : ''}
+          aria-pressed={settings.safe_mode}
+          title="Hides follow and raid alerts while it is on."
+          disabled={liveDisabled}
+          onClick={() => runControl(settings.safe_mode ? 'safe_mode_off' : 'safe_mode_on')}
+        >
+          {settings.safe_mode ? 'Safe Mode: on' : 'Safe Mode: off'}
+        </button>
+        <button type="button" disabled={liveDisabled} onClick={() => runControl('clear')}>
+          Clear waiting
+        </button>
+        <button
+          type="button"
+          title="Ends a running channel point effect, such as Flood. Alert cards stay."
+          disabled={liveDisabled}
+          onClick={() => runControl('stop_effects')}
+        >
+          Stop effects
+        </button>
+      </div>
+      {(settings.paused || settings.safe_mode) && (
+        <div className="stream-alerts__banners" aria-live="polite">
+          {settings.paused && (
+            <p className="stream-alerts__banner is-paused">
+              <strong>Alerts are paused.</strong> New alerts are waiting and will play when you press Resume alerts.
+            </p>
+          )}
+          {settings.safe_mode && (
+            <p className="stream-alerts__banner is-safe">
+              <strong>Safe Mode is on.</strong> Follow and raid alerts are hidden until you turn it off.
+            </p>
+          )}
+        </div>
+      )}
+      {!obsReady && status.data && (
+        <p className="stream-alerts__hint stream-alerts__live-hint">The live controls are off because alerts cannot reach OBS at the moment.</p>
+      )}
+      {liveNotice && (
+        <p className={`stream-alerts__notice is-${liveNotice.tone}`} role="status">{liveNotice.text}</p>
+      )}
+    </section>
+  );
+};
 
-  const previewFollowFlood = () => {
-    if (flooding) return;
-    if (!overlayFX()) {
-      setNotice({ tone: 'error', text: 'The preview is still loading. Try again in a moment.' });
-      return;
-    }
-    stopPreview();
-    setFlooding(true);
-    let sent = 0;
-    floodTimer.current = window.setInterval(() => {
-      const fx = overlayFX();
-      // Send a few per tick so ~200 land in about three seconds.
-      for (let i = 0; i < 4 && sent < FLOOD_COUNT; i += 1, sent += 1) {
-        fx?.fire('follow', { user: floodName(sent), test: true });
-      }
-      if (sent >= FLOOD_COUNT && floodTimer.current !== null) {
-        window.clearInterval(floodTimer.current);
-        floodTimer.current = null;
-        setFlooding(false);
-      }
-    }, Math.round(FLOOD_MS / (FLOOD_COUNT / 4)));
-  };
-
-  const refreshRecent = () => queryClient.invalidateQueries({ queryKey: recentKey });
-
+/** The channel point effects, each with Preview (here) and Send to OBS. */
+export const ChannelEffects: React.FC<{
+  account: StreamAlertAccount;
+  preview: React.MutableRefObject<PreviewHandle | null>;
+  name: string;
+  message: string;
+}> = ({ account, preview, name, message }) => {
+  const accountId = account.id;
+  const status = useStreamStatus(accountId);
+  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   const fireEffect = useMutation({
     mutationFn: (input: StreamEffectInput) => streamAlertsApi.fireEffect(accountId, input),
     onSuccess: (_result, input) => setNotice({ tone: 'ok', text: `Sent ${effectLabel(input.effect)} to OBS.` }),
@@ -395,16 +256,66 @@ export const StreamAlertsPanel: React.FC<{
     if (fireEffect.isPending) return;
     fireEffect.mutate({ effect: effect.name, name: name.trim() || undefined, message: message.trim() || undefined });
   };
-  const previewEffect = (effect: RewardEffect) => playInPreview(effect.name, { user: name.trim() || 'Test Viewer', text: message.trim() });
+  const previewEffect = async (effect: RewardEffect) => {
+    const result = await preview.current?.play(effect.name, { user: name.trim() || 'Test Viewer', text: message.trim() }) ?? 'loading';
+    setNotice(result === 'played' ? null : { tone: 'error', text: previewProblem(result) ?? '' });
+  };
 
-  const fire = useMutation({
-    mutationFn: (input: StreamAlertTestInput) => streamAlertsApi.fireAlert(accountId, input),
-    onSuccess: (result) => {
-      setNotice({ tone: 'ok', text: `Sent a test ${KIND_BY_TYPE.get(result.alert.type)?.label.toLowerCase() ?? 'alert'} to the overlay.` });
-      refreshRecent();
-    },
-    onError: (error) => setNotice({ tone: 'error', text: `Could not send: ${String(error)}` }),
+  return (
+    <section className="stream-alerts stream-alerts__list" aria-labelledby="stream-effects-title">
+      <h3 className="stream-alerts__list-head" id="stream-effects-title">Channel point effects</h3>
+      <ul className="stream-alerts__kinds is-effects">
+        {REWARD_EFFECTS.map((effect) => (
+          <li key={effect.name} style={{ '--alert-accent': effect.accent } as React.CSSProperties}>
+            <div className="stream-alerts__kind-name">
+              <strong>{effect.label}</strong>
+              <span>{effect.does}{effect.usesMessage ? '' : ' Ignores the message.'}</span>
+            </div>
+            <div className="stream-alerts__actions">
+              <button type="button" onClick={() => previewEffect(effect)}>Preview</button>
+              <button
+                type="button"
+                className="is-primary"
+                disabled={fireEffect.isPending || !status.data?.configured}
+                onClick={() => sendEffect(effect)}
+              >
+                Send to OBS
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="stream-alerts__hint">Channel point effects sent to OBS play right away, with no TEST tag.</p>
+      {notice && (
+        <p className={`stream-alerts__notice is-${notice.tone}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</p>
+      )}
+    </section>
+  );
+};
+
+const MODERATION_TEXT: Record<string, string> = {
+  pending: 'Held',
+  approved: 'Approved',
+  blocked: 'Blocked',
+  released: 'Shown',
+};
+
+/** Recent alerts, newest first: replay in OBS, preview here, Approve or Block while held, and tidy the list. */
+export const ActivityList: React.FC<{ account: StreamAlertAccount; preview: React.MutableRefObject<PreviewHandle | null> }> = ({ account, preview }) => {
+  const queryClient = useQueryClient();
+  const accountId = account.id;
+  const recentKey = recentQueryKey(accountId);
+  const status = useStreamStatus(accountId);
+  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const anyPending = (alerts: StreamAlert[] | undefined) => Boolean(alerts?.some((alert) => alert.moderation === 'pending'));
+  const recent = useQuery({
+    queryKey: recentKey,
+    queryFn: () => streamAlertsApi.getRecent(accountId, 30),
+    // Held alerts wait on a person, so read more often while there are any.
+    refetchInterval: (query) => (anyPending(query.state.data?.alerts) ? 3_000 : 15_000),
   });
+  const refreshRecent = () => queryClient.invalidateQueries({ queryKey: recentKey });
+
   const replay = useMutation({
     mutationFn: (id: string) => streamAlertsApi.replayAlert(accountId, id),
     onSuccess: () => {
@@ -412,6 +323,18 @@ export const StreamAlertsPanel: React.FC<{
       refreshRecent();
     },
     onError: (error) => setNotice({ tone: 'error', text: `Could not replay: ${String(error)}` }),
+  });
+  const moderate = useMutation({
+    mutationFn: (input: { id: string; decision: StreamAlertModerationDecision }) => streamAlertsApi.moderate(accountId, input.id, input.decision),
+    onSuccess: (_result, input) => {
+      queryClient.setQueryData<{ success: boolean; alerts: StreamAlert[] }>(recentKey, (old) => (old ? {
+        ...old,
+        alerts: old.alerts.map((alert) => (alert.id === input.id ? { ...alert, moderation: input.decision === 'approve' ? 'approved' : 'blocked' } : alert)),
+      } : old));
+      setNotice({ tone: 'ok', text: input.decision === 'approve' ? 'Approved. The alert shows in OBS now.' : 'Blocked. The alert will not show.' });
+      refreshRecent();
+    },
+    onError: (error, input) => setNotice({ tone: 'error', text: `Could not ${input.decision} the alert: ${plainError(error)}` }),
   });
   /** Results of clearing the recent list, shown beside the list. */
   const [recentNotice, setRecentNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
@@ -439,338 +362,122 @@ export const StreamAlertsPanel: React.FC<{
     if (clearRecent.isPending) return;
     clearRecent.mutate(scope);
   };
+  const previewAlert = async (alert: StreamAlert) => {
+    const result = await preview.current?.play(alert.type, overlayOptions(alert, alert.test)) ?? 'loading';
+    setNotice(result === 'played' ? null : { tone: 'error', text: previewProblem(result) ?? '' });
+  };
 
-  const lastSeen = status.data?.overlay_last_seen ?? null;
-  const secondsSinceSeen = lastSeen === null ? null : Math.max(0, Math.round(now / 1000 - lastSeen));
-  const overlayConnected = secondsSinceSeen !== null && secondsSinceSeen <= OVERLAY_CONNECTED_WINDOW_SECONDS;
   const alerts = recent.data?.alerts ?? [];
-  const obsReady = Boolean(status.data?.configured && status.data?.available);
-  const liveDisabled = control.isPending || !obsReady;
   const hasTestAlerts = alerts.some((alert) => alert.test || alert.sandbox);
-  // The account that drives the overlay already installed in OBS keeps its source name; everyone else pasted a link.
   const twitchConnected = status.data?.twitch?.status === 'connected';
-  const reconnectHint = account.legacy_overlay
-    ? 'Open OBS, or refresh the "Acosmic Effects" source.'
-    : `Open OBS, or refresh the browser source that uses ${account.role === 'owner' ? 'your' : ownerPossessive(account.owner_username)} link.`;
+  const held = alerts.filter((alert) => alert.moderation === 'pending').length;
 
   return (
-    <div className="stream-alerts">
-      <header className="stream-alerts__status" aria-live="polite">
-        <span className={`stream-alerts__light ${overlayConnected ? 'is-on' : ''}`} aria-hidden="true" />
-        <div>
-          <strong>{overlayConnected ? 'OBS overlay connected' : 'OBS overlay not connected'}</strong>
-          <p>
-            {status.isLoading && 'Checking the overlay…'}
-            {status.error && `Could not read the status: ${String(status.error)}`}
-            {status.data && !status.data.configured && 'The API has no overlay key set, so alerts cannot reach OBS.'}
-            {status.data?.configured && overlayConnected && 'The overlay in OBS is listening. "Send to OBS" will play on stream.'}
-            {status.data?.configured && !overlayConnected && `Nothing has asked for alerts in the last minute. ${reconnectHint}`}
-          </p>
-        </div>
-      </header>
-
-      <section className="stream-alerts__live" aria-label="Live controls">
-        <div className="stream-alerts__live-head">
-          <h3>Live controls</h3>
-          <p>These act on the overlay in OBS right now.{!obsReady && status.data && ' They are off because alerts cannot reach OBS at the moment.'}</p>
-        </div>
-        {(settings.paused || settings.safe_mode) && (
-          <div className="stream-alerts__banners" aria-live="polite">
-            {settings.paused && (
-              <p className="stream-alerts__banner is-paused">
-                <strong>Alerts are paused.</strong> New alerts are waiting and will play when you press Resume alerts.
-              </p>
-            )}
-            {settings.safe_mode && (
-              <p className="stream-alerts__banner is-safe">
-                <strong>Safe Mode is on.</strong> Follow and raid alerts are hidden until you turn it off.
-              </p>
-            )}
-          </div>
-        )}
-        <div className="stream-alerts__live-buttons">
-          <button type="button" className="stream-alerts__skip" disabled={liveDisabled} onClick={() => runControl('skip')}>
-            Skip current alert
-          </button>
-          <button
-            type="button"
-            title="Ends a running channel point effect, such as Flood. Alert cards stay."
-            disabled={liveDisabled}
-            onClick={() => runControl('stop_effects')}
-          >
-            Stop effects
-          </button>
-          <button
-            type="button"
-            className={settings.paused ? 'is-on' : ''}
-            aria-pressed={settings.paused}
-            disabled={liveDisabled}
-            onClick={() => runControl(settings.paused ? 'resume' : 'pause')}
-          >
-            {settings.paused ? 'Resume alerts' : 'Pause alerts'}
-          </button>
-          <button type="button" disabled={liveDisabled} onClick={() => runControl('clear')}>
-            Clear waiting alerts
-          </button>
-          <button
-            type="button"
-            className={settings.safe_mode ? 'is-on' : ''}
-            aria-pressed={settings.safe_mode}
-            disabled={liveDisabled}
-            onClick={() => runControl(settings.safe_mode ? 'safe_mode_off' : 'safe_mode_on')}
-          >
-            {settings.safe_mode ? 'Safe Mode: on (turn off)' : 'Safe Mode: off (turn on)'}
-          </button>
-        </div>
-        <p className="stream-alerts__hint stream-alerts__live-hint">
-          Skip ends the alert card on screen. Stop effects ends a channel point effect, such as Flood, and leaves alert cards alone.
+    <section className="stream-alerts stream-alerts__recent" aria-labelledby="stream-recent-title">
+      <h3 id="stream-recent-title">Recent alerts</h3>
+      <p className="text-muted">
+        {account.legacy_overlay && (twitchConnected
+          ? 'Donations, real Twitch alerts and test alerts, newest first. Channel point effects are not listed.'
+          : 'Donations and test alerts that went through the API, newest first. Channel point effects are not listed. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here until Twitch is connected under Connections.')}
+        {!account.legacy_overlay && (twitchConnected
+          ? 'Real Twitch alerts and test alerts sent from this page, newest first. Channel point effects are not listed. Real donations are not connected to a hosted link yet.'
+          : 'Test alerts sent from this page, newest first. Real Twitch alerts appear here too once Twitch is connected. Channel point effects are not listed. Real donations are not connected to a hosted link yet.')}
+      </p>
+      {held > 0 && (
+        <p className="stream-alerts__banner is-paused" role="status">
+          <strong>{held === 1 ? '1 alert is' : `${held} alerts are`} waiting for you.</strong> Approve shows it in OBS now; Block drops it.
         </p>
-        <form className="stream-alerts__thresholds" onSubmit={submitThresholds}>
-          <label>
-            <span>Smallest raid to show (viewers)</span>
-            <input
-              className="form-control"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={100000}
-              step={1}
-              value={minRaid}
-              onChange={(event) => { setThresholdsDirty(true); setMinRaid(event.target.value); }}
-            />
-          </label>
-          <label>
-            <span>Smallest cheer to show (bits)</span>
-            <input
-              className="form-control"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={1000000}
-              step={1}
-              value={minCheer}
-              onChange={(event) => { setThresholdsDirty(true); setMinCheer(event.target.value); }}
-            />
-          </label>
-          <button type="submit" disabled={saveThresholds.isPending || !obsReady}>Save limits</button>
-        </form>
-        {liveNotice && (
-          <p className={`stream-alerts__notice is-${liveNotice.tone}`} role="status">{liveNotice.text}</p>
-        )}
-      </section>
-
-      <div className="stream-alerts__layout">
-        <section className="stream-alerts__stage" aria-label="Overlay preview" ref={stageRef}>
-          <div className="stream-alerts__screen">
-            <span className="stream-alerts__scene-label">Preview of your stream (1920 × 1080)</span>
-            <span className="stream-alerts__cam">Camera</span>
-            <iframe
-              ref={frameRef}
-              title="Stream overlay preview"
-              src="/stream-overlay/effects.html?offline=1"
-              onLoad={() => { void applySavedDesigns(); }}
-            />
-          </div>
-          {designNote && (
-            <div className="stream-alerts__design-note" role="status">
-              <span>Playing your {designNote.label} design from the designer below, with your sample values.</span>
-              <button type="button" onClick={() => { const back = designNote.onBack; setDesignNote(null); back(); }}>
-                Back to the designer
+      )}
+      <div className="stream-alerts__recent-tools">
+        <div className="stream-alerts__recent-buttons">
+          <button type="button" disabled={clearRecent.isPending || !hasTestAlerts} onClick={() => runClear('tests')}>
+            Clear test alerts
+          </button>
+          {confirmClearAll ? (
+            <span className="stream-alerts__confirm" role="group" aria-label="Confirm clearing all recent alerts">
+              <strong>Clear all recent alerts?</strong>
+              <button type="button" className="is-on" disabled={clearRecent.isPending} onClick={() => runClear('all')}>
+                {clearRecent.isPending ? 'Clearing…' : 'Yes, clear'}
               </button>
-            </div>
-          )}
-          {previewQueue && (
-            <p className="stream-alerts__queue" aria-live="off">
-              Preview queue: {previewQueue.waiting} waiting{previewQueue.flood ? ' · counting follows only' : ''}
-              {previewQueue.flood && previewQueue.waiting > 0 && !previewQueue.playing
-                ? '. During a flood, follow cards stay ten seconds apart, so the next one shows shortly.'
-                : ''}
-            </p>
-          )}
-          <p className="stream-alerts__hint">
-            The preview ignores Safe Mode, pause and the smallest raid and cheer, so it always shows the card.
-          </p>
-          <p className="stream-alerts__hint">
-            "Preview" plays here only, with sound, and cuts off the preview before it. For alerts, "Send to OBS" goes through the same path a real donation takes and shows a TEST tag on stream. Channel point effects sent to OBS play right away, with no TEST tag.
-          </p>
-          <div className="stream-alerts__rewards">
-            <span>More preview tools</span>
-            <button type="button" disabled={flooding} onClick={previewFollowFlood}>
-              {flooding ? 'Sending follows…' : 'Preview a follow flood'}
-            </button>
-            <button type="button" onClick={stopPreview}>Stop preview</button>
-          </div>
-        </section>
-
-        <section className="stream-alerts__controls" aria-label="Test alerts and effects">
-          <div className="stream-alerts__shared">
-            <label>
-              <span>Name</span>
-              <input className="form-control" value={name} maxLength={32} onChange={(event) => setName(event.target.value)} />
-            </label>
-            <label>
-              <span>Sub tier</span>
-              <select className="form-control" value={tier} onChange={(event) => setTier(event.target.value as StreamAlertTier)}>
-                {TIERS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-            </label>
-            <label className="is-wide">
-              <span>Message</span>
-              <input className="form-control" value={message} maxLength={200} onChange={(event) => setMessage(event.target.value)} />
-            </label>
-          </div>
-
-          <div className="stream-alerts__lists">
-          <div className="stream-alerts__list">
-          <h3 className="stream-alerts__list-head">Alerts</h3>
-          <ul className="stream-alerts__kinds">
-            {ALERT_KINDS.map((kind) => (
-              <li key={kind.type} style={{ '--alert-accent': kind.accent } as React.CSSProperties}>
-                <div className="stream-alerts__kind-name">
-                  <strong>{kind.label}</strong>
-                  <span>{kind.source}{kind.hasMessage ? ' · message' : ''}{kind.hasTier ? ' · tier' : ''}</span>
-                </div>
-                {kind.number ? (
-                  <label className="stream-alerts__number">
-                    <span>{kind.number.label}</span>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min={kind.type === 'donation' ? 0 : 1}
-                      step={kind.type === 'donation' ? 0.01 : 1}
-                      value={numbers[kind.type] ?? kind.number.initial}
-                      onChange={(event) => setNumbers({ ...numbers, [kind.type]: Number(event.target.value) })}
-                    />
-                  </label>
-                ) : <span className="stream-alerts__number" />}
-                <div className="stream-alerts__actions">
-                  <button type="button" onClick={() => previewKind(kind)}>Preview</button>
-                  <button
-                    type="button"
-                    className="is-primary"
-                    disabled={fire.isPending || !status.data?.configured}
-                    onClick={() => fire.mutate(buildInput(kind))}
-                  >
-                    Send to OBS
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-          </div>
-
-          <div className="stream-alerts__list">
-          <h3 className="stream-alerts__list-head">Channel point effects</h3>
-          <ul className="stream-alerts__kinds is-effects">
-            {REWARD_EFFECTS.map((effect) => (
-              <li key={effect.name} style={{ '--alert-accent': effect.accent } as React.CSSProperties}>
-                <div className="stream-alerts__kind-name">
-                  <strong>{effect.label}</strong>
-                  <span>{effect.does}{effect.usesMessage ? '' : ' Ignores the message.'}</span>
-                </div>
-                <div className="stream-alerts__actions">
-                  <button type="button" onClick={() => previewEffect(effect)}>Preview</button>
-                  <button
-                    type="button"
-                    className="is-primary"
-                    disabled={fireEffect.isPending || !status.data?.configured}
-                    onClick={() => sendEffect(effect)}
-                  >
-                    Send to OBS
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-          </div>
-          </div>
-          {notice && (
-            <p className={`stream-alerts__notice is-${notice.tone}`} role={notice.tone === 'error' ? 'alert' : 'status'}>
-              {notice.text}
-            </p>
-          )}
-        </section>
-      </div>
-
-      <section className="stream-alerts__recent" aria-label="Recent alerts">
-        <h3>Recent alerts</h3>
-        <p className="text-muted">
-          {account.legacy_overlay && (twitchConnected
-            ? 'Donations, real Twitch alerts and test alerts, newest first. Channel point effects are not listed.'
-            : 'Donations and test alerts that went through the API, newest first. Channel point effects are not listed. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here until Twitch is connected above.')}
-          {!account.legacy_overlay && (twitchConnected
-            ? 'Real Twitch alerts and test alerts sent from this page, newest first. Channel point effects are not listed. Real donations are not connected to a hosted link yet.'
-            : 'Test alerts sent from this page, newest first. Real Twitch alerts appear here too once Twitch is connected. Channel point effects are not listed. Real donations are not connected to a hosted link yet.')}
-        </p>
-        <div className="stream-alerts__recent-tools">
-          <div className="stream-alerts__recent-buttons">
+              <button type="button" disabled={clearRecent.isPending} onClick={() => setConfirmClearAll(false)}>Cancel</button>
+            </span>
+          ) : (
             <button
               type="button"
-              disabled={clearRecent.isPending || !hasTestAlerts}
-              onClick={() => runClear('tests')}
+              disabled={clearRecent.isPending || alerts.length === 0}
+              onClick={() => { setRecentNotice(null); setConfirmClearAll(true); }}
             >
-              Clear test alerts
+              Clear recent alerts
             </button>
-            {confirmClearAll ? (
-              <span className="stream-alerts__confirm" role="group" aria-label="Confirm clearing all recent alerts">
-                <strong>Clear all recent alerts?</strong>
-                <button type="button" className="is-on" disabled={clearRecent.isPending} onClick={() => runClear('all')}>
-                  {clearRecent.isPending ? 'Clearing…' : 'Yes, clear'}
-                </button>
-                <button type="button" disabled={clearRecent.isPending} onClick={() => setConfirmClearAll(false)}>Cancel</button>
-              </span>
-            ) : (
-              <button
-                type="button"
-                disabled={clearRecent.isPending || alerts.length === 0}
-                onClick={() => { setRecentNotice(null); setConfirmClearAll(true); }}
-              >
-                Clear recent alerts
-              </button>
-            )}
-          </div>
-          <p className="stream-alerts__hint">
-            This only tidies this list. It does not change anything in OBS or Stripe. Cleared donations can no longer be replayed.
-          </p>
-          {recentNotice && (
-            <p className={`stream-alerts__notice is-${recentNotice.tone}`} role={recentNotice.tone === 'error' ? 'alert' : 'status'}>
-              {recentNotice.text}
-            </p>
           )}
         </div>
-        {recent.isLoading && <p className="text-muted">Loading…</p>}
-        {recent.error && <p role="alert" className="stream-alerts__notice is-error">Could not load recent alerts: {String(recent.error)}</p>}
-        {!recent.isLoading && !recent.error && alerts.length === 0 && <p className="text-muted">No alerts yet. Send a test above.</p>}
-        {alerts.length > 0 && (
-          <div className="stream-alerts__table">
-            <table>
-              <thead>
-                <tr><th>When</th><th>Alert</th><th>Name</th><th>Detail</th><th>Message</th><th><span className="visually-hidden">Actions</span></th></tr>
-              </thead>
-              <tbody>
-                {alerts.map((alert) => (
-                  <tr key={alert.cursor ?? alert.id}>
-                    <td>{new Date(alert.created * 1000).toLocaleString()}</td>
-                    <td>
-                      {KIND_BY_TYPE.get(alert.type)?.label ?? alert.type}
-                      {alert.test && <em>test</em>}
-                      {alert.sandbox && <em>sandbox</em>}
-                      {alert.replay_of && <em>replay</em>}
-                    </td>
-                    <td>{alert.name}</td>
-                    <td>{describe(alert)}</td>
-                    <td className="stream-alerts__message">{alert.message}</td>
-                    <td className="stream-alerts__actions">
-                      <button type="button" onClick={() => playInPreview(alert.type, overlayOptions(alert, alert.test))}>Preview</button>
-                      <button type="button" disabled={replay.isPending} onClick={() => replay.mutate(alert.id)}>Replay in OBS</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <p className="stream-alerts__hint">
+          This only tidies this list. It does not change anything in OBS or Stripe. Cleared donations can no longer be replayed.
+        </p>
+        {recentNotice && (
+          <p className={`stream-alerts__notice is-${recentNotice.tone}`} role={recentNotice.tone === 'error' ? 'alert' : 'status'}>
+            {recentNotice.text}
+          </p>
         )}
-      </section>
-    </div>
+      </div>
+      {notice && (
+        <p className={`stream-alerts__notice is-${notice.tone}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</p>
+      )}
+      {recent.isLoading && <p className="text-muted">Loading…</p>}
+      {recent.error && <p role="alert" className="stream-alerts__notice is-error">Could not load recent alerts: {String(recent.error)}</p>}
+      {!recent.isLoading && !recent.error && alerts.length === 0 && <p className="text-muted">No alerts yet. Send one from the Test menu.</p>}
+      {alerts.length > 0 && (
+        <div className="stream-alerts__table">
+          <table>
+            <thead>
+              <tr><th>When</th><th>Alert</th><th>Name</th><th>Detail</th><th>Message</th><th><span className="visually-hidden">Actions</span></th></tr>
+            </thead>
+            <tbody>
+              {alerts.map((alert) => (
+                <tr key={alert.cursor ?? alert.id} className={alert.moderation === 'pending' ? 'is-held' : ''}>
+                  <td>{new Date(alert.created * 1000).toLocaleString()}</td>
+                  <td>
+                    {kindLabel(alert.type)}
+                    {alert.test && <em>test</em>}
+                    {alert.sandbox && <em>sandbox</em>}
+                    {alert.replay_of && <em>replay</em>}
+                    {alert.moderation && <em className={`is-${alert.moderation}`}>{MODERATION_TEXT[alert.moderation] ?? alert.moderation}</em>}
+                  </td>
+                  <td>{alert.name}</td>
+                  <td>{describe(alert)}</td>
+                  <td className="stream-alerts__message">{alert.message}</td>
+                  <td className="stream-alerts__actions">
+                    {alert.moderation === 'pending' && (
+                      <>
+                        <button
+                          type="button"
+                          className="is-primary"
+                          disabled={moderate.isPending}
+                          aria-label={`Approve the ${kindLabel(alert.type).toLowerCase()} from ${alert.name}`}
+                          onClick={() => moderate.mutate({ id: alert.id, decision: 'approve' })}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          className="is-on"
+                          disabled={moderate.isPending}
+                          aria-label={`Block the ${kindLabel(alert.type).toLowerCase()} from ${alert.name}`}
+                          onClick={() => moderate.mutate({ id: alert.id, decision: 'block' })}
+                        >
+                          Block
+                        </button>
+                      </>
+                    )}
+                    <button type="button" onClick={() => previewAlert(alert)}>Preview</button>
+                    <button type="button" disabled={replay.isPending} onClick={() => replay.mutate(alert.id)}>Replay in OBS</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 };

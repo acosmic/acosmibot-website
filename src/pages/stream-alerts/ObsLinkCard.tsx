@@ -28,7 +28,11 @@ async function copyText(text: Promise<string>): Promise<void> {
  * Copy, lives in this component's state only while it is shown, and never goes through
  * React Query (queries and mutations both keep their results) or the console.
  */
-export const ObsLinkCard: React.FC<{ account: StreamAlertAccount }> = ({ account }) => {
+export const ObsLinkCard: React.FC<{
+  account: StreamAlertAccount;
+  /** The top bar's form: one row, with the OBS steps folded away. */
+  compact?: boolean;
+}> = ({ account, compact = false }) => {
   const [shownUrl, setShownUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState<'show' | 'copy' | 'regenerate' | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -109,11 +113,30 @@ export const ObsLinkCard: React.FC<{ account: StreamAlertAccount }> = ({ account
     }
   };
 
+  const steps = (
+    <>
+        <div className="stream-accounts__steps">
+          <strong>Add it to OBS</strong>
+          <ol>
+            <li>In OBS, add a source and choose Browser.</li>
+            <li>Paste your link into the URL box.</li>
+            <li>Set Width to 1920 and Height to 1080, then choose OK.</li>
+          </ol>
+        </div>
+
+        {account.legacy_overlay && (
+          <p className="stream-accounts__aside">
+            The overlay already installed in your OBS keeps working as it is. You only need this link if you want to move OBS to the hosted overlay.
+          </p>
+        )}
+    </>
+  );
+
   return (
-    <section className="stream-accounts__card" aria-labelledby="stream-obs-link-title">
+    <section className={compact ? 'stream-box__obs' : 'stream-accounts__card'} aria-labelledby="stream-obs-link-title">
       <div className="stream-accounts__card-head">
         <h3 id="stream-obs-link-title">OBS link</h3>
-        <p>Your private link. OBS shows your alerts when a Browser source loads it.</p>
+        {!compact && <p>Your private link. OBS shows your alerts when a Browser source loads it.</p>}
       </div>
 
       {shownUrl === null ? (
@@ -176,20 +199,12 @@ export const ObsLinkCard: React.FC<{ account: StreamAlertAccount }> = ({ account
         </p>
       )}
 
-      <div className="stream-accounts__steps">
-        <strong>Add it to OBS</strong>
-        <ol>
-          <li>In OBS, add a source and choose Browser.</li>
-          <li>Paste your link into the URL box.</li>
-          <li>Set Width to 1920 and Height to 1080, then choose OK.</li>
-        </ol>
-      </div>
-
-      {account.legacy_overlay && (
-        <p className="stream-accounts__aside">
-          The overlay already installed in your OBS keeps working as it is. You only need this link if you want to move OBS to the hosted overlay.
-        </p>
-      )}
+      {compact ? (
+        <details className="stream-box__obs-help">
+          <summary>How to add it to OBS</summary>
+          {steps}
+        </details>
+      ) : steps}
     </section>
   );
 };
