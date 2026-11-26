@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, UploadOptions } from './client';
 
 export type StreamAlertType = 'donation' | 'follow' | 'sub' | 'resub' | 'gift' | 'cheer' | 'raid' | 'hypetrain';
 export type StreamAlertTier = '1000' | '2000' | '3000' | 'prime';
@@ -187,6 +187,116 @@ export interface StreamAlertOverlayUrl {
   url: string;
 }
 
+/* ---- Media library and alert designs ---- */
+
+export type StreamAlertAssetKind = 'video' | 'image' | 'sound' | 'font';
+export type StreamAlertAssetStatus = 'queued' | 'processing' | 'ready' | 'failed';
+
+/** One file in an account's media library. `url` is null until the file is `ready`. */
+export interface StreamAlertAsset {
+  id: number;
+  kind: StreamAlertAssetKind;
+  status: StreamAlertAssetStatus;
+  original_name: string;
+  url: string | null;
+  content_type: string | null;
+  bytes: number | null;
+  width: number | null;
+  height: number | null;
+  duration_ms: number | null;
+  has_alpha: boolean;
+  has_audio: boolean;
+  font_family: string | null;
+  /** A plain sentence for the streamer when the file could not be used. */
+  error: string | null;
+  created_at: string;
+  /** The alert kinds whose design uses this file. */
+  in_use: StreamAlertType[];
+}
+
+export interface StreamAlertAssetQuota {
+  used_bytes: number;
+  max_bytes: number;
+  count: number;
+  max_count: number;
+}
+
+export interface StreamAlertAssets {
+  success: boolean;
+  /** Newest first. */
+  assets: StreamAlertAsset[];
+  quota: StreamAlertAssetQuota;
+}
+
+export type StreamAlertTextAlign = 'left' | 'center' | 'right';
+export type StreamAlertTextEntrance = 'none' | 'fade' | 'typewriter';
+export type StreamAlertTextFit = 'shrink' | 'none';
+
+/** A text box drawn on the alert's media. Position and size are fractions of the media box. */
+export interface StreamAlertDesignText {
+  template: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** A font from the shared list, or "asset:<id>" for an uploaded font. */
+  font: string;
+  /** Pixels at the media's own size. */
+  size: number;
+  color: string;
+  weight: 400 | 700;
+  italic: boolean;
+  align: StreamAlertTextAlign;
+  shadow: boolean;
+  appear_ms: number;
+  /** null: shown until the alert ends. */
+  disappear_ms: number | null;
+  entrance: StreamAlertTextEntrance;
+  fit: StreamAlertTextFit;
+}
+
+/** What `PUT /designs/<kind>` takes. `x` and `y` are the centre of the alert on the 1920x1080 screen. */
+export interface StreamAlertDesign {
+  video: number | null;
+  image: number | null;
+  sound: number | null;
+  duration_ms: number;
+  x: number;
+  y: number;
+  scale: number;
+  volume: number;
+  texts: StreamAlertDesignText[];
+}
+
+/** What the overlay is told about a media file in a resolved design. */
+export interface StreamAlertMediaFacts {
+  url: string;
+  width?: number | null;
+  height?: number | null;
+  duration_ms?: number | null;
+  has_audio?: boolean;
+  has_alpha?: boolean;
+}
+
+/** A design with asset ids replaced by facts, as the overlay and the preview get it. */
+export interface StreamAlertResolvedDesign extends Omit<StreamAlertDesign, 'video' | 'image' | 'sound'> {
+  video: StreamAlertMediaFacts | null;
+  image: StreamAlertMediaFacts | null;
+  sound: StreamAlertMediaFacts | null;
+  fonts: { family: string; url: string }[];
+}
+
+export interface StreamAlertDesigns {
+  success: boolean;
+  designs: Partial<Record<StreamAlertType, StreamAlertDesign>>;
+  resolved: Partial<Record<StreamAlertType, StreamAlertResolvedDesign>>;
+  /** The font names a text box may use (besides uploaded fonts). */
+  fonts: string[];
+  /** The variables each kind's templates may use. */
+  variables: Partial<Record<StreamAlertType, string[]>>;
+  kinds: StreamAlertType[];
+}
+
 const BASE = '/api/stream-alerts';
 const account = (accountId: number) => `${BASE}/accounts/${accountId}`;
 
@@ -293,4 +403,35 @@ export const streamAlertsApi = {
       method: 'POST',
       body: JSON.stringify({ effect }),
     }),
+  /** Sends one file to the media library. The API answers once it has the file; converting it happens afterwards. */
+  uploadAsset: (accountId: number, file: File, removeBlack: boolean, options?: UploadOptions) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (removeBlack) form.append('remove_black', '1');
+    return api.upload<{ success: boolean; asset: StreamAlertAsset }>(`${account(accountId)}/assets`, form, options);
+  },
+
+  getAssets: (accountId: number) =>
+    api.fetch<StreamAlertAssets>(`${account(accountId)}/assets`),
+
+  getAsset: (accountId: number, assetId: number) =>
+    api.fetch<{ success: boolean; asset: StreamAlertAsset }>(`${account(accountId)}/assets/${assetId}`),
+
+  /** Refused with 409 while an alert design uses the file. */
+  deleteAsset: (accountId: number, assetId: number) =>
+    api.fetch<{ success: boolean }>(`${account(accountId)}/assets/${assetId}`, { method: 'DELETE' }),
+
+  getDesigns: (accountId: number) =>
+    api.fetch<StreamAlertDesigns>(`${account(accountId)}/designs`),
+
+  /** A 400 carries `field`, the path of the part of the design it is about. */
+  saveDesign: (accountId: number, kind: StreamAlertType, design: StreamAlertDesign) =>
+    api.fetch<{ success: boolean; design: StreamAlertDesign; resolved: StreamAlertResolvedDesign | null }>(`${account(accountId)}/designs/${kind}`, {
+      method: 'PUT',
+      body: JSON.stringify(design),
+    }),
+
+  /** That kind goes back to the built-in card. */
+  resetDesign: (accountId: number, kind: StreamAlertType) =>
+    api.fetch<{ success: boolean }>(`${account(accountId)}/designs/${kind}`, { method: 'DELETE' }),
 };

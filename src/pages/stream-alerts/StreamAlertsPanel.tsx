@@ -15,6 +15,7 @@ import {
   StreamEffectName,
 } from '@/api/streamAlerts';
 import { ownerPossessive } from '@/utils/streamAlertAccounts';
+import type { DesignPreviewResult, PreviewDesigns, PreviewHandle } from './previewHandle';
 import './StreamAlertsPanel.css';
 
 /** What the overlay page exposes on its window (stream-overlays/acosmic-kit/obs/effects/effects.html). */
@@ -27,6 +28,8 @@ interface OverlayWindow extends Window {
     clear?: () => number;
     stopEffects?: () => void;
     queue?: () => PreviewQueue;
+    /** Custom alert designs (phase 4 copies only). Resolves once their media has loaded or failed. */
+    applyDesigns?: (designs: PreviewDesigns) => unknown;
   };
 }
 
@@ -141,7 +144,11 @@ function overlayOptions(alert: Pick<StreamAlert, 'name' | 'message' | 'value' | 
  * Controls, preview, tests and the recent list for one account. The page mounts it with
  * `key={account.id}`, so nothing typed or shown for one account carries over to another.
  */
-export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ account }) => {
+export const StreamAlertsPanel: React.FC<{
+  account: StreamAlertAccount;
+  /** Filled in by the panel so the alert designer can play designs in this preview. */
+  previewRef?: React.MutableRefObject<PreviewHandle | null>;
+}> = ({ account, previewRef }) => {
   const queryClient = useQueryClient();
   const accountId = account.id;
   const statusKey = ['stream-alerts', accountId, 'status'];
@@ -163,6 +170,12 @@ export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ a
   const [previewQueue, setPreviewQueue] = useState<PreviewQueue | null>(null);
   const [flooding, setFlooding] = useState(false);
   const floodTimer = useRef<number | null>(null);
+  /** The saved designs, given by the designer. The preview frame gets them whenever it loads. */
+  const savedDesigns = useRef<PreviewDesigns | null>(null);
+  /** True after a designer preview put unsaved designs in the frame; the next plain preview puts the saved ones back. */
+  const draftInFrame = useRef(false);
+  const [designNote, setDesignNote] = useState<{ label: string; onBack: () => void } | null>(null);
+  const stageRef = useRef<HTMLElement>(null);
 
   const status = useQuery({
     queryKey: statusKey,
@@ -236,16 +249,58 @@ export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ a
     }
   }, []);
 
-  const playInPreview = useCallback((effect: string, options: Record<string, unknown>) => {
+  /** Puts the saved designs into the preview frame, when its overlay copy can take them. */
+  const applySavedDesigns = useCallback(async () => {
+    const fx = overlayFX();
+    if (!savedDesigns.current || typeof fx?.applyDesigns !== 'function') return;
+    try {
+      await fx.applyDesigns(savedDesigns.current);
+      draftInFrame.current = false;
+    } catch {
+      /* the preview falls back to the built-in cards */
+    }
+  }, [overlayFX]);
+
+  const playInPreview = useCallback(async (effect: string, options: Record<string, unknown>) => {
     const overlay = frameRef.current?.contentWindow as OverlayWindow | null | undefined;
     if (!overlay?.AcosmicFX) {
       setNotice({ tone: 'error', text: 'The preview is still loading. Try again in a moment.' });
       return;
     }
+    setDesignNote(null);
+    // After a designer preview of unsaved changes, the alerts here show the saved designs again.
+    if (draftInFrame.current) await applySavedDesigns();
     // A new preview replaces the last one instead of waiting behind it.
     stopPreview();
     overlay.AcosmicFX.fire(effect, options);
-  }, [stopPreview]);
+  }, [applySavedDesigns, stopPreview]);
+
+  useEffect(() => {
+    if (!previewRef) return undefined;
+    previewRef.current = {
+      setSavedDesigns: (designs) => {
+        savedDesigns.current = designs;
+        void applySavedDesigns();
+      },
+      playDesign: async (designs, kind, options, from): Promise<DesignPreviewResult> => {
+        const fx = overlayFX();
+        if (!fx) return 'loading';
+        if (typeof fx.applyDesigns !== 'function') return 'unsupported';
+        stopPreview();
+        try {
+          await fx.applyDesigns(designs);
+          draftInFrame.current = true;
+          fx.fire(kind, options);
+        } catch {
+          return 'failed';
+        }
+        setDesignNote(from);
+        stageRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        return 'played';
+      },
+    };
+    return () => { previewRef.current = null; };
+  }, [applySavedDesigns, overlayFX, previewRef, stopPreview]);
 
   const previewKind = (kind: AlertKind) => {
     const input = buildInput(kind);
@@ -505,7 +560,7 @@ export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ a
       </section>
 
       <div className="stream-alerts__layout">
-        <section className="stream-alerts__stage" aria-label="Overlay preview">
+        <section className="stream-alerts__stage" aria-label="Overlay preview" ref={stageRef}>
           <div className="stream-alerts__screen">
             <span className="stream-alerts__scene-label">Preview of your stream (1920 × 1080)</span>
             <span className="stream-alerts__cam">Camera</span>
@@ -513,8 +568,17 @@ export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ a
               ref={frameRef}
               title="Stream overlay preview"
               src="/stream-overlay/effects.html?offline=1"
+              onLoad={() => { void applySavedDesigns(); }}
             />
           </div>
+          {designNote && (
+            <div className="stream-alerts__design-note" role="status">
+              <span>Playing your {designNote.label} design from the designer below, with your sample values.</span>
+              <button type="button" onClick={() => { const back = designNote.onBack; setDesignNote(null); back(); }}>
+                Back to the designer
+              </button>
+            </div>
+          )}
           {previewQueue && (
             <p className="stream-alerts__queue" aria-live="off">
               Preview queue: {previewQueue.waiting} waiting{previewQueue.flood ? ' · counting follows only' : ''}

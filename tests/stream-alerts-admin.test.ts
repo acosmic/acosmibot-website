@@ -28,7 +28,7 @@ test('stream alerts is its own page at /admin/stream-alerts, behind the super ad
   // The gate sits inside the signed-in routes, so a signed-out visitor never reaches it.
   assert.ok(app.indexOf('<Route element={<RequireAuth />}>') < app.indexOf('<Route element={<RequireSuperAdmin />}>'));
   assert.match(page, /<div className="admin-surface">\s*<StreamAlertsWorkspace \/>/);
-  assert.match(workspace, /<StreamAlertsPanel key=\{selected\.id\} account=\{selected\} \/>/);
+  assert.match(workspace, /<StreamAlertsPanel key=\{selected\.id\} account=\{selected\} previewRef=\{previewRef\} \/>/);
   assert.match(page, /to="\/admin"/);
 });
 
@@ -86,7 +86,7 @@ test('dashboard calls go through the stream alert accounts API, on the selected 
   assert.match(api, /deleteAccount: \(accountId: number\) =>[\s\S]*?account\(accountId\), \{ method: 'DELETE' \}/);
   // Every function for a route under an account takes the account id first.
   const functions = [...api.matchAll(/^  (\w+): \(([^)]*)\)/gm)].map((match) => [match[1], match[2]]);
-  assert.equal(functions.length, 22);
+  assert.equal(functions.length, 29);
   for (const [name, args] of functions) {
     if (name === 'getMe' || name === 'createAccount') assert.equal(args, '', name);
     else assert.match(args, /^accountId: number/, name);
@@ -243,7 +243,7 @@ test('owner-only cards are gated on the owner role, and an editor is told whose 
 
 test('everything shown for an account is keyed to it, so switching cannot carry anything over', () => {
   // The panel and the owner cards remount per account: notices, typed limits and a shown link go with them.
-  assert.match(workspace, /<StreamAlertsPanel key=\{selected\.id\} account=\{selected\} \/>/);
+  assert.match(workspace, /<StreamAlertsPanel key=\{selected\.id\} account=\{selected\} previewRef=\{previewRef\} \/>/);
   assert.match(workspace, /className="stream-accounts__cards" key=\{selected\.id\}/);
   assert.match(tab, /const accountId = account\.id;/);
   assert.match(tab, /const statusKey = \['stream-alerts', accountId, 'status'\];/);
@@ -253,7 +253,7 @@ test('everything shown for an account is keyed to it, so switching cannot carry 
   for (const source of [workspace, tab, editorsCard, twitchCard, rewardsCard]) {
     const keys = [...source.matchAll(/queryKey: ([^,}\s]+)/g)].map((match) => match[1]);
     assert.ok(keys.length > 0);
-    for (const key of keys) assert.match(key, /^(ME_KEY|statusKey|recentKey|editorsKey|twitchKey|rewardsKey)$/);
+    for (const key of keys) assert.match(key, /^(ME_KEY|statusKey|recentKey|editorsKey|twitchKey|rewardsKey|assetsKey|designsKey)$/);
   }
   assert.match(tab, /queryClient\.setQueryData<StreamAlertStatus>\(statusKey, /);
   assert.doesNotMatch(tab, /\['admin', 'stream-alerts'/);
@@ -509,7 +509,7 @@ test('Twitch state, rewards and their messages belong to one account', () => {
   assert.match(rewardsCard, /queryKey: rewardsKey,\s*queryFn: \(\) => streamAlertsApi\.getRewards\(accountId\),[\s\S]*?gcTime: 0,/);
   // The message from Twitch is tied to the account it was about and dropped when the account is switched.
   assert.match(workspace, /arrival=\{twitchArrival\?\.accountId === selected\.id \? twitchArrival\.result : null\}/);
-  assert.match(workspace, /const selectAccount = \(id: number\) => \{\s*setLinkMissed\(false\);[\s\S]*?setTwitchArrival\(null\);\s*writeAccountParam\(id\);/);
+  assert.match(workspace, /const switchAccount = \(id: number\) => \{\s*setPendingAccount\(null\);\s*setUnsavedDesign\(null\);\s*setLinkMissed\(false\);[\s\S]*?setTwitchArrival\(null\);\s*writeAccountParam\(id\);/);
 });
 
 test('the recent alerts intro says where real Twitch alerts stand', () => {
@@ -533,4 +533,177 @@ test('the Twitch and rewards cards keep touch targets, focus rings and narrow sc
   assert.match(accountsCss, /@container stream-accounts \(min-width: 900px\) \{\s*\.stream-accounts__cards\.is-twitch \{ grid-template-columns:/);
   assert.match(accountsCss, /\.stream-accounts__cards > :only-child \{ grid-column: 1 \/ -1; \}/);
   assert.match(accountsCss, /\.stream-rewards__name strong \{[^}]*overflow-wrap: anywhere;/);
+});
+
+/* ---- Media library and alert designs ---- */
+
+const mediaCard = read('src/pages/stream-alerts/MediaLibraryCard.tsx');
+const designsCard = read('src/pages/stream-alerts/AlertDesignsCard.tsx');
+const stage = read('src/pages/stream-alerts/DesignStage.tsx');
+const props = read('src/pages/stream-alerts/TextBoxProperties.tsx');
+const previewHandle = read('src/pages/stream-alerts/previewHandle.ts');
+const designFonts = read('src/pages/stream-alerts/designFonts.ts');
+const designUtils = read('src/utils/streamAlertDesigns.ts');
+const designsCss = read('src/pages/stream-alerts/StreamAlertDesigns.css');
+const client = read('src/api/client.ts');
+
+test('the client has one function per media and design route, each on the selected account', () => {
+  assert.match(api, /uploadAsset: \(accountId: number, file: File, removeBlack: boolean, options\?: UploadOptions\) => \{[\s\S]*?form\.append\('file', file\);\s*if \(removeBlack\) form\.append\('remove_black', '1'\);\s*return api\.upload<\{ success: boolean; asset: StreamAlertAsset \}>\(`\$\{account\(accountId\)\}\/assets`, form, options\);/);
+  assert.match(api, /getAssets: \(accountId: number\) =>\s*api\.fetch<StreamAlertAssets>\(`\$\{account\(accountId\)\}\/assets`\)/);
+  assert.match(api, /getAsset: \(accountId: number, assetId: number\) =>\s*api\.fetch<[^>]+>\(`\$\{account\(accountId\)\}\/assets\/\$\{assetId\}`\)/);
+  assert.match(api, /deleteAsset: \(accountId: number, assetId: number\) =>\s*api\.fetch<\{ success: boolean \}>\(`\$\{account\(accountId\)\}\/assets\/\$\{assetId\}`, \{ method: 'DELETE' \}\)/);
+  assert.match(api, /getDesigns: \(accountId: number\) =>\s*api\.fetch<StreamAlertDesigns>\(`\$\{account\(accountId\)\}\/designs`\)/);
+  assert.match(api, /saveDesign: \(accountId: number, kind: StreamAlertType, design: StreamAlertDesign\) =>[\s\S]*?`\$\{account\(accountId\)\}\/designs\/\$\{kind\}`, \{\s*method: 'PUT',\s*body: JSON\.stringify\(design\)/);
+  assert.match(api, /resetDesign: \(accountId: number, kind: StreamAlertType\) =>\s*api\.fetch<\{ success: boolean \}>\(`\$\{account\(accountId\)\}\/designs\/\$\{kind\}`, \{ method: 'DELETE' \}\)/);
+  // The asset object and the design follow the contract's names.
+  for (const field of ['original_name: string;', 'url: string | null;', 'duration_ms: number | null;', 'has_alpha: boolean;', 'has_audio: boolean;', 'font_family: string | null;', 'error: string | null;', 'in_use: StreamAlertType[];',
+    'appear_ms: number;', 'disappear_ms: number | null;', "entrance: StreamAlertTextEntrance;", "fit: StreamAlertTextFit;", 'weight: 400 | 700;', 'fonts: { family: string; url: string }[];']) {
+    assert.ok(api.includes(field), field);
+  }
+});
+
+test('uploads report progress and send the session cookie like every other call', () => {
+  assert.match(client, /function apiUpload<T>\(path: string, form: FormData, options: UploadOptions = \{\}\): Promise<T>/);
+  assert.match(client, /const xhr = new XMLHttpRequest\(\);\s*xhr\.open\('POST', url\);\s*xhr\.withCredentials = true;/);
+  assert.match(client, /xhr\.upload\.onprogress = /);
+  assert.match(client, /if \(xhr\.status === 401\) clearExpiredSession\(\);/);
+  // No Content-Type header: the browser sets the multipart boundary itself.
+  assert.doesNotMatch(client.slice(client.indexOf('function apiUpload')), /setRequestHeader/);
+  assert.match(client, /export const api = \{ fetch: apiFetch, upload: apiUpload \};/);
+  // A refusal keeps its status and body, so a 400 can point at its `field`, while the message reads as before.
+  assert.match(client, /throw new ApiError\(reason \?\? `API error \$\{response\.status\}`, response\.status,/);
+  assert.doesNotMatch(client, /this\.name = /);
+});
+
+test('editors get the media library and the designer too, keyed to the account', () => {
+  assert.match(workspace, /<div className="stream-accounts stream-designs-area" key=\{`designs-\$\{selected\.id\}`\}>\s*<MediaLibraryCard account=\{selected\} \/>\s*<AlertDesignsCard account=\{selected\} preview=\{previewRef\} onDirtyChange=\{setUnsavedDesign\} \/>/);
+  // Not behind the owner check.
+  const ownerBlock = workspace.slice(workspace.indexOf('{isOwner && ('), workspace.indexOf('</div>', workspace.indexOf('<EditorsCard ')));
+  assert.doesNotMatch(ownerBlock, /MediaLibraryCard|AlertDesignsCard/);
+  assert.doesNotMatch(mediaCard + designsCard, /role === 'owner' \?\? |isOwner &&/);
+  for (const source of [mediaCard, designsCard]) {
+    assert.match(source, /const accountId = account\.id;/);
+    const keys = [...source.matchAll(/queryKey: ([^,}\s]+)/g)].map((match) => match[1]);
+    assert.ok(keys.length > 0);
+    for (const key of keys) assert.match(key, /^(assetsKey|designsKey)$/);
+  }
+  assert.match(designUtils, /export const assetsQueryKey = \(accountId: number\) => \['stream-alerts', accountId, 'assets'\] as const;/);
+  assert.match(designUtils, /export const designsQueryKey = \(accountId: number\) => \['stream-alerts', accountId, 'designs'\] as const;/);
+});
+
+test('the media library polls every 3 seconds only while a file is converting', () => {
+  assert.match(mediaCard, /const POLL_MS = 3_000;/);
+  assert.match(mediaCard, /refetchInterval: \(query\) => \(assetsWaiting\(query\.state\.data\?\.assets\) \? POLL_MS : false\)/);
+  assert.match(mediaCard, /streamAlertsApi\.uploadAsset\(accountId, file, removeBlack && canRemoveBlack\(file\), \{\s*onProgress:/);
+  assert.match(mediaCard, /<progress max=\{100\}/);
+  assert.match(mediaCard, /onDrop=\{\(event\) => \{ event\.preventDefault\(\); setDragging\(false\); send\(event\.dataTransfer\.files\); \}\}/);
+  assert.match(mediaCard, /if \(file\.size > MAX_UPLOAD_BYTES\)/);
+  for (const text of ['Remove black background (videos and pictures)', 'It can also eat very dark parts of the picture.',
+    'export it from After Effects as QuickTime, Apple ProRes 4444, RGB + Alpha', 'Yes, delete', 'Cancel']) {
+    assert.ok(mediaCard.includes(text), text);
+  }
+  assert.ok(designUtils.includes("'Converting…'"));
+  // Delete runs only from its in-page confirm step, and a refusal (the in-use 409) shows inside it.
+  const confirm = mediaCard.slice(mediaCard.indexOf('{confirming && ('), mediaCard.indexOf('</li>'));
+  assert.match(confirm, /onClick=\{\(\) => remove\.mutate\(\)\}/);
+  assert.match(confirm, /\{refusal && <p className="stream-accounts__notice is-error" role="alert">\{refusal\}<\/p>\}/);
+  assert.equal(mediaCard.match(/remove\.mutate\(/g)?.length, 1);
+});
+
+test('the designer has a tab per kind, Save, Discard, Preview, Send to OBS and the built-in reset behind a confirm', () => {
+  assert.match(designsCard, /role="tablist" aria-label="Alert kind"/);
+  assert.match(designsCard, /role="tab"/);
+  for (const text of ['Custom', 'Built-in', 'Make a custom design', 'Discard changes', 'Preview', 'Send to OBS', 'Use the built-in card',
+    'Yes, use the built-in card', 'Discard changes and switch', 'Keep editing', 'Sample values for the preview',
+    'Custom alerts play on the OBS link (the hosted overlay)', 'keeps the built-in look until OBS is moved to the OBS link']) {
+    assert.ok(designsCard.includes(text), text);
+  }
+  assert.match(designsCard, /\{account\.legacy_overlay && \(/);
+  assert.equal(designsCard.match(/reset\.mutate\(/g)?.length, 1);
+  const confirm = designsCard.slice(designsCard.indexOf('{confirmReset && base && ('), designsCard.indexOf('{generalProblem &&'));
+  assert.match(confirm, /onClick=\{\(\) => reset\.mutate\(kind\)\}/);
+  assert.match(confirm, /autoFocus disabled=\{reset\.isPending\} onClick=\{\(\) => setConfirmReset\(false\)\}>Cancel</);
+  // Send to OBS uses the existing test route, which plays the saved design.
+  assert.match(designsCard, /streamAlertsApi\.fireAlert\(accountId, sampleTestInput\(kind, samples\)\)/);
+  assert.match(designsCard, /streamAlertsApi\.saveDesign\(accountId, input\.kind, input\.design\)/);
+  assert.match(designsCard, /streamAlertsApi\.resetDesign\(accountId, kindReset\)/);
+});
+
+test('unsaved changes are never lost silently: switching kind or account asks in the page first', () => {
+  assert.match(designsCard, /if \(dirty\) \{ setPendingKind\(next\); return; \}/);
+  assert.match(designsCard, /useEffect\(\(\) => \{ onDirtyChange\(dirty \? KIND_LABELS\[kind\] : null\); \}, \[dirty, kind, onDirtyChange\]\);/);
+  assert.match(designsCard, /window\.addEventListener\('beforeunload', warn\);/);
+  assert.match(workspace, /if \(unsavedDesign && id !== selected\?\.id\) \{\s*setPendingAccount\(id\);\s*return;\s*\}/);
+  assert.match(workspace, /onClick=\{\(\) => switchAccount\(pendingAccount\)\}>Discard changes and switch</);
+  for (const source of [workspace, mediaCard, designsCard, stage, props, tab]) assert.doesNotMatch(source, /window\.confirm|\bconfirm\(|\balert\(|\bprompt\(/);
+});
+
+test('a save refusal is shown beside the field the API names', () => {
+  assert.match(designsCard, /const field = normalizeField\(error instanceof ApiError \? error\.body\.field : null\) \?\? '';/);
+  assert.match(designsCard, /setServerProblem\(\{ field, error: plainError\(error\) \}\);/);
+  assert.match(designsCard, /if \(serverProblem\?\.field === field\) return serverProblem\.error;/);
+  assert.match(designsCard, /problem=\{\(name\) => problemFor\(`texts\.\$\{selected\}\.\$\{name\}`\)\}/);
+  for (const field of ['video', 'sound', 'duration_ms', 'scale', 'volume', 'texts']) assert.ok(designsCard.includes(`problemFor('${field}')`), field);
+  for (const field of ['template', 'font', 'size', 'color', 'appear_ms', 'disappear_ms']) assert.ok(props.includes(`problem('${field}')`), field);
+  assert.match(props, /role="alert"/);
+});
+
+test('the stage drags with pointer events, nudges with the arrow keys and resizes from a corner handle', () => {
+  assert.match(stage, /setPointerCapture\(event\.pointerId\)/);
+  assert.match(stage, /onPointerMove=\{onPointerMove\}/);
+  assert.match(stage, /onPointerDown=\{\(event\) => startDrag\(event, 'media'\)\}\s*onKeyDown=\{keyMedia\}/);
+  assert.match(stage, /onPointerDown=\{\(event\) => startDrag\(event, 'resize', index\)\}\s*onKeyDown=\{\(event\) => keyBox\(event, index, 'resize'\)\}/);
+  assert.match(stage, /moveMedia\(current\.start, screenToStage\(dx, scale\), screenToStage\(dy, scale\)\)/);
+  assert.match(stage, /const visible = boxVisibleAt\(text, time\);/);
+  assert.match(stage, /fillTemplate\(text\.template, values\)/);
+  // The template is drawn as text, never as HTML.
+  assert.doesNotMatch(stage + props + designsCard, /dangerouslySetInnerHTML|innerHTML/);
+  // The timeline seeks the real video and marks each box's appear and disappear time.
+  assert.match(stage, /element\.currentTime = target;/);
+  assert.match(stage, /stream-timeline__marker is-\$\{marker\.kind\}/);
+  assert.match(props, /set\(\{ appear_ms: Math\.round\(time\) \}\)/);
+  assert.match(props, /set\(\{ disappear_ms: Math\.round\(time\) \}\)/);
+});
+
+test('the properties panel offers only the kind variables as chips and the shared font list', () => {
+  assert.match(props, /\{variables\.map\(\(name\) => \(/);
+  assert.match(designsCard, /const variables = variablesFor\(kind, data\?\.variables\?\.\[kind\]\);/);
+  assert.match(props, /insertAtCursor\(text\.template, input\?\.selectionStart \?\? null, input\?\.selectionEnd \?\? null, `\{\$\{name\}\}`\)/);
+  assert.match(props, /templateProblem\(text\.template, kind, variables\)/);
+  assert.match(props, /style=\{\{ fontFamily: fontCss\(font\) \}\}/);
+  assert.match(props, /value=\{`asset:\$\{asset\.id\}`\}/);
+  assert.match(designsCard, /const fonts = data\?\.fonts\?\.length \? data\.fonts : DESIGN_FONTS;/);
+  assert.match(designFonts, /googleFontsHref\(fonts\)/);
+  assert.match(designFonts, /new FontFace\(family, /);
+});
+
+test('Preview plays the draft through the panel preview frame, and says so when its overlay copy is too old', () => {
+  assert.match(designsCard, /const resolved = resolveDraft\(draft, assets\);/);
+  assert.match(designsCard, /saved\[kind\] = resolved;/);
+  assert.match(designsCard, /handle\.playDesign\(saved, kind, sampleFireOptions\(kind, samples\),/);
+  assert.match(designsCard, /result === 'unsupported'/);
+  assert.ok(designsCard.includes('an older copy of the overlay that cannot show custom designs yet'));
+  assert.match(tab, /if \(typeof fx\.applyDesigns !== 'function'\) return 'unsupported';/);
+  assert.match(tab, /await fx\.applyDesigns\(designs\);\s*draftInFrame\.current = true;\s*fx\.fire\(kind, options\);/);
+  // The frame keeps the saved designs (also after it reloads), so the panel's own previews look like OBS.
+  assert.match(tab, /onLoad=\{\(\) => \{ void applySavedDesigns\(\); \}\}/);
+  assert.match(designsCard, /preview\.current\?\.setSavedDesigns\(data\.resolved \?\? \{\}\)/);
+  assert.match(previewHandle, /export interface PreviewHandle \{/);
+  assert.match(previewHandle, /'played' \| 'loading' \| 'unsupported' \| 'failed'/);
+});
+
+test('the media and design cards keep touch targets, focus rings and narrow screens in shape', () => {
+  assert.match(designsCss, /\.stream-stage__outer \{[^}]*overflow: auto;/);
+  assert.match(designsCss, /\.stream-designs \{ container: stream-designs \/ inline-size; \}/);
+  assert.match(designsCss, /@container stream-designs \(max-width: 520px\)/);
+  assert.match(designsCss, /\.stream-accounts \[tabindex\]:focus-visible \{ outline: 2px solid var\(--primary-color\)/);
+  assert.match(designsCss, /\.stream-props__colour input\[type="color"\] \{[^}]*width: 44px; height: 44px;/);
+  assert.match(designsCss, /\.stream-media__check, \.stream-props__check \{[^}]*min-height: 44px;/);
+  assert.match(designsCss, /\.stream-timeline__track input\[type="range"\] \{[^}]*min-height: 44px;/);
+  // Their buttons and inputs live inside .stream-accounts, so the 44px and focus rules of the account area apply.
+  assert.match(workspace, /className="stream-accounts stream-designs-area"/);
+});
+
+test('the new media and design wording uses no em dashes', () => {
+  for (const source of [mediaCard, designsCard, stage, props, designUtils, previewHandle, workspace]) assert.doesNotMatch(source, /—/);
 });
