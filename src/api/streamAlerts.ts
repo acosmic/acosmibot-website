@@ -18,6 +18,8 @@ export interface StreamAlert {
   amount_minor?: number;
   amount_display?: string;
   replay_of?: string;
+  /** Set on an alert that came from the connected Twitch channel rather than a test or a donation. */
+  source?: 'twitch';
 }
 
 export interface StreamAlertTestInput {
@@ -82,6 +84,16 @@ export interface StreamAlertsMe {
   accounts: StreamAlertAccount[];
 }
 
+/** `reauth_required`: Twitch took the permission back, so the owner has to connect again. */
+export type StreamAlertTwitchLinkStatus = 'connected' | 'reauth_required';
+
+/** The Twitch channel an account is connected to, as the status route reports it. */
+export interface StreamAlertTwitchChannel {
+  login: string;
+  display_name: string;
+  status: StreamAlertTwitchLinkStatus;
+}
+
 export interface StreamAlertStatus {
   success: boolean;
   account: StreamAlertAccount;
@@ -90,6 +102,64 @@ export interface StreamAlertStatus {
   overlay_last_seen: number | null;
   types: StreamAlertType[];
   settings: StreamAlertSettings;
+  /** Null until the owner connects Twitch. An API from before Connect Twitch leaves it out. */
+  twitch?: StreamAlertTwitchChannel | null;
+}
+
+/** One kind of Twitch event the API listens for. `status` is Twitch's own word ("enabled" when it works) or "failed". */
+export interface StreamAlertTwitchSubscription {
+  type: string;
+  status: string;
+}
+
+export interface StreamAlertTwitchLink extends StreamAlertTwitchChannel {
+  missing_scopes: string[];
+  subscriptions: StreamAlertTwitchSubscription[];
+}
+
+export interface StreamAlertTwitchState {
+  success: boolean;
+  connected: boolean;
+  /** Where the owner's browser goes to connect. Null for an editor. A page address, never something to fetch. */
+  connect_url: string | null;
+  twitch: StreamAlertTwitchLink | null;
+}
+
+/** When a mapped reward plays its effect: as soon as a viewer redeems it, or once a moderator marks it done. */
+export type StreamRewardTrigger = 'redeemed' | 'fulfilled';
+
+export interface StreamRewardMapping {
+  effect: StreamEffectName;
+  on: StreamRewardTrigger;
+}
+
+/** What a reward should do from now on. `effect: null` means nothing. */
+export interface StreamRewardMappingInput {
+  effect: StreamEffectName | null;
+  on?: StreamRewardTrigger;
+}
+
+/** One channel point reward on the connected Twitch channel. */
+export interface StreamReward {
+  id: string;
+  title: string;
+  cost: number;
+  is_enabled: boolean;
+  is_paused: boolean;
+  /** True for a reward Acosmibot created. */
+  manageable: boolean;
+  mapping: StreamRewardMapping | null;
+}
+
+export interface StreamRewardEffectOption {
+  name: StreamEffectName;
+  label: string;
+}
+
+export interface StreamRewards {
+  success: boolean;
+  effects: StreamRewardEffectOption[];
+  rewards: StreamReward[];
 }
 
 export interface StreamAlertEditor {
@@ -194,4 +264,33 @@ export const streamAlertsApi = {
   /** Owner only. Removes the account, its editors and its waiting alerts. */
   deleteAccount: (accountId: number) =>
     api.fetch<{ success: boolean }>(account(accountId), { method: 'DELETE' }),
+
+  /** Whether Twitch is connected, and how. Connecting itself is a page visit to `connect_url`, not a call from here. */
+  getTwitch: (accountId: number) =>
+    api.fetch<StreamAlertTwitchState>(`${account(accountId)}/twitch`),
+
+  /** Owner only. Stops listening to the channel and forgets what its rewards were set to do. */
+  disconnectTwitch: (accountId: number) =>
+    api.fetch<{ success: boolean }>(`${account(accountId)}/twitch`, { method: 'DELETE' }),
+
+  /** Owner only. Sets up again the Twitch events that are missing or failed. */
+  resubscribeTwitch: (accountId: number) =>
+    api.fetch<{ success: boolean; subscriptions: StreamAlertTwitchSubscription[] }>(`${account(accountId)}/twitch/resubscribe`, { method: 'POST' }),
+
+  /** The channel's rewards, read from Twitch each time. Fails when Twitch is not connected or does not answer. */
+  getRewards: (accountId: number) =>
+    api.fetch<StreamRewards>(`${account(accountId)}/rewards`),
+
+  setRewardMapping: (accountId: number, rewardId: string, mapping: StreamRewardMappingInput) =>
+    api.fetch<{ success: boolean; mapping: StreamRewardMapping | null }>(`${account(accountId)}/rewards/${encodeURIComponent(rewardId)}`, {
+      method: 'PUT',
+      body: JSON.stringify(mapping),
+    }),
+
+  /** Owner only. Creates the standard reward for an effect on the Twitch channel and maps it. */
+  createReward: (accountId: number, effect: StreamEffectName) =>
+    api.fetch<{ success: boolean; reward: StreamReward }>(`${account(accountId)}/rewards`, {
+      method: 'POST',
+      body: JSON.stringify({ effect }),
+    }),
 };

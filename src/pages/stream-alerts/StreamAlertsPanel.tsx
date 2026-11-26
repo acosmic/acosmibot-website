@@ -393,6 +393,7 @@ export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ a
   const liveDisabled = control.isPending || !obsReady;
   const hasTestAlerts = alerts.some((alert) => alert.test || alert.sandbox);
   // The account that drives the overlay already installed in OBS keeps its source name; everyone else pasted a link.
+  const twitchConnected = status.data?.twitch?.status === 'connected';
   const reconnectHint = account.legacy_overlay
     ? 'Open OBS, or refresh the "Acosmic Effects" source.'
     : `Open OBS, or refresh the browser source that uses ${account.role === 'owner' ? 'your' : ownerPossessive(account.owner_username)} link.`;
@@ -630,9 +631,12 @@ export const StreamAlertsPanel: React.FC<{ account: StreamAlertAccount }> = ({ a
       <section className="stream-alerts__recent" aria-label="Recent alerts">
         <h3>Recent alerts</h3>
         <p className="text-muted">
-          {account.legacy_overlay
-            ? 'Donations and test alerts that went through the API, newest first. Channel point effects are not listed. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here yet.'
-            : 'Test alerts sent from this page, newest first. Channel point effects are not listed. Real donations and Twitch alerts are not connected to a hosted link yet.'}
+          {account.legacy_overlay && (twitchConnected
+            ? 'Donations, real Twitch alerts and test alerts, newest first. Channel point effects are not listed.'
+            : 'Donations and test alerts that went through the API, newest first. Channel point effects are not listed. Follows, subs, bits and raids go from Twitch straight to the overlay, so they are not listed here until Twitch is connected above.')}
+          {!account.legacy_overlay && (twitchConnected
+            ? 'Real Twitch alerts and test alerts sent from this page, newest first. Channel point effects are not listed. Real donations are not connected to a hosted link yet.'
+            : 'Test alerts sent from this page, newest first. Real Twitch alerts appear here too once Twitch is connected. Channel point effects are not listed. Real donations are not connected to a hosted link yet.')}
         </p>
         <div className="stream-alerts__recent-tools">
           <div className="stream-alerts__recent-buttons">

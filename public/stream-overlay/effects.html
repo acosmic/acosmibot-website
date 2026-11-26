@@ -92,9 +92,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function ease(p) { p = clamp(p, 0, 1); return p * p * (3 - 2 * p); }
   function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
-  function say(o, name) {
+  // name: the effect's own label. A redemption that came through the API carries the reward's title on Twitch (o.reward).
+  function say(o, name, extra) {
     if (!o.user) return;
-    toast.innerHTML = "<b>" + esc(o.user) + "</b> redeemed " + esc(name);
+    toast.innerHTML = "<b>" + esc(o.user) + "</b> redeemed " + esc((o.reward || name) + (extra || ""));
     toast.classList.add("on"); clearTimeout(toastT);
     toastT = setTimeout(function () { toast.classList.remove("on"); }, 2600);
   }
@@ -802,7 +803,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
         comboEl.textContent = storm ? "BOOP STORM" : "x" + combo;
         comboEl.animate([{ transform: "scale(1.5)" }, { transform: "scale(1)" }], { duration: 200 });
       }
-      say(o, storm ? "Boop (storm!)" : "Boop");
+      say(o, "Boop", storm ? " (storm!)" : "");
     },
     meteor: function (o) { say(o, "Meteor Shower"); SFX.meteor(); meteors(); },
     news: function (o) {
@@ -826,8 +827,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // ---- Twitch channel points -------------------------------------------------
   // Runs only when config.js (written by tools/twitch-setup.mjs, never committed) sits next to this file.
   // The page listens on Twitch's EventSub WebSocket and keeps its own token fresh; no server involved.
-  // The hosted overlay never reads the Twitch settings: its alerts come from the API.
-  var status = HOSTED ? "off (hosted overlay)" : "not connected to Twitch (no config.js)";
+  // The hosted overlay never reads the Twitch settings or talks to Twitch: once the channel is connected on the
+  // dashboard, the API receives its Twitch events and they arrive through the poll below.
+  var status = HOSTED ? "from the API (hosted overlay)" : "not connected to Twitch (no config.js)";
   function setStatus(s) { status = s; var el = document.getElementById("tw"); if (el) el.textContent = "Twitch: " + s; }
   var CFG = HOSTED ? null : window.ACOSMIC_FX_CONFIG;
   if (CFG && CFG.clientId && !q.get("offline")) twitch(CFG);
@@ -948,7 +950,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   function alertFeed(cfg) {
     var CKEY = "acosmic-fx-alert-cursor", STALE = 600, cursor = null, fails = 0, seenIds = [];
     var root = String(cfg.url).replace(/\/+$/, "") + "/api/stream-alerts/";
-    var base = root + "poll?wait=20" + (q.get("test") ? "&sandbox=1" : "");
+    // twitch=1 asks the API for the account's Twitch events as well. Hosted only: the installed copy listens to
+    // Twitch itself (twitch() above) and would show every event twice.
+    var base = root + "poll?wait=20" + (q.get("test") ? "&sandbox=1" : "") + (cfg.hosted ? "&twitch=1" : "");
     function readCursor() { try { cursor = localStorage.getItem(CKEY); } catch (e) {} }
     function req(signal) {
       var o = { headers: { Authorization: "Bearer " + cfg.key }, cache: "no-store", signal: signal };
@@ -998,14 +1002,22 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
               if (a.action === "skip") skipAlert(); else if (a.action === "clear") clearAlerts(); else if (a.action === "stop_effects") stopEffects();
               return;
             }
-            // An effect the owner sent from the dashboard: a live action, so only when fresh, and only a real effect.
+            // An effect the owner sent from the dashboard, or a channel point redemption the API received from Twitch
+            // (it carries the reward's title): a live action, so only when fresh, and only a real effect.
             if (a.type === "effect") {
               if (Date.now() / 1000 - (a.created || 0) > 30) return;
-              if (FX[a.effect] && !ALERTS[a.effect]) window.AcosmicFX.fire(a.effect, { user: a.name, text: a.message });
+              var fo = { user: a.name, text: a.message };
+              if (a.reward) fo.reward = String(a.reward).slice(0, 60);
+              if (FX[a.effect] && !ALERTS[a.effect]) window.AcosmicFX.fire(a.effect, fo);
               return;
             }
             if (Date.now() / 1000 - (a.created || 0) > STALE) return;
-            if (ALERTS[a.type]) window.AcosmicFX.fire(a.type, { user: a.name, text: a.message, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox });
+            if (!ALERTS[a.type]) return;
+            // A Twitch event the API received (source "twitch") is fired the way handle() fires the page's own, through
+            // the same queue: pause, Safe Mode, the smallest raid and cheer, follow merging and flood mode all apply.
+            var text = a.message;
+            if (a.source === "twitch" && a.type === "hypetrain" && !text) text = "The hype train is leaving the station!";
+            window.AcosmicFX.fire(a.type, { user: a.name, text: text, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox });
           });
           setTimeout(poll, 250);
         })
