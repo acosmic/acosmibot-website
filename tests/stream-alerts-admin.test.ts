@@ -777,10 +777,22 @@ test('Global editing saves only the defaults and applies the ticked parts after 
 
 test('Activity approves or blocks held alerts through the moderation route', () => {
   assert.match(tab, /streamAlertsApi\.moderate\(accountId, input\.id, input\.decision\)/);
-  assert.match(tab, /\{alert\.moderation === 'pending' && \(/);
+  assert.match(tab, /const held = alert\.moderation === 'pending';/);
+  assert.match(tab, /\{held && \(/);
   assert.match(tab, /moderate\.mutate\(\{ id: alert\.id, decision: 'approve' \}\)/);
   assert.match(tab, /moderate\.mutate\(\{ id: alert\.id, decision: 'block' \}\)/);
   assert.match(tab, /refetchInterval: \(query\) => \(anyPending\(query\.state\.data\?\.alerts\) \? 3_000 : 15_000\)/);
+});
+
+test('Activity is a compact feed with no preview pane beside it', () => {
+  const activity = shell.slice(shell.indexOf("case 'activity':"), shell.indexOf("case 'connections':"));
+  assert.match(activity, /<ActivityList account=\{account\} \/>/);
+  assert.doesNotMatch(activity, /PreviewPane/);
+  assert.match(tab, /<ol className="stream-feed" aria-label="Recent alerts, newest first">/);
+  assert.match(tab, /eventSentence\(alert\)/);
+  assert.match(tab, /relativeTime\(alert\.created, now\)/);
+  assert.match(tab, /title="Replay in OBS"/);
+  assert.doesNotMatch(tab, /<table>/);
 });
 
 test('the alert box wording uses no em dashes', () => {

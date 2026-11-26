@@ -321,14 +321,7 @@ export const AlertBoxShell: React.FC<{
               <h2>Activity</h2>
               <p>Recent alerts. Replay one in OBS, or approve and block alerts while moderation holds them.</p>
             </header>
-            <div className="stream-box__columns is-activity">
-              <div className="stream-box__settings">
-                <ActivityList account={account} preview={preview} />
-              </div>
-              <aside className="stream-box__side">
-                <PreviewPane savedConfig={savedConfig} handleRef={preview} background={background} onBackground={setBackground} />
-              </aside>
-            </div>
+            <ActivityList account={account} />
           </div>
         );
       case 'connections':

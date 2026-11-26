@@ -158,11 +158,10 @@
 .stream-alerts td em.is-pending { border-color: var(--warning-color, #fbbf24); color: var(--warning-color, #fbbf24); }
 .stream-alerts td em.is-blocked { border-color: var(--error-color); color: var(--error-color); }
 .stream-alerts td em.is-approved, .stream-alerts td em.is-released { border-color: var(--success-color); color: var(--success-color); }
-.stream-box__columns.is-activity { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.6fr); }
 
 /* Less room: the preview goes above the settings. */
 @container stream-box (max-width: 1180px) {
-  .stream-box__columns, .stream-box__columns.is-activity { grid-template-columns: minmax(0, 1fr); }
+  .stream-box__columns { grid-template-columns: minmax(0, 1fr); }
   .stream-box__side { position: static; order: -1; }
 }
 /* Narrow: the menu becomes a page picker, with the full list behind a button. */
@@ -186,5 +185,36 @@
 .stream-accounts .stream-box__chip-add button { flex: none; overflow: visible; }
 /* Activity: the page heading says what this is, so the list heading is a small one, and the row buttons wrap instead of hiding off to the side. */
 .stream-box .stream-alerts__recent h3 { font-size: 16px; }
-.stream-box .stream-alerts__recent td.stream-alerts__actions { flex-wrap: wrap; min-width: 220px; white-space: normal; }
-.stream-box .stream-alerts__recent td.stream-alerts__message { max-width: 200px; }
+
+/* Activity feed: one compact line per alert, the viewer's message under it, small actions on the right. */
+.stream-feed { list-style: none; margin: 12px 0 0; padding: 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-light); }
+.stream-feed__row { display: grid; grid-template-columns: 52px 26px minmax(0, 1fr) auto; align-items: center; column-gap: 10px; padding: 6px 12px; min-height: 48px; background: var(--bg-secondary); }
+.stream-feed__row:nth-child(even) { background: var(--bg-tertiary); }
+.stream-feed__row.is-held { background: rgba(251, 191, 36, 0.1); box-shadow: inset 3px 0 0 var(--warning-color, #fbbf24); }
+.stream-feed__row.is-blocked { opacity: 0.6; }
+.stream-feed__when { color: var(--text-muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stream-feed__source { display: inline-flex; align-items: center; justify-content: center; }
+.stream-feed__source svg { width: 18px; height: 18px; }
+.stream-feed__source.is-twitch, .stream-feed__source.is-other { color: #a970ff; }
+.stream-feed__source.is-test { color: var(--text-muted); }
+.stream-feed__source.is-donation { color: var(--success-color); }
+.stream-feed__body { min-width: 0; }
+.stream-feed__line { margin: 0; color: var(--text-secondary); line-height: 1.45; overflow-wrap: anywhere; }
+.stream-feed__line strong { color: var(--text-primary); font-weight: 600; }
+.stream-feed__message { margin: 2px 0 0; color: var(--text-muted); font-style: italic; overflow-wrap: anywhere; }
+.stream-feed__tag { display: inline-block; margin-left: 8px; padding: 0 6px; border: 1px solid var(--border-light); border-radius: 4px; color: var(--text-muted); font-size: 11px; font-style: normal; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: 2px; }
+.stream-feed__tag.is-pending { border-color: var(--warning-color, #fbbf24); color: var(--warning-color, #fbbf24); }
+.stream-feed__tag.is-blocked { border-color: var(--error-color); color: var(--error-color); }
+.stream-feed__tag.is-approved, .stream-feed__tag.is-released { border-color: var(--success-color); color: var(--success-color); }
+.stream-feed__actions { display: flex; gap: 4px; justify-content: flex-end; }
+.stream-accounts button.stream-feed__icon, .stream-feed__icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.stream-accounts button.stream-feed__icon:hover, .stream-feed__icon:hover { border-color: var(--border-light); color: var(--primary-color); background: rgba(97, 218, 241, 0.06); }
+.stream-feed__icon:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
+.stream-feed__icon:disabled { opacity: 0.45; cursor: default; }
+.stream-feed__icon svg { width: 18px; height: 18px; }
+.stream-feed__icon.is-approve { color: var(--success-color); }
+.stream-feed__icon.is-block { color: var(--error-color); }
+@media (max-width: 560px) {
+  .stream-feed__row { grid-template-columns: 40px 22px minmax(0, 1fr); padding: 8px 10px; }
+  .stream-feed__actions { grid-column: 3; justify-content: flex-start; margin-left: -10px; }
+}

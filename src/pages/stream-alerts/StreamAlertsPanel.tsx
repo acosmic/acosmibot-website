@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Ban, Check, Copy, FlaskConical, HandCoins, RotateCw, Tv } from 'lucide-react';
 import {
   streamAlertsApi,
   StreamAlert,
@@ -14,6 +15,7 @@ import {
   StreamEffectName,
 } from '@/api/streamAlerts';
 import { ownerPossessive, plainError } from '@/utils/streamAlertAccounts';
+import { eventSentence, eventSource, eventText, relativeTime } from '@/utils/streamAlertActivity';
 import { previewProblem, type PreviewHandle } from './previewHandle';
 import './StreamAlertsPanel.css';
 
@@ -79,22 +81,6 @@ const effectLabel = (effect: StreamEffectName) => REWARD_EFFECTS.find((item) => 
 const KIND_BY_TYPE = new Map(ALERT_KINDS.map((kind) => [kind.type, kind]));
 export const kindLabel = (type: StreamAlertType) => KIND_BY_TYPE.get(type)?.label ?? type;
 const OVERLAY_CONNECTED_WINDOW_SECONDS = 45;
-
-function describe(alert: StreamAlert): string {
-  switch (alert.type) {
-    case 'donation': return alert.amount_display ?? '';
-    case 'resub': return `${alert.value ?? 1} months`;
-    case 'gift': return `${alert.value ?? 1} gifted`;
-    case 'cheer': return `${alert.value ?? 0} bits`;
-    case 'raid': return `${alert.value ?? 0} raiders`;
-    case 'hypetrain': return `level ${alert.value ?? 1}`;
-    default: return '';
-  }
-}
-
-function overlayOptions(alert: Pick<StreamAlert, 'name' | 'message' | 'value' | 'tier' | 'amount_display'>, test: boolean) {
-  return { user: alert.name, text: alert.message, value: alert.value, tier: alert.tier, amount: alert.amount_display, test };
-}
 
 export const statusQueryKey = (accountId: number) => ['stream-alerts', accountId, 'status'];
 export const recentQueryKey = (accountId: number) => ['stream-alerts', accountId, 'recent'];
@@ -300,8 +286,15 @@ const MODERATION_TEXT: Record<string, string> = {
   released: 'Shown',
 };
 
-/** Recent alerts, newest first: replay in OBS, preview here, Approve or Block while held, and tidy the list. */
-export const ActivityList: React.FC<{ account: StreamAlertAccount; preview: React.MutableRefObject<PreviewHandle | null> }> = ({ account, preview }) => {
+const SOURCE_MARK = {
+  twitch: { Icon: Tv, label: 'From Twitch' },
+  test: { Icon: FlaskConical, label: 'Test alert' },
+  donation: { Icon: HandCoins, label: 'Donation' },
+  other: { Icon: Tv, label: 'Alert' },
+} as const;
+
+/** Recent alerts as a feed, newest first: replay in OBS, copy a viewer's message, Approve or Block while held, and tidy the list. */
+export const ActivityList: React.FC<{ account: StreamAlertAccount }> = ({ account }) => {
   const queryClient = useQueryClient();
   const accountId = account.id;
   const recentKey = recentQueryKey(accountId);
@@ -362,9 +355,14 @@ export const ActivityList: React.FC<{ account: StreamAlertAccount; preview: Reac
     if (clearRecent.isPending) return;
     clearRecent.mutate(scope);
   };
-  const previewAlert = async (alert: StreamAlert) => {
-    const result = await preview.current?.play(alert.type, overlayOptions(alert, alert.test)) ?? 'loading';
-    setNotice(result === 'played' ? null : { tone: 'error', text: previewProblem(result) ?? '' });
+  const now = useNow(30_000);
+  const copyMessage = async (alert: StreamAlert) => {
+    try {
+      await navigator.clipboard.writeText(alert.message);
+      setNotice({ tone: 'ok', text: `Copied ${alert.name}'s message.` });
+    } catch {
+      setNotice({ tone: 'error', text: 'Your browser did not allow copying. Select the message and copy it instead.' });
+    }
   };
 
   const alerts = recent.data?.alerts ?? [];
@@ -427,56 +425,86 @@ export const ActivityList: React.FC<{ account: StreamAlertAccount; preview: Reac
       {recent.error && <p role="alert" className="stream-alerts__notice is-error">Could not load recent alerts: {String(recent.error)}</p>}
       {!recent.isLoading && !recent.error && alerts.length === 0 && <p className="text-muted">No alerts yet. Send one from the Test menu.</p>}
       {alerts.length > 0 && (
-        <div className="stream-alerts__table">
-          <table>
-            <thead>
-              <tr><th>When</th><th>Alert</th><th>Name</th><th>Detail</th><th>Message</th><th><span className="visually-hidden">Actions</span></th></tr>
-            </thead>
-            <tbody>
-              {alerts.map((alert) => (
-                <tr key={alert.cursor ?? alert.id} className={alert.moderation === 'pending' ? 'is-held' : ''}>
-                  <td>{new Date(alert.created * 1000).toLocaleString()}</td>
-                  <td>
-                    {kindLabel(alert.type)}
-                    {alert.test && <em>test</em>}
-                    {alert.sandbox && <em>sandbox</em>}
-                    {alert.replay_of && <em>replay</em>}
-                    {alert.moderation && <em className={`is-${alert.moderation}`}>{MODERATION_TEXT[alert.moderation] ?? alert.moderation}</em>}
-                  </td>
-                  <td>{alert.name}</td>
-                  <td>{describe(alert)}</td>
-                  <td className="stream-alerts__message">{alert.message}</td>
-                  <td className="stream-alerts__actions">
-                    {alert.moderation === 'pending' && (
-                      <>
-                        <button
-                          type="button"
-                          className="is-primary"
-                          disabled={moderate.isPending}
-                          aria-label={`Approve the ${kindLabel(alert.type).toLowerCase()} from ${alert.name}`}
-                          onClick={() => moderate.mutate({ id: alert.id, decision: 'approve' })}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          className="is-on"
-                          disabled={moderate.isPending}
-                          aria-label={`Block the ${kindLabel(alert.type).toLowerCase()} from ${alert.name}`}
-                          onClick={() => moderate.mutate({ id: alert.id, decision: 'block' })}
-                        >
-                          Block
-                        </button>
-                      </>
-                    )}
-                    <button type="button" onClick={() => previewAlert(alert)}>Preview</button>
-                    <button type="button" disabled={replay.isPending} onClick={() => replay.mutate(alert.id)}>Replay in OBS</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ol className="stream-feed" aria-label="Recent alerts, newest first">
+          {alerts.map((alert) => {
+            const source = SOURCE_MARK[eventSource(alert)];
+            const what = eventText(alert);
+            const held = alert.moderation === 'pending';
+            return (
+              <li
+                key={alert.cursor ?? alert.id}
+                className={`stream-feed__row${held ? ' is-held' : ''}${alert.moderation === 'blocked' ? ' is-blocked' : ''}`}
+              >
+                <time className="stream-feed__when" dateTime={new Date(alert.created * 1000).toISOString()} title={new Date(alert.created * 1000).toLocaleString()}>
+                  {relativeTime(alert.created, now)}
+                </time>
+                <span className={`stream-feed__source is-${eventSource(alert)}`} title={source.label}>
+                  <source.Icon aria-hidden="true" />
+                  <span className="visually-hidden">{source.label}</span>
+                </span>
+                <div className="stream-feed__body">
+                  <p className="stream-feed__line">
+                    {eventSentence(alert).map((part, index) => (part.strong
+                      ? <strong key={index}>{part.text}</strong>
+                      : <React.Fragment key={index}>{part.text}</React.Fragment>))}
+                    {alert.test && <em className="stream-feed__tag">Test</em>}
+                    {alert.sandbox && <em className="stream-feed__tag">Sandbox</em>}
+                    {alert.replay_of && <em className="stream-feed__tag">Replay</em>}
+                    {alert.moderation && <em className={`stream-feed__tag is-${alert.moderation}`}>{MODERATION_TEXT[alert.moderation] ?? alert.moderation}</em>}
+                  </p>
+                  {alert.message && <p className="stream-feed__message">&ldquo;{alert.message}&rdquo;</p>}
+                </div>
+                <div className="stream-feed__actions">
+                  {held && (
+                    <>
+                      <button
+                        type="button"
+                        className="stream-feed__icon is-approve"
+                        disabled={moderate.isPending}
+                        title="Approve: show it in OBS now"
+                        aria-label={`Approve: ${what}`}
+                        onClick={() => moderate.mutate({ id: alert.id, decision: 'approve' })}
+                      >
+                        <Check aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className="stream-feed__icon is-block"
+                        disabled={moderate.isPending}
+                        title="Block: do not show it"
+                        aria-label={`Block: ${what}`}
+                        onClick={() => moderate.mutate({ id: alert.id, decision: 'block' })}
+                      >
+                        <Ban aria-hidden="true" />
+                      </button>
+                    </>
+                  )}
+                  {alert.message && (
+                    <button
+                      type="button"
+                      className="stream-feed__icon"
+                      title="Copy the message"
+                      aria-label={`Copy the message from ${alert.name}`}
+                      onClick={() => copyMessage(alert)}
+                    >
+                      <Copy aria-hidden="true" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="stream-feed__icon"
+                    disabled={replay.isPending}
+                    title="Replay in OBS"
+                    aria-label={`Replay in OBS: ${what}`}
+                    onClick={() => replay.mutate(alert.id)}
+                  >
+                    <RotateCw aria-hidden="true" />
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       )}
     </section>
   );
