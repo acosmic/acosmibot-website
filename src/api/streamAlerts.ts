@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, UploadOptions } from './client';
 
 export type StreamAlertType = 'donation' | 'follow' | 'sub' | 'resub' | 'gift' | 'cheer' | 'raid' | 'hypetrain';
 export type StreamAlertTier = '1000' | '2000' | '3000' | 'prime';
@@ -18,6 +18,8 @@ export interface StreamAlert {
   amount_minor?: number;
   amount_display?: string;
   replay_of?: string;
+  /** Set on an alert that came from the connected Twitch channel rather than a test or a donation. */
+  source?: 'twitch';
 }
 
 export interface StreamAlertTestInput {
@@ -82,6 +84,16 @@ export interface StreamAlertsMe {
   accounts: StreamAlertAccount[];
 }
 
+/** `reauth_required`: Twitch took the permission back, so the owner has to connect again. */
+export type StreamAlertTwitchLinkStatus = 'connected' | 'reauth_required';
+
+/** The Twitch channel an account is connected to, as the status route reports it. */
+export interface StreamAlertTwitchChannel {
+  login: string;
+  display_name: string;
+  status: StreamAlertTwitchLinkStatus;
+}
+
 export interface StreamAlertStatus {
   success: boolean;
   account: StreamAlertAccount;
@@ -90,6 +102,64 @@ export interface StreamAlertStatus {
   overlay_last_seen: number | null;
   types: StreamAlertType[];
   settings: StreamAlertSettings;
+  /** Null until the owner connects Twitch. An API from before Connect Twitch leaves it out. */
+  twitch?: StreamAlertTwitchChannel | null;
+}
+
+/** One kind of Twitch event the API listens for. `status` is Twitch's own word ("enabled" when it works) or "failed". */
+export interface StreamAlertTwitchSubscription {
+  type: string;
+  status: string;
+}
+
+export interface StreamAlertTwitchLink extends StreamAlertTwitchChannel {
+  missing_scopes: string[];
+  subscriptions: StreamAlertTwitchSubscription[];
+}
+
+export interface StreamAlertTwitchState {
+  success: boolean;
+  connected: boolean;
+  /** Where the owner's browser goes to connect. Null for an editor. A page address, never something to fetch. */
+  connect_url: string | null;
+  twitch: StreamAlertTwitchLink | null;
+}
+
+/** When a mapped reward plays its effect: as soon as a viewer redeems it, or once a moderator marks it done. */
+export type StreamRewardTrigger = 'redeemed' | 'fulfilled';
+
+export interface StreamRewardMapping {
+  effect: StreamEffectName;
+  on: StreamRewardTrigger;
+}
+
+/** What a reward should do from now on. `effect: null` means nothing. */
+export interface StreamRewardMappingInput {
+  effect: StreamEffectName | null;
+  on?: StreamRewardTrigger;
+}
+
+/** One channel point reward on the connected Twitch channel. */
+export interface StreamReward {
+  id: string;
+  title: string;
+  cost: number;
+  is_enabled: boolean;
+  is_paused: boolean;
+  /** True for a reward Acosmibot created. */
+  manageable: boolean;
+  mapping: StreamRewardMapping | null;
+}
+
+export interface StreamRewardEffectOption {
+  name: StreamEffectName;
+  label: string;
+}
+
+export interface StreamRewards {
+  success: boolean;
+  effects: StreamRewardEffectOption[];
+  rewards: StreamReward[];
 }
 
 export interface StreamAlertEditor {
@@ -115,6 +185,116 @@ export interface StreamAlertEditors {
 export interface StreamAlertOverlayUrl {
   success: boolean;
   url: string;
+}
+
+/* ---- Media library and alert designs ---- */
+
+export type StreamAlertAssetKind = 'video' | 'image' | 'sound' | 'font';
+export type StreamAlertAssetStatus = 'queued' | 'processing' | 'ready' | 'failed';
+
+/** One file in an account's media library. `url` is null until the file is `ready`. */
+export interface StreamAlertAsset {
+  id: number;
+  kind: StreamAlertAssetKind;
+  status: StreamAlertAssetStatus;
+  original_name: string;
+  url: string | null;
+  content_type: string | null;
+  bytes: number | null;
+  width: number | null;
+  height: number | null;
+  duration_ms: number | null;
+  has_alpha: boolean;
+  has_audio: boolean;
+  font_family: string | null;
+  /** A plain sentence for the streamer when the file could not be used. */
+  error: string | null;
+  created_at: string;
+  /** The alert kinds whose design uses this file. */
+  in_use: StreamAlertType[];
+}
+
+export interface StreamAlertAssetQuota {
+  used_bytes: number;
+  max_bytes: number;
+  count: number;
+  max_count: number;
+}
+
+export interface StreamAlertAssets {
+  success: boolean;
+  /** Newest first. */
+  assets: StreamAlertAsset[];
+  quota: StreamAlertAssetQuota;
+}
+
+export type StreamAlertTextAlign = 'left' | 'center' | 'right';
+export type StreamAlertTextEntrance = 'none' | 'fade' | 'typewriter';
+export type StreamAlertTextFit = 'shrink' | 'none';
+
+/** A text box drawn on the alert's media. Position and size are fractions of the media box. */
+export interface StreamAlertDesignText {
+  template: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** A font from the shared list, or "asset:<id>" for an uploaded font. */
+  font: string;
+  /** Pixels at the media's own size. */
+  size: number;
+  color: string;
+  weight: 400 | 700;
+  italic: boolean;
+  align: StreamAlertTextAlign;
+  shadow: boolean;
+  appear_ms: number;
+  /** null: shown until the alert ends. */
+  disappear_ms: number | null;
+  entrance: StreamAlertTextEntrance;
+  fit: StreamAlertTextFit;
+}
+
+/** What `PUT /designs/<kind>` takes. `x` and `y` are the centre of the alert on the 1920x1080 screen. */
+export interface StreamAlertDesign {
+  video: number | null;
+  image: number | null;
+  sound: number | null;
+  duration_ms: number;
+  x: number;
+  y: number;
+  scale: number;
+  volume: number;
+  texts: StreamAlertDesignText[];
+}
+
+/** What the overlay is told about a media file in a resolved design. */
+export interface StreamAlertMediaFacts {
+  url: string;
+  width?: number | null;
+  height?: number | null;
+  duration_ms?: number | null;
+  has_audio?: boolean;
+  has_alpha?: boolean;
+}
+
+/** A design with asset ids replaced by facts, as the overlay and the preview get it. */
+export interface StreamAlertResolvedDesign extends Omit<StreamAlertDesign, 'video' | 'image' | 'sound'> {
+  video: StreamAlertMediaFacts | null;
+  image: StreamAlertMediaFacts | null;
+  sound: StreamAlertMediaFacts | null;
+  fonts: { family: string; url: string }[];
+}
+
+export interface StreamAlertDesigns {
+  success: boolean;
+  designs: Partial<Record<StreamAlertType, StreamAlertDesign>>;
+  resolved: Partial<Record<StreamAlertType, StreamAlertResolvedDesign>>;
+  /** The font names a text box may use (besides uploaded fonts). */
+  fonts: string[];
+  /** The variables each kind's templates may use. */
+  variables: Partial<Record<StreamAlertType, string[]>>;
+  kinds: StreamAlertType[];
 }
 
 const BASE = '/api/stream-alerts';
@@ -194,4 +374,64 @@ export const streamAlertsApi = {
   /** Owner only. Removes the account, its editors and its waiting alerts. */
   deleteAccount: (accountId: number) =>
     api.fetch<{ success: boolean }>(account(accountId), { method: 'DELETE' }),
+
+  /** Whether Twitch is connected, and how. Connecting itself is a page visit to `connect_url`, not a call from here. */
+  getTwitch: (accountId: number) =>
+    api.fetch<StreamAlertTwitchState>(`${account(accountId)}/twitch`),
+
+  /** Owner only. Stops listening to the channel and forgets what its rewards were set to do. */
+  disconnectTwitch: (accountId: number) =>
+    api.fetch<{ success: boolean }>(`${account(accountId)}/twitch`, { method: 'DELETE' }),
+
+  /** Owner only. Sets up again the Twitch events that are missing or failed. */
+  resubscribeTwitch: (accountId: number) =>
+    api.fetch<{ success: boolean; subscriptions: StreamAlertTwitchSubscription[] }>(`${account(accountId)}/twitch/resubscribe`, { method: 'POST' }),
+
+  /** The channel's rewards, read from Twitch each time. Fails when Twitch is not connected or does not answer. */
+  getRewards: (accountId: number) =>
+    api.fetch<StreamRewards>(`${account(accountId)}/rewards`),
+
+  setRewardMapping: (accountId: number, rewardId: string, mapping: StreamRewardMappingInput) =>
+    api.fetch<{ success: boolean; mapping: StreamRewardMapping | null }>(`${account(accountId)}/rewards/${encodeURIComponent(rewardId)}`, {
+      method: 'PUT',
+      body: JSON.stringify(mapping),
+    }),
+
+  /** Owner only. Creates the standard reward for an effect on the Twitch channel and maps it. */
+  createReward: (accountId: number, effect: StreamEffectName) =>
+    api.fetch<{ success: boolean; reward: StreamReward }>(`${account(accountId)}/rewards`, {
+      method: 'POST',
+      body: JSON.stringify({ effect }),
+    }),
+  /** Sends one file to the media library. The API answers once it has the file; converting it happens afterwards. */
+  uploadAsset: (accountId: number, file: File, removeBlack: boolean, options?: UploadOptions) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (removeBlack) form.append('remove_black', '1');
+    return api.upload<{ success: boolean; asset: StreamAlertAsset }>(`${account(accountId)}/assets`, form, options);
+  },
+
+  getAssets: (accountId: number) =>
+    api.fetch<StreamAlertAssets>(`${account(accountId)}/assets`),
+
+  getAsset: (accountId: number, assetId: number) =>
+    api.fetch<{ success: boolean; asset: StreamAlertAsset }>(`${account(accountId)}/assets/${assetId}`),
+
+  /** Refused with 409 while an alert design uses the file. */
+  deleteAsset: (accountId: number, assetId: number) =>
+    api.fetch<{ success: boolean }>(`${account(accountId)}/assets/${assetId}`, { method: 'DELETE' }),
+
+  getDesigns: (accountId: number) =>
+    api.fetch<StreamAlertDesigns>(`${account(accountId)}/designs`),
+
+  /** A 400 carries `field`, the path of the part of the design it is about. */
+  saveDesign: (accountId: number, kind: StreamAlertType, design: StreamAlertDesign) =>
+    api.fetch<{ success: boolean; design: StreamAlertDesign; resolved: StreamAlertResolvedDesign | null }>(`${account(accountId)}/designs/${kind}`, {
+      method: 'PUT',
+      body: JSON.stringify(design),
+    }),
+
+  /** That kind goes back to the built-in card. */
+  resetDesign: (accountId: number, kind: StreamAlertType) =>
+    api.fetch<{ success: boolean }>(`${account(accountId)}/designs/${kind}`, { method: 'DELETE' }),
 };

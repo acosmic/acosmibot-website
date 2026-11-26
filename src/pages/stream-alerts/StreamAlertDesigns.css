@@ -1,0 +1,153 @@
+/* Media library and alert designs. Inside .stream-accounts, so its 44px buttons, form controls and focus rings apply. */
+/* Both names: the account area's rules and this area's own narrow layout. */
+.stream-accounts.stream-designs-area { container-name: stream-accounts stream-designs-area; container-type: inline-size; }
+.stream-accounts input[type="checkbox"]:focus-visible, .stream-accounts input[type="range"]:focus-visible, .stream-accounts input[type="color"]:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.stream-accounts [tabindex]:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+
+/* ---- Media library ---- */
+.stream-media__drop { display: grid; gap: 8px; padding: 14px; border: 2px dashed var(--border-light); border-radius: 10px; background: var(--bg-secondary); }
+.stream-media__drop.is-over { border-color: var(--primary-color); background: rgba(97, 218, 241, 0.06); }
+.stream-media__drop-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--text-secondary); font-size: 13px; }
+.stream-media__file { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.stream-media__check, .stream-props__check { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--text-primary); font-size: 14px; cursor: pointer; }
+.stream-accounts .stream-media__check > span, .stream-accounts .stream-props__check > span { color: var(--text-primary); font-size: 14px; font-weight: 400; text-transform: none; }
+.stream-media__check input, .stream-props__check input { flex: none; width: 20px; height: 20px; accent-color: var(--primary-color); }
+.stream-media__warn { margin: -6px 0 0 30px; color: var(--warning-color, #fbbf24); font-size: 12px; line-height: 1.5; }
+.stream-media__accepted { margin: 0; padding-left: 18px; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+.stream-media__upload { display: grid; gap: 6px; padding: 10px 12px; border-radius: 8px; background: var(--bg-secondary); color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
+.stream-media__upload.is-error { color: var(--error-color); border-left: 3px solid var(--error-color); }
+.stream-media__upload.is-done { border-left: 3px solid var(--success-color); }
+.stream-media__upload progress { width: 100%; height: 10px; accent-color: var(--primary-color); }
+
+.stream-media__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.stream-media__row { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; padding: 10px 0; border-top: 1px solid var(--border-light); }
+.stream-media__row:last-child { border-bottom: 1px solid var(--border-light); }
+.stream-media__thumb { display: grid; place-items: center; width: 96px; height: 54px; overflow: hidden; border: 1px solid var(--border-light); border-radius: 6px; background: #05080d; color: var(--text-muted); font-size: 20px; }
+.stream-media__thumb.is-empty { font-size: 11px; text-transform: uppercase; }
+.stream-media__thumb.is-checker { background: repeating-conic-gradient(#1b2330 0% 25%, #0d131c 0% 50%) 50% / 12px 12px; }
+.stream-media__thumb video, .stream-media__thumb img { width: 100%; height: 100%; object-fit: contain; }
+.stream-accounts button.stream-media__thumb.is-sound { min-height: 54px; padding: 0; font-size: 13px; }
+.stream-media__about { display: grid; gap: 2px; min-width: 0; }
+.stream-media__about strong { color: var(--text-primary); font-size: 14px; overflow-wrap: anywhere; }
+.stream-media__about > span { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--text-muted); font-size: 12px; }
+.stream-media__about em { padding: 1px 6px; border: 1px solid var(--warning-color, #fbbf24); border-radius: 4px; color: var(--warning-color, #fbbf24); font-size: 10px; font-style: normal; font-weight: 700; text-transform: uppercase; }
+.stream-media__about em.is-clear { border-color: var(--success-color); color: var(--success-color); }
+.stream-media__about .stream-media__status { color: var(--text-secondary); font-size: 13px; }
+.stream-media__about .stream-media__status.is-failed { color: var(--error-color); }
+.stream-media__about .stream-media__used { color: var(--primary-color); }
+.stream-media__spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border-light); border-top-color: var(--primary-color); border-radius: 50%; animation: stream-media-spin 0.9s linear infinite; }
+@keyframes stream-media-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .stream-media__spinner { animation: none; } }
+.stream-media__confirm { grid-column: 1 / -1; }
+.stream-media__quota { display: grid; gap: 6px; color: var(--text-secondary); font-size: 13px; }
+.stream-media__meter { display: block; height: 8px; overflow: hidden; border-radius: 4px; background: var(--bg-secondary); }
+.stream-media__meter > span { display: block; height: 100%; background: var(--primary-color); }
+@container stream-designs-area (max-width: 520px) {
+  .stream-media__row { grid-template-columns: 72px minmax(0, 1fr); }
+  .stream-media__thumb { width: 72px; height: 44px; }
+  .stream-media__row > button { grid-column: 1 / -1; }
+}
+
+/* ---- Alert designs ---- */
+.stream-designs { container: stream-designs / inline-size; }
+.stream-designs__notes { margin: 0; padding-left: 18px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.stream-designs__tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.stream-accounts .stream-designs__tabs button { display: grid; gap: 0; justify-items: start; min-width: 104px; padding: 6px 12px; line-height: 1.25; text-align: start; }
+.stream-designs__tabs button small { color: var(--text-muted); font-size: 11px; }
+.stream-accounts .stream-designs__tabs button.is-current small { color: var(--primary-color); }
+.stream-designs__panel { display: grid; gap: 14px; min-width: 0; }
+.stream-designs__builtin { display: grid; gap: 8px; padding: 14px; border-radius: 10px; background: var(--bg-secondary); }
+.stream-designs__builtin p { margin: 0; color: var(--text-secondary); font-size: 14px; }
+.stream-designs__start, .stream-designs__media { display: flex; flex-wrap: wrap; align-items: start; gap: 10px 12px; }
+.stream-designs__start .stream-props__field, .stream-designs__media .stream-props__field { flex: 1 1 220px; max-width: 360px; }
+.stream-designs__start button { align-self: end; }
+
+.stream-designs__work { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@container stream-designs (min-width: 980px) {
+  .stream-designs__work { grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); }
+}
+.stream-designs__stage, .stream-designs__side { display: grid; gap: 10px; min-width: 0; }
+.stream-designs__sliders { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 16px; }
+.stream-designs__sliders .stream-props__field { flex: 1 1 180px; }
+.stream-designs__sliders input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--primary-color); }
+.stream-designs__boxes { display: flex; flex-wrap: wrap; gap: 6px; }
+.stream-accounts .stream-designs__boxes button { border-left: 4px solid var(--box-colour, var(--border-light)); }
+.stream-designs__samples { margin: 0; padding: 12px; border: 1px solid var(--border-light); border-radius: 10px; min-width: 0; }
+.stream-designs__samples legend { float: none; width: auto; margin: 0; padding: 0 6px; color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.stream-designs__sample-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr)); gap: 10px; }
+.stream-designs__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.stream-designs__field-error { margin: 2px 0 0; color: var(--error-color); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+
+/* ---- Stage ---- */
+.stream-stage { display: grid; gap: 8px; min-width: 0; }
+.stream-stage__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.stream-stage__tools > span { color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.stream-stage__zoom { display: flex; gap: 6px; }
+.stream-accounts .stream-stage__zoom button { min-width: 56px; }
+/* The stage scrolls inside its own box when zoomed in, never the page. */
+.stream-stage__outer { position: relative; width: 100%; max-height: 70vh; overflow: auto; border: 1px solid var(--border-light); border-radius: 10px; background: #05080d; overscroll-behavior: contain; }
+.stream-stage__sizer { position: relative; overflow: hidden; }
+.stream-stage__world {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0; touch-action: none; user-select: none;
+  background:
+    radial-gradient(60% 80% at 70% 30%, rgba(97, 218, 241, 0.12), transparent 70%),
+    linear-gradient(140deg, #182433, #070b11 70%);
+}
+.stream-stage__label { position: absolute; right: 24px; bottom: 18px; color: rgba(255, 255, 255, 0.35); font-size: 28px; pointer-events: none; }
+.stream-stage__empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 120px; color: var(--text-muted); font-size: 44px; text-align: center; }
+.stream-stage__media { position: absolute; cursor: move; touch-action: none; }
+.stream-stage__media:focus-visible { outline: calc(3px / var(--stage-scale)) solid var(--primary-color); outline-offset: calc(2px / var(--stage-scale)); }
+.stream-stage__media > video, .stream-stage__media > img { display: block; width: 100%; height: 100%; pointer-events: none; }
+.stream-stage__box { position: absolute; display: flex; align-items: center; outline: calc(1px / var(--stage-scale)) dashed rgba(255, 255, 255, 0.35); cursor: move; touch-action: none; }
+.stream-stage__box.is-selected { outline: calc(2px / var(--stage-scale)) solid var(--box-colour); }
+.stream-stage__box.is-hidden { outline-style: dashed; background: rgba(0, 0, 0, 0.25); }
+.stream-stage__box:focus-visible { outline: calc(3px / var(--stage-scale)) solid var(--primary-color); }
+.stream-stage__text { width: 100%; line-height: 1.15; white-space: pre-wrap; overflow-wrap: normal; pointer-events: none; }
+.stream-stage__hidden-note { width: 100%; color: rgba(255, 255, 255, 0.7); font-size: calc(13px / var(--stage-scale)); text-align: center; pointer-events: none; }
+.stream-stage__tag { position: absolute; left: 0; top: 0; transform: translateY(-100%); padding: 0 calc(5px / var(--stage-scale)); background: var(--box-colour); color: #05080d; font-size: calc(11px / var(--stage-scale)); font-weight: 700; line-height: 1.4; pointer-events: none; }
+.stream-stage__handle {
+  position: absolute; right: 0; bottom: 0; width: calc(22px / var(--stage-scale)); height: calc(22px / var(--stage-scale));
+  transform: translate(50%, 50%); border: calc(2px / var(--stage-scale)) solid #05080d; border-radius: 50%;
+  background: var(--box-colour); cursor: nwse-resize; touch-action: none;
+}
+.stream-stage__handle:focus-visible { outline: calc(3px / var(--stage-scale)) solid #fff; }
+.stream-stage__hint, .stream-props__hint { margin: 0; color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+
+/* ---- Timeline ---- */
+.stream-timeline { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.stream-timeline__track { position: relative; min-width: 0; padding-bottom: 20px; }
+.stream-timeline__track input[type="range"] { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--primary-color); }
+/* Inset by half the thumb, so a marker sits under the thumb at the same time. */
+.stream-timeline__markers { position: absolute; left: 8px; right: 8px; bottom: 0; height: 18px; pointer-events: none; }
+.stream-timeline__marker { position: absolute; top: 0; display: grid; place-items: center; width: 16px; height: 16px; transform: translateX(-50%); border: 2px solid var(--box-colour); border-radius: 3px; background: var(--box-colour); color: #05080d; font-size: 10px; font-weight: 700; }
+.stream-timeline__marker.is-disappear { background: var(--bg-tertiary); color: var(--box-colour); }
+.stream-timeline__marker.is-selected { box-shadow: 0 0 0 2px #fff; }
+.stream-timeline__time { color: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Properties ---- */
+.stream-props { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--border-light); border-left: 4px solid var(--box-colour); border-radius: 10px; background: var(--bg-secondary); min-width: 0; }
+.stream-props__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.stream-props__head strong { color: var(--text-primary); }
+.stream-props__field { display: grid; gap: 4px; min-width: 0; }
+.stream-props__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.stream-accounts .stream-props__chips button { display: grid; gap: 0; justify-items: start; padding: 4px 10px; font-family: 'SFMono-Regular', Consolas, monospace; line-height: 1.2; }
+.stream-props__chips small { color: var(--text-muted); font-family: inherit; font-size: 10px; }
+.stream-accounts .stream-props__chips button small { font-family: var(--font-body, sans-serif); }
+.stream-props__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stream-props__grid .is-wide, .stream-props__grid > .stream-designs__field-error { grid-column: 1 / -1; }
+.stream-accounts .stream-props__colour { display: flex; gap: 6px; color: inherit; font-size: inherit; font-weight: 400; text-transform: none; }
+.stream-props__colour input[type="color"] { flex: none; width: 44px; height: 44px; padding: 2px; border: 1px solid var(--border-light); border-radius: 6px; background: var(--bg-tertiary); }
+.stream-props__colour .form-control { min-width: 0; font-family: 'SFMono-Regular', Consolas, monospace; }
+.stream-props__toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.stream-accounts .stream-props__toggles button { flex: 1 1 80px; }
+.stream-props__times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stream-props__time { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.stream-accounts .stream-props__time button { white-space: normal; }
+
+@container stream-designs (max-width: 520px) {
+  .stream-props__grid, .stream-props__times { grid-template-columns: minmax(0, 1fr); }
+  .stream-timeline { grid-template-columns: auto minmax(0, 1fr); }
+  .stream-timeline__time { grid-column: 1 / -1; }
+  .stream-designs__actions button { flex: 1 1 140px; white-space: normal; }
+  .stream-accounts .stream-designs__tabs button { flex: 1 1 96px; min-width: 0; }
+}

@@ -1,4 +1,4 @@
-/* The account area above the stream alerts panel: switcher, editor line, set up, OBS link, editors.
+/* The account area above the stream alerts panel: switcher, editor line, set up, OBS link, editors, Twitch, rewards.
    It is a sibling of .stream-alerts, not a parent, so these button rules never reach the panel's. */
 .stream-alerts-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; }
 .stream-accounts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; container: stream-accounts / inline-size; }
@@ -69,8 +69,74 @@
 .stream-accounts__notice.is-ok { color: var(--success-color); }
 .stream-accounts__notice.is-error { color: var(--error-color); }
 
+/* Twitch and its channel point rewards. The Twitch card is the narrow one; alone (not connected) it takes the row. */
+@container stream-accounts (min-width: 900px) {
+  .stream-accounts__cards.is-twitch { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+}
+.stream-accounts__cards > :only-child { grid-column: 1 / -1; }
+
+/* A link that goes somewhere (Connect Twitch) looks and measures like the buttons beside it. */
+.stream-accounts a.stream-accounts__link-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; max-width: 100%; padding: 8px 18px;
+  border: 2px solid var(--primary-color); border-radius: 6px;
+  background: var(--bg-secondary); color: var(--primary-color);
+  font-size: 14px; font-weight: 700; text-align: center; text-decoration: none;
+}
+.stream-accounts a.stream-accounts__link-button:hover { background: rgba(97, 218, 241, 0.08); }
+.stream-accounts a.stream-accounts__link-button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+
+/* The card takes the keyboard after a disconnect removes the button that had it. */
+.stream-twitch:focus { outline: none; }
+.stream-twitch:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.stream-twitch__channel { display: flex; align-items: flex-start; gap: 10px; margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.stream-twitch__channel > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.stream-twitch__channel strong { color: var(--text-primary); }
+.stream-twitch__login { color: var(--text-muted); font-size: 13px; }
+.stream-twitch__light { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--text-muted); }
+.stream-twitch__light.is-on { background: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
+.stream-twitch__light.is-warn { background: var(--warning-color, #fbbf24); }
+.stream-twitch__events, .stream-twitch__ask { max-width: 70ch; margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+.stream-twitch__problem { display: grid; gap: 8px; padding: 12px; border: 2px solid var(--warning-color, #fbbf24); border-radius: 8px; background: var(--bg-secondary); }
+.stream-twitch__problem strong { color: var(--text-primary); font-size: 14px; }
+.stream-twitch__problem p { max-width: 70ch; margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+.stream-accounts__notice.is-note { color: var(--text-secondary); }
+
+/* Rewards: name and cost on the left, what it does (and when) on the right; stacked when the card is narrow. */
+.stream-rewards { container: stream-rewards / inline-size; }
+.stream-rewards__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.stream-rewards__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 6px 16px; padding: 12px 0; border-top: 1px solid var(--border-light); }
+.stream-rewards__row:last-child { border-bottom: 1px solid var(--border-light); }
+.stream-rewards__name { display: grid; gap: 2px; align-self: center; min-width: 0; }
+.stream-rewards__name strong { color: var(--text-primary); font-size: 14px; overflow-wrap: anywhere; }
+.stream-rewards__name > span { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--text-muted); font-size: 12px; }
+.stream-rewards__name em { padding: 1px 6px; border: 1px solid var(--warning-color, #fbbf24); border-radius: 4px; color: var(--warning-color, #fbbf24); font-size: 10px; font-style: normal; font-weight: 700; text-transform: uppercase; }
+.stream-rewards__choices { display: flex; flex-wrap: wrap; align-items: end; justify-content: flex-end; gap: 8px; min-width: 0; }
+.stream-rewards__choices label { display: grid; gap: 4px; min-width: 0; }
+.stream-rewards__choices select { width: 190px; max-width: 100%; }
+.stream-rewards__choices label + label select { width: 250px; }
+.stream-rewards__state { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.5; text-align: end; overflow-wrap: anywhere; }
+.stream-rewards__state.is-saving { color: var(--text-muted); }
+.stream-rewards__state.is-saved { color: var(--success-color); }
+.stream-rewards__state.is-error { color: var(--error-color); }
+@container stream-rewards (max-width: 640px) {
+  .stream-rewards__row { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .stream-rewards__choices { justify-content: stretch; }
+  .stream-rewards__choices label { flex: 1 1 170px; }
+  .stream-rewards__choices select, .stream-rewards__choices label + label select { width: 100%; }
+  .stream-rewards__state { text-align: start; }
+}
+
+.stream-rewards__create { display: grid; gap: 8px; }
+.stream-rewards__create > strong { color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.stream-rewards__create > p { max-width: 70ch; margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+.stream-rewards__create ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.stream-rewards__create li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; padding: 8px 8px 8px 12px; border: 1px solid var(--border-light); border-radius: 8px; background: var(--bg-secondary); }
+.stream-rewards__create li > span { min-width: 0; color: var(--text-primary); font-size: 14px; overflow-wrap: anywhere; }
+.stream-rewards__create li > p { grid-column: 1 / -1; }
+
 @media (max-width: 560px) {
   .stream-accounts__switch > span { flex-basis: 100%; }
-  .stream-accounts__buttons button { flex: 1 1 140px; white-space: normal; }
+  .stream-accounts__buttons button, .stream-accounts__buttons a.stream-accounts__link-button { flex: 1 1 140px; white-space: normal; }
   .stream-accounts__add button { flex: 1 1 100%; }
 }

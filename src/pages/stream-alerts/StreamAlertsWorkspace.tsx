@@ -9,10 +9,20 @@ import {
   ownerPossessive,
   pickAccount,
   plainError,
+  readTwitchReturn,
+  rewardsQueryKey,
+  TwitchConnectResult,
+  twitchQueryKey,
+  withoutTwitchResult,
 } from '@/utils/streamAlertAccounts';
+import { AlertDesignsCard } from './AlertDesignsCard';
 import { EditorsCard } from './EditorsCard';
+import { MediaLibraryCard } from './MediaLibraryCard';
 import { ObsLinkCard } from './ObsLinkCard';
+import type { PreviewHandle } from './previewHandle';
+import { RewardsCard } from './RewardsCard';
 import { StreamAlertsPanel } from './StreamAlertsPanel';
+import { TwitchCard } from './TwitchCard';
 import './StreamAlertAccounts.css';
 
 const ME_KEY = ['stream-alerts', 'me'];
@@ -20,7 +30,8 @@ const ACCOUNT_PARAM = 'account';
 
 /**
  * Everything under the page header: whose stream alerts are shown, the owner's OBS link and
- * editors, and the control panel for the selected account.
+ * editors, the Twitch connection and its channel point rewards, and the control panel for the
+ * selected account.
  */
 export const StreamAlertsWorkspace: React.FC = () => {
   const queryClient = useQueryClient();
@@ -30,7 +41,14 @@ export const StreamAlertsWorkspace: React.FC = () => {
   const [linkMissed, setLinkMissed] = useState(false);
   const [justSetUp, setJustSetUp] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
+  /** How the trip to Twitch ended, and for which account. Read from the address once, then the address is cleaned. */
+  const [twitchArrival, setTwitchArrival] = useState<{ accountId: number; result: TwitchConnectResult } | null>(null);
   const linkChecked = useRef(false);
+  /** The alert kind with unsaved design changes ("Follow"), or null. Switching account asks first while it is set. */
+  const [unsavedDesign, setUnsavedDesign] = useState<string | null>(null);
+  const [pendingAccount, setPendingAccount] = useState<number | null>(null);
+  /** The panel fills this in so the designer can play designs in the panel's preview. */
+  const previewRef = useRef<PreviewHandle | null>(null);
 
   const accounts = useMemo(() => orderAccounts(me.data?.accounts ?? []), [me.data]);
   const selected = pickAccount(accounts, requested, me.data?.own_account_id ?? null);
@@ -42,19 +60,50 @@ export const StreamAlertsWorkspace: React.FC = () => {
     return next;
   }, { replace: true });
 
-  // Arriving on a link to an account this person cannot open: show another one, say so, and
-  // take the dead id out of the address so the page is not shared on with it.
+  // The address is read once, when the accounts are known.
+  //
+  // A link to an account this person cannot open: show another one, say so, and take the dead
+  // id out of the address so the page is not shared on with it.
+  //
+  // Back from Twitch (`?account=<id>&twitch=<result>`): keep the result for the Twitch card of
+  // that account, ask the API again how Twitch stands, and take only `twitch` out of the
+  // address so a reload or a shared link does not repeat the message. The result is shown only
+  // to the owner of the account it names; anyone else arriving with it just has it removed.
   useEffect(() => {
     if (!me.data || linkChecked.current) return;
     linkChecked.current = true;
-    if (!linkedAccountMissing(me.data.accounts, requested)) return;
-    setLinkMissed(true);
-    writeAccountParam(null);
+    const missed = linkedAccountMissing(me.data.accounts, requested);
+    const back = readTwitchReturn(params);
+    if (!missed && !back.present) return;
+    if (missed) setLinkMissed(true);
+    const account = me.data.accounts.find((item) => item.id === back.accountId);
+    if (back.result && account?.role === 'owner') {
+      setTwitchArrival({ accountId: account.id, result: back.result });
+      for (const queryKey of [twitchQueryKey(account.id), rewardsQueryKey(account.id), ['stream-alerts', account.id, 'status']]) {
+        // The cards have only just asked, so this joins a read already on its way instead of starting a second one.
+        queryClient.invalidateQueries({ queryKey }, { cancelRefetch: false });
+      }
+    }
+    // One write for both changes: two in a row would each start from the address as it was.
+    const next = withoutTwitchResult(params);
+    if (missed) next.delete(ACCOUNT_PARAM);
+    setParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me.data]);
 
   const selectAccount = (id: number) => {
+    if (unsavedDesign && id !== selected?.id) {
+      setPendingAccount(id);
+      return;
+    }
+    switchAccount(id);
+  };
+  const switchAccount = (id: number) => {
+    setPendingAccount(null);
+    setUnsavedDesign(null);
     setLinkMissed(false);
+    // The message from Twitch belongs to the account it was about, and to that visit only.
+    setTwitchArrival(null);
     writeAccountParam(id);
   };
 
@@ -132,6 +181,7 @@ export const StreamAlertsWorkspace: React.FC = () => {
   }
 
   const isOwner = selected.role === 'owner';
+  const pendingTarget = accounts.find((item) => item.id === pendingAccount) ?? null;
 
   return (
     <div className="stream-alerts-workspace">
@@ -159,10 +209,23 @@ export const StreamAlertsWorkspace: React.FC = () => {
           </div>
         )}
 
+        {pendingAccount !== null && (
+          <div className="stream-accounts__confirm" role="group" aria-label="Unsaved design changes">
+            <strong>You have unsaved changes to the {unsavedDesign} alert design.</strong>
+            <p>
+              Switching to {pendingTarget?.is_own ? 'your alerts' : `${ownerPossessive(pendingTarget?.owner_username ?? '')} alerts`} throws them away. Keep editing to save them first.
+            </p>
+            <div className="stream-accounts__buttons">
+              <button type="button" className="is-danger" onClick={() => switchAccount(pendingAccount)}>Discard changes and switch</button>
+              <button type="button" autoFocus onClick={() => setPendingAccount(null)}>Keep editing</button>
+            </div>
+          </div>
+        )}
+
         {!isOwner && (
           <p className="stream-accounts__who">
             <strong>You are controlling {ownerPossessive(selected.owner_username)} stream alerts.</strong>{' '}
-            You are an editor, so what you send or change here plays on their stream. Only {selected.owner_username} can see the OBS link or change the editors.
+            You are an editor, so what you send or change here plays on their stream. Only {selected.owner_username} can see the OBS link, change the editors, or connect and disconnect Twitch.
           </p>
         )}
 
@@ -189,9 +252,21 @@ export const StreamAlertsWorkspace: React.FC = () => {
             <EditorsCard account={selected} />
           </div>
         )}
+
+        {/* For editors too: they see how Twitch stands and choose what rewards do, without the owner's buttons. */}
+        <div className="stream-accounts__cards is-twitch" key={`twitch-${selected.id}`}>
+          <TwitchCard account={selected} arrival={twitchArrival?.accountId === selected.id ? twitchArrival.result : null} />
+          <RewardsCard account={selected} />
+        </div>
       </div>
 
-      <StreamAlertsPanel key={selected.id} account={selected} />
+      <StreamAlertsPanel key={selected.id} account={selected} previewRef={previewRef} />
+
+      {/* Editors use the media library and designs like the owner. */}
+      <div className="stream-accounts stream-designs-area" key={`designs-${selected.id}`}>
+        <MediaLibraryCard account={selected} />
+        <AlertDesignsCard account={selected} preview={previewRef} onDirtyChange={setUnsavedDesign} />
+      </div>
     </div>
   );
 };

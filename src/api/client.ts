@@ -2,6 +2,20 @@ import { resolveAnalyticsPage, trackEvent } from '@/lib/analytics';
 import { clearExpiredSession } from '@/lib/auth';
 import { apiBase } from '@/lib/runtimeConfig';
 
+export const getApiBase = (): string => apiBase();
+
+/** A refused request. `message` is the API's reason; `status` and `body` keep the rest (such as a `field` to point at). Its name stays "Error", so `String(error)` reads as before. */
+export class ApiError extends Error {
+  status: number;
+  body: Record<string, unknown>;
+
+  constructor(message: string, status: number, body: Record<string, unknown>) {
+    super(message);
+    this.status = status;
+    this.body = body;
+  }
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const url = path.startsWith('http') ? path : `${apiBase()}${path}`;
 
@@ -24,7 +38,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     // human-readable reason under `error`, some under `message`. Prefer whichever
     // is present so callers (and users) see the real reason, not "API error 400".
     const reason = body.error ?? body.message;
-    throw new Error(reason ?? `API error ${response.status}`);
+    throw new ApiError(reason ?? `API error ${response.status}`, response.status, body && typeof body === 'object' ? body : {});
   }
 
   const body = await response.json() as T;
@@ -51,4 +65,54 @@ function configFeatureForRequest(path: string, method = 'GET'): string | null {
   return feature && feature !== 'feature' ? feature : null;
 }
 
-export const api = { fetch: apiFetch };
+export interface UploadOptions {
+  /** Called as the body goes out, with the share sent so far (0 to 1). */
+  onProgress?: (fraction: number) => void;
+  signal?: AbortSignal;
+}
+
+/**
+ * A multipart upload with progress. fetch() cannot report upload progress, so this uses
+ * XMLHttpRequest, with the session cookie sent the same way as `api.fetch`.
+ */
+function apiUpload<T>(path: string, form: FormData, options: UploadOptions = {}): Promise<T> {
+  const url = path.startsWith('http') ? path : `${getApiBase()}${path}`;
+  return new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.withCredentials = true;
+    xhr.responseType = 'text';
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) options.onProgress?.(Math.min(1, event.loaded / event.total));
+    };
+    xhr.onload = () => {
+      let body: Record<string, unknown> = {};
+      try {
+        const parsed = JSON.parse(xhr.responseText || '{}');
+        if (parsed && typeof parsed === 'object') body = parsed;
+      } catch {
+        /* not JSON: a proxy page, for example */
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        options.onProgress?.(1);
+        resolve(body as T);
+        return;
+      }
+      if (xhr.status === 401) clearExpiredSession();
+      const reason = body.error ?? body.message;
+      reject(new ApiError(typeof reason === 'string' ? reason : `API error ${xhr.status}`, xhr.status, body));
+    };
+    xhr.onerror = () => reject(new TypeError('Failed to fetch'));
+    xhr.onabort = () => reject(new DOMException('The upload was cancelled.', 'AbortError'));
+    if (options.signal) {
+      if (options.signal.aborted) {
+        reject(new DOMException('The upload was cancelled.', 'AbortError'));
+        return;
+      }
+      options.signal.addEventListener('abort', () => xhr.abort(), { once: true });
+    }
+    xhr.send(form);
+  });
+}
+
+export const api = { fetch: apiFetch, upload: apiUpload };

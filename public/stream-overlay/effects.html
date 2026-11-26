@@ -58,6 +58,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
 .don .n b{flex:none;color:var(--a);text-shadow:0 0 1.4vw color-mix(in srgb,var(--a) 70%,transparent)}
 .don .t{font-weight:600;font-size:1.5vw;line-height:1.3;color:#e6f0ff;margin-top:.35vw;max-width:46vw;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .don .tag{position:absolute;top:-.9vw;right:1.4vw;background:#ffb800;color:#04121c;font:600 .95vw "JetBrains Mono",monospace;letter-spacing:.14em;padding:.15vw .7vw;border-radius:.3vw}
+/* A custom alert design: a 1920x1080 stage scaled to the page, the media box on it, text boxes inside the media box. */
+.cus{left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+.cus .box{position:absolute}
+.cus video,.cus img{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.cus .tb{position:absolute;display:flex;align-items:center;line-height:1.15;white-space:pre-wrap;overflow-wrap:normal}
+.cus .tb.fit{overflow:hidden}
+.cus .tb > div{width:100%}
+.cus .tag{position:absolute;top:-17px;right:27px;background:#ffb800;color:#04121c;font:600 18px "JetBrains Mono",monospace;letter-spacing:.14em;padding:3px 13px;border-radius:6px}
 #test{position:fixed;left:0;right:0;bottom:0;display:none;gap:8px;padding:10px;background:rgba(4,9,20,.85);flex-wrap:wrap;align-items:center;font-size:13px}
 #test button{font:600 14px "Sora",sans-serif;color:#e6f0ff;background:#0a1730;border:1px solid rgba(130,175,255,.3);border-radius:6px;padding:8px 14px;cursor:pointer}
 </style>
@@ -92,9 +100,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function ease(p) { p = clamp(p, 0, 1); return p * p * (3 - 2 * p); }
   function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
-  function say(o, name) {
+  // name: the effect's own label. A redemption that came through the API carries the reward's title on Twitch (o.reward).
+  function say(o, name, extra) {
     if (!o.user) return;
-    toast.innerHTML = "<b>" + esc(o.user) + "</b> redeemed " + esc(name);
+    toast.innerHTML = "<b>" + esc(o.user) + "</b> redeemed " + esc((o.reward || name) + (extra || ""));
     toast.classList.add("on"); clearTimeout(toastT);
     toastT = setTimeout(function () { toast.classList.remove("on"); }, 2600);
   }
@@ -709,12 +718,22 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   }
   function followView(o) {
     var n = o.count || 1, names = o.names || [];
-    if (o.flood || inFlood() || (n > 1 && !names.length)) return { kicker: "New followers", name: plural(n, "new follower", "new followers"), hl: "" };
+    if (o.flood || inFlood() || (n > 1 && !names.length)) return { kicker: "New followers", name: plural(n, "new follower", "new followers"), hl: "", countOnly: true };
     if (n === 1) return { kicker: "New follower", name: names[0] || "Anonymous", hl: "" };
     var list = names.length === 1 ? names[0] : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
     return { kicker: "New followers", name: list, hl: n > names.length ? "+" + (n - names.length).toLocaleString("en-US") + " more" : "" };
   }
+  // A kind with a loaded custom design shows it; follow flood mode (count only) always uses the built-in card.
   function show(item) {
+    var D = DESIGNS[item.type], A = ALERTS[item.type], o = item.o;
+    var v = item.type === "follow" ? followView(o) : { name: A.name || o.user || "Anonymous", hl: "" };
+    if (!D || v.countOnly) return showCard(item);
+    try { showCustom(item, D, v); } catch (e) {   // a design this page cannot draw: the built-in card instead
+      if (cur && cur.custom) { cur.d && cur.d.remove(); var c = cur; cur = null; endCustom(c); }
+      showCard(item);
+    }
+  }
+  function showCard(item) {
     var A = ALERTS[item.type], o = item.o, card = { type: item.type, timers: [] };
     cur = card;
     var v = item.type === "follow" ? followView(o) : { kicker: A.kicker, name: A.name || o.user || "Anonymous", hl: A.hl(o) };
@@ -742,12 +761,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   function leave(card, anim, after) {
     if (cur !== card) return;
     card.timers.forEach(clearTimeout); card.timers = [];
-    card.d.animate([{ transform: "translate(-50%,0)", opacity: 1 }, { transform: "translate(-50%,-22vw)", opacity: 0 }], { duration: anim, easing: "ease-in", fill: "forwards" });
+    if (card.custom) { card.halt(); card.d.animate([{ opacity: 1 }, { opacity: 0 }], { duration: anim, easing: "ease-in", fill: "forwards" }); }
+    else card.d.animate([{ transform: "translate(-50%,0)", opacity: 1 }, { transform: "translate(-50%,-22vw)", opacity: 0 }], { duration: anim, easing: "ease-in", fill: "forwards" });
     card.timers.push(setTimeout(function () { done(card); }, after));
   }
   function done(card) {
     if (cur !== card) return;
     card.d.remove(); cur = null;
+    if (card.custom) endCustom(card);
     if (card.type === "follow") lastFollowEnd = Date.now();
     pump();
   }
@@ -769,7 +790,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   }
   // Stage reset for the dashboard preview: no exit animation, settings and flood state untouched.
   function stopAll() {
-    if (cur) { cur.timers.forEach(clearTimeout); cur = null; }
+    if (cur) { cur.timers.forEach(clearTimeout); var c = cur; cur = null; if (c.custom) endCustom(c); }
     alertQ = []; clearTimeout(wakeT); lastFollowEnd = 0;
     stopEffects();
   }
@@ -785,6 +806,226 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
     silence();
   }
   function alertFx(type) { return function (o) { enqueue(type, o); }; }
+
+  // ---- Custom alert designs (hosted overlay and the dashboard preview) ----------------
+  // applyDesigns({kind: resolved design}) loads each design's media into memory (blob URLs) and its fonts, then
+  // swaps the whole set in. While a kind has a loaded design its alerts show that design instead of the built-in
+  // card, through the same queue. Local mode never loads any, so the installed copy keeps the built-in look.
+  // Fonts on Google Fonts (the fixed list shared with the API and the dashboard): 0 one style, 1 weights 400 and 700,
+  // 3 weights 400 and 700 upright and italic. Asking Google for a style a family lacks fails the whole stylesheet.
+  var GFONTS = { "Poppins": 3, "Montserrat": 3, "Bebas Neue": 0, "Oswald": 1, "Playfair Display": 3, "Lora": 3, "Merriweather": 3, "Roboto Slab": 1,
+    "Pacifico": 0, "Caveat": 1, "Permanent Marker": 0, "Righteous": 0, "Bangers": 0, "Orbitron": 1, "Press Start 2P": 0 };
+  var VARS = { donation: ["amount", "message"], sub: ["tier"], resub: ["months", "tier", "message"], gift: ["count", "tier"], cheer: ["bits", "message"], raid: ["viewers"], hypetrain: ["level"] };
+  var DESIGNS = {}, designGen = 0, media = {}, loadingKeys = {}, fontFaces = {}, gfontLink = null;
+  var MEDIA_VOL = q.get("volume") == null ? 1 : clamp(VOL, 0, 1);   // ?volume= scales custom media too
+  function fnum(v, d, a, b) { v = parseFloat(v); return isFinite(v) ? clamp(v, a, b) : d; }
+  function timeout(p, ms) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(function () { reject(new Error("timed out")); }, ms);
+      p.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
+    });
+  }
+  // Decode once, so a file the browser cannot play is found while loading, not on stream.
+  function probe(kind, src) {
+    return timeout(new Promise(function (resolve, reject) {
+      var el = document.createElement(kind === "image" ? "img" : kind === "video" ? "video" : "audio");
+      el.onerror = function () { reject(new Error(kind + " could not be played")); };
+      function ok() {
+        var r = { w: el.videoWidth || el.naturalWidth || 0, h: el.videoHeight || el.naturalHeight || 0, dur: isFinite(el.duration) ? el.duration * 1000 : 0 };
+        if (kind !== "image") { el.removeAttribute("src"); el.load(); }
+        resolve(r);
+      }
+      if (kind === "image") el.onload = ok; else { el.muted = true; el.preload = "auto"; el.onloadeddata = ok; }
+      el.src = src;
+    }), 20000);
+  }
+  // One entry per media file, shared by every design that uses it and kept across applyDesigns calls.
+  function loadMedia(kind, url) {
+    var k = kind + " " + url, m = media[k];
+    loadingKeys[k] = 1;
+    if (m) return m.p;
+    m = media[k] = { src: null };
+    var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 90000);
+    m.p = fetch(url, { credentials: "omit", signal: ctl.signal })
+      .then(function (r) { if (!r.ok) throw new Error(kind + " download failed (" + r.status + ")"); return r.blob(); })
+      .then(function (b) { m.src = URL.createObjectURL(b); if (m.dead) URL.revokeObjectURL(m.src); return probe(kind, m.src); })
+      .then(function (info) { info.src = m.src; info.key = k; return info; })
+      .finally(function () { clearTimeout(timer); });
+    m.p.catch(function () { if (media[k] === m) delete media[k]; if (m.src) URL.revokeObjectURL(m.src); });   // tried again next time
+    return m.p;
+  }
+  // Drop media no design, no load in progress and no card on screen still uses.
+  function sweep() {
+    var keep = {};
+    Object.keys(DESIGNS).forEach(function (t) { DESIGNS[t].keys.forEach(function (k) { keep[k] = 1; }); });
+    Object.keys(loadingKeys).forEach(function (k) { keep[k] = 1; });
+    if (cur && cur.keys) cur.keys.forEach(function (k) { keep[k] = 1; });
+    Object.keys(media).forEach(function (k) { if (keep[k]) return; var m = media[k]; delete media[k]; m.dead = true; if (m.src) URL.revokeObjectURL(m.src); });
+  }
+  function loadFont(f) {
+    var k = f.family + " " + f.url;
+    if (fontFaces[k]) return fontFaces[k];
+    var p = fontFaces[k] = fetch(f.url, { credentials: "omit" })
+      .then(function (r) { if (!r.ok) throw new Error("font download failed"); return r.arrayBuffer(); })
+      .then(function (buf) { return new FontFace(f.family, buf).load(); })
+      .then(function (face) { document.fonts.add(face); });
+    p.catch(function () { delete fontFaces[k]; });
+    return p;
+  }
+  // One stylesheet for every listed family the designs use, then each style actually used is fetched.
+  function googleFonts(used) {
+    var names = Object.keys(used).sort();
+    if (!names.length) return Promise.resolve();
+    var href = "https://fonts.googleapis.com/css2?" + names.map(function (n) {
+      var s = GFONTS[n]; return "family=" + n.replace(/ /g, "+") + (s === 3 ? ":ital,wght@0,400;0,700;1,400;1,700" : s === 1 ? ":wght@400;700" : "");
+    }).join("&") + "&display=swap";
+    var l = gfontLink;
+    if (!l || l.getAttribute("href") !== href) {
+      var old = gfontLink;
+      l = gfontLink = document.createElement("link"); l.rel = "stylesheet";
+      l.ready = timeout(new Promise(function (res, rej) { l.onload = res; l.onerror = function () { rej(new Error("fonts")); }; }), 10000)
+        .then(function () { if (old) old.remove(); });
+      l.href = href; document.head.appendChild(l);
+    }
+    return l.ready.then(function () {
+      return timeout(Promise.all(names.reduce(function (all, n) {
+        return all.concat(Object.keys(used[n]).map(function (s) { return document.fonts.load(s + ' 32px "' + n + '"'); }));
+      }, [])), 10000);
+    }).catch(function () {});
+  }
+  function applyDesigns(designs) {
+    var gen = ++designGen, next = {}, failed = {}, used = {}, jobs = [];
+    loadingKeys = {};
+    designs = designs && typeof designs === "object" ? designs : {};
+    Object.keys(designs).forEach(function (type) {
+      var d = designs[type];
+      if (!ALERTS[type] || !d || typeof d !== "object") return;
+      var main = d.video && d.video.url ? "video" : d.image && d.image.url ? "image" : null;
+      if (!main) { failed[type] = "no video or image"; return; }
+      // A sound plays with an image, or with a video that has no sound of its own.
+      var sound = d.sound && d.sound.url && (main === "image" || !d.video.has_audio) ? String(d.sound.url) : null;
+      (Array.isArray(d.texts) ? d.texts : []).forEach(function (t) {
+        if (!t || !(t.font in GFONTS)) return;
+        (used[t.font] = used[t.font] || {})[(t.italic && GFONTS[t.font] === 3 ? "italic " : "") + (t.weight >= 700 && GFONTS[t.font] ? "700" : "400")] = 1;
+      });
+      (Array.isArray(d.fonts) ? d.fonts : []).forEach(function (f) { if (f && f.family && f.url) jobs.push(loadFont(f).catch(function () {})); });
+      jobs.push(Promise.all([loadMedia(main, String(d[main].url)), sound ? loadMedia("sound", sound) : null]).then(function (r) {
+        next[type] = { d: d, main: main, src: r[0].src, sound: r[1] ? r[1].src : null, keys: [r[0].key].concat(r[1] ? [r[1].key] : []),
+          w: fnum(d[main].width, 0, 0, 8192) || r[0].w || 800, h: fnum(d[main].height, 0, 0, 8192) || r[0].h || 600,
+          dur: r[0].dur || fnum(d[main].duration_ms, 0, 0, 60000) };
+      }, function (e) { failed[type] = (e && e.message) || "could not load"; }));
+    });
+    jobs.push(googleFonts(used));
+    return Promise.all(jobs).then(function () {
+      var out = { ready: Object.keys(next).sort(), failed: failed };
+      if (gen !== designGen) { out.superseded = true; return out; }
+      DESIGNS = next; loadingKeys = {}; sweep();
+      return out;
+    });
+  }
+  function fitStage(el) { el.style.transform = "scale(" + innerWidth / W + "," + innerHeight / H + ")"; }
+  window.addEventListener("resize", function () { if (cur && cur.custom) fitStage(cur.d); });
+  // Template variables, filled as plain text. {name} is what the built-in card shows as the name (merged follows included).
+  function fillTemplate(tpl, type, o, v) {
+    var vals = { name: v.name + (v.hl ? " " + v.hl : ""), amount: o.amount || "$5.00", message: String(o.text || "").slice(0, 220), tier: tierName(o.tier),
+      months: num(o.value, 2).toLocaleString("en-US"), count: num(o.value, 1).toLocaleString("en-US"), bits: num(o.value, 100).toLocaleString("en-US"),
+      viewers: num(o.value, 1).toLocaleString("en-US"), level: num(o.value, 1).toLocaleString("en-US") };
+    var ok = ["name"].concat(VARS[type] || []);
+    return String(tpl == null ? "" : tpl).slice(0, 200).replace(/\{(\w+)\}/g, function (m, k) { return ok.indexOf(k) >= 0 ? vals[k] : m; });
+  }
+  // One text box: placed as fractions of the media box, its size scaled with the media. The whole text is laid out
+  // from the start (the part not typed yet is invisible), so a typewriter entrance never moves or resizes it.
+  function textBox(parent, t, text, w, h, sc) {
+    var b = document.createElement("div"), inner = document.createElement("div"), shown = document.createElement("span"), rest = document.createElement("span");
+    var fit = t.fit !== "none", chars = Array.from(text), size = fnum(t.size, 48, 8, 400) * sc;
+    b.className = "tb" + (fit ? " fit" : "");
+    b.style.left = fnum(t.x, 0, 0, 1) * w + "px"; b.style.top = fnum(t.y, 0, 0, 1) * h + "px";
+    b.style.width = fnum(t.w, 1, 0, 1) * w + "px"; b.style.height = fnum(t.h, 1, 0, 1) * h + "px";
+    b.style.fontFamily = '"' + String(t.font || "Sora").replace(/["\\]/g, "") + '", "Sora", sans-serif';
+    b.style.fontWeight = t.weight >= 700 ? "700" : "400"; b.style.fontStyle = t.italic ? "italic" : "normal";
+    b.style.color = String(t.color || "#ffffff");
+    if (t.shadow) b.style.textShadow = "0 " + 2 * sc + "px " + 8 * sc + "px rgba(0,0,0,.75)";
+    inner.style.textAlign = /^(left|center|right)$/.test(t.align) ? t.align : "center";
+    rest.style.visibility = "hidden";
+    shown.textContent = text; inner.appendChild(shown); inner.appendChild(rest); b.appendChild(inner); parent.appendChild(b);
+    b.style.fontSize = size + "px";
+    function fits() { return inner.scrollWidth <= inner.clientWidth + 1 && inner.offsetHeight <= b.clientHeight + 1; }
+    if (fit && !fits()) {
+      var lo = Math.max(4, size * 0.12), hi = size;
+      for (var i = 0; i < 12; i++) { var m = (lo + hi) / 2; b.style.fontSize = m + "px"; if (fits()) lo = m; else hi = m; }
+      b.style.fontSize = lo + "px";
+    }
+    var appear = fnum(t.appear_ms, 0, 0, 30000), gone = t.disappear_ms == null ? Infinity : fnum(t.disappear_ms, Infinity, 0, 30000);
+    var typeMs = clamp(chars.length * 55, 250, 1500), typed = -1;
+    if (t.entrance === "typewriter") { shown.textContent = ""; rest.textContent = text; typed = 0; }
+    return function (ms) {   // called every frame with the card's clock
+      var on = ms >= appear && ms < gone, e = ms - appear;
+      b.style.visibility = on ? "" : "hidden";
+      if (!on) return;
+      if (t.entrance === "fade") b.style.opacity = String(clamp(e / 400, 0, 1));
+      else if (t.entrance === "typewriter") {
+        var n = Math.min(chars.length, Math.ceil(chars.length * e / typeMs));
+        if (n !== typed) { typed = n; shown.textContent = chars.slice(0, n).join(""); rest.textContent = chars.slice(n).join(""); }
+      }
+    };
+  }
+  // play(), and when the browser refuses sound without a click, play muted instead.
+  function playMedia(p) {
+    var r; try { r = p.play(); } catch (e) { return Promise.reject(e); }
+    return Promise.resolve(r).catch(function (e) {
+      if (!e || e.name !== "NotAllowedError" || p.muted) throw e;
+      p.muted = true; return p.play();
+    });
+  }
+  function showCustom(item, D, v) {
+    var o = item.o, d = D.d, card = { type: item.type, timers: [], custom: true, keys: D.keys, media: [] };
+    cur = card;
+    card.halt = function () {   // silence and freeze; skip, stop and the end of the card all come through here
+      if (card.halted) return; card.halted = true; cancelAnimationFrame(card.raf);
+      card.media.forEach(function (p) { try { p.pause(); } catch (e) {} });
+    };
+    var sc = fnum(d.scale, 1, 0.1, 3), w = D.w * sc, h = D.h * sc, started = false, t0 = 0, vol = fnum(d.volume, 1, 0, 1) * MEDIA_VOL;
+    var root = card.d = add("cus"), box = document.createElement("div"), el;
+    fitStage(root); root.style.opacity = "0";
+    box.className = "box";
+    box.style.cssText = "left:" + (fnum(d.x, 960, 0, W) - w / 2) + "px;top:" + (fnum(d.y, 540, 0, H) - h / 2) + "px;width:" + w + "px;height:" + h + "px";
+    root.appendChild(box);
+    if (D.main === "video") { el = document.createElement("video"); el.playsInline = true; el.preload = "auto"; card.media.push(el); }
+    else el = document.createElement("img");
+    el.src = D.src; box.appendChild(el);
+    if (D.sound) { var snd = new Audio(); snd.preload = "auto"; snd.src = D.sound; card.media.push(snd); }
+    card.media.forEach(function (p) { p.volume = vol; });
+    var boxes = (Array.isArray(d.texts) ? d.texts.slice(0, 4) : []).filter(Boolean).map(function (t) { return textBox(box, t, fillTemplate(t.template, item.type, o, v), w, h, sc); });
+    if (o.test) { var tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "TEST"; box.appendChild(tag); }
+    function clock() { return D.main === "video" ? el.currentTime * 1000 : (now() - t0) * 1000; }
+    function tick() { if (card.halted) return; var ms = clock(); boxes.forEach(function (f) { f(ms); }); card.raf = requestAnimationFrame(tick); }
+    boxes.forEach(function (f) { f(0); });
+    // Anything that goes wrong before the card is on screen shows the built-in card instead.
+    function fail() {
+      if (cur !== card) return;
+      if (started) return done(card);
+      card.timers.forEach(clearTimeout); root.remove(); cur = null; endCustom(card);
+      showCard(item);
+    }
+    function begin() {
+      if (cur !== card || card.halted) return;
+      started = true; t0 = now(); root.style.opacity = "";
+      if (snd) playMedia(snd).catch(function () {});
+      if (D.main === "image") {
+        root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 });
+        card.timers.push(setTimeout(function () { leave(card, 250, 260); }, fnum(d.duration_ms, 6000, 1000, 30000) - 250));
+      } else card.timers.push(setTimeout(function () { if (cur === card) done(card); }, Math.min(35000, (D.dur || 30000) + 4000)));   // a stalled video
+      tick();
+    }
+    el.onerror = fail;
+    if (D.main === "video") { el.onended = function () { if (cur === card) done(card); }; timeout(playMedia(el), 6000).then(begin, fail); }
+    else timeout(el.decode(), 6000).then(begin, fail);
+  }
+  function endCustom(card) {
+    card.halt();
+    card.media.forEach(function (p) { p.onerror = p.onended = null; p.removeAttribute("src"); try { p.load(); } catch (e) {} });
+    sweep();
+  }
 
   var FX = {
     boop: function (o) {
@@ -802,7 +1043,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
         comboEl.textContent = storm ? "BOOP STORM" : "x" + combo;
         comboEl.animate([{ transform: "scale(1.5)" }, { transform: "scale(1)" }], { duration: 200 });
       }
-      say(o, storm ? "Boop (storm!)" : "Boop");
+      say(o, "Boop", storm ? " (storm!)" : "");
     },
     meteor: function (o) { say(o, "Meteor Shower"); SFX.meteor(); meteors(); },
     news: function (o) {
@@ -815,7 +1056,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   };
   Object.keys(ALERTS).forEach(function (type) { FX[type] = alertFx(type); });
   window.AcosmicFX = { mode: MODE, fire: function (name, o) { if (FX[name]) FX[name](o || {}); return !!FX[name]; }, names: Object.keys(FX), alerts: Object.keys(ALERTS),
-    skip: skipAlert, stop: function () { stopAll(); }, stopEffects: function () { stopEffects(); }, clear: clearAlerts, applySettings: applySettings,
+    skip: skipAlert, stop: function () { stopAll(); }, applyDesigns: applyDesigns, stopEffects: function () { stopEffects(); }, clear: clearAlerts, applySettings: applySettings,
     pause: function () { return applySettings({ paused: true }); }, resume: function () { return applySettings({ paused: false }); },
     queue: function () { return { waiting: alertQ.length, playing: cur ? cur.type : null, paused: SET.paused, safe_mode: SET.safe_mode, flood: inFlood(), dropped: dropped }; } };
   // OBS can trigger an effect without Twitch (handy for a Stream Deck key or a test):
@@ -826,8 +1067,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   // ---- Twitch channel points -------------------------------------------------
   // Runs only when config.js (written by tools/twitch-setup.mjs, never committed) sits next to this file.
   // The page listens on Twitch's EventSub WebSocket and keeps its own token fresh; no server involved.
-  // The hosted overlay never reads the Twitch settings: its alerts come from the API.
-  var status = HOSTED ? "off (hosted overlay)" : "not connected to Twitch (no config.js)";
+  // The hosted overlay never reads the Twitch settings or talks to Twitch: once the channel is connected on the
+  // dashboard, the API receives its Twitch events and they arrive through the poll below.
+  var status = HOSTED ? "from the API (hosted overlay)" : "not connected to Twitch (no config.js)";
   function setStatus(s) { status = s; var el = document.getElementById("tw"); if (el) el.textContent = "Twitch: " + s; }
   var CFG = HOSTED ? null : window.ACOSMIC_FX_CONFIG;
   if (CFG && CFG.clientId && !q.get("offline")) twitch(CFG);
@@ -948,7 +1190,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
   function alertFeed(cfg) {
     var CKEY = "acosmic-fx-alert-cursor", STALE = 600, cursor = null, fails = 0, seenIds = [];
     var root = String(cfg.url).replace(/\/+$/, "") + "/api/stream-alerts/";
-    var base = root + "poll?wait=20" + (q.get("test") ? "&sandbox=1" : "");
+    // twitch=1 asks the API for the account's Twitch events as well. Hosted only: the installed copy listens to
+    // Twitch itself (twitch() above) and would show every event twice.
+    var base = root + "poll?wait=20" + (q.get("test") ? "&sandbox=1" : "") + (cfg.hosted ? "&twitch=1" : "");
     function readCursor() { try { cursor = localStorage.getItem(CKEY); } catch (e) {} }
     function req(signal) {
       var o = { headers: { Authorization: "Bearer " + cfg.key }, cache: "no-store", signal: signal };
@@ -974,10 +1218,25 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
           CKEY = "acosmic-fx-alert-cursor" + (typeof j.account_id === "number" ? ":a" + j.account_id : "");
           readCursor();
           if (j.settings) applySettings(j.settings);
-          poll();
+          // Custom alert designs: give their media a little time to load so the first alerts already use them.
+          timeout(applyDesigns(designsOf(j)), 15000).catch(function () {}).then(poll);
         })
         .catch(function (err) { failed(hello, code, err); })
         .finally(function () { clearTimeout(timer); });
+    }
+    function designsOf(j) { var c = j && j.config; return c && c.designs && typeof c.designs === "object" ? c.designs : {}; }
+    // A "config" control (a design was saved or removed on the dashboard): fetch the designs again. Calls that
+    // arrive while one is running are folded into one more fetch after it.
+    var cfgBusy = false, cfgAgain = false, cfgTries = 0;
+    function reloadDesigns() {
+      if (cfgBusy) { cfgAgain = true; return; }
+      cfgBusy = true; cfgAgain = false;
+      var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 15000);
+      fetch(root + "overlay/config", req(ctl.signal))
+        .then(function (r) { return r.json(); })
+        .then(function (j) { clearTimeout(timer); if (!j || !j.success) throw new Error("config"); cfgTries = 0; return applyDesigns(designsOf(j)); })
+        .catch(function () { if (++cfgTries <= 3) setTimeout(reloadDesigns, 5000 * cfgTries); })
+        .finally(function () { clearTimeout(timer); cfgBusy = false; if (cfgAgain) reloadDesigns(); });
     }
     function poll() {
       var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 35000), code = 0;
@@ -994,18 +1253,28 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-famil
             // Something that happened while OBS was closed is not announced late.
             // Controls: skip, clear and stop effects only when fresh, so a stale one never eats a later alert.
             if (a.type === "control") {
+              // Designs are only fetched by the hosted overlay; the installed copy ignores this one. Any age: it is idempotent.
+              if (a.action === "config") { if (cfg.hosted) reloadDesigns(); return; }
               if (Date.now() / 1000 - (a.created || 0) > 30) return;
               if (a.action === "skip") skipAlert(); else if (a.action === "clear") clearAlerts(); else if (a.action === "stop_effects") stopEffects();
               return;
             }
-            // An effect the owner sent from the dashboard: a live action, so only when fresh, and only a real effect.
+            // An effect the owner sent from the dashboard, or a channel point redemption the API received from Twitch
+            // (it carries the reward's title): a live action, so only when fresh, and only a real effect.
             if (a.type === "effect") {
               if (Date.now() / 1000 - (a.created || 0) > 30) return;
-              if (FX[a.effect] && !ALERTS[a.effect]) window.AcosmicFX.fire(a.effect, { user: a.name, text: a.message });
+              var fo = { user: a.name, text: a.message };
+              if (a.reward) fo.reward = String(a.reward).slice(0, 60);
+              if (FX[a.effect] && !ALERTS[a.effect]) window.AcosmicFX.fire(a.effect, fo);
               return;
             }
             if (Date.now() / 1000 - (a.created || 0) > STALE) return;
-            if (ALERTS[a.type]) window.AcosmicFX.fire(a.type, { user: a.name, text: a.message, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox });
+            if (!ALERTS[a.type]) return;
+            // A Twitch event the API received (source "twitch") is fired the way handle() fires the page's own, through
+            // the same queue: pause, Safe Mode, the smallest raid and cheer, follow merging and flood mode all apply.
+            var text = a.message;
+            if (a.source === "twitch" && a.type === "hypetrain" && !text) text = "The hype train is leaving the station!";
+            window.AcosmicFX.fire(a.type, { user: a.name, text: text, amount: a.amount_display, value: a.value, tier: a.tier, test: a.test || a.sandbox });
           });
           setTimeout(poll, 250);
         })
