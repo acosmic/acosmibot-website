@@ -283,6 +283,7 @@ export const AlertEventPage: React.FC<{
 
           <LookForm
             key={variation?.id ?? 'base'}
+            accountId={account.id}
             idPrefix={`stream-${kind}-${variation?.id ?? 'base'}`}
             kind={kind}
             look={look}

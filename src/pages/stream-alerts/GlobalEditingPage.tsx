@@ -81,6 +81,7 @@ export const GlobalEditingPage: React.FC<{
       <div className="stream-box__columns">
         <div className="stream-box__settings">
           <LookForm
+            accountId={account.id}
             idPrefix="stream-defaults"
             kind="follow"
             look={defaults}

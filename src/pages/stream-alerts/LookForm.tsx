@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import type { StreamAlertAnimationNames, StreamAlertAsset, StreamAlertLook, StreamAlertType } from '@/api/streamAlerts';
 import { fontCss, formatLength, insertAtCursor, MAX_TEMPLATE_LENGTH, templateProblem, uploadedFontFamily, variableLabel } from '@/utils/streamAlertDesigns';
 import { hasMessage, LAYOUTS, nameLabel, STYLES } from '@/utils/streamAlertBox';
+import { QuickUpload } from './assetUpload';
 import { CustomDesignEditor } from './CustomDesignEditor';
 import { FieldError } from './TextBoxProperties';
 
@@ -30,6 +31,7 @@ export const SettingsCard: React.FC<{ title: string; about?: string; children: R
  * "Apply to all alerts" can copy.
  */
 export const LookForm: React.FC<{
+  accountId: number;
   idPrefix: string;
   kind: StreamAlertType;
   look: StreamAlertLook;
@@ -44,7 +46,7 @@ export const LookForm: React.FC<{
   /** The problem for a field of this look ("template", "font.family", "custom.texts.0.template"), or null. */
   problem: (field: string) => string | null;
   focusText?: number | null;
-}> = ({ idPrefix, kind, look, onChange, mode, assets, assetsLoading, fonts, variables, names, values, problem, focusText }) => {
+}> = ({ accountId, idPrefix, kind, look, onChange, mode, assets, assetsLoading, fonts, variables, names, values, problem, focusText }) => {
   const templateInput = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<StreamAlertLook>) => onChange({ ...look, ...patch });
   const id = (field: string) => fieldId(idPrefix, field);
@@ -152,6 +154,7 @@ export const LookForm: React.FC<{
       {look.style === 'custom' && !defaults && (
         <SettingsCard title="Custom design" id={id('custom-title')} about="Drag the media and the text boxes on the screen. The text fills in with the sample values beside the preview.">
           <CustomDesignEditor
+            accountId={accountId}
             kind={kind}
             design={look.custom}
             onChange={(custom) => set({ custom })}
@@ -208,11 +211,13 @@ export const LookForm: React.FC<{
                     </optgroup>
                   )}
                 </select>
-                {!assetsLoading && videos.length + pictures.length === 0 && (
-                  <small className="stream-props__hint">Upload a video or picture in the Media library to use it here.</small>
-                )}
                 <FieldError id={id(look.media.video !== null ? 'media.video' : 'media.image')} text={problem('media.video') ?? problem('media.image')} />
               </label>
+            )}
+            {!defaults && !assetsLoading && (
+              <div className="is-wide">
+                <QuickUpload accountId={accountId} assets={assets} purpose="media" onReady={(asset) => pickMedia(String(asset.id))} />
+              </div>
             )}
             {slider('size', 'Size', 10, 200, 5)}
             {isVideo && slider('volume', 'Video volume', 0, 100, 5)}
@@ -332,6 +337,11 @@ export const LookForm: React.FC<{
                 </select>
                 <FieldError id={id('sound')} text={problem('sound')} />
               </label>
+              {!assetsLoading && (
+                <div className="is-wide">
+                  <QuickUpload accountId={accountId} assets={assets} purpose="sound" onReady={(asset) => set({ sound: asset.id })} />
+                </div>
+              )}
             </div>
           )}
           {slider('sound_volume', 'Sound volume', 0, 100, 5)}
@@ -377,6 +387,11 @@ export const LookForm: React.FC<{
               </select>
               <FieldError id={id('font.family')} text={problem('font.family')} />
             </label>
+            {!assetsLoading && (
+              <div className="is-wide">
+                <QuickUpload accountId={accountId} assets={assets} purpose="font" onReady={(asset) => set({ font: { ...look.font, family: `asset:${asset.id}` } })} />
+              </div>
+            )}
             <label className="stream-props__field">
               <span>Size (px)</span>
               <input

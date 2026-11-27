@@ -10,6 +10,7 @@ import {
 } from '@/utils/streamAlertDesigns';
 import { DesignStage, BOX_COLOURS } from './DesignStage';
 import { FieldError, TextBoxProperties } from './TextBoxProperties';
+import { QuickUpload } from './assetUpload';
 import { useDesignFonts } from './designFonts';
 import './StreamAlertDesigns.css';
 
@@ -23,6 +24,7 @@ const TEXT_FIELDS = ['template', 'font', 'size', 'color', 'appear_ms', 'disappea
  * only edits it.
  */
 export const CustomDesignEditor: React.FC<{
+  accountId: number;
   kind: StreamAlertType;
   design: StreamAlertDesign | null;
   onChange: (next: StreamAlertDesign | null) => void;
@@ -36,7 +38,7 @@ export const CustomDesignEditor: React.FC<{
   problem: (field: string) => string | null;
   /** A text box the page wants opened, such as the one a refused save is about. */
   focusText?: number | null;
-}> = ({ kind, design, onChange, assets, assetsLoading, fonts, variables, values, problem, focusText }) => {
+}> = ({ accountId, kind, design, onChange, assets, assetsLoading, fonts, variables, values, problem, focusText }) => {
   const [selected, setSelected] = useState<number | null>(design && design.texts.length > 0 ? 0 : null);
   const [time, setTime] = useState(0);
   const [startWith, setStartWith] = useState('');
@@ -73,7 +75,7 @@ export const CustomDesignEditor: React.FC<{
         <p><strong>No custom design yet.</strong></p>
         {readyMedia.length === 0 ? (
           <p className="stream-accounts__empty">
-            {assetsLoading ? 'Loading the media library…' : 'To make a custom design, upload a video or a picture in the Media library first.'}
+            {assetsLoading ? 'Loading the media library…' : 'Upload a video or a picture to start. The design opens with it when it is ready.'}
           </p>
         ) : (
           <div className="stream-designs__start">
@@ -95,6 +97,9 @@ export const CustomDesignEditor: React.FC<{
               Make a custom design
             </button>
           </div>
+        )}
+        {!assetsLoading && (
+          <QuickUpload accountId={accountId} assets={assets} purpose="media" onReady={(asset) => { onChange(newDesign(kind, asset)); setSelected(0); }} />
         )}
         <FieldError id="stream-design-missing" text={problem('')} />
       </div>
@@ -128,46 +133,54 @@ export const CustomDesignEditor: React.FC<{
   return (
     <div className="stream-designs stream-designs__panel">
       <div className="stream-designs__media">
-        <label className="stream-props__field">
-          <span>Video or picture</span>
-          <select
-            className="form-control"
-            value={mediaId === null ? '' : String(mediaId)}
-            aria-invalid={Boolean(problem('video') || problem('image'))}
-            onChange={(event) => pickMedia(event.target.value)}
-          >
-            {mediaId === null && <option value="">Pick one</option>}
-            {mediaId !== null && !mediaReady && <option value={String(mediaId)}>{media?.original_name ?? 'A file that is gone'} (not ready)</option>}
-            {readyMedia.some((asset) => asset.kind === 'video') && (
-              <optgroup label="Videos">
-                {readyMedia.filter((asset) => asset.kind === 'video').map((asset) => (
-                  <option key={asset.id} value={asset.id}>{asset.original_name} ({formatLength(asset.duration_ms)})</option>
-                ))}
-              </optgroup>
-            )}
-            {readyMedia.some((asset) => asset.kind === 'image') && (
-              <optgroup label="Pictures">
-                {readyMedia.filter((asset) => asset.kind === 'image').map((asset) => <option key={asset.id} value={asset.id}>{asset.original_name}</option>)}
-              </optgroup>
-            )}
-          </select>
-          <FieldError id="stream-design-video" text={problem('video') ?? problem('image')} />
-        </label>
-        <label className="stream-props__field">
-          <span>Extra sound</span>
-          <select
-            className="form-control"
-            value={design.sound === null ? '' : String(design.sound)}
-            disabled={Boolean(media?.kind === 'video' && media.has_audio)}
-            aria-invalid={Boolean(problem('sound'))}
-            onChange={(event) => change({ ...design, sound: event.target.value ? Number(event.target.value) : null })}
-          >
-            <option value="">None</option>
-            {readySounds.map((asset) => <option key={asset.id} value={asset.id}>{asset.original_name}</option>)}
-          </select>
-          {media?.kind === 'video' && media.has_audio && <small className="stream-props__hint">This video has its own sound, so it plays that.</small>}
-          <FieldError id="stream-design-sound" text={problem('sound')} />
-        </label>
+        <div className="stream-designs__pick">
+          <label className="stream-props__field">
+            <span>Video or picture</span>
+            <select
+              className="form-control"
+              value={mediaId === null ? '' : String(mediaId)}
+              aria-invalid={Boolean(problem('video') || problem('image'))}
+              onChange={(event) => pickMedia(event.target.value)}
+            >
+              {mediaId === null && <option value="">Pick one</option>}
+              {mediaId !== null && !mediaReady && <option value={String(mediaId)}>{media?.original_name ?? 'A file that is gone'} (not ready)</option>}
+              {readyMedia.some((asset) => asset.kind === 'video') && (
+                <optgroup label="Videos">
+                  {readyMedia.filter((asset) => asset.kind === 'video').map((asset) => (
+                    <option key={asset.id} value={asset.id}>{asset.original_name} ({formatLength(asset.duration_ms)})</option>
+                  ))}
+                </optgroup>
+              )}
+              {readyMedia.some((asset) => asset.kind === 'image') && (
+                <optgroup label="Pictures">
+                  {readyMedia.filter((asset) => asset.kind === 'image').map((asset) => <option key={asset.id} value={asset.id}>{asset.original_name}</option>)}
+                </optgroup>
+              )}
+            </select>
+            <FieldError id="stream-design-video" text={problem('video') ?? problem('image')} />
+          </label>
+          <QuickUpload accountId={accountId} assets={assets} purpose="media" onReady={(asset) => pickMedia(String(asset.id))} />
+        </div>
+        <div className="stream-designs__pick">
+          <label className="stream-props__field">
+            <span>Extra sound</span>
+            <select
+              className="form-control"
+              value={design.sound === null ? '' : String(design.sound)}
+              disabled={Boolean(media?.kind === 'video' && media.has_audio)}
+              aria-invalid={Boolean(problem('sound'))}
+              onChange={(event) => change({ ...design, sound: event.target.value ? Number(event.target.value) : null })}
+            >
+              <option value="">None</option>
+              {readySounds.map((asset) => <option key={asset.id} value={asset.id}>{asset.original_name}</option>)}
+            </select>
+            {media?.kind === 'video' && media.has_audio && <small className="stream-props__hint">This video has its own sound, so it plays that.</small>}
+            <FieldError id="stream-design-sound" text={problem('sound')} />
+          </label>
+          {!(media?.kind === 'video' && media.has_audio) && (
+            <QuickUpload accountId={accountId} assets={assets} purpose="sound" onReady={(asset) => change({ ...design, sound: asset.id })} />
+          )}
+        </div>
         {design.video === null && (
           <label className="stream-props__field">
             <span>Shows for (seconds)</span>

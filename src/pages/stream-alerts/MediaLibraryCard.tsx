@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '@/api/client';
 import { streamAlertsApi, StreamAlertAccount, StreamAlertAsset, StreamAlertAssets } from '@/api/streamAlerts';
 import { PageNotice, plainError } from '@/utils/streamAlertAccounts';
 import { alertsQueryKey } from '@/utils/streamAlertBox';
@@ -11,24 +10,18 @@ import {
   assetStatusText,
   assetsWaiting,
   backgroundText,
-  canRemoveBlack,
   designsQueryKey,
   formatBytes,
   formatLength,
   inUseText,
-  MAX_UPLOAD_BYTES,
   UPLOAD_ACCEPT,
   uploadedFontFamily,
 } from '@/utils/streamAlertDesigns';
+import { useAssetUpload } from './assetUpload';
 import { useDesignFonts } from './designFonts';
 import './StreamAlertDesigns.css';
 
 const POLL_MS = 3_000;
-
-type Upload =
-  | { phase: 'sending'; name: string; fraction: number }
-  | { phase: 'done'; name: string }
-  | { phase: 'error'; name: string; text: string };
 
 /** The library list, read again every few seconds while something is still converting. */
 export function useAssets(accountId: number) {
@@ -158,19 +151,13 @@ const AssetRow: React.FC<{ accountId: number; asset: StreamAlertAsset }> = ({ ac
 export const MediaLibraryCard: React.FC<{ account: StreamAlertAccount }> = ({ account }) => {
   const queryClient = useQueryClient();
   const accountId = account.id;
-  const assetsKey = assetsQueryKey(accountId);
   const designsKey = designsQueryKey(accountId);
   const list = useAssets(accountId);
   const [removeBlack, setRemoveBlack] = useState(false);
-  const [upload, setUpload] = useState<Upload | null>(null);
+  const { upload, sending, send: sendFile } = useAssetUpload(accountId);
   const [dragging, setDragging] = useState(false);
   const [notice, setNotice] = useState<PageNotice | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; };
-  }, []);
 
   const assets = list.data?.assets ?? [];
   const quota = list.data?.quota;
@@ -186,7 +173,6 @@ export const MediaLibraryCard: React.FC<{ account: StreamAlertAccount }> = ({ ac
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readyKey]);
 
-  const sending = upload?.phase === 'sending';
   const owner = account.role === 'owner' ? 'your' : `${account.owner_username.trim() || 'the owner'}'s`;
 
   const send = async (files: FileList | File[] | null) => {
@@ -194,28 +180,8 @@ export const MediaLibraryCard: React.FC<{ account: StreamAlertAccount }> = ({ ac
     if (picked.length === 0 || sending) return;
     const file = picked[0];
     setNotice(picked.length > 1 ? { tone: 'note', text: `One file at a time, so only ${file.name} is being uploaded.` } : null);
-    if (file.size > MAX_UPLOAD_BYTES) {
-      setUpload({ phase: 'error', name: file.name, text: 'That file is larger than 64 MB' });
-      return;
-    }
-    setUpload({ phase: 'sending', name: file.name, fraction: 0 });
-    try {
-      const result = await streamAlertsApi.uploadAsset(accountId, file, removeBlack && canRemoveBlack(file), {
-        onProgress: (fraction) => { if (mounted.current) setUpload({ phase: 'sending', name: file.name, fraction }); },
-      });
-      queryClient.setQueryData<StreamAlertAssets>(assetsKey, (old) => (
-        old && result.asset ? { ...old, assets: [result.asset, ...old.assets.filter((item) => item.id !== result.asset.id)] } : old
-      ));
-      if (mounted.current) setUpload({ phase: 'done', name: file.name });
-    } catch (error) {
-      if (!mounted.current) return;
-      let text = plainError(error);
-      if (error instanceof ApiError && error.status === 503) text = 'Uploads are not available right now. Try again later.';
-      setUpload({ phase: 'error', name: file.name, text });
-    } finally {
-      if (fileInput.current) fileInput.current.value = '';
-      queryClient.invalidateQueries({ queryKey: assetsKey });
-    }
+    await sendFile(file, removeBlack);
+    if (fileInput.current) fileInput.current.value = '';
   };
 
   const hasBackground = assets.some((asset) => asset.status === 'ready' && asset.kind === 'video' && !asset.has_alpha);

@@ -542,6 +542,7 @@ test('the Twitch and rewards cards keep touch targets, focus rings and narrow sc
 /* ---- Media library and alert designs ---- */
 
 const mediaCard = read('src/pages/stream-alerts/MediaLibraryCard.tsx');
+const assetUpload = read('src/pages/stream-alerts/assetUpload.tsx');
 const designsCard = read('src/pages/stream-alerts/CustomDesignEditor.tsx');
 const stage = read('src/pages/stream-alerts/DesignStage.tsx');
 const props = read('src/pages/stream-alerts/TextBoxProperties.tsx');
@@ -598,10 +599,11 @@ test('editors get the media library and every alert page too, keyed to the accou
 test('the media library polls every 3 seconds only while a file is converting', () => {
   assert.match(mediaCard, /const POLL_MS = 3_000;/);
   assert.match(mediaCard, /refetchInterval: \(query\) => \(assetsWaiting\(query\.state\.data\?\.assets\) \? POLL_MS : false\)/);
-  assert.match(mediaCard, /streamAlertsApi\.uploadAsset\(accountId, file, removeBlack && canRemoveBlack\(file\), \{\s*onProgress:/);
+  assert.match(assetUpload, /streamAlertsApi\.uploadAsset\(accountId, file, removeBlack && canRemoveBlack\(file\), \{\s*onProgress:/);
+  assert.match(mediaCard, /useAssetUpload\(accountId\)/);
   assert.match(mediaCard, /<progress max=\{100\}/);
   assert.match(mediaCard, /onDrop=\{\(event\) => \{ event\.preventDefault\(\); setDragging\(false\); send\(event\.dataTransfer\.files\); \}\}/);
-  assert.match(mediaCard, /if \(file\.size > MAX_UPLOAD_BYTES\)/);
+  assert.match(assetUpload, /if \(file\.size > MAX_UPLOAD_BYTES\)/);
   for (const text of ['Remove black background (videos and pictures)', 'It can also eat very dark parts of the picture.',
     'export it from After Effects as QuickTime, Apple ProRes 4444, RGB + Alpha', 'Yes, delete', 'Cancel']) {
     assert.ok(mediaCard.includes(text), text);
@@ -612,6 +614,29 @@ test('the media library polls every 3 seconds only while a file is converting', 
   assert.match(confirm, /onClick=\{\(\) => remove\.mutate\(\)\}/);
   assert.match(confirm, /\{refusal && <p className="stream-accounts__notice is-error" role="alert">\{refusal\}<\/p>\}/);
   assert.equal(mediaCard.match(/remove\.mutate\(/g)?.length, 1);
+});
+
+test('alert pages upload straight into the alert: media, sound and font, picked once the file is ready', () => {
+  assert.ok(!designsCard.includes('in the Media library first'));
+  assert.ok(!lookForm.includes('in the Media library to use it here'));
+  // Custom: no design yet starts one from the upload; an existing design swaps its media or extra sound.
+  assert.match(designsCard, /<QuickUpload accountId=\{accountId\} assets=\{assets\} purpose="media" onReady=\{\(asset\) => \{ onChange\(newDesign\(kind, asset\)\); setSelected\(0\); \}\} \/>/);
+  assert.match(designsCard, /purpose="media" onReady=\{\(asset\) => pickMedia\(String\(asset\.id\)\)\}/);
+  assert.match(designsCard, /purpose="sound" onReady=\{\(asset\) => change\(\{ \.\.\.design, sound: asset\.id \}\)\}/);
+  // Preset: media, sound and font.
+  assert.match(lookForm, /purpose="media" onReady=\{\(asset\) => pickMedia\(String\(asset\.id\)\)\}/);
+  assert.match(lookForm, /purpose="sound" onReady=\{\(asset\) => set\(\{ sound: asset\.id \}\)\}/);
+  assert.match(lookForm, /purpose="font" onReady=\{\(asset\) => set\(\{ font: \{ \.\.\.look\.font, family: `asset:\$\{asset\.id\}` \} \}\)\}/);
+  // The upload buttons never sit inside a <label> (a button in a label is not allowed).
+  for (const source of [designsCard, lookForm]) {
+    for (const label of source.split('<label').slice(1)) assert.ok(!label.slice(0, label.indexOf('</label>')).includes('<QuickUpload'));
+  }
+  // It waits for the library to show the file ready, uses it only when it is the right kind, and says so.
+  assert.match(assetUpload, /asset\.status === 'ready' && asset\.url/);
+  assert.match(assetUpload, /if \(about\.kinds\.includes\(asset\.kind\)\) \{\s*latestOnReady\.current\(asset\);/);
+  assert.ok(assetUpload.includes('is ready and picked here. Save settings to keep it.'));
+  assert.ok(assetUpload.includes('so it is in the Media library but not used here.'));
+  assert.ok(assetUpload.includes('It is also saved in your Media library.'));
 });
 
 test('each alert page has Enabled, the three styles, Save settings, Discard, Preview and Send to OBS; Custom shows the designer', () => {
