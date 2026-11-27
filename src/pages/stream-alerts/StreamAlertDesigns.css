@@ -151,3 +151,12 @@
   .stream-designs__actions button { flex: 1 1 140px; white-space: normal; }
   .stream-accounts .stream-designs__tabs button { flex: 1 1 96px; min-width: 0; }
 }
+
+/* Upload button inside an alert's settings (assetUpload.tsx). */
+.stream-quick-upload { display: grid; gap: 6px; margin-top: 8px; padding: 8px; border: 2px dashed transparent; border-radius: 10px; }
+.stream-quick-upload.is-over { border-color: var(--primary-color); background: rgba(97, 218, 241, 0.06); }
+.stream-quick-upload__row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.stream-quick-upload__row > button { min-height: 44px; }
+.stream-quick-upload .stream-media__spinner { vertical-align: -1px; margin-right: 6px; }
+.stream-designs__pick { display: grid; flex: 1 1 260px; max-width: 420px; }
+.stream-designs__media .stream-designs__pick .stream-props__field { max-width: none; }
